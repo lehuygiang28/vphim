@@ -78,6 +78,7 @@ jobs:
                   echo "# .env created" >> ./apps/api/.env
                   echo "# .env created" >> ./containers/be-with-redis/.env
                   echo "# .env created" >> ./containers/be-redis-pm2/.env
+                  echo "# .env created" >> ./containers/be-redis-es/.env
                   cat .env
 
             - name: Prepare env for fe and mnt
