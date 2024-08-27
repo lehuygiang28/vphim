@@ -44,3 +44,14 @@ Thumbs.db
 # Next.js
 .next
 out
+
+# package manager
+.yarn/*
+.yarn/install-state.gz
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+.env*
+!.env.example
