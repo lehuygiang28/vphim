@@ -244,4 +244,18 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
         const documents = await this.model.aggregate(pipeline, options);
         return documents as unknown as TDocument[];
     }
+
+    async insertMany(
+        documents: Array<Omit<TDocument, '_id'> & { _id?: Types.ObjectId }>,
+        session?: ClientSession,
+    ): Promise<TDocument[]> {
+        const insertedDocuments = await this.model.insertMany(
+            documents.map((doc) => ({
+                ...doc,
+                _id: doc?._id ?? new Types.ObjectId(),
+            })),
+            session ? { session } : null,
+        );
+        return insertedDocuments.map((doc) => doc.toJSON()) as unknown as TDocument[];
+    }
 }
