@@ -20,8 +20,8 @@ export class RegionCrawler implements OnModuleInit, OnModuleDestroy {
         private readonly configService: ConfigService,
         private readonly schedulerRegistry: SchedulerRegistry,
     ) {
-        if (!isNullOrUndefined(configService.get('REGIONS_CRON'))) {
-            this.REGIONS_CRON = configService.getOrThrow<string>('REGIONS_CRON');
+        if (!isNullOrUndefined(this.configService.get('REGIONS_CRON'))) {
+            this.REGIONS_CRON = this.configService.getOrThrow<string>('REGIONS_CRON');
         }
 
         this.ophim = new Ophim({
@@ -40,13 +40,18 @@ export class RegionCrawler implements OnModuleInit, OnModuleDestroy {
     }
 
     async crawRegion() {
-        this.logger.log('crawling regions ...');
+        this.logger.log('Crawling regions ...');
         return this.crawl();
     }
 
     async crawl() {
         const regions = await this.ophim.getRegions();
         const fetchedRegions = regions?.data.items ?? [];
+
+        if (fetchedRegions?.length === 0) {
+            this.logger.error('Get regions failed');
+            return;
+        }
 
         // Fetch existing slugs from the database
         const existingSlugs = (
@@ -57,18 +62,21 @@ export class RegionCrawler implements OnModuleInit, OnModuleDestroy {
         ).map((region) => region.slug);
 
         // Filter new regions based on slug
-        const newRegions = fetchedRegions.filter(
-            (region: OPhimRegion) => !existingSlugs.includes(region.slug),
-        );
+        // Then map them to the format required by the database
+        const newRegions: Region[] = fetchedRegions
+            .filter((region: OPhimRegion) => !existingSlugs.includes(region.slug))
+            .map((region: OPhimRegion) => ({
+                _id: region?._id ? new Types.ObjectId(region._id) : null,
+                name: region.name,
+                slug: region.slug,
+            }));
 
-        // Map and insert new regions only
-        const mappedRegions: Region[] = newRegions.map((region: OPhimRegion) => ({
-            _id: region?._id ? new Types.ObjectId(region._id) : null,
-            name: region.name,
-            slug: region.slug,
-        }));
+        if (newRegions?.length === 0) {
+            this.logger.log('No new regions found');
+            return;
+        }
 
-        const res = await this.regionsRepo.insertMany(mappedRegions);
+        const res = await this.regionsRepo.insertMany(newRegions);
         this.logger.log(`Inserted ${res.length} new regions`);
     }
 }
