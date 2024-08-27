@@ -12,6 +12,7 @@ import { AuthModule } from './auth';
 import { UsersModule } from './users';
 import appConfig from './config/app-config';
 import { RegionsModule } from './regions';
+import { CategoryModule } from './categories';
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import { RegionsModule } from './regions';
             inject: [RedisService],
         }),
         RegionsModule,
+        CategoryModule,
     ],
     controllers: [AppController],
     providers: [AppService],
