@@ -11,6 +11,7 @@ import { MongodbModule } from '../libs/modules/mongodb';
 import { AuthModule } from './auth';
 import { UsersModule } from './users';
 import appConfig from './config/app-config';
+import { RegionsModule } from './regions';
 
 @Module({
     imports: [
@@ -34,6 +35,7 @@ import appConfig from './config/app-config';
             }),
             inject: [RedisService],
         }),
+        RegionsModule,
     ],
     controllers: [AppController],
     providers: [AppService],
