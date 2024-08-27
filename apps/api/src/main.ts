@@ -1,4 +1,5 @@
-import { NestFactory } from '@nestjs/core';
+import { ClassSerializerInterceptor } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import {
     DocumentBuilder,
@@ -13,6 +14,8 @@ import * as swaggerStats from 'swagger-stats';
 
 import { AppModule } from './app/app.module';
 import { ProblemDetails } from './libs/dtos';
+import { ProblemDetailsFilter } from './libs/filters';
+import { ResolvePromisesInterceptor } from './libs/interceptors';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -24,6 +27,14 @@ async function bootstrap() {
 
     app.use(helmet());
     app.enableShutdownHooks();
+
+    app.useGlobalFilters(new ProblemDetailsFilter(logger));
+    app.useGlobalInterceptors(
+        // ResolvePromisesInterceptor is used to resolve promises in responses because class-transformer can't do it
+        // https://github.com/typestack/class-transformer/issues/549
+        new ResolvePromisesInterceptor(),
+        new ClassSerializerInterceptor(app.get(Reflector)),
+    );
 
     const globalPrefix = 'api';
     app.setGlobalPrefix(globalPrefix);
