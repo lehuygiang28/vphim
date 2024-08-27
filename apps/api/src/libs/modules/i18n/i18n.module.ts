@@ -19,7 +19,10 @@ import { AllConfig } from '../../../app/config';
                     path: join(__dirname, './assets/i18n/lang/'),
                     watch: true,
                 },
-                typesOutputPath: join(process.cwd(), `./apps/be/common/src/i18n/i18n.generated.ts`),
+                typesOutputPath: join(
+                    process.cwd(),
+                    `./apps/api/common/src/i18n/i18n.generated.ts`,
+                ),
             }),
             resolvers: [
                 new HeaderResolver(['x-lang', 'x-language', 'language']),

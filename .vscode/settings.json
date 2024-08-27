@@ -1,3 +1,4 @@
 {
-    "cSpell.words": ["customfav", "Passwordless", "Pwdless", "vphim"]
+    "cSpell.words": ["customfav", "Passwordless", "Pwdless", "vphim"],
+    "conventionalCommits.scopes": ["be/i18n"]
 }
