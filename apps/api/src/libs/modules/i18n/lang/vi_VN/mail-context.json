@@ -1,0 +1,42 @@
+{
+    "RESET_PASSWORD": {
+        "title": "Đặt lại mật khẩu",
+        "text1": "Nếu bạn đã quên mật khẩu hoặc muốn đặt lại nó, chỉ cần nhấn nút bên dưới và làm theo hướng dẫn. Chúng tôi sẽ giúp bạn hoạt động trong thời gian ngắn.",
+        "text2": "Hoặc bạn có thể sao chép liên kết dưới đây và dán vào trình duyệt của bạn để bắt đầu:",
+        "text3": "Nếu bạn không yêu cầu điều này thì vui lòng bỏ qua email này.",
+        "btn1": "Đặt lại mật khẩu"
+    },
+    "CONFIRM_EMAIL": {
+        "title": "Xác nhận email",
+        "text1": "Bạn sắp sửa sẵn sàng để bắt đầu tận hưởng dịch vụ của chúng tôi. Chỉ cần nhấn nút bên dưới để xác nhận địa chỉ email của bạn.",
+        "text2": "Hoặc bạn có thể sao chép liên kết dưới đây và dán vào trình duyệt của bạn để bắt đầu:",
+        "text3": "Nếu bạn không yêu cầu điều này thì vui lòng bỏ qua email này.",
+        "btn1": "Xác nhận email"
+    },
+    "RESEND_CONFIRM_EMAIL": {
+        "title": "Xác nhận email",
+        "text1": "Có vẻ như bạn chưa xác nhận địa chỉ email của mình. Chỉ cần nhấn nút bên dưới để xác nhận địa chỉ email của bạn.",
+        "text2": "Hoặc bạn có thể sao chép liên kết dưới đây và dán vào trình duyệt của bạn để bắt đầu:",
+        "text3": "Nếu bạn không yêu cầu điều này thì vui lòng bỏ qua email này.",
+        "btn1": "Xác nhận email"
+    },
+    "LOGIN_EMAIL": {
+        "title": "Đăng nhập vào tài khoản của bạn",
+        "text1": "Bạn đã yêu cầu đăng nhập vào tài khoản của mình. Vui lòng nhấn nút bên dưới để tiếp tục.",
+        "text2": "Hoặc bạn có thể sao chép liên kết dưới đây và dán vào trình duyệt của bạn để bắt đầu:",
+        "text3": "Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.",
+        "btn1": "Đăng nhập"
+    },
+    "STOP_TASK": {
+        "title": "Task của bạn đã bị dừng",
+        "text1": "Task của bạn đã bị dừng do xảy ra lỗi.",
+        "text2": "Task của bạn đã bị hệ thống dừng lại do xảy ra nhiều nhiều lỗi.",
+        "btn1": "Xem Task"
+    },
+    "FAILED_TASK": {
+        "title": "Task của bạn đã thất bại",
+        "text1": "Việc thực hiện task của bạn đã thất bại do gặp sự cố.",
+        "text2": "Hãy xem chi tiết task để biết điều gì đã xảy ra.",
+        "btn1": "Xem task"
+    }
+}

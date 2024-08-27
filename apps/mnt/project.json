@@ -1,0 +1,9 @@
+{
+    "name": "mnt",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/mnt",
+    "projectType": "application",
+    "tags": [],
+    "// targets": "to see all targets run: nx show project mnt --web",
+    "targets": {}
+}
