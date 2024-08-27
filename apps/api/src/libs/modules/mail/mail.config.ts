@@ -85,7 +85,12 @@ export class MailerConfig implements MailerOptionsFactory {
                 from: this.DEFAULT_SENDER,
             },
             template: {
-                dir: join(__dirname, `assets/mail/templates`),
+                dir: join(
+                    __dirname,
+                    this.configService.getOrThrow('app.isDebug', { infer: true })
+                        ? `templates`
+                        : `assets/mail/templates`,
+                ),
                 adapter: new HandlebarsAdapter(),
                 options: {
                     strict: true,

@@ -16,13 +16,17 @@ import { AllConfig } from '../../../app/config';
             useFactory: (configService: ConfigService<AllConfig>) => ({
                 fallbackLanguage: configService.getOrThrow('app.fallbackLanguage', { infer: true }),
                 loaderOptions: {
-                    path: join(__dirname, './assets/i18n/lang/'),
+                    path: join(
+                        __dirname,
+                        configService.getOrThrow('app.isDebug', { infer: true })
+                            ? './lang/'
+                            : './assets/i18n/lang/',
+                    ),
                     watch: true,
                 },
-                typesOutputPath: join(
-                    process.cwd(),
-                    `./apps/api/common/src/i18n/i18n.generated.ts`,
-                ),
+                typesOutputPath: configService.getOrThrow('app.isDebug', { infer: true })
+                    ? undefined
+                    : join(process.cwd(), `./apps/api/common/src/i18n/i18n.generated.ts`),
             }),
             resolvers: [
                 new HeaderResolver(['x-lang', 'x-language', 'language']),

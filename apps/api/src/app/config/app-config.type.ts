@@ -1,4 +1,5 @@
 export type AppConfig = {
+    isDebug: boolean;
     globalPrefix: string;
     feDomain: string;
     port: number;

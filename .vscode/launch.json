@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "vphim-api",
+            "type": "node",
+            "request": "launch",
+            "args": ["apps/api/src/main.ts"],
+            "runtimeArgs": [
+                "--require",
+                "ts-node/register",
+                "--require",
+                "tsconfig-paths/register",
+                "--require",
+                "ts-node/register/transpile-only",
+                "--nolazy"
+            ],
+            "cwd": "${workspaceRoot}",
+            "internalConsoleOptions": "openOnSessionStart",
+            "env": {
+                "TS_NODE_PROJECT": "apps/api/tsconfig.app.json",
+                "IS_DEBUG": "true"
+            },
+            "envFile": "${workspaceFolder}/apps/api/.env",
+            "sourceMaps": true,
+            "console": "internalConsole",
+            "outputCapture": "std",
+            "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
+        }
+    ]
+}

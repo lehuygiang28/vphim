@@ -36,6 +36,9 @@ class EnvironmentVariablesValidator {
     @ValidateIf((o: EnvironmentVariablesValidator) => !!o?.API_STATS_PATH)
     @IsString()
     API_STATS_PASSWORD: string;
+
+    @IsOptional()
+    IS_DEBUG: string;
 }
 
 export default registerAs<AppConfig>('app', () => {
@@ -55,5 +58,6 @@ export default registerAs<AppConfig>('app', () => {
             : '',
         apiStatsUsername: process.env?.API_STATS_USERNAME,
         apiStatsPassword: process.env?.API_STATS_PASSWORD,
+        isDebug: process.env?.IS_DEBUG === 'true',
     } satisfies AppConfig;
 });
