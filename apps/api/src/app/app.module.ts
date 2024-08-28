@@ -13,6 +13,7 @@ import { UsersModule } from './users';
 import appConfig from './config/app-config';
 import { RegionsModule } from './regions';
 import { CategoryModule } from './categories';
+import { MovieModule } from './movies';
 
 @Module({
     imports: [
@@ -38,6 +39,7 @@ import { CategoryModule } from './categories';
         }),
         RegionsModule,
         CategoryModule,
+        MovieModule,
     ],
     controllers: [AppController],
     providers: [AppService],
