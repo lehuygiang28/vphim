@@ -5,15 +5,17 @@ import { BullModule } from '@nestjs/bullmq';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-import { RedisModule, RedisService } from '../libs/modules/redis';
-import { PinoModule } from '../libs/modules/pino';
-import { MongodbModule } from '../libs/modules/mongodb';
-import { AuthModule } from './auth';
-import { UsersModule } from './users';
 import appConfig from './config/app-config';
-import { RegionsModule } from './regions';
+import { RedisModule, RedisService } from '../libs/modules/redis';
+import { MongodbModule } from '../libs/modules/mongodb';
+import { PinoModule } from '../libs/modules/pino';
+import { ActorModule } from './actors';
+import { AuthModule } from './auth';
 import { CategoryModule } from './categories';
+import { DirectorModule } from './directors';
 import { MovieModule } from './movies';
+import { RegionsModule } from './regions';
+import { UsersModule } from './users';
 
 @Module({
     imports: [
@@ -40,6 +42,8 @@ import { MovieModule } from './movies';
         RegionsModule,
         CategoryModule,
         MovieModule,
+        ActorModule,
+        DirectorModule,
     ],
     controllers: [AppController],
     providers: [AppService],
