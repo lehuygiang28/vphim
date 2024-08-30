@@ -4781,7 +4781,7 @@ __metadata:
     next: "npm:14.2.3"
     nodemailer: "npm:^6.9.14"
     nx: "npm:19.6.2"
-    ophim-js: "npm:^0.0.3"
+    ophim-js: "npm:^0.0.4"
     passport: "npm:^0.7.0"
     passport-jwt: "npm:^4.0.1"
     pino-http: "npm:^10.2.0"
@@ -4793,6 +4793,7 @@ __metadata:
     react-dom: "npm:18.3.1"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.8.0"
+    slugify: "npm:^1.6.6"
     swagger-stats: "npm:^0.99.7"
     swagger-themes: "npm:^1.4.3"
     tailwindcss: "npm:3.4.3"
@@ -13753,10 +13754,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ophim-js@npm:^0.0.3":
-  version: 0.0.3
-  resolution: "ophim-js@npm:0.0.3"
-  checksum: 10c0/0534851ca69d8ce7da44cf42e90f9a8020245798e413f3aa688f46c90893c8a9fd26d92d43edd93aae8666f5aaf4bd79c2ec1a9ef98dc997ce6bbb32618edfca
+"ophim-js@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "ophim-js@npm:0.0.4"
+  checksum: 10c0/9b8b5c7ed78e15b83ffeed687e7747d2002c40252e5c38723009b03b28ef8263738e4d45a438d05848e753d913929418e4e8a28f9fd17658e65c3197b23f845a
   languageName: node
   linkType: hard
 
@@ -16116,6 +16117,13 @@ __metadata:
   version: 1.12.2
   resolution: "slick@npm:1.12.2"
   checksum: 10c0/fea97c36b2bdcd1b80caea150cd8135dc9d3ffe659bbe04fa6f4b4dff373f5d5aef09a8ef384b331c3fdd9567faf447b75b850ab35d2c69ff8a8a92def3d49e1
+  languageName: node
+  linkType: hard
+
+"slugify@npm:^1.6.6":
+  version: 1.6.6
+  resolution: "slugify@npm:1.6.6"
+  checksum: 10c0/e7e63f08f389a371d6228bc19d64ec84360bf0a538333446cc49dbbf3971751a6d180d2f31551188dd007a65ca771e69f574e0283290a7825a818e90b75ef44d
   languageName: node
   linkType: hard
 

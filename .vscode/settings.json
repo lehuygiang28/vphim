@@ -1,5 +1,14 @@
 {
     "biome.enabled": false,
-    "cSpell.words": ["customfav", "ophim", "Passwordless", "Pwdless", "showtimes", "vphim"],
+    "cSpell.words": [
+        "chieurap",
+        "customfav",
+        "Docquyen",
+        "ophim",
+        "Passwordless",
+        "Pwdless",
+        "showtimes",
+        "vphim"
+    ],
     "conventionalCommits.scopes": ["be/i18n", "api"]
 }
