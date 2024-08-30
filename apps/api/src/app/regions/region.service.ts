@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
-import { RegionsRepository } from './region.repository';
+import { RegionRepository } from './region.repository';
 import { UpdateRegionDto } from './dtos';
 
 @Injectable()
 export class RegionsService {
     private readonly logger: Logger;
 
-    constructor(private readonly regionsRepo: RegionsRepository) {
+    constructor(private readonly regionsRepo: RegionRepository) {
         this.logger = new Logger(RegionsService.name);
     }
 

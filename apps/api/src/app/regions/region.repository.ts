@@ -5,7 +5,7 @@ import { Connection, Model } from 'mongoose';
 import { Region } from './region.schema';
 import { AbstractRepository } from '../../libs/abstract/abstract.repository';
 
-export class RegionsRepository extends AbstractRepository<Region> {
+export class RegionRepository extends AbstractRepository<Region> {
     protected readonly logger: Logger;
 
     constructor(
@@ -13,6 +13,6 @@ export class RegionsRepository extends AbstractRepository<Region> {
         @InjectConnection() connection: Connection,
     ) {
         super(regionModel, connection);
-        this.logger = new Logger(RegionsRepository.name);
+        this.logger = new Logger(RegionRepository.name);
     }
 }

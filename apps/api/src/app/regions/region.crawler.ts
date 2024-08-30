@@ -5,7 +5,7 @@ import { Types } from 'mongoose';
 import { CronJob } from 'cron';
 import { Ophim, Region as OPhimRegion } from 'ophim-js';
 
-import { RegionsRepository } from './region.repository';
+import { RegionRepository } from './region.repository';
 import { isNullOrUndefined } from '../../libs/utils/common';
 import { Region } from './region.schema';
 
@@ -16,7 +16,7 @@ export class RegionCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly ophim: Ophim;
 
     constructor(
-        private readonly regionsRepo: RegionsRepository,
+        private readonly regionsRepo: RegionRepository,
         private readonly configService: ConfigService,
         private readonly schedulerRegistry: SchedulerRegistry,
     ) {
