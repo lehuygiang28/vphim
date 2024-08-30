@@ -101,6 +101,11 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                     sleep(this.RETRY_DELAY),
                 ]);
             }
+
+            // Retry failed crawls after the main crawl is done (max 3 attempts)
+            for (let retryAttempt = 0; retryAttempt < 3; retryAttempt++) {
+                await this.retryFailedCrawls();
+            }
         } catch (error) {
             this.logger.error(`Error crawling movies: ${error}`);
         }
@@ -129,10 +134,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
             }
         } catch (error) {
             this.logger.error(`Error fetching movie detail for slug ${slug}: ${error}`);
-            await sleep(this.RETRY_DELAY);
-
-            // Retry fetching and saving movie details
-            return this.fetchAndSaveMovieDetail(slug);
+            return this.addToFailedCrawls(slug);
         }
     }
 
@@ -335,6 +337,36 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
             }
         } catch (error) {
             this.logger.error(`Error saving movie detail for ${movieDetail.name}: ${error}`);
+        }
+    }
+
+    private async addToFailedCrawls(slug: string) {
+        try {
+            await this.redisService.getClient.sadd('failed-movie-crawls', slug);
+        } catch (error) {
+            this.logger.error(`Error adding slug ${slug} to failed crawls: ${error}`);
+        }
+    }
+
+    private async retryFailedCrawls() {
+        try {
+            const failedSlugs = await this.redisService.getClient.smembers('failed-movie-crawls');
+            if (failedSlugs?.length === 0) {
+                return;
+            }
+
+            for (const slug of failedSlugs) {
+                try {
+                    await this.fetchAndSaveMovieDetail(slug);
+                    // If successful, remove from the failed set
+                    await this.redisService.getClient.srem('failed-movie-crawls', slug);
+                } catch (error) {
+                    // Log the error but don't stop processing other slugs
+                    this.logger.error(`Error retrying crawl for slug ${slug}: ${error}`);
+                }
+            }
+        } catch (error) {
+            this.logger.error(`Error during retryFailedCrawls: ${error}`);
         }
     }
 }
