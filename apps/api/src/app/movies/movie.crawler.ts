@@ -4,6 +4,7 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { Types } from 'mongoose';
 import { CronJob } from 'cron';
 import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js';
+import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
 
@@ -15,7 +16,6 @@ import { RedisService } from '../../libs/modules/redis';
 import { CategoryRepository } from '../categories';
 import { RegionRepository } from '../regions/region.repository';
 import { DirectorRepository } from '../directors';
-import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
 
 @Injectable()
 export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
@@ -125,7 +125,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
             }
         >,
     ) {
-        const { data: { item: movieDetail, APP_DOMAIN_CDN_IMAGE } = {} } = input;
+        const { data: { item: movieDetail } = {} } = input;
 
         try {
             const lastModified = new Date(movieDetail.modified.time);
