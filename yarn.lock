@@ -4794,6 +4794,7 @@ __metadata:
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.8.0"
     slugify: "npm:^1.6.6"
+    string-strip-html: "npm:8.5.0"
     swagger-stats: "npm:^0.99.7"
     swagger-themes: "npm:^1.4.3"
     tailwindcss: "npm:3.4.3"
@@ -16392,6 +16393,13 @@ __metadata:
     char-regex: "npm:^1.0.2"
     strip-ansi: "npm:^6.0.0"
   checksum: 10c0/1cd77409c3d7db7bc59406f6bcc9ef0783671dcbabb23597a1177c166906ef2ee7c8290f78cae73a8aec858768f189d2cb417797df5e15ec4eb5e16b3346340c
+  languageName: node
+  linkType: hard
+
+"string-strip-html@npm:8.5.0":
+  version: 8.5.0
+  resolution: "string-strip-html@npm:8.5.0"
+  checksum: 10c0/27d8dd5d6a953880f05b98b0073e0ca7c8870a34589f30564f40a2dc307c14bd2c77793d5ebbb6660c62f79d64e9d16707f67f6d9be015b867c1cbae94547acd
   languageName: node
   linkType: hard
 
