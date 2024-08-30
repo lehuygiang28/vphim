@@ -264,10 +264,17 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 view,
             } = movieDetail;
 
+            let correctId: Types.ObjectId;
+            try {
+                correctId = convertToObjectId(_id);
+            } catch (error) {
+                correctId = new Types.ObjectId();
+            }
+
             // Save movie
             const movieData: Movie = {
                 ...movieDetail,
-                _id: _id ? convertToObjectId(_id) : new Types.ObjectId(),
+                _id: correctId,
                 name: movieDetail?.name,
                 slug: movieDetail?.slug || slugify(movieDetail.name, { lower: true }),
                 content: stripHtml(content || '').result || '',
