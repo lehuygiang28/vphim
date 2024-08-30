@@ -54,6 +54,18 @@ export function removeLeadingAndTrailingSlashes(path: string) {
     return removeLeadingSlash(removeTrailingSlash(path));
 }
 
+export function resolveUrl(path: string, host?: string) {
+    if (path.startsWith('http')) {
+        return path;
+    }
+
+    if (host) {
+        return `${removeLeadingAndTrailingSlashes(host)}/${removeLeadingAndTrailingSlashes(path)}`;
+    }
+
+    return null;
+}
+
 /**
  *
  * @param value The value to check if it is null or undefined
@@ -61,4 +73,14 @@ export function removeLeadingAndTrailingSlashes(path: string) {
  */
 export function isNullOrUndefined(value: unknown): value is null | undefined {
     return value === null || value === undefined;
+}
+
+/**
+ * Creates a promise that resolves after a specified amount of time.
+ *
+ * @param {number} ms - The time in milliseconds to wait before resolving the promise.
+ * @return {Promise<void>} A promise that resolves after the specified time.
+ */
+export function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
