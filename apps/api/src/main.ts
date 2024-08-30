@@ -29,12 +29,6 @@ async function bootstrap() {
     app.enableShutdownHooks();
 
     app.useGlobalFilters(new ProblemDetailsFilter(logger));
-    app.useGlobalInterceptors(
-        // ResolvePromisesInterceptor is used to resolve promises in responses because class-transformer can't do it
-        // https://github.com/typestack/class-transformer/issues/549
-        new ResolvePromisesInterceptor(),
-        new ClassSerializerInterceptor(app.get(Reflector)),
-    );
 
     const globalPrefix = 'api';
     app.setGlobalPrefix(globalPrefix);

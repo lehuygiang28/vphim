@@ -50,7 +50,6 @@ export class Movie
             | 'slug'
             | 'year'
             | 'view'
-            | 'country'
         >
 {
     @ApiProperty()
@@ -128,6 +127,14 @@ export class Movie
     @ApiProperty()
     @Prop({ type: Boolean, default: false })
     cinemaRelease?: boolean;
+
+    @ApiProperty()
+    @Prop({ type: Number, default: null })
+    year?: number;
+
+    @ApiProperty()
+    @Prop({ type: Number, default: 0 })
+    view?: number;
 
     @Prop({ type: Types.ObjectId, default: [], ref: 'Actor' })
     actors?: Types.ObjectId[];

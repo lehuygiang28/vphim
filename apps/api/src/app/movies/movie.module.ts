@@ -11,6 +11,8 @@ import { RedisModule } from '../../libs/modules/redis';
 import { CategoryModule } from '../categories';
 import { DirectorModule } from '../directors';
 import { RegionsModule } from '../regions';
+import { MovieController } from './movies.controller';
+import { MovieService } from './movie.service';
 
 @Module({
     imports: [
@@ -23,7 +25,8 @@ import { RegionsModule } from '../regions';
         DirectorModule,
         RegionsModule,
     ],
-    providers: [MovieRepository, MovieCrawler],
+    controllers: [MovieController],
+    providers: [MovieRepository, MovieCrawler, MovieService],
     exports: [MovieRepository],
 })
 export class MovieModule {}

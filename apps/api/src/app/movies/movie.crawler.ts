@@ -10,7 +10,13 @@ import { stripHtml } from 'string-strip-html';
 
 import { EpisodeServerData, Movie } from './movie.schema';
 import { MovieRepository } from './movie.repository';
-import { convertToObjectId, isNullOrUndefined, resolveUrl, sleep } from '../../libs/utils/common';
+import {
+    convertToObjectId,
+    isNullOrUndefined,
+    isTrue,
+    resolveUrl,
+    sleep,
+} from '../../libs/utils/common';
 import { ActorRepository } from '../actors';
 import { RedisService } from '../../libs/modules/redis';
 import { CategoryRepository } from '../categories';
@@ -21,6 +27,8 @@ import { DirectorRepository } from '../directors';
 export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly MOVIE_CRON: string = '0 2 * * *';
     private readonly RETRY_DELAY = 500;
+    private readonly IS_FORCE_UPDATE: boolean = false;
+    private readonly OPHIM_IMG_HOST: string = null;
     private readonly logger = new Logger(MovieCrawler.name);
     private readonly ophim: Ophim;
 
@@ -36,6 +44,16 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
     ) {
         if (!isNullOrUndefined(this.configService.get('MOVIE_CRON'))) {
             this.MOVIE_CRON = this.configService.getOrThrow<string>('MOVIE_CRON');
+        }
+
+        if (!isNullOrUndefined(this.configService.get('IS_FORCE_UPDATE'))) {
+            this.IS_FORCE_UPDATE = isTrue(
+                this.configService.getOrThrow<boolean>('IS_FORCE_UPDATE'),
+            );
+        }
+
+        if (!isNullOrUndefined(this.configService.get('OPHIM_IMG_HOST'))) {
+            this.OPHIM_IMG_HOST = this.configService.getOrThrow<string>('OPHIM_IMG_HOST');
         }
 
         this.ophim = new Ophim({
@@ -128,12 +146,12 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
         const { data: { item: movieDetail } = {} } = input;
 
         try {
-            const lastModified = new Date(movieDetail.modified.time);
             const existingMovie = await this.movieRepo.findOne({
                 filterQuery: { slug: movieDetail.slug },
             });
 
-            if (existingMovie && lastModified <= existingMovie.updatedAt) {
+            const lastModified = new Date(movieDetail.modified.time);
+            if (!this.IS_FORCE_UPDATE && existingMovie && lastModified <= existingMovie.updatedAt) {
                 this.logger.log(`Movie "${movieDetail.name}" is up to date. Skipping...`);
                 return;
             }
@@ -242,6 +260,8 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 sub_docquyen,
                 chieurap,
                 content,
+                year,
+                view,
             } = movieDetail;
 
             // Save movie
@@ -255,8 +275,8 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 categories: categoryIds,
                 countries: countryIds,
                 directors: directorIds,
-                thumbUrl: thumb_url,
-                posterUrl: poster_url,
+                thumbUrl: resolveUrl(thumb_url, this.OPHIM_IMG_HOST),
+                posterUrl: resolveUrl(poster_url, this.OPHIM_IMG_HOST),
                 trailerUrl: trailer_url,
                 isCopyright: is_copyright,
                 originName: origin_name,
@@ -264,6 +284,8 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 episodeTotal: episode_total,
                 subDocquyen: sub_docquyen,
                 cinemaRelease: chieurap,
+                year,
+                view: view || 0,
                 episode: movieDetail?.episodes?.map((episode) => {
                     const serverData: EpisodeServerData[] = episode?.server_data?.map((server) => {
                         return {
@@ -283,9 +305,19 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
             };
 
             if (existingMovie) {
+                const newEpisodes = movieData?.episode?.filter(
+                    (newEp) =>
+                        !existingMovie.episode.some(
+                            (existingEp) => existingEp.serverName === newEp.serverName,
+                        ),
+                );
+
                 await this.movieRepo.findOneAndUpdate({
                     filterQuery: { slug: movieDetail.slug },
-                    updateQuery: movieData,
+                    updateQuery: {
+                        ...movieData,
+                        episode: [...newEpisodes, ...(existingMovie?.episode ?? [])],
+                    },
                 });
                 this.logger.log(`Updated movie: "${movieDetail.name}"`);
             } else {

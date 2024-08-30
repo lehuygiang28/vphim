@@ -19,6 +19,7 @@
         "@nestjs/schedule": "^4.1.0",
         "@nestjs/swagger": "^7.4.0",
         "@octokit/rest": "^20.1.1",
+        "@vn-utils/text": "0.0.1-rc.2",
         "axios": "^1.6.0",
         "bcryptjs": "^2.4.3",
         "bullmq": "^5.12.10",

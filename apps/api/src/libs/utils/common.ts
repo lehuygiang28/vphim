@@ -63,7 +63,7 @@ export function resolveUrl(path: string, host?: string) {
         return `${removeLeadingAndTrailingSlashes(host)}/${removeLeadingAndTrailingSlashes(path)}`;
     }
 
-    return null;
+    return path;
 }
 
 /**
