@@ -26,7 +26,7 @@ import { AllConfig } from '../../../app/config';
                 },
                 typesOutputPath: configService.getOrThrow('app.isDebug', { infer: true })
                     ? undefined
-                    : join(process.cwd(), `./apps/api/common/src/i18n/i18n.generated.ts`),
+                    : join(process.cwd(), `./apps/api/src/libs/modules/i18n/i18n.generated.ts`),
             }),
             resolvers: [
                 new HeaderResolver(['x-lang', 'x-language', 'language']),
