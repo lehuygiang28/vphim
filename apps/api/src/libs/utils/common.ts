@@ -59,11 +59,11 @@ export function resolveUrl(path: string, host?: string) {
         return path;
     }
 
-    if (host) {
+    if (host && path) {
         return `${removeLeadingAndTrailingSlashes(host)}/${removeLeadingAndTrailingSlashes(path)}`;
     }
 
-    return path;
+    return path || null;
 }
 
 /**
