@@ -4789,7 +4789,7 @@ __metadata:
     next: "npm:14.2.3"
     nodemailer: "npm:^6.9.14"
     nx: "npm:19.6.2"
-    ophim-js: "npm:^0.0.4"
+    ophim-js: "npm:^0.0.5"
     passport: "npm:^0.7.0"
     passport-jwt: "npm:^4.0.1"
     pino-http: "npm:^10.2.0"
@@ -13763,10 +13763,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ophim-js@npm:^0.0.4":
-  version: 0.0.4
-  resolution: "ophim-js@npm:0.0.4"
-  checksum: 10c0/9b8b5c7ed78e15b83ffeed687e7747d2002c40252e5c38723009b03b28ef8263738e4d45a438d05848e753d913929418e4e8a28f9fd17658e65c3197b23f845a
+"ophim-js@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "ophim-js@npm:0.0.5"
+  checksum: 10c0/08f7f97b6460c548d95d8441839191cfdc1273e8aa80ef51555505fa2beca55290ffad51ae61d562a19935ba679163a0130a466f8a760391accaedd61260d32f
   languageName: node
   linkType: hard
 
