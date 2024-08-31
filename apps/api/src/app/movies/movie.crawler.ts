@@ -343,6 +343,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
     private async addToFailedCrawls(slug: string) {
         try {
             await this.redisService.getClient.sadd('failed-movie-crawls', slug);
+            await this.redisService.getClient.expire('failed-movie-crawls', 60 * 60 * 12); // Expire in 12 hours
         } catch (error) {
             this.logger.error(`Error adding slug ${slug} to failed crawls: ${error}`);
         }
