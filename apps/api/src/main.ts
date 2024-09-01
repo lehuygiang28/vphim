@@ -1,5 +1,4 @@
-import { ClassSerializerInterceptor } from '@nestjs/common';
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import {
     DocumentBuilder,
@@ -15,7 +14,6 @@ import * as swaggerStats from 'swagger-stats';
 import { AppModule } from './app/app.module';
 import { ProblemDetails } from './libs/dtos';
 import { ProblemDetailsFilter } from './libs/filters';
-import { ResolvePromisesInterceptor } from './libs/interceptors';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -25,6 +23,7 @@ async function bootstrap() {
     const logger = app.get(Logger);
     app.useLogger(logger);
 
+    app.enableCors();
     app.use(helmet());
     app.enableShutdownHooks();
 
