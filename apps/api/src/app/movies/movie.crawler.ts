@@ -165,7 +165,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
             if (
                 !this.OPHIM_FORCE_UPDATE &&
                 existingMovie &&
-                lastModified <= existingMovie.updatedAt
+                lastModified <= existingMovie?.lastSyncModified
             ) {
                 this.logger.log(`Movie "${movieDetail.name}" is up to date. Skipping...`);
                 return;
@@ -308,6 +308,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 cinemaRelease: chieurap,
                 year,
                 view: view || 0,
+                lastSyncModified: new Date(movieDetail.modified.time),
                 episode: movieDetail?.episodes?.map((episode) => {
                     const serverData: EpisodeServerData[] = episode?.server_data?.map((server) => {
                         return {

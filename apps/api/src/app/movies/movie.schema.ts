@@ -151,6 +151,10 @@ export class Movie
     @ApiProperty()
     @Prop({ type: [Episode], default: null })
     episode?: Episode[];
+
+    @ApiProperty()
+    @Prop({ type: Date, default: new Date() })
+    lastSyncModified: Date;
 }
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);

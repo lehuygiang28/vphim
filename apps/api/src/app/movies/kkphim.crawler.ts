@@ -308,6 +308,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 cinemaRelease: chieurap,
                 year,
                 view: view || 0,
+                lastSyncModified: new Date(movieDetail.modified.time),
                 episode: movieDetail?.episodes?.map((episode) => {
                     const serverData: EpisodeServerData[] = episode?.server_data?.map((server) => {
                         return {
