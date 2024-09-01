@@ -1,0 +1,16 @@
+.swiper-pagination-bullet {
+    height: 0.3rem;
+    width: 0.3rem;
+    background-color: rgb(243 244 246);
+    border-radius: 9999px;
+    --tw-bg-opacity: 1;
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 500ms;
+}
+
+.swiper-pagination-bullet-active {
+    height: 0.3rem;
+    width: 1.3rem;
+    background-color: rgb(243 244 246 / var(--tw-bg-opacity));
+}

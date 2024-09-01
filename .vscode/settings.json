@@ -4,14 +4,18 @@
         "chieurap",
         "customfav",
         "Docquyen",
+        "KKPHIM",
+        "nextjs",
         "ophim",
         "Passwordless",
         "Pwdless",
+        "refinedev",
         "sadd",
         "showtimes",
         "smembers",
         "srem",
+        "swiper",
         "vphim"
     ],
-    "conventionalCommits.scopes": ["be/i18n", "api"]
+    "conventionalCommits.scopes": ["be/i18n", "api", "fe"]
 }
