@@ -4,7 +4,7 @@ services:
         hostname: vphim_api
         build:
             context: ./
-            dockerfile: ./apps/vphim_api/Dockerfile
+            dockerfile: ./apps/api/Dockerfile
         image: lehuygiang28/vphim_api:${COMPOSE_TAG:-latest}
         env_file:
             - ./apps/api/.env
