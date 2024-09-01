@@ -24,14 +24,14 @@ import { RegionRepository } from '../regions/region.repository';
 import { DirectorRepository } from '../directors';
 
 @Injectable()
-export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
-    private readonly OPHIM_CRON: string = '0 2 * * *';
+export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
+    private readonly KKPHIM_CRON: string = '0 8 * * *';
     private readonly RETRY_DELAY = 500;
-    private readonly OPHIM_FORCE_UPDATE: boolean = false;
-    private readonly OPHIM_HOST: string = null;
-    private readonly OPHIM_IMG_HOST: string = null;
-    private readonly logger = new Logger(MovieCrawler.name);
-    private readonly ophim: Ophim;
+    private readonly KKPHIM_FORCE_UPDATE: boolean = false;
+    private readonly KKPHIM_HOST: string = null;
+    private readonly KKPHIM_IMG_HOST: string = null;
+    private readonly logger = new Logger(KKPhimCrawler.name);
+    private readonly kkphim: Ophim;
 
     constructor(
         private readonly configService: ConfigService,
@@ -43,39 +43,39 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
         private readonly directorRepo: DirectorRepository,
         private readonly regionRepo: RegionRepository,
     ) {
-        if (!isNullOrUndefined(this.configService.get('OPHIM_HOST'))) {
-            this.OPHIM_HOST = this.configService.getOrThrow<string>('OPHIM_HOST');
+        if (!isNullOrUndefined(this.configService.get('KKPHIM_HOST'))) {
+            this.KKPHIM_HOST = this.configService.getOrThrow<string>('KKPHIM_HOST');
         }
 
-        if (!isNullOrUndefined(this.configService.get('OPHIM_CRON'))) {
-            this.OPHIM_CRON = this.configService.getOrThrow<string>('OPHIM_CRON');
+        if (!isNullOrUndefined(this.configService.get('KKPHIM_CRON'))) {
+            this.KKPHIM_CRON = this.configService.getOrThrow<string>('KKPHIM_CRON');
         }
 
-        if (!isNullOrUndefined(this.configService.get('OPHIM_FORCE_UPDATE'))) {
-            this.OPHIM_FORCE_UPDATE = isTrue(
-                this.configService.getOrThrow<boolean>('OPHIM_FORCE_UPDATE'),
+        if (!isNullOrUndefined(this.configService.get('KKPHIM_FORCE_UPDATE'))) {
+            this.KKPHIM_FORCE_UPDATE = isTrue(
+                this.configService.getOrThrow<boolean>('KKPHIM_FORCE_UPDATE'),
             );
         }
 
-        if (!isNullOrUndefined(this.configService.get('OPHIM_IMG_HOST'))) {
-            this.OPHIM_IMG_HOST = this.configService.getOrThrow<string>('OPHIM_IMG_HOST');
+        if (!isNullOrUndefined(this.configService.get('KKPHIM_IMG_HOST'))) {
+            this.KKPHIM_IMG_HOST = this.configService.getOrThrow<string>('KKPHIM_IMG_HOST');
         }
 
-        this.ophim = new Ophim({
-            host: this.OPHIM_HOST,
+        this.kkphim = new Ophim({
+            host: configService.get('KKPHIM_HOST'),
         });
     }
 
     onModuleInit() {
-        if (!isNullOrUndefined(this.OPHIM_HOST)) {
-            const crawMovieJob = new CronJob(this.OPHIM_CRON, this.crawMovie.bind(this));
+        if (!isNullOrUndefined(this.KKPHIM_HOST)) {
+            const crawMovieJob = new CronJob(this.KKPHIM_CRON, this.crawMovie.bind(this));
             this.schedulerRegistry.addCronJob(this.crawMovie.name, crawMovieJob);
             crawMovieJob.start();
         }
     }
 
     onModuleDestroy() {
-        if (!isNullOrUndefined(this.OPHIM_HOST)) {
+        if (!isNullOrUndefined(this.KKPHIM_HOST)) {
             this.schedulerRegistry.deleteCronJob(this.crawMovie.name);
         }
     }
@@ -87,10 +87,10 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
 
     async crawl() {
         const today = new Date().toISOString().slice(0, 10); // Get date in YYYY-MM-DD format
-        const crawlKey = `crawled-pages:${this.OPHIM_HOST}:${today}`;
+        const crawlKey = `crawled-pages:${this.KKPHIM_HOST}:${today}`;
 
         try {
-            const latestMovies = await this.ophim.getNewestMovies({ page: 1 });
+            const latestMovies = await this.kkphim.getNewestMovies({ page: 1 });
             const totalPages = latestMovies.pagination.totalPages;
 
             // Get last crawled page from Redis
@@ -122,7 +122,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
 
     private async crawlPage(page: number) {
         try {
-            const latestMovies = await this.ophim.getNewestMovies({ page });
+            const latestMovies = await this.kkphim.getNewestMovies({ page });
             for (const movie of latestMovies.items) {
                 await this.fetchAndSaveMovieDetail(movie.slug);
             }
@@ -137,7 +137,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
 
     private async fetchAndSaveMovieDetail(slug: string) {
         try {
-            const movieDetail = await this.ophim.getMovieDetail({ slug });
+            const movieDetail = await this.kkphim.getMovieDetail({ slug });
             if (movieDetail) {
                 await this.saveMovieDetail(movieDetail);
             }
@@ -163,7 +163,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
 
             const lastModified = new Date(movieDetail.modified.time);
             if (
-                !this.OPHIM_FORCE_UPDATE &&
+                !this.KKPHIM_FORCE_UPDATE &&
                 existingMovie &&
                 lastModified <= existingMovie.updatedAt
             ) {
@@ -297,8 +297,8 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 categories: categoryIds,
                 countries: countryIds,
                 directors: directorIds,
-                thumbUrl: resolveUrl(thumb_url, this.OPHIM_IMG_HOST),
-                posterUrl: resolveUrl(poster_url, this.OPHIM_IMG_HOST),
+                thumbUrl: resolveUrl(thumb_url, this.KKPHIM_IMG_HOST),
+                posterUrl: resolveUrl(poster_url, this.KKPHIM_IMG_HOST),
                 trailerUrl: trailer_url,
                 isCopyright: is_copyright,
                 originName: origin_name,
@@ -359,9 +359,9 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
 
     private async addToFailedCrawls(slug: string) {
         try {
-            await this.redisService.getClient.sadd(`failed-movie-crawls-${this.OPHIM_HOST}`, slug);
+            await this.redisService.getClient.sadd(`failed-movie-crawls-${this.KKPHIM_HOST}`, slug);
             await this.redisService.getClient.expire(
-                `failed-movie-crawls-${this.OPHIM_HOST}`,
+                `failed-movie-crawls-${this.KKPHIM_HOST}`,
                 60 * 60 * 12,
             ); // Expire in 12 hours
         } catch (error) {
@@ -372,7 +372,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
     private async retryFailedCrawls() {
         try {
             const failedSlugs = await this.redisService.getClient.smembers(
-                `failed-movie-crawls-${this.OPHIM_HOST}`,
+                `failed-movie-crawls-${this.KKPHIM_HOST}`,
             );
             if (failedSlugs?.length === 0) {
                 return;
@@ -383,7 +383,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                     await this.fetchAndSaveMovieDetail(slug);
                     // If successful, remove from the failed set
                     await this.redisService.getClient.srem(
-                        `failed-movie-crawls-${this.OPHIM_HOST}`,
+                        `failed-movie-crawls-${this.KKPHIM_HOST}`,
                         slug,
                     );
                 } catch (error) {

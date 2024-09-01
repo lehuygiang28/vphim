@@ -5,7 +5,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { Movie, MovieSchema } from './movie.schema';
 import { MovieRepository } from './movie.repository';
-import { MovieCrawler } from './movie.crawler';
 import { ActorModule } from '../actors/actor.module';
 import { RedisModule } from '../../libs/modules/redis';
 import { CategoryModule } from '../categories';
@@ -13,6 +12,8 @@ import { DirectorModule } from '../directors';
 import { RegionsModule } from '../regions';
 import { MovieController } from './movies.controller';
 import { MovieService } from './movie.service';
+import { MovieCrawler } from './movie.crawler';
+import { KKPhimCrawler } from './kkphim.crawler';
 
 @Module({
     imports: [
@@ -26,7 +27,7 @@ import { MovieService } from './movie.service';
         RegionsModule,
     ],
     controllers: [MovieController],
-    providers: [MovieRepository, MovieCrawler, MovieService],
+    providers: [MovieRepository, MovieService, MovieCrawler, KKPhimCrawler],
     exports: [MovieRepository],
 })
 export class MovieModule {}
