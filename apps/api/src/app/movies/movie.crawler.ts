@@ -278,8 +278,8 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 ...movieDetail,
                 _id: correctId,
                 name: movieDetail?.name,
-                slug: movieDetail?.slug || slugify(movieDetail.name, { lower: true }),
-                content: stripHtml(content || '').result || '',
+                slug: movieDetail?.slug || slugify(movieDetail?.name, { lower: true }),
+                content: stripHtml(content || '').result || existingMovie?.content || '',
                 actors: actorIds,
                 categories: categoryIds,
                 countries: countryIds,
@@ -320,23 +320,27 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                             (existingEp) => existingEp.serverName === newEp.serverName,
                         ),
                 );
+                const updateQuery: Partial<Movie> = {};
+                for (const [key, value] of Object.entries(movieData)) {
+                    if (!isNullOrUndefined(value)) {
+                        updateQuery[key] = value;
+                    }
+                }
+                updateQuery.episode = [...newEpisodes, ...(existingMovie?.episode ?? [])];
 
                 await this.movieRepo.findOneAndUpdate({
                     filterQuery: { slug: movieDetail.slug },
-                    updateQuery: {
-                        ...movieData,
-                        episode: [...newEpisodes, ...(existingMovie?.episode ?? [])],
-                    },
+                    updateQuery,
                 });
-                this.logger.log(`Updated movie: "${movieDetail.name}"`);
+                this.logger.log(`Updated movie: "${movieDetail.slug}"`);
             } else {
                 await this.movieRepo.create({
                     document: movieData,
                 });
-                this.logger.log(`Saved movie: "${movieDetail.name}"`);
+                this.logger.log(`Saved movie: "${movieDetail.slug}"`);
             }
         } catch (error) {
-            this.logger.error(`Error saving movie detail for ${movieDetail.name}: ${error}`);
+            this.logger.error(`Error saving movie detail for ${movieDetail.slug}: ${error}`);
         }
     }
 
