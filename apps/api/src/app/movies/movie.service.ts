@@ -3,7 +3,7 @@ import { createRegex } from '@vn-utils/text';
 
 import { MovieRepository } from './movie.repository';
 import { GetMoviesDto } from './dtos';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, QueryOptions } from 'mongoose';
 import { Movie } from './movie.schema';
 
 @Injectable()
@@ -14,8 +14,10 @@ export class MovieService {
         this.logger = new Logger(MovieService.name);
     }
 
-    getMovies(dto: GetMoviesDto) {
+    async getMovies(dto: GetMoviesDto) {
         const { keywords, cinemaRelease, isCopyright, type, year } = dto;
+        const options: Partial<QueryOptions<Movie>> = {};
+
         let filters: FilterQuery<Movie> = {
             ...(cinemaRelease && { cinemaRelease }),
             ...(isCopyright && { isCopyright }),
@@ -36,9 +38,18 @@ export class MovieService {
             };
         }
 
-        return this.movieRepo.find({
-            filterQuery: filters,
-            query: dto,
-        });
+        const [movies, total] = await Promise.all([
+            this.movieRepo.find({
+                filterQuery: filters,
+                queryOptions: options,
+                query: dto,
+            }),
+            this.movieRepo.count(filters),
+        ]);
+
+        return {
+            data: movies,
+            total,
+        };
     }
 }
