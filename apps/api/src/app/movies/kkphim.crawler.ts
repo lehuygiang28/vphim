@@ -26,7 +26,7 @@ import { DirectorRepository } from '../directors';
 @Injectable()
 export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly KKPHIM_CRON: string = '0 8 * * *';
-    private readonly RETRY_DELAY = 500;
+    private readonly RETRY_DELAY = 5000;
     private readonly KKPHIM_FORCE_UPDATE: boolean = false;
     private readonly KKPHIM_HOST: string = null;
     private readonly KKPHIM_IMG_HOST: string = null;
@@ -107,7 +107,6 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
 
                 await Promise.allSettled([
                     this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000), // Cache the last crawled page for 24 hours
-                    sleep(this.RETRY_DELAY),
                 ]);
             }
 

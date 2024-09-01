@@ -26,7 +26,7 @@ import { DirectorRepository } from '../directors';
 @Injectable()
 export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly OPHIM_CRON: string = '0 2 * * *';
-    private readonly RETRY_DELAY = 500;
+    private readonly RETRY_DELAY = 5000;
     private readonly OPHIM_FORCE_UPDATE: boolean = false;
     private readonly OPHIM_HOST: string = null;
     private readonly OPHIM_IMG_HOST: string = null;
@@ -105,10 +105,8 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
             for (let i = lastCrawledPage + 1; i <= totalPages; i++) {
                 await this.crawlPage(i);
 
-                await Promise.allSettled([
-                    this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000), // Cache the last crawled page for 24 hours
-                    sleep(this.RETRY_DELAY),
-                ]);
+                // Cache the last crawled page for 24 hours
+                await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
             }
 
             // Retry failed crawls after the main crawl is done (max 3 attempts)
