@@ -121,7 +121,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
 
     private async crawlPage(page: number) {
         try {
-            const latestMovies = await this.kkphim.getNewestMovies({ page });
+            const latestMovies = await this.kkphim.getNewestMovies({ page, limit: 24 });
             for (const movie of latestMovies.items) {
                 await this.fetchAndSaveMovieDetail(movie.slug);
             }
