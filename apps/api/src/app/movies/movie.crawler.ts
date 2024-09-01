@@ -165,7 +165,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 existingMovie &&
                 lastModified <= existingMovie?.lastSyncModified
             ) {
-                this.logger.log(`Movie "${movieDetail.name}" is up to date. Skipping...`);
+                this.logger.log(`Movie "${movieDetail?.slug}" is up to date. Skipping...`);
                 return;
             }
 
