@@ -1,0 +1,18 @@
+services:
+    vphim_api:
+        container_name: vphim_api
+        hostname: vphim_api
+        build:
+            context: ./
+            dockerfile: ./apps/vphim_api/Dockerfile
+        image: lehuygiang28/vphim_api:${COMPOSE_TAG:-latest}
+        env_file:
+            - ./apps/api/.env
+        ports:
+            - 8000:${API_PORT:-8000}
+        networks:
+            - vphim_net
+        restart: unless-stopped
+
+networks:
+    vphim_net:
