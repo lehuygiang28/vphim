@@ -1,0 +1,41 @@
+services:
+    mongodb:
+        container_name: mongodb
+        hostname: mongodb
+        image: docker.io/bitnami/mongodb:7.0
+        env_file:
+            - .env
+        ports:
+            - '${MONGODB_PORT:-27017}:${MONGODB_PORT:-27017}'
+        volumes:
+            - 'mongodb_data:/bitnami/mongodb'
+        networks:
+            - vphim_net
+
+    redis:
+        container_name: redis
+        hostname: redis
+        image: docker.io/bitnami/redis:7.2
+        environment:
+            - REDIS_PASSWORD=${REDIS_PASSWORD}
+            - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+            - REDIS_PORT_NUMBER=${REDIS_PORT:-6379}
+        ports:
+            - ${REDIS_PORT:-6379}:${REDIS_PORT:-6379}
+        volumes:
+            - 'redis_data:/bitnami/redis/data'
+        networks:
+            - vphim_net
+        restart: unless-stopped
+
+networks:
+    vphim_net:
+        driver: bridge
+
+volumes:
+    mongodb_data:
+        driver: local
+    redis_data:
+        driver: local
+    rabbitmq_data:
+        driver: local
