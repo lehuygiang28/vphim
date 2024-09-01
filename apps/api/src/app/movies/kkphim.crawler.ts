@@ -68,19 +68,19 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
 
     onModuleInit() {
         if (!isNullOrUndefined(this.KKPHIM_HOST)) {
-            const crawMovieJob = new CronJob(this.KKPHIM_CRON, this.crawMovie.bind(this));
-            this.schedulerRegistry.addCronJob(this.crawMovie.name, crawMovieJob);
+            const crawMovieJob = new CronJob(this.KKPHIM_CRON, this.crawMovieFromKK.bind(this));
+            this.schedulerRegistry.addCronJob(this.crawMovieFromKK.name, crawMovieJob);
             crawMovieJob.start();
         }
     }
 
     onModuleDestroy() {
         if (!isNullOrUndefined(this.KKPHIM_HOST)) {
-            this.schedulerRegistry.deleteCronJob(this.crawMovie.name);
+            this.schedulerRegistry.deleteCronJob(this.crawMovieFromKK.name);
         }
     }
 
-    async crawMovie() {
+    async crawMovieFromKK() {
         this.logger.log('Crawling movie ...');
         return this.crawl();
     }
