@@ -21,6 +21,18 @@ const nextConfig = {
                 port: '',
                 pathname: '**',
             },
+            {
+                protocol: 'https',
+                hostname: 'ophim.live',
+                port: '',
+                pathname: '**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'img.ophim.live',
+                port: '',
+                pathname: '**',
+            },
         ],
     },
 };

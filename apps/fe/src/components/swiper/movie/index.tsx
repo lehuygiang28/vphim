@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Typography, Image, Row, Col, Space, Grid } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { EffectFade, Pagination } from 'swiper/modules';
+import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
+import { EffectFade, Pagination, Autoplay } from 'swiper/modules';
 
 import './movie.css';
 import 'swiper/css';
@@ -11,6 +11,7 @@ import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 
 import type { Movie } from 'apps/api/src/app/movies/movie.schema';
+import { HigherHeightImage } from '@/components/image/higher-image';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -21,11 +22,17 @@ interface MovieSwiperProps {
 
 export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     const { md } = useBreakpoint();
-    const [currentBg, setCurrentBg] = useState(movies?.[0].thumbUrl);
+    const [currentBg, setCurrentBg] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (movies?.[0]) {
+            setCurrentBg(movies?.[0]?.posterUrl);
+        }
+    }, [movies]);
 
     const heroStyle: CSSProperties = {
         position: 'relative',
-        height: '85vh',
+        height: md ? '80vh' : '50vh',
         overflow: 'hidden',
     };
 
@@ -37,7 +44,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
         top: 0,
         left: 0,
         width: '100%',
-        height: '90vh',
+        height: md ? '85vh' : '55vh',
         zIndex: 0,
         transition: 'background-image 0.5s ease', // Add transition for background image
     };
@@ -52,10 +59,12 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     const posterStyle: CSSProperties = {
         borderRadius: '1rem',
         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+        transition: 'transform 0.5s ease', // Add transition for smooth slide
         width: '100%',
         height: '100%',
-        transition: 'transform 0.5s ease', // Add transition for smooth slide
-        transform: 'translateX(75%)', // Initially position the image off-screen
+        maxWidth: '25rem',
+        maxHeight: '27rem',
+        objectFit: 'cover',
     };
 
     const textContentStyle: CSSProperties = {
@@ -67,14 +76,43 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
 
     return (
         <>
-            <div
-                style={{
-                    ...bgImageStyle,
-                    backgroundImage: `url(${currentBg})`,
-                }}
-            />
+            <div style={{ display: 'none' }}>
+                {movies?.map((movie) => {
+                    return (
+                        <div key={`${movie?._id.toString()}_preload_img`}>
+                            {movie?.thumbUrl && (
+                                <img
+                                    src={movie?.thumbUrl}
+                                    alt={movie?.name}
+                                    style={{
+                                        display: 'none',
+                                    }}
+                                />
+                            )}
+                            {movie?.posterUrl && (
+                                <img
+                                    src={movie?.posterUrl}
+                                    alt={movie?.name}
+                                    style={{
+                                        display: 'none',
+                                    }}
+                                />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            {currentBg && (
+                <div
+                    style={{
+                        ...bgImageStyle,
+                        backgroundImage: `url(${currentBg})`,
+                    }}
+                />
+            )}
+
             <Swiper
-                modules={[EffectFade, Pagination]}
+                modules={[EffectFade, Pagination, Autoplay]}
                 effect="fade"
                 slidesPerView={1}
                 fadeEffect={{
@@ -84,40 +122,47 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                     clickable: true,
                     enabled: true,
                 }}
+                autoplay={{
+                    delay: 3000,
+                }}
                 onSlideChange={(swiper) => {
                     const activeIndex = swiper.activeIndex;
                     const slides = swiper.slides;
 
-                    setCurrentBg(movies?.[activeIndex].thumbUrl);
+                    setCurrentBg(movies?.[activeIndex]?.posterUrl ?? null);
 
                     // Slide in the active slide's image from right to left
-                    (
-                        slides[activeIndex].querySelector('.posterImage') as HTMLElement
-                    ).style.transform = 'translateX(0)';
-
+                    const slide = slides[activeIndex].querySelector('.posterImage') as HTMLElement;
+                    if (slide) {
+                        slide.style.transform = 'translateX(0)';
+                    }
+                }}
+                onBeforeTransitionStart={(swiper: SwiperClass) => {
+                    const activeIndex = swiper.activeIndex;
+                    const slides = swiper.slides;
                     // Move the previous slide's image off-screen to the left
                     if (activeIndex > 0) {
-                        (
-                            slides[activeIndex - 1].querySelector('.posterImage') as HTMLElement
-                        ).style.transform = 'translateX(75%)';
+                        const slide = slides[activeIndex - 1].querySelector(
+                            '.posterImage',
+                        ) as HTMLElement;
+                        if (slide) {
+                            slide.style.transform = 'translateX(75%)';
+                        }
                     }
 
                     // Move the next slide's image off-screen to the right
                     if (activeIndex < slides.length - 1) {
-                        (
-                            slides[activeIndex + 1].querySelector('.posterImage') as HTMLElement
-                        ).style.transform = 'translateX(75%)';
+                        const slide = slides[activeIndex + 1].querySelector(
+                            '.posterImage',
+                        ) as HTMLElement;
+                        if (slide) {
+                            slide.style.transform = 'translateX(75%)';
+                        }
                     }
-                }}
-                onInit={(swiper) => {
-                    // Initially slide in the first slide's image
-                    (
-                        swiper.slides[0].querySelector('.posterImage') as HTMLElement
-                    ).style.transform = 'translateX(0)';
                 }}
             >
                 {movies?.map((movie) => (
-                    <SwiperSlide key={movie.name}>
+                    <SwiperSlide key={movie.slug}>
                         <div style={heroStyle}>
                             <div style={contentStyle}>
                                 <Row
@@ -129,17 +174,27 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                         <div style={textContentStyle} className="textContent">
                                             <Space direction="vertical">
                                                 <div>
-                                                    <Title level={1} style={{ marginBottom: '0' }}>
+                                                    <Title
+                                                        level={md ? 1 : 3}
+                                                        style={{ marginBottom: '0' }}
+                                                    >
                                                         {movie.name}
                                                     </Title>
-                                                    <Text style={{ color: 'rgb(156, 163, 175)' }}>
+                                                    <Text
+                                                        style={{
+                                                            color: 'rgb(156, 163, 175)',
+                                                            // textShadow: '0.01rem 0 black',
+                                                        }}
+                                                    >
                                                         {movie.originName}
                                                     </Text>
                                                     <div style={{ marginTop: '0.5rem' }}>
                                                         <Space size={'middle'}>
                                                             <span>
                                                                 <CalendarOutlined
-                                                                    style={{ fontSize: '0.8rem' }}
+                                                                    style={{
+                                                                        fontSize: '0.8rem',
+                                                                    }}
                                                                 />
                                                                 <Text
                                                                     style={{ fontSize: '0.8rem' }}
@@ -173,10 +228,10 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                         </div>
                                     </Col>
                                     <Col xs={{ span: 12 }} md={{ span: 8 }}>
-                                        <Image
-                                            src={movie.posterUrl}
-                                            alt={movie.name}
-                                            width={300}
+                                        <HigherHeightImage
+                                            url1={movie?.thumbUrl}
+                                            url2={movie?.posterUrl}
+                                            alt={movie?.name}
                                             style={posterStyle}
                                             className="posterImage"
                                         />

@@ -16,6 +16,13 @@ const { Content, Footer } = Layout;
 export function Home() {
     const { data: res } = useList<Movie>({
         resource: 'movies',
+        filters: [
+            {
+                field: 'keywords',
+                value: 'spider',
+                operator: 'eq',
+            },
+        ],
     });
 
     return (
