@@ -45,6 +45,9 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
     ) {
         if (!isNullOrUndefined(this.configService.get('OPHIM_HOST'))) {
             this.OPHIM_HOST = this.configService.getOrThrow<string>('OPHIM_HOST');
+            this.ophim = new Ophim({
+                host: this.OPHIM_HOST,
+            });
         }
 
         if (!isNullOrUndefined(this.configService.get('OPHIM_CRON'))) {
@@ -60,10 +63,6 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
         if (!isNullOrUndefined(this.configService.get('OPHIM_IMG_HOST'))) {
             this.OPHIM_IMG_HOST = this.configService.getOrThrow<string>('OPHIM_IMG_HOST');
         }
-
-        this.ophim = new Ophim({
-            host: this.OPHIM_HOST,
-        });
     }
 
     onModuleInit() {
@@ -275,6 +274,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 content,
                 year,
                 view,
+                modified,
             } = movieDetail;
 
             let correctId: Types.ObjectId;
@@ -287,6 +287,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
             // Save movie
             const movieData: Movie = {
                 ...movieDetail,
+                lastSyncModified: new Date(modified?.time),
                 _id: correctId,
                 name: movieDetail?.name,
                 slug: movieDetail?.slug || slugify(movieDetail?.name, { lower: true }),
@@ -306,7 +307,6 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 cinemaRelease: chieurap,
                 year,
                 view: view || 0,
-                lastSyncModified: new Date(movieDetail.modified.time),
                 episode: movieDetail?.episodes?.map((episode) => {
                     const serverData: EpisodeServerData[] = episode?.server_data?.map((server) => {
                         return {

@@ -45,6 +45,9 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
     ) {
         if (!isNullOrUndefined(this.configService.get('KKPHIM_HOST'))) {
             this.KKPHIM_HOST = this.configService.getOrThrow<string>('KKPHIM_HOST');
+            this.kkphim = new Ophim({
+                host: this.KKPHIM_HOST,
+            });
         }
 
         if (!isNullOrUndefined(this.configService.get('KKPHIM_CRON'))) {
@@ -60,10 +63,6 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
         if (!isNullOrUndefined(this.configService.get('KKPHIM_IMG_HOST'))) {
             this.KKPHIM_IMG_HOST = this.configService.getOrThrow<string>('KKPHIM_IMG_HOST');
         }
-
-        this.kkphim = new Ophim({
-            host: configService.get('KKPHIM_HOST'),
-        });
     }
 
     onModuleInit() {
@@ -276,6 +275,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 content,
                 year,
                 view,
+                modified,
             } = movieDetail;
 
             let correctId: Types.ObjectId;
@@ -288,6 +288,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
             // Save movie
             const movieData: Movie = {
                 ...movieDetail,
+                lastSyncModified: new Date(modified?.time),
                 _id: correctId,
                 name: movieDetail?.name,
                 slug: movieDetail?.slug || slugify(movieDetail?.name, { lower: true }),
@@ -307,7 +308,6 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 cinemaRelease: chieurap,
                 year,
                 view: view || 0,
-                lastSyncModified: new Date(movieDetail.modified.time),
                 episode: movieDetail?.episodes?.map((episode) => {
                     const serverData: EpisodeServerData[] = episode?.server_data?.map((server) => {
                         return {
