@@ -1,0 +1,10 @@
+.git/
+.nx/cache
+.vscode/
+.vercel/
+compodoc/
+node_modules/
+dist/
+.next/
+
+.env*
