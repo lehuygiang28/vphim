@@ -1,0 +1,40 @@
+.movie-list-container .swiper-button-prev,
+.movie-list-container .swiper-button-next {
+    position: absolute;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    transition: background-color 0.3s;
+}
+.movie-list-container .swiper-button-prev {
+    left: 0;
+}
+.movie-list-container .swiper-button-next {
+    right: 0;
+}
+.movie-list-container .swiper-button-prev:hover,
+.movie-list-container .swiper-button-next:hover {
+    background-color: transparent;
+}
+.movie-list-container .swiper-button-prev::after,
+.movie-list-container .swiper-button-next::after {
+    font-size: 20px;
+}
+@media (max-width: 768px) {
+    .movie-list-container .swiper-button-prev,
+    .movie-list-container .swiper-button-next {
+        display: none;
+    }
+    .movie-list-container {
+        padding: 0;
+    }
+}
