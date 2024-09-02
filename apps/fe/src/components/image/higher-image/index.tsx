@@ -1,5 +1,5 @@
 import React, { useState, useEffect, CSSProperties } from 'react';
-import { Image as AntdImage } from 'antd';
+import { Image as AntdImage, ImageProps } from 'antd';
 
 export type HigherHeightImageProps = {
     url1: string;
@@ -8,7 +8,7 @@ export type HigherHeightImageProps = {
     style?: CSSProperties;
     className?: string;
     reverse?: boolean;
-};
+} & ImageProps;
 
 export const HigherHeightImage = ({
     url1,
@@ -17,6 +17,8 @@ export const HigherHeightImage = ({
     style,
     className,
     reverse = false,
+    preview = false,
+    ...props
 }: HigherHeightImageProps) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -67,5 +69,16 @@ export const HigherHeightImage = ({
         img2.src = url2;
     }, [url1, url2, reverse]);
 
-    return imageUrl && <AntdImage src={imageUrl} alt={alt} style={style} className={className} />;
+    return (
+        imageUrl && (
+            <AntdImage
+                src={imageUrl}
+                alt={alt}
+                style={style}
+                className={className}
+                preview={preview}
+                {...props}
+            />
+        )
+    );
 };
