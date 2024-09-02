@@ -1,71 +1,158 @@
-'use client';
+import { useState } from 'react';
+import { Button, Card, Divider, Grid, Space, Typography } from 'antd';
+import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
-import React from 'react';
-import Image from 'next/image';
-import { Card, Typography, Tag, Rate, Row, Col, Space } from 'antd';
+import { HigherHeightImage } from '@/components/image/higher-image';
+import { MovieQualityTag } from '@/components/tag/movie-quality';
 
-const { Title, Text, Paragraph } = Typography;
+import { Movie } from 'apps/api/src/app/movies/movie.schema';
+
+const { Text, Paragraph } = Typography;
+const { useBreakpoint } = Grid;
 
 interface MovieCardProps {
-    title: string;
-    year: number;
-    director: string;
-    categories: string[];
-    rating: number;
-    description: string;
-    posterUrl: string;
-    thumbUrl: string;
+    movie: Movie;
 }
 
-export default function MovieCard({ data }: { data: MovieCardProps }) {
-    const { title, year, director, categories, rating, description, posterUrl, thumbUrl } = data;
+export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
+    const { content, year, name, posterUrl, thumbUrl, episodeCurrent, originName, quality } = movie;
+    const { md } = useBreakpoint();
+    const [isHovered, setIsHovered] = useState(false);
+
     return (
-        <Card
+        <div
             style={{
+                position: 'relative',
+                maxWidth: '14rem',
+                maxHeight: '21rem',
                 width: '100%',
-                maxWidth: 1000,
-                margin: '0 auto',
+                height: '100%',
+                transition: 'all 0.3s ease-in-out',
             }}
-            styles={{
-                body: { padding: 0, background: 'transparent', width: '100%' },
-            }}
-            bordered={false}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
         >
-            <Row
+            <Card
+                hoverable
                 style={{
-                    background: 'transparent',
-                    padding: '1rem',
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '0.3rem',
+                    position: 'relative',
+                    transform: isHovered ? 'scale(1.2)' : 'scale(1)',
+                    transition: 'all 0.3s ease-in-out',
+                }}
+                styles={{
+                    body: { padding: 0, height: '100%' },
                 }}
             >
-                <Col xs={24} md={16} style={{ padding: '1rem' }}>
-                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                        <Title level={2} style={{ color: '#fff', marginBottom: 0 }}>
-                            {title} ({year})
-                        </Title>
-                        <Text style={{ color: '#fff' }}>Directed by: {director}</Text>
-                        <Space size={[0, 8]} wrap>
-                            {categories.map((category) => (
-                                <Tag key={category} color="blue">
-                                    {category}
-                                </Tag>
-                            ))}
-                        </Space>
-                        <Rate disabled defaultValue={rating} />
-                        <Paragraph style={{ color: '#fff' }}>{description}</Paragraph>
-                    </Space>
-                </Col>
-                <Col xs={24} md={8} style={{ padding: '1rem' }}>
-                    <Image
-                        src={posterUrl}
-                        alt={`${title} poster`}
-                        width={300}
-                        height={450}
-                        layout="responsive"
-                        objectFit="cover"
-                        style={{ height: '100%' }}
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                    <HigherHeightImage
+                        alt={name}
+                        url1={thumbUrl}
+                        url2={posterUrl}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: '0.3rem',
+                        }}
                     />
-                </Col>
-            </Row>
-        </Card>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 8,
+                            left: 8,
+                            color: 'white',
+                            padding: '2px 8px',
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            background: 'rgba(0, 0, 0, 0.5)',
+                        }}
+                    >
+                        {episodeCurrent}
+                    </div>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '70%',
+                            padding: 6,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            background: 'rgba(0, 0, 0, 0.8)',
+                            transition: 'opacity 0.3s',
+                            borderRadius: '0 0 0.3rem 0.3rem',
+                            opacity: isHovered ? 1 : 0,
+                            pointerEvents: isHovered ? 'auto' : 'none',
+                        }}
+                    >
+                        <Space direction="vertical" size={0}>
+                            <Text style={{ color: 'white', fontSize: md ? '1rem' : '0.8rem' }}>
+                                {name}
+                            </Text>
+                            <Paragraph
+                                type="secondary"
+                                ellipsis={{ rows: 2, expandable: false }}
+                                style={{ fontSize: '0.7rem', marginBottom: 0, color: '#a6a6a6' }}
+                            >
+                                {originName}
+                            </Paragraph>
+                            <div
+                                style={{
+                                    marginTop: '0.3rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                }}
+                            >
+                                <MovieQualityTag
+                                    quality={quality ?? ''}
+                                    style={{ marginRight: 4, fontSize: '0.6rem' }}
+                                />
+                                <Divider
+                                    type="vertical"
+                                    style={{ height: '0.8rem', background: '#a6a6a6' }}
+                                />
+                                <Text style={{ fontSize: '0.6rem', color: '#a6a6a6' }}>
+                                    <CalendarOutlined /> {year}
+                                </Text>
+                                <Divider
+                                    type="vertical"
+                                    style={{ height: '0.8rem', background: '#a6a6a6' }}
+                                />
+                                <Text style={{ fontSize: '0.6rem', color: '#a6a6a6' }}>
+                                    {episodeCurrent}
+                                </Text>
+                            </div>
+                            <Paragraph
+                                ellipsis={{ rows: 4, expandable: false }}
+                                style={{
+                                    color: '#a6a6a6',
+                                    fontSize: '0.7rem',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    display: '-webkit-box',
+                                }}
+                            >
+                                {content}
+                            </Paragraph>
+                        </Space>
+                        <Button
+                            type="primary"
+                            size="small"
+                            icon={<PlayCircleOutlined />}
+                            style={{ width: '100%' }}
+                        >
+                            Xem ngay
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+        </div>
     );
-}
+};
