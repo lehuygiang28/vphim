@@ -11,7 +11,6 @@
     align-items: center;
     justify-content: center;
     color: #fff;
-    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 50%;
     transition: background-color 0.3s;
 }
@@ -23,7 +22,7 @@
 }
 .movie-list-container .swiper-button-prev:hover,
 .movie-list-container .swiper-button-next:hover {
-    background-color: transparent;
+    background-color: rgb(0 0 0 / 0.5);
 }
 .movie-list-container .swiper-button-prev::after,
 .movie-list-container .swiper-button-next::after {
