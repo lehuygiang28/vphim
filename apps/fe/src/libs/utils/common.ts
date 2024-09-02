@@ -20,3 +20,14 @@ export function camelCaseToCapitalizedWords(str: string) {
         .replace(/^./, (s) => s.toUpperCase())
         .trim();
 }
+
+export function randomString(length: number, { onlyLetters = false } = {}): string {
+    let result = '';
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const characters = onlyLetters ? letters : letters + '0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
