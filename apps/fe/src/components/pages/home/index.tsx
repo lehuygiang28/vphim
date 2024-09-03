@@ -1,45 +1,68 @@
-import React from 'react';
-import { Layout } from 'antd';
-
-import Header from './header';
-
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import { MovieSwiper } from '@/components/swiper/movie';
+
+import React from 'react';
+import { Layout } from 'antd';
 import { useList } from '@refinedev/core';
 
-import { Movie } from 'apps/api/src/app/movies/movie.schema';
+import { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import MovieList from '@/components/swiper/movie-list';
+import { MovieSwiper } from '@/components/swiper/movie';
+
+import Header from './header';
 
 const { Content, Footer } = Layout;
 
 export function Home() {
-    const { data: res } = useList<Movie>({
+    const { data: mostViewed } = useList<MovieResponseDto>({
         resource: 'movies',
+        sorters: [
+            {
+                field: 'view',
+                order: 'desc',
+            },
+        ],
     });
 
-    const { data: actionMovies } = useList<Movie>({
+    const { data: newMovies } = useList<MovieResponseDto>({
         resource: 'movies',
         filters: [
             {
-                field: 'keywords',
-                value: 'action',
+                field: 'years',
+                value: '2024, 2023',
+                operator: 'eq',
+            },
+        ],
+        sorters: [
+            {
+                field: 'year',
+                order: 'asc',
+            },
+        ],
+    });
+    const { data: actionMovies } = useList<MovieResponseDto>({
+        resource: 'movies',
+        filters: [
+            {
+                field: 'categories',
+                value: 'hanh-dong',
                 operator: 'eq',
             },
         ],
     });
 
-    const { data: loveMovies } = useList<Movie>({
+    const { data: cartoonMovies } = useList<MovieResponseDto>({
         resource: 'movies',
         filters: [
             {
-                field: 'keywords',
-                value: 'anime',
+                field: 'categories',
+                value: 'hoat-hinh,',
                 operator: 'eq',
             },
         ],
     });
+
     return (
         <Layout>
             <Header />
@@ -49,20 +72,29 @@ export function Home() {
                     position: 'relative',
                 }}
             >
-                <MovieSwiper movies={res?.data} />
+                <MovieSwiper movies={mostViewed?.data} />
+                <MovieList
+                    title="PHIM MỚI"
+                    movies={newMovies?.data}
+                    style={{
+                        marginTop: '1rem',
+                    }}
+                />
                 <MovieList
                     title="PHIM HÀNH ĐỘNG"
                     movies={actionMovies?.data}
                     style={{
                         marginTop: '1rem',
                     }}
+                    viewMoreHref={'/the-loai/hanh-dong'}
                 />
                 <MovieList
                     title="PHIM ANIME"
-                    movies={loveMovies?.data}
+                    movies={cartoonMovies?.data}
                     style={{
                         marginTop: '1rem',
                     }}
+                    viewMoreHref={'/the-loai/hoat-hinh'}
                 />
             </Content>
             <Footer></Footer>

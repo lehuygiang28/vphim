@@ -1,3 +1,11 @@
+a {
+    color: white !important;
+}
+
+a:hover {
+    color: blue !important;
+}
+
 .movie-list-container .swiper-button-prev,
 .movie-list-container .swiper-button-next {
     position: absolute;
