@@ -11,9 +11,9 @@ services:
             - PGID=${PGID:-1002}
             - TZ=Etc/UTC
             - URL=giaang.id.vn
-            - SUBDOMAINS=${SSL_SUBDOMAINS}
+            - SUBDOMAINS='server, vphim_api'
             - VALIDATION=http
-            - CERTPROVIDER=zerossl #optional
+            # - CERTPROVIDER=zerossl #optional
             - DNSPLUGIN=cloudflare #optional
             # - DUCKDNSTOKEN=<token> #optional
             - EMAIL=giang@giaang.id.vn #optional
@@ -21,7 +21,7 @@ services:
             # - EXTRA_DOMAINS=<extradomains> #optional
             - STAGING=false #optional
         volumes:
-            - ./containers/swag/www:/config/www
+            # - ./containers/swag/www:/config/www
             - ./containers/swag/nginx/proxy-confs:/config/nginx/proxy-confs
             - ./containers/swag/nginx/nginx.conf:/config/nginx/nginx.conf
             - ./.ssl/letsencrypt:/config/etc/letsencrypt # mount ssl key from container to work dir
