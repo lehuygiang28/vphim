@@ -237,10 +237,10 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
         }
     }
 
-    async aggregate(
+    async aggregate<T>(
         pipeline: PipelineStage[],
         options?: AggregateOptions,
-    ): Promise<NullableType<TDocument[]>> {
+    ): Promise<NullableType<T | TDocument[]>> {
         const documents = await this.model.aggregate(pipeline, options);
         return documents as unknown as TDocument[];
     }

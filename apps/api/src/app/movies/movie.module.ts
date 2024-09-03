@@ -1,7 +1,9 @@
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 import { Movie, MovieSchema } from './movie.schema';
 import { MovieRepository } from './movie.repository';
@@ -21,6 +23,27 @@ import { KKPhimCrawler } from './kkphim.crawler';
         MongooseModule.forFeature([{ name: Movie.name, schema: MovieSchema }]),
         ScheduleModule.forRoot(),
         RedisModule,
+        CacheModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => {
+                const redisUser = configService.get('REDIS_USER') ?? '';
+                const redisPassword = configService.get('REDIS_PASSWORD') ?? '';
+                const redisHost = configService.getOrThrow('REDIS_HOST');
+                const redisPort = configService.get('REDIS_PORT') ?? '';
+                const redisScheme = configService.get('REDIS_SCHEME') ?? 'redis';
+
+                const credentials = redisPassword ? `${redisUser ?? ''}:${redisPassword}@` : '';
+                const url = `${redisScheme}://${credentials}${redisHost}${
+                    redisPort ? `:${redisPort}` : ''
+                }`;
+
+                return {
+                    store: redisStore,
+                    url,
+                };
+            },
+            inject: [ConfigService],
+        }),
         ActorModule,
         CategoryModule,
         DirectorModule,
