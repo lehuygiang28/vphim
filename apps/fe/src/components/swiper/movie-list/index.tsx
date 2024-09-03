@@ -11,13 +11,13 @@ import './movie-list.css';
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
 
-import type { Movie } from 'apps/api/src/app/movies/movie.schema';
+import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import { MovieCard } from '@/components/card/movie-card';
 import { randomString } from '@/libs/utils/common';
 
 export type MovieListProps = {
     title?: string;
-    movies?: Movie[];
+    movies?: MovieResponseDto[];
     isLoading?: boolean;
     style?: CSSProperties;
 };

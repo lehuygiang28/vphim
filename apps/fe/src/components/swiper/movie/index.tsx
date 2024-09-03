@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { Typography, Image, Row, Col, Space, Grid } from 'antd';
+import { Typography, Image, Row, Col, Space, Grid, Tag } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import { EffectFade, Pagination, Autoplay } from 'swiper/modules';
@@ -10,14 +10,14 @@ import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 
-import type { Movie } from 'apps/api/src/app/movies/movie.schema';
+import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import { HigherHeightImage } from '@/components/image/higher-image';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
 
 interface MovieSwiperProps {
-    movies?: Movie[];
+    movies?: MovieResponseDto[];
 }
 
 export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
@@ -175,17 +175,12 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                             <Space direction="vertical">
                                                 <div>
                                                     <Title
-                                                        level={md ? 1 : 3}
+                                                        level={md ? 1 : 4}
                                                         style={{ marginBottom: '0' }}
                                                     >
                                                         {movie.name}
                                                     </Title>
-                                                    <Text
-                                                        style={{
-                                                            color: 'rgb(156, 163, 175)',
-                                                            // textShadow: '0.01rem 0 black',
-                                                        }}
-                                                    >
+                                                    <Text style={{ color: 'rgb(156, 163, 175)' }}>
                                                         {movie.originName}
                                                     </Text>
                                                     <div style={{ marginTop: '0.5rem' }}>
@@ -210,6 +205,22 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                                 {movie.episodeCurrent}
                                                             </Text>
                                                         </Space>
+                                                    </div>
+                                                    <div style={{ marginTop: '0.5rem' }}>
+                                                        {movie?.categories?.map((category) => (
+                                                            <Tag
+                                                                key={category?._id?.toString()}
+                                                                style={{
+                                                                    fontSize: md
+                                                                        ? '0.7rem'
+                                                                        : '0.5rem',
+                                                                    background: 'rgba(0 0 0 / 0.4)',
+                                                                    border: 'none',
+                                                                }}
+                                                            >
+                                                                {category?.name}
+                                                            </Tag>
+                                                        ))}
                                                     </div>
                                                 </div>
                                                 {md && (

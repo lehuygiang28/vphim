@@ -5,13 +5,13 @@ import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { HigherHeightImage } from '@/components/image/higher-image';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 
-import { Movie } from 'apps/api/src/app/movies/movie.schema';
+import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
 const { Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
 
 interface MovieCardProps {
-    movie: Movie;
+    movie: MovieResponseDto;
 }
 
 export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
