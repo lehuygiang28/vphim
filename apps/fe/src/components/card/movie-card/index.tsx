@@ -39,7 +39,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
                     height: '100%',
                     borderRadius: '0.3rem',
                     position: 'relative',
-                    transform: isHovered ? 'scale(1.2)' : 'scale(1)',
+                    transform: isHovered ? 'scale(1.3)' : 'scale(1)',
                     transition: 'all 0.3s ease-in-out',
                 }}
                 styles={{
@@ -91,20 +91,31 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
                         }}
                     >
                         <Space direction="vertical" size={0}>
-                            <Text style={{ color: 'white', fontSize: md ? '1rem' : '0.8rem' }}>
+                            <Paragraph
+                                style={{
+                                    color: 'white',
+                                    fontSize: md ? '1rem' : '0.7rem',
+                                    marginBottom: '0.3rem',
+                                    lineHeight: md ? '1.2rem' : '0.9rem',
+                                }}
+                            >
                                 {name}
-                            </Text>
+                            </Paragraph>
                             <Paragraph
                                 type="secondary"
                                 ellipsis={{ rows: 2, expandable: false }}
-                                style={{ fontSize: '0.7rem', marginBottom: 0, color: '#a6a6a6' }}
+                                style={{
+                                    fontSize: md ? '0.7rem' : '0.5rem',
+                                    marginBottom: 0,
+                                    color: '#a6a6a6',
+                                }}
                             >
                                 {originName}
                             </Paragraph>
                             <div
                                 style={{
                                     marginTop: '0.3rem',
-                                    display: 'flex',
+                                    display: md ? 'flex' : 'none',
                                     alignItems: 'center',
                                     flexWrap: 'wrap',
                                 }}
@@ -129,14 +140,16 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
                                 </Text>
                             </div>
                             <Paragraph
-                                ellipsis={{ rows: 4, expandable: false }}
+                                ellipsis={{ rows: name?.length > 25 ? 3 : 5, expandable: false }}
                                 style={{
                                     color: '#a6a6a6',
-                                    fontSize: '0.7rem',
+                                    fontSize: md ? '0.7rem' : '0.6rem',
+                                    lineHeight: '0.8rem',
                                     WebkitLineClamp: 3,
                                     WebkitBoxOrient: 'vertical',
                                     overflow: 'hidden',
                                     display: '-webkit-box',
+                                    marginTop: md ? '0.3rem' : '0',
                                 }}
                             >
                                 {content}
@@ -146,7 +159,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
                             type="primary"
                             size="small"
                             icon={<PlayCircleOutlined />}
-                            style={{ width: '100%' }}
+                            style={{ width: '100%', fontSize: md ? '0.8rem' : '0.6rem' }}
                         >
                             Xem ngay
                         </Button>
