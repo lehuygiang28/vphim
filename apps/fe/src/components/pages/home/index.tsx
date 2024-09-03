@@ -64,7 +64,11 @@ export function Home() {
     });
 
     return (
-        <Layout>
+        <Layout
+            style={{
+                overflowX: 'hidden',
+            }}
+        >
             <Header />
             <Content
                 style={{
