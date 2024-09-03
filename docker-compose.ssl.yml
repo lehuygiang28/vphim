@@ -11,7 +11,7 @@ services:
             - PGID=${PGID:-1002}
             - TZ=Etc/UTC
             - URL=giaang.id.vn
-            - SUBDOMAINS='server, vphim_api'
+            - SUBDOMAINS=server, vphim-api
             - VALIDATION=http
             # - CERTPROVIDER=zerossl #optional
             - DNSPLUGIN=cloudflare #optional
