@@ -41,9 +41,7 @@ export default function MovieList({
     const TopRightList = ({ href }: { href: string }) => {
         return (
             <Link href={href}>
-                <AntdLink>
-                    Xem thêm <ArrowRightOutlined />
-                </AntdLink>
+                Xem thêm <ArrowRightOutlined />
             </Link>
         );
     };
