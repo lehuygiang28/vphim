@@ -94,7 +94,7 @@ export function HigherHeightImage({
                 alt={alt}
                 fill
                 sizes={`(max-width: ${width}px) 100vw, ${width}px`}
-                style={{ opacity: showImage1 ? 1 : 0, ...style }}
+                style={{ opacity: showImage1 && !loading ? 1 : 0, ...style }}
                 className={showImage1 ? className : ''}
                 quality={quality}
             />
@@ -104,8 +104,8 @@ export function HigherHeightImage({
                 alt={alt}
                 fill
                 sizes={`(max-width: ${width}px) 100vw, ${width}px`}
-                style={{ opacity: showImage1 ? 0 : 1, ...style }}
-                className={showImage1 ? '' : className}
+                style={{ opacity: !showImage1 && !loading ? 1 : 0, ...style }}
+                className={!showImage1 ? className : ''}
                 quality={quality}
             />
         </div>

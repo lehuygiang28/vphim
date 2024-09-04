@@ -24,11 +24,11 @@ interface MovieSwiperProps {
 
 export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     const { md } = useBreakpoint();
-    const [currentBg, setCurrentBg] = useState<string | null>(null);
+    const [currentMovieIndex, setCurrentMovieIndex] = useState<number | null>(null);
 
     useEffect(() => {
         if (movies?.[0]) {
-            setCurrentBg(movies?.[0]?.posterUrl);
+            setCurrentMovieIndex(0);
         }
     }, [movies]);
 
@@ -39,8 +39,6 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     };
 
     const bgImageStyle: CSSProperties = {
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
         filter: 'blur(1rem) brightness(0.8)',
         position: 'absolute',
         top: 0,
@@ -48,7 +46,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
         width: '100%',
         height: md ? '85vh' : '55vh',
         zIndex: 0,
-        transition: 'background-image 0.5s ease',
+        transition: 'opacity 0.5s ease-in-out',
     };
 
     const contentStyle: CSSProperties = {
@@ -77,40 +75,27 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
 
     return (
         <>
-            <div style={{ display: 'none' }}>
-                {movies?.map((movie) => {
+            {movies?.length &&
+                movies?.map((movie, index) => {
                     return (
-                        <div key={`${movie?._id.toString()}_preload_img`}>
-                            {movie?.thumbUrl && (
-                                <img
-                                    src={movie?.thumbUrl}
-                                    alt={movie?.name}
-                                    style={{
-                                        display: 'none',
-                                    }}
-                                />
-                            )}
-                            {movie?.posterUrl && (
-                                <img
-                                    src={movie?.posterUrl}
-                                    alt={movie?.name}
-                                    style={{
-                                        display: 'none',
-                                    }}
-                                />
-                            )}
+                        <div
+                            key={movie?._id.toString()}
+                            style={{
+                                ...bgImageStyle,
+                                opacity: index === currentMovieIndex ? 1 : 0,
+                            }}
+                        >
+                            <HigherHeightImage
+                                url1={movie?.thumbUrl}
+                                url2={movie?.posterUrl}
+                                alt={movie?.name}
+                                width={md ? 1500 : 750}
+                                height={md ? 600 : 380}
+                                reverse={true}
+                            />
                         </div>
                     );
                 })}
-            </div>
-            {currentBg && (
-                <div
-                    style={{
-                        ...bgImageStyle,
-                        backgroundImage: `url(${currentBg})`,
-                    }}
-                />
-            )}
 
             <Swiper
                 modules={[EffectFade, Pagination, Autoplay]}
@@ -130,7 +115,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                     const activeIndex = swiper.activeIndex;
                     const slides = swiper.slides;
 
-                    setCurrentBg(movies?.[activeIndex]?.posterUrl ?? null);
+                    setCurrentMovieIndex(activeIndex);
 
                     // Slide in the active slide's image from right to left
                     const slide = slides[activeIndex].querySelector('.posterImage') as HTMLElement;
