@@ -273,6 +273,8 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                 url1={movie?.thumbUrl}
                                                 url2={movie?.posterUrl}
                                                 alt={movie?.name}
+                                                width={md ? 300 : 150}
+                                                height={md ? 450 : 200}
                                                 style={posterStyle}
                                                 className="posterImage"
                                             />

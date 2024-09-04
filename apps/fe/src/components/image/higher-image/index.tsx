@@ -1,84 +1,113 @@
-import React, { useState, useEffect, CSSProperties } from 'react';
-import { Image as AntdImage, ImageProps } from 'antd';
+'use client';
+
+import React, { useState, useEffect, useRef, CSSProperties } from 'react';
+import Image from 'next/image';
+import { Skeleton } from 'antd';
 
 export type HigherHeightImageProps = {
     url1: string;
     url2: string;
     alt: string;
+    width: number;
+    height: number;
     style?: CSSProperties;
     className?: string;
     reverse?: boolean;
-} & ImageProps;
+    quality?: number;
+};
 
-export const HigherHeightImage = ({
+export function HigherHeightImage({
     url1,
     url2,
     alt,
-    style,
+    width,
+    height,
     className,
     reverse = false,
-    preview = false,
-    ...props
-}: HigherHeightImageProps) => {
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    style,
+    quality = 75,
+}: HigherHeightImageProps) {
+    const [showImage1, setShowImage1] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const image1Ref = useRef<HTMLImageElement>(null);
+    const image2Ref = useRef<HTMLImageElement>(null);
 
     useEffect(() => {
-        const img1 = new Image();
-        const img2 = new Image();
-
-        let img1Loaded = false;
-        let img2Loaded = false;
-
         const checkAndSetImage = () => {
-            if (img1Loaded && img2Loaded) {
-                const isImage1Vertical = img1.height > img1.width;
-                const isImage2Vertical = img2.height > img2.width;
+            const img1 = image1Ref.current;
+            const img2 = image2Ref.current;
+
+            if (img1 && img2) {
+                const isImage1Vertical = img1.naturalHeight > img1.naturalWidth;
+                const isImage2Vertical = img2.naturalHeight > img2.naturalWidth;
 
                 if (reverse) {
                     // If reverse is true, choose the horizontal image
                     if (!isImage1Vertical && !isImage2Vertical) {
-                        // If both are horizontal, choose either (e.g., url1)
-                        setImageUrl(url1);
+                        setShowImage1(true);
                     } else {
-                        // Choose the horizontal one
-                        setImageUrl(isImage1Vertical ? url2 : url1);
+                        setShowImage1(!isImage1Vertical);
                     }
                 } else {
                     // If reverse is false (default), choose the vertical image
                     if (isImage1Vertical || isImage2Vertical) {
-                        // Choose the vertical image
-                        setImageUrl(isImage1Vertical ? url1 : url2);
+                        setShowImage1(isImage1Vertical);
                     } else {
-                        // If both are horizontal, choose either (e.g., url1)
-                        setImageUrl(url1);
+                        setShowImage1(true);
                     }
                 }
+                setLoading(false);
             }
         };
 
-        img1.onload = () => {
-            img1Loaded = true;
-            checkAndSetImage();
-        };
-        img1.src = url1;
+        const image1 = image1Ref.current;
+        const image2 = image2Ref.current;
 
-        img2.onload = () => {
-            img2Loaded = true;
-            checkAndSetImage();
-        };
-        img2.src = url2;
-    }, [url1, url2, reverse]);
+        if (image1 && image2) {
+            if (image1.complete && image2.complete) {
+                checkAndSetImage();
+            } else {
+                setLoading(true);
+                const handleLoad = () => {
+                    if (image1.complete && image2.complete) {
+                        checkAndSetImage();
+                    }
+                };
+
+                image1.addEventListener('load', handleLoad);
+                image2.addEventListener('load', handleLoad);
+
+                return () => {
+                    image1.removeEventListener('load', handleLoad);
+                    image2.removeEventListener('load', handleLoad);
+                };
+            }
+        }
+    }, [reverse]);
 
     return (
-        imageUrl && (
-            <AntdImage
-                src={imageUrl}
+        <div style={{ position: 'relative', width, height }}>
+            {loading && <Skeleton.Image style={{ width, height }} active={true} />}
+            <Image
+                ref={image1Ref}
+                src={url1}
                 alt={alt}
-                style={style}
-                className={className}
-                preview={preview}
-                {...props}
+                fill
+                sizes={`(max-width: ${width}px) 100vw, ${width}px`}
+                style={{ opacity: showImage1 ? 1 : 0, ...style }}
+                className={showImage1 ? className : ''}
+                quality={quality}
             />
-        )
+            <Image
+                ref={image2Ref}
+                src={url2}
+                alt={alt}
+                fill
+                sizes={`(max-width: ${width}px) 100vw, ${width}px`}
+                style={{ opacity: showImage1 ? 0 : 1, ...style }}
+                className={showImage1 ? '' : className}
+                quality={quality}
+            />
+        </div>
     );
-};
+}

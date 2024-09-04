@@ -51,6 +51,8 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
                         alt={name}
                         url1={thumbUrl}
                         url2={posterUrl}
+                        width={md ? 220 : 150}
+                        height={md ? 320 : 220}
                         style={{
                             width: '100%',
                             height: '100%',
