@@ -62,9 +62,12 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
         transition: 'transform 0.5s ease',
         width: '100%',
         height: '100%',
-        maxWidth: '25rem',
-        maxHeight: '27rem',
+        maxWidth: md ? '20rem' : '9rem',
+        maxHeight: md ? '27rem' : '13rem',
         objectFit: 'cover',
+        display: 'block',
+        margin: 'auto',
+        background: 'transparent',
     };
 
     const textContentStyle: CSSProperties = {
@@ -89,8 +92,8 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                 url1={movie?.thumbUrl}
                                 url2={movie?.posterUrl}
                                 alt={movie?.name}
-                                width={md ? 1500 : 750}
-                                height={md ? 600 : 380}
+                                width={md ? 1900 : 750}
+                                height={md ? 750 : 380}
                                 reverse={true}
                             />
                         </div>
@@ -253,16 +256,33 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                 <></>
                                             )}
                                         </Col>
-                                        <Col xs={{ span: 10 }} md={{ span: 6 }}>
-                                            <HigherHeightImage
-                                                url1={movie?.thumbUrl}
-                                                url2={movie?.posterUrl}
-                                                alt={movie?.name}
-                                                width={md ? 300 : 150}
-                                                height={md ? 450 : 200}
-                                                style={posterStyle}
-                                                className="posterImage"
-                                            />
+                                        <Col
+                                            xs={{ span: 10 }}
+                                            md={{ span: 6 }}
+                                            style={{ width: '100%', height: '100%' }}
+                                        >
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    position: 'relative',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    textAlign: 'center',
+                                                    background: 'transparent',
+                                                }}
+                                            >
+                                                <HigherHeightImage
+                                                    url1={movie?.thumbUrl}
+                                                    url2={movie?.posterUrl}
+                                                    alt={movie?.name}
+                                                    width={md ? 500 : 150}
+                                                    height={md ? 745 : 200}
+                                                    style={posterStyle}
+                                                    className="posterImage"
+                                                />
+                                            </div>
                                         </Col>
                                     </Row>
                                 </div>
