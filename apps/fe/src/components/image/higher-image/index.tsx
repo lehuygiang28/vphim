@@ -8,8 +8,8 @@ export type HigherHeightImageProps = {
     url1: string;
     url2: string;
     alt: string;
-    width: number;
-    height: number;
+    width: number | string;
+    height: number | string;
     style?: CSSProperties;
     className?: string;
     reverse?: boolean;
@@ -86,8 +86,8 @@ export function HigherHeightImage({
     }, [reverse]);
 
     return (
-        <div style={{ position: 'relative', width, height }}>
-            {loading && <Skeleton.Image style={{ width, height }} active={true} />}
+        <>
+            {loading && <Skeleton.Image active={true} />}
             <Image
                 ref={image1Ref}
                 src={url1}
@@ -108,6 +108,6 @@ export function HigherHeightImage({
                 className={!showImage1 ? className : ''}
                 quality={quality}
             />
-        </div>
+        </>
     );
 }
