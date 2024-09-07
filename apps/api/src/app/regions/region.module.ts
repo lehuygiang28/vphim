@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule } from '@nestjs/config';
 
 import { Region, RegionSchema } from './region.schema';
 import { RegionRepository } from './region.repository';
 import { RegionsService } from './region.service';
 import { RegionController } from './region.controller';
 import { RegionCrawler } from './region.crawler';
-import { ConfigModule } from '@nestjs/config';
+import { RegionResolver } from './region.resolver';
 
 @Module({
     imports: [
@@ -16,7 +17,7 @@ import { ConfigModule } from '@nestjs/config';
         ScheduleModule.forRoot(),
     ],
     controllers: [RegionController],
-    providers: [RegionRepository, RegionsService, RegionCrawler],
+    providers: [RegionResolver, RegionRepository, RegionsService, RegionCrawler],
     exports: [RegionRepository],
 })
 export class RegionsModule {}
