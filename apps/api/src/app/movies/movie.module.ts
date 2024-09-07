@@ -16,6 +16,7 @@ import { MovieController } from './movies.controller';
 import { MovieService } from './movie.service';
 import { MovieCrawler } from './movie.crawler';
 import { KKPhimCrawler } from './kkphim.crawler';
+import { MovieResolver } from './movie.resolver';
 
 @Module({
     imports: [
@@ -50,7 +51,7 @@ import { KKPhimCrawler } from './kkphim.crawler';
         RegionsModule,
     ],
     controllers: [MovieController],
-    providers: [MovieRepository, MovieService, MovieCrawler, KKPhimCrawler],
+    providers: [MovieResolver, MovieRepository, MovieService, MovieCrawler, KKPhimCrawler],
     exports: [MovieRepository],
 })
 export class MovieModule {}
