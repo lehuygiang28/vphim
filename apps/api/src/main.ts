@@ -14,6 +14,7 @@ import * as swaggerStats from 'swagger-stats';
 import { AppModule } from './app/app.module';
 import { ProblemDetails } from './libs/dtos';
 import { ProblemDetailsFilter } from './libs/filters';
+import { isProduction } from './libs/utils/common';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -23,8 +24,11 @@ async function bootstrap() {
     const logger = app.get(Logger);
     app.useLogger(logger);
 
+    if (isProduction(configService)) {
+        app.use(helmet());
+    }
+
     app.enableCors();
-    app.use(helmet());
     app.enableShutdownHooks();
 
     app.useGlobalFilters(new ProblemDetailsFilter(logger));
