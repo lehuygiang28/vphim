@@ -1,6 +1,9 @@
+import { join } from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -25,6 +28,11 @@ import { UsersModule } from './users';
         }),
         PinoModule,
         MongodbModule,
+        GraphQLModule.forRoot<ApolloDriverConfig>({
+            driver: ApolloDriver,
+            autoSchemaFile: join(process.cwd(), `./apps/api/src/app/schema.gql`),
+            playground: true,
+        }),
         AuthModule,
         UsersModule,
         BullModule.forRootAsync({
