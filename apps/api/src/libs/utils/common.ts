@@ -1,5 +1,18 @@
+import { ConfigService } from '@nestjs/config';
 import { Condition, ObjectId, Types, isValidObjectId } from 'mongoose';
 import { createHash } from 'node:crypto';
+
+/**
+ * Checks if the environment is production
+ * @returns true if the environment is production
+ */
+export function isProduction(configService?: ConfigService) {
+    if (!configService) {
+        return process.env?.NODE_ENV?.toLowerCase() === 'production';
+    }
+
+    return configService.get('NODE_ENV')?.toLowerCase() === 'production';
+}
 
 /**
  *
@@ -10,7 +23,7 @@ import { createHash } from 'node:crypto';
 export function isTrue(stringValue: string | boolean): boolean {
     return typeof stringValue === 'boolean'
         ? stringValue
-        : stringValue.toLowerCase().trim() === 'true';
+        : stringValue?.toLowerCase()?.trim() === 'true';
 }
 
 export function convertToObjectId(
