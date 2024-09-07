@@ -2,7 +2,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout } from 'antd';
 import { useList } from '@refinedev/core';
 
@@ -15,6 +15,8 @@ import Header from './header';
 const { Content, Footer } = Layout;
 
 export function Home() {
+    const [activeList, setActiveList] = useState<string | null>(null);
+
     const { data: mostViewed } = useList<MovieResponseDto>({
         resource: 'movies',
         sorters: [
@@ -77,29 +79,47 @@ export function Home() {
                 }}
             >
                 <MovieSwiper movies={mostViewed?.data} />
-                <MovieList
-                    title="PHIM MỚI"
-                    movies={newMovies?.data}
+
+                <div
+                    onClick={() => setActiveList('newMovies')}
                     style={{
                         marginTop: '1rem',
                     }}
-                />
-                <MovieList
-                    title="PHIM HÀNH ĐỘNG"
-                    movies={actionMovies?.data}
+                >
+                    <MovieList
+                        clearVisibleContentCard={activeList !== 'newMovies'}
+                        title="PHIM MỚI"
+                        movies={newMovies?.data}
+                    />
+                </div>
+
+                <div
+                    onClick={() => setActiveList('actionMovies')}
                     style={{
                         marginTop: '1rem',
                     }}
-                    viewMoreHref={'/the-loai/hanh-dong'}
-                />
-                <MovieList
-                    title="PHIM ANIME"
-                    movies={cartoonMovies?.data}
+                >
+                    <MovieList
+                        clearVisibleContentCard={activeList !== 'actionMovies'}
+                        title="PHIM HÀNH ĐỘNG"
+                        movies={actionMovies?.data}
+                        viewMoreHref={'/the-loai/hanh-dong'}
+                    />
+                </div>
+
+                <div
+                    onClick={() => setActiveList('cartoonMovies')}
                     style={{
                         marginTop: '1rem',
                     }}
-                    viewMoreHref={'/the-loai/hoat-hinh'}
-                />
+                >
+                    <MovieList
+                        clearVisibleContentCard={activeList !== 'cartoonMovies'}
+                        title="PHIM HOẠT HÌNH"
+                        movies={cartoonMovies?.data}
+                        viewMoreHref={'/the-loai/hoat-hinh'}
+                    />
+                </div>
             </Content>
             <Footer></Footer>
         </Layout>
