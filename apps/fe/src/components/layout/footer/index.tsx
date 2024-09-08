@@ -4,7 +4,9 @@ import React from 'react';
 import { Layout, Row, Col, Typography, Grid, Divider } from 'antd';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useList } from '@refinedev/core';
+
+import type { Category } from 'apps/api/src/app/categories/category.schema';
+import type { Region } from 'apps/api/src/app/regions/region.schema';
 
 const { Footer } = Layout;
 const { Title, Text } = Typography;
@@ -17,18 +19,12 @@ const helperLinks = [
     { label: 'Privacy Policy', url: '/privacy' },
 ];
 
-const movieCategories = [
-    {
-        title: 'Genres',
-        items: ['Action', 'Comedy', 'Drama', 'Horror'],
-    },
-    {
-        title: 'Countries',
-        items: ['Hollywood', 'Bollywood', 'Korean', 'Chinese'],
-    },
-];
+export type FooterComponentProps = {
+    categories?: Category[];
+    regions?: Region[];
+};
 
-export default function FooterComponent() {
+export default function FooterComponent({ categories = [], regions = [] }: FooterComponentProps) {
     const screens = useBreakpoint();
 
     return (
@@ -85,32 +81,55 @@ export default function FooterComponent() {
                     </ul>
                 </Col>
 
-                {movieCategories.map((category) => (
-                    <Col xs={12} sm={12} md={6} lg={6} key={category.title}>
-                        <Title
-                            level={5}
-                            style={{ color: 'white', marginBottom: '0.5rem', fontSize: '1rem' }}
-                        >
-                            {category.title}
-                        </Title>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                            {category.items.map((item) => (
-                                <li key={item} style={{ marginBottom: '0.5rem' }}>
-                                    <Link
-                                        href={`/category/${item.toLowerCase()}`}
-                                        style={{
-                                            color: 'rgba(255, 255, 255, 0.65)',
-                                            fontSize: '0.875rem',
-                                        }}
-                                    >
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </Col>
-                ))}
+                <Col xs={12} sm={12} md={6} lg={6}>
+                    <Title
+                        level={5}
+                        style={{ color: 'white', marginBottom: '0.5rem', fontSize: '1rem' }}
+                    >
+                        Thể Loại
+                    </Title>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                        {categories?.slice(0, 6)?.map((category) => (
+                            <li key={category.slug} style={{ marginBottom: '0.5rem' }}>
+                                <Link
+                                    href={`/the-loai/${category?.slug}`}
+                                    style={{
+                                        color: 'rgba(255, 255, 255, 0.65)',
+                                        fontSize: '0.875rem',
+                                    }}
+                                >
+                                    {category.name}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </Col>
+
+                <Col xs={12} sm={12} md={6} lg={6}>
+                    <Title
+                        level={5}
+                        style={{ color: 'white', marginBottom: '0.5rem', fontSize: '1rem' }}
+                    >
+                        Quốc Gia
+                    </Title>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                        {regions?.slice(0, 6)?.map((region) => (
+                            <li key={region.slug} style={{ marginBottom: '0.5rem' }}>
+                                <Link
+                                    href={`/the-loai/${region?.slug}`}
+                                    style={{
+                                        color: 'rgba(255, 255, 255, 0.65)',
+                                        fontSize: '0.875rem',
+                                    }}
+                                >
+                                    {region.name}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </Col>
             </Row>
+
             <Divider />
             <Row justify="center" style={{ marginTop: '1.5rem' }}>
                 <Col>
