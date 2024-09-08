@@ -2,6 +2,9 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import { CategoryRepository } from './category.repository';
 import { UpdateCategoryDto } from './dtos';
+import { GetCategoriesInput } from './inputs/get-categories.input';
+import { FilterQuery } from 'mongoose';
+import { Category } from './category.schema';
 
 @Injectable()
 export class CategoryService {
@@ -11,8 +14,15 @@ export class CategoryService {
         this.logger = new Logger(CategoryService.name);
     }
 
-    async getCategories() {
-        return this.categoryRepo.find({ filterQuery: {} });
+    async getCategories(query?: GetCategoriesInput) {
+        const filterQuery: FilterQuery<Category> = {};
+
+        const [data, total] = await Promise.all([
+            this.categoryRepo.find({ filterQuery, query }),
+            this.categoryRepo.count(filterQuery),
+        ]);
+
+        return { data, total };
     }
 
     async updateCategory({ slug, body }: { slug: string; body: UpdateCategoryDto }) {

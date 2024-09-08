@@ -26,12 +26,22 @@ type Category {
   updatedAt: DateTime!
 }
 
+type GetCategoriesOutput {
+  data: [Category!]!
+  total: Float!
+}
+
 type Region {
   _id: ID!
   name: String!
   slug: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+type GetRegionsOutput {
+  data: [Region!]!
+  total: Float!
 }
 
 type Director {
@@ -97,8 +107,19 @@ type GetMoviesOutput {
 }
 
 type Query {
-  regions: [Region!]!
+  regions(input: GetRegionsInput!): GetRegionsOutput!
+  categories(input: GetCategoriesInput!): GetCategoriesOutput!
   movies(input: GetMoviesInput!): GetMoviesOutput!
+}
+
+input GetRegionsInput {
+  limit: Float = 10
+  page: Float = 1
+}
+
+input GetCategoriesInput {
+  limit: Float = 10
+  page: Float = 1
 }
 
 input GetMoviesInput {

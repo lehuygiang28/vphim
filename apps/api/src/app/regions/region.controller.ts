@@ -14,7 +14,7 @@ export class RegionController {
 
     @Get('/')
     async getRegions() {
-        return this.regionsService.getRegions();
+        return this.regionsService.getRegions({});
     }
 
     @Patch('/:slug')

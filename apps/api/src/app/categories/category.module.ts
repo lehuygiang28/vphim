@@ -8,6 +8,7 @@ import { CategoryRepository } from './category.repository';
 import { CategoryCrawler } from './category.crawler';
 import { CategoryService } from './category.service';
 import { CategoryController } from './category.controller';
+import { CategoryResolver } from './category.resolver';
 
 @Module({
     imports: [
@@ -16,7 +17,7 @@ import { CategoryController } from './category.controller';
         ScheduleModule.forRoot(),
     ],
     controllers: [CategoryController],
-    providers: [CategoryService, CategoryRepository, CategoryCrawler],
+    providers: [CategoryResolver, CategoryService, CategoryRepository, CategoryCrawler],
     exports: [CategoryRepository],
 })
 export class CategoryModule {}

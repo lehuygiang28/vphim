@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import { RegionRepository } from './region.repository';
 import { UpdateRegionDto } from './dtos';
+import { GetRegionsInput } from './inputs';
 
 @Injectable()
 export class RegionsService {
@@ -11,8 +12,16 @@ export class RegionsService {
         this.logger = new Logger(RegionsService.name);
     }
 
-    async getRegions() {
-        return this.regionsRepo.find({ filterQuery: {} });
+    async getRegions(query?: GetRegionsInput) {
+        const [regions, total] = await Promise.all([
+            this.regionsRepo.find({ filterQuery: {}, query }),
+            this.regionsRepo.count({ filterQuery: {} }),
+        ]);
+
+        return {
+            data: regions,
+            total,
+        };
     }
 
     async updateRegion({ slug, body }: { slug: string; body: UpdateRegionDto }) {
