@@ -9,11 +9,12 @@ import { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import MovieList from '@/components/swiper/movie-list';
 import { MovieSwiper } from '@/components/swiper/movie';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
+import Loading from '@/app/loading';
 
 export function Home() {
     const [activeList, setActiveList] = useState<string | null>(null);
 
-    const { data: mostViewed } = useList<MovieResponseDto>({
+    const { data: mostViewed, isLoading: mostViewedLoading } = useList<MovieResponseDto>({
         dataProviderName: 'graphql',
         meta: { gqlQuery: MOVIES_LIST_QUERY },
         resource: 'movies',
@@ -69,6 +70,10 @@ export function Home() {
             },
         ],
     });
+
+    if (mostViewedLoading) {
+        return <Loading />;
+    }
 
     return (
         <>

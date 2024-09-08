@@ -14,6 +14,7 @@ import { graphqlDataProvider, restfulDataProvider } from '@/providers/data-provi
 import '@refinedev/antd/dist/reset.css';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 import { baseApiUrl } from '@/config';
+import Loading from './loading';
 
 type RefineContextProps = {
     defaultMode?: string;
@@ -37,7 +38,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
     const to = usePathname();
 
     if (status === 'loading') {
-        return <span>loading...</span>;
+        return <Loading />;
     }
 
     const authProvider: AuthProvider = {
