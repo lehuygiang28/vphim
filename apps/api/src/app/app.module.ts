@@ -32,6 +32,7 @@ import { UsersModule } from './users';
             driver: ApolloDriver,
             autoSchemaFile: join(process.cwd(), `./apps/api/src/app/schema.gql`),
             playground: true,
+            csrfPrevention: false,
         }),
         AuthModule,
         UsersModule,
