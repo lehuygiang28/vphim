@@ -28,6 +28,7 @@
         "@octokit/rest": "^20.1.1",
         "@refinedev/antd": "^5.43.0",
         "@refinedev/core": "^4.54.0",
+        "@refinedev/graphql": "^6.5.4",
         "@refinedev/nextjs-router": "^6.1.0",
         "@refinedev/simple-rest": "^5.0.8",
         "@vn-utils/text": "0.0.1-rc.2",

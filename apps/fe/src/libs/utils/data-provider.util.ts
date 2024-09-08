@@ -40,3 +40,42 @@ export function handleSort(searchParams: URLSearchParams, sorters?: CrudSort | C
 
     return searchParams;
 }
+
+export function handlePaginationQuery(pagination?: Pagination) {
+    return pagination
+        ? { page: pagination.current, limit: pagination.pageSize }
+        : { page: 1, limit: 10 };
+}
+
+export function handleFilterQuery(
+    filters?: (CrudFilter & { field: string })[],
+): Record<string, unknown> {
+    return filters
+        ? filters
+              .filter((filter) => filter['field'])
+              .reduce((acc, filter) => {
+                  acc[filter['field']] = filter?.value ?? '';
+                  return acc;
+              }, {} as Record<string, unknown>)
+        : {};
+}
+
+export function handleSortQuery(sorters?: CrudSort | CrudSort[]):
+    | {
+          sortBy: string;
+          sortOrder: string;
+      }
+    | object {
+    if (!sorters) return {};
+
+    if (Array.isArray(sorters)) {
+        const firstSorter = sorters[0];
+        return firstSorter && firstSorter.field && firstSorter.order
+            ? { sortBy: firstSorter.field, sortOrder: firstSorter.order }
+            : {};
+    }
+
+    return sorters && sorters.field && sorters.order
+        ? { sortBy: sorters.field, sortOrder: sorters.order }
+        : {};
+}

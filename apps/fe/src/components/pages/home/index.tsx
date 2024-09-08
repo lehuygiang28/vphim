@@ -11,6 +11,7 @@ import MovieList from '@/components/swiper/movie-list';
 import { MovieSwiper } from '@/components/swiper/movie';
 
 import Header from './header';
+import { MOVIES_LIST_QUERY } from '@/queries/movies';
 
 const { Content, Footer } = Layout;
 
@@ -18,6 +19,8 @@ export function Home() {
     const [activeList, setActiveList] = useState<string | null>(null);
 
     const { data: mostViewed } = useList<MovieResponseDto>({
+        dataProviderName: 'graphql',
+        meta: { gqlQuery: MOVIES_LIST_QUERY },
         resource: 'movies',
         sorters: [
             {
@@ -28,11 +31,13 @@ export function Home() {
     });
 
     const { data: newMovies } = useList<MovieResponseDto>({
+        dataProviderName: 'graphql',
+        meta: { gqlQuery: MOVIES_LIST_QUERY },
         resource: 'movies',
         filters: [
             {
                 field: 'years',
-                value: '2024, 2023',
+                value: `${new Date().getFullYear()}`,
                 operator: 'eq',
             },
         ],
@@ -43,7 +48,10 @@ export function Home() {
             },
         ],
     });
+
     const { data: actionMovies } = useList<MovieResponseDto>({
+        dataProviderName: 'graphql',
+        meta: { gqlQuery: MOVIES_LIST_QUERY },
         resource: 'movies',
         filters: [
             {
@@ -55,6 +63,8 @@ export function Home() {
     });
 
     const { data: cartoonMovies } = useList<MovieResponseDto>({
+        dataProviderName: 'graphql',
+        meta: { gqlQuery: MOVIES_LIST_QUERY },
         resource: 'movies',
         filters: [
             {

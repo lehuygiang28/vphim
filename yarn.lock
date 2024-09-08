@@ -4679,6 +4679,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@refinedev/graphql@npm:^6.5.4":
+  version: 6.5.4
+  resolution: "@refinedev/graphql@npm:6.5.4"
+  dependencies:
+    camelcase: "npm:^6.2.0"
+    gql-query-builder: "npm:^3.5.5"
+    graphql: "npm:^15.6.1"
+    graphql-request: "npm:^5.2.0"
+    graphql-tag: "npm:^2.12.6"
+    graphql-ws: "npm:^5.9.1"
+    pluralize: "npm:^8.0.0"
+  peerDependencies:
+    "@refinedev/core": ^4.46.1
+    gql-query-builder: ^3.5.5
+    graphql-request: ^5.2.0
+    graphql-ws: ^5.9.1
+  checksum: 10c0/01f7ce8a4cd76d5d936c75ec753411b7bc3ef170fb9b777c45af5d98238db8fa11c1d8cedea4808e328d8cd3411fde1cee23d570b3e4b14e72332023bb69b807
+  languageName: node
+  linkType: hard
+
 "@refinedev/nextjs-router@npm:^6.1.0":
   version: 6.1.0
   resolution: "@refinedev/nextjs-router@npm:6.1.0"
@@ -6024,6 +6044,7 @@ __metadata:
     "@playwright/test": "npm:^1.36.0"
     "@refinedev/antd": "npm:^5.43.0"
     "@refinedev/core": "npm:^4.54.0"
+    "@refinedev/graphql": "npm:^6.5.4"
     "@refinedev/nextjs-router": "npm:^6.1.0"
     "@refinedev/simple-rest": "npm:^5.0.8"
     "@swc-node/register": "npm:~1.9.1"
@@ -8376,6 +8397,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cross-fetch@npm:^3.1.5":
+  version: 3.1.8
+  resolution: "cross-fetch@npm:3.1.8"
+  dependencies:
+    node-fetch: "npm:^2.6.12"
+  checksum: 10c0/4c5e022ffe6abdf380faa6e2373c0c4ed7ef75e105c95c972b6f627c3f083170b6886f19fb488a7fa93971f4f69dcc890f122b0d97f0bf5f41ca1d9a8f58c8af
+  languageName: node
+  linkType: hard
+
 "cross-inspect@npm:1.0.0":
   version: 1.0.0
   resolution: "cross-inspect@npm:1.0.0"
@@ -10239,6 +10269,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"extract-files@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "extract-files@npm:9.0.0"
+  checksum: 10c0/60259624c5e7a927d6bccdbedd685462ceee3dcaa28e509ecfff5e2c1032a652bb96ac645837ef1ac4c4fd4461b7896b008f106f7718245befdb0e1c98024640
+  languageName: node
+  linkType: hard
+
 "fast-copy@npm:^3.0.2":
   version: 3.0.2
   resolution: "fast-copy@npm:3.0.2"
@@ -10572,6 +10609,17 @@ __metadata:
     vue-template-compiler:
       optional: true
   checksum: 10c0/e6ca712c818956e5ed0837cef5e0bbf9ce453c7a82e2efa56a01343d566b330580c6d3bbbfed33705df2987e71398a46c4af901dfcdffe09edfece3f195f6ebd
+  languageName: node
+  linkType: hard
+
+"form-data@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "form-data@npm:3.0.1"
+  dependencies:
+    asynckit: "npm:^0.4.0"
+    combined-stream: "npm:^1.0.8"
+    mime-types: "npm:^2.1.12"
+  checksum: 10c0/1ccc3ae064a080a799923f754d49fcebdd90515a8924f0f54de557540b50e7f1fe48ba5f2bd0435a5664aa2d49729107e6aaf2155a9abf52339474c5638b4485
   languageName: node
   linkType: hard
 
@@ -11069,6 +11117,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"gql-query-builder@npm:^3.5.5":
+  version: 3.8.0
+  resolution: "gql-query-builder@npm:3.8.0"
+  checksum: 10c0/52138c04be359361586c3960f48439665f7990c8536b7ef2d03c5f74faa65f429cbea114effd41b1c02ed908cef9dedfe9e42672bb4825b6cd7775016653f6c5
+  languageName: node
+  linkType: hard
+
 "graceful-fs@npm:^4.1.2, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.11, graceful-fs@npm:^4.2.4, graceful-fs@npm:^4.2.6, graceful-fs@npm:^4.2.9":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
@@ -11083,7 +11138,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-tag@npm:2.12.6":
+"graphql-request@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "graphql-request@npm:5.2.0"
+  dependencies:
+    "@graphql-typed-document-node/core": "npm:^3.1.1"
+    cross-fetch: "npm:^3.1.5"
+    extract-files: "npm:^9.0.0"
+    form-data: "npm:^3.0.0"
+  peerDependencies:
+    graphql: 14 - 16
+  checksum: 10c0/a360edaffe2d0000387ed34467e9bff7c16fe87bdc048552d4c3674a32a0f0dd8ab15d5a099bf0bfc8c1720e791d1ab16b630c2510a73bbbfc9c6cd7578fe091
+  languageName: node
+  linkType: hard
+
+"graphql-tag@npm:2.12.6, graphql-tag@npm:^2.12.6":
   version: 2.12.6
   resolution: "graphql-tag@npm:2.12.6"
   dependencies:
@@ -11094,12 +11163,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-ws@npm:5.16.0":
+"graphql-ws@npm:5.16.0, graphql-ws@npm:^5.9.1":
   version: 5.16.0
   resolution: "graphql-ws@npm:5.16.0"
   peerDependencies:
     graphql: ">=0.11 <=16"
   checksum: 10c0/5e538c3460ca997a1634bd0f64236d8d7aa6ac75c58aba549b49953faf0dd2497f4fa43eedb0bc82cfff50426c7ce47682a670d2571fd7f3af5dcf00911c9e1b
+  languageName: node
+  linkType: hard
+
+"graphql@npm:^15.6.1":
+  version: 15.9.0
+  resolution: "graphql@npm:15.9.0"
+  checksum: 10c0/0e93f7138daae07dcb0713ce5e2ae7f8039e911b6180f0170c4929664ec32ab8e690a9ea12be2dc4ab18544f9898989765122f30d2d07d38b0ce2a4c839d29bc
   languageName: node
   linkType: hard
 
@@ -15288,7 +15364,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.7, node-fetch@npm:^2.6.9":
+"node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.7, node-fetch@npm:^2.6.9":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:

@@ -9,9 +9,8 @@ import React from 'react';
 import routerProvider from '@refinedev/nextjs-router';
 
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { AppIcon } from '@/components/app-icon';
 import { ColorModeContextProvider } from '@/contexts/color-mode';
-import { apiDataProvider } from '@/providers/data-provider';
+import { graphqlDataProvider, restfulDataProvider } from '@/providers/data-provider';
 import '@refinedev/antd/dist/reset.css';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 import { baseApiUrl } from '@/config';
@@ -110,7 +109,8 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                     <Refine
                         routerProvider={routerProvider}
                         dataProvider={{
-                            default: { ...apiDataProvider(axiosAuth) } as DataProvider,
+                            default: { ...restfulDataProvider(axiosAuth) } as DataProvider,
+                            graphql: graphqlDataProvider(axiosAuth) as DataProvider,
                         }}
                         notificationProvider={useNotificationProvider}
                         authProvider={authProvider}
@@ -119,7 +119,6 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             syncWithLocation: true,
                             warnWhenUnsavedChanges: true,
                             useNewQueryKeys: true,
-                            title: { text: 'Refine Project', icon: <AppIcon /> },
                         }}
                     >
                         {props.children}
