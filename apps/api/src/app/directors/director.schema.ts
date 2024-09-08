@@ -30,3 +30,15 @@ export class Director extends AbstractDocument {
 }
 
 export const DirectorSchema = SchemaFactory.createForClass(Director);
+
+DirectorSchema.pre('save', function () {
+    this.set({ updatedAt: new Date(), createdAt: new Date() });
+});
+
+DirectorSchema.pre('updateOne', function () {
+    this.set({ updatedAt: new Date() });
+});
+
+DirectorSchema.pre('findOneAndUpdate', function () {
+    this.set({ updatedAt: new Date() });
+});

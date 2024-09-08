@@ -30,3 +30,15 @@ export class Actor extends AbstractDocument {
 }
 
 export const ActorSchema = SchemaFactory.createForClass(Actor);
+
+ActorSchema.pre('save', function () {
+    this.set({ updatedAt: new Date(), createdAt: new Date() });
+});
+
+ActorSchema.pre('updateOne', function () {
+    this.set({ updatedAt: new Date() });
+});
+
+ActorSchema.pre('findOneAndUpdate', function () {
+    this.set({ updatedAt: new Date() });
+});

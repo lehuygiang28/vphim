@@ -22,3 +22,15 @@ export class Region
 }
 
 export const RegionSchema = SchemaFactory.createForClass(Region);
+
+RegionSchema.pre('save', function () {
+    this.set({ updatedAt: new Date(), createdAt: new Date() });
+});
+
+RegionSchema.pre('updateOne', function () {
+    this.set({ updatedAt: new Date() });
+});
+
+RegionSchema.pre('findOneAndUpdate', function () {
+    this.set({ updatedAt: new Date() });
+});

@@ -72,3 +72,15 @@ export class User extends AbstractDocument {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.pre('save', function () {
+    this.set({ updatedAt: new Date(), createdAt: new Date() });
+});
+
+UserSchema.pre('updateOne', function () {
+    this.set({ updatedAt: new Date() });
+});
+
+UserSchema.pre('findOneAndUpdate', function () {
+    this.set({ updatedAt: new Date() });
+});

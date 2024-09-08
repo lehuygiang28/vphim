@@ -22,3 +22,15 @@ export class Category
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
+
+CategorySchema.pre('save', function () {
+    this.set({ updatedAt: new Date(), createdAt: new Date() });
+});
+
+CategorySchema.pre('updateOne', function () {
+    this.set({ updatedAt: new Date() });
+});
+
+CategorySchema.pre('findOneAndUpdate', function () {
+    this.set({ updatedAt: new Date() });
+});

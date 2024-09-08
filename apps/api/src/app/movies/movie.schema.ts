@@ -169,3 +169,15 @@ MovieSchema.index({
     'actors.name': 'text',
     'directors.name': 'text',
 });
+
+MovieSchema.pre('save', function () {
+    this.set({ updatedAt: new Date(), createdAt: new Date() });
+});
+
+MovieSchema.pre('updateOne', function () {
+    this.set({ updatedAt: new Date() });
+});
+
+MovieSchema.pre('findOneAndUpdate', function () {
+    this.set({ updatedAt: new Date() });
+});
