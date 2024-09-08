@@ -1,90 +1,63 @@
 'use client';
 import './header.css';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { Layout, Menu, Input, Button, Drawer, Grid } from 'antd';
 import { SearchOutlined, UserOutlined, MenuOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
 
 const { Header } = Layout;
 const { useBreakpoint } = Grid;
 
-const navItems = [
+const baseNavItems: ItemType<MenuItemType>[] = [
     {
         key: 'home',
-        label: 'Home',
-        url: '/',
+        label: <Link href={'/'}>Trang Chủ</Link>,
     },
     {
         key: 'phim-bo',
-        label: 'Phim Bộ',
-        url: '/phim-bo',
+        label: <Link href={'/the-loai/phim-bo'}>Phim Bộ</Link>,
     },
     {
         key: 'phim-le',
-        label: 'Phim Lẻ',
-        url: '/phim-le',
+        label: <Link href={'/the-loai/phim-le'}>Phim Lẻ</Link>,
     },
     {
         key: 'phim-hay',
-        label: 'Phim Hay',
-        url: '/phim-hay',
+        label: <Link href={'/the-loai/phim-hay'}>Phim Hay</Link>,
     },
     {
         key: 'tv-shows',
-        label: 'TV Shows',
-        url: '/tv-shows',
-    },
-    {
-        key: 'the-loai',
-        label: 'Thể Loại',
-        children: [
-            {
-                label: 'Phim Tình Cảm',
-                key: 'the-loai/tinh-cam',
-                url: 'the-loai/tinh-cam',
-            },
-            {
-                label: 'Phim Hành Động',
-                key: 'the-loai/hanh-dong',
-                url: 'the-loai/hanh-dong',
-            },
-            {
-                label: 'Phim Hoạt Hình',
-                key: 'the-loai/hoat-hinh',
-                url: 'the-loai/hoat-hinh',
-            },
-        ],
-    },
-    {
-        label: 'Quốc Gia',
-        key: 'quoc-gia',
-        children: [
-            {
-                label: 'Việt Nam',
-                key: 'quoc-gia/viet-nam',
-                url: 'quoc-gia/viet-nam',
-            },
-            {
-                label: 'Hàn Quốc',
-                key: 'quoc-gia/han-quoc',
-                url: 'quoc-gia/han-quoc',
-            },
-            {
-                label: 'Trung Quốc',
-                key: 'quoc-gia/trung-quoc',
-                url: 'quoc-gia/trung-quoc',
-            },
-        ],
+        label: <Link href={'/the-loai/tv-shows'}>TV Shows</Link>,
     },
 ];
 
-export default function HeaderCom() {
+export type HeaderProps = {
+    categoryMenu?: { label: ReactNode; key: string }[];
+    regionMenu?: { label: ReactNode; key: string }[];
+};
+
+export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: HeaderProps) {
     const [scrolled, setScrolled] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [searchVisible, setSearchVisible] = useState(false);
     const screens = useBreakpoint();
+
+    const navItems = [
+        ...baseNavItems,
+        {
+            key: 'the-loai',
+            label: 'Thể Loại',
+            children: categoryMenu,
+        },
+        {
+            label: 'Quốc Gia',
+            key: 'quoc-gia',
+            children: regionMenu,
+        },
+    ];
 
     useEffect(() => {
         const handleScroll = () => {
