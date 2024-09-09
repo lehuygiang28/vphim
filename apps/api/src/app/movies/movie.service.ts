@@ -127,12 +127,14 @@ export class MovieService {
         pipeline.push({ $match: match });
 
         pipeline.push(
-            { $sort: { [sortBy]: sortOrder === 'asc' ? 1 : -1 } },
-            { $skip: (page - 1) * limit },
-            { $limit: Number(limit) },
             {
                 $facet: {
-                    movies: [{ $project: { __v: 0, episode: 0 } }],
+                    movies: [
+                        { $sort: { [sortBy]: sortOrder === 'asc' ? 1 : -1 } },
+                        { $skip: (page - 1) * limit },
+                        { $limit: Number(limit) },
+                        { $project: { __v: 0, episode: 0 } },
+                    ],
                     total: [{ $count: 'count' }],
                 },
             },

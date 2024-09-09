@@ -12,14 +12,14 @@ export class MovieResponseDto extends OmitType(Movie, [
     'directors',
 ]) {
     @ApiProperty({ type: [Actor] })
-    actors: Actor[];
+    actors?: Actor[];
 
     @ApiProperty({ type: [Category] })
-    categories: Category[];
+    categories?: Category[];
 
     @ApiProperty({ type: [Region] })
-    countries: Region[];
+    countries?: Region[];
 
     @ApiProperty({ type: [Director] })
-    directors: Director[];
+    directors?: Director[];
 }
