@@ -33,7 +33,7 @@
         "@refinedev/simple-rest": "^5.0.8",
         "@vn-utils/text": "0.0.1-rc.2",
         "antd": "^5.20.3",
-        "axios": "^1.6.0",
+        "axios": "^1.7.7",
         "bcryptjs": "^2.4.3",
         "bullmq": "^5.12.10",
         "cache-manager": "^5.7.6",
