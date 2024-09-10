@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { FC } from 'react';
 import { Button, Card, Divider, Grid, Space, Tag, Typography } from 'antd';
 import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
@@ -14,9 +14,10 @@ const { useBreakpoint } = Grid;
 interface MovieCardProps {
     movie: MovieResponseDto;
     visibleContent?: boolean;
+    scale?: number;
 }
 
-export const MovieCard: React.FC<MovieCardProps> = ({ movie, visibleContent }) => {
+export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1.25 }) => {
     const { md } = useBreakpoint();
 
     return (
@@ -31,7 +32,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, visibleContent }) =
                 transition: 'all 0.3s ease-in-out',
                 background: 'none',
                 border: 'none',
-                transform: visibleContent ? 'scale(1.25)' : 'scale(1)',
+                transform: visibleContent ? `scale(${scale})` : 'scale(1)',
                 zIndex: visibleContent ? 100 : 1,
             }}
             styles={{
