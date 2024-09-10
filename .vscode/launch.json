@@ -10,6 +10,7 @@
             "request": "launch",
             "args": ["apps/api/src/main.ts"],
             "runtimeArgs": [
+                "--watch",
                 "--require",
                 "ts-node/register",
                 "--require",
@@ -27,6 +28,22 @@
             "envFile": "${workspaceFolder}/apps/api/.env",
             "sourceMaps": true,
             "console": "internalConsole",
+            "outputCapture": "std",
+            "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug NestJS in NX",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["nx", "serve", "api", "--configuration=debug"],
+            "console": "internalConsole",
+            "restart": true,
+            "autoAttachChildProcesses": true,
+            "stopOnEntry": true,
+            "cwd": "${workspaceRoot}",
+            "envFile": "${workspaceFolder}/apps/api/.env",
+            "sourceMaps": true,
             "outputCapture": "std",
             "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
         }

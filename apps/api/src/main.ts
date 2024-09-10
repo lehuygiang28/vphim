@@ -44,7 +44,7 @@ async function bootstrap() {
         .setVersion('0.0.1')
         .setLicense('MIT LICENSE', 'https://github.com/lehuygiang28/vphim?tab=MIT-1-ov-file')
         .setExternalDoc('vphim Github', 'https://github.com/lehuygiang28/vphim')
-        .addServer('http://localhost:8000', 'https://vphim.vercel.app')
+        .addServer('http://localhost:8000')
         .addBearerAuth()
         .build();
 

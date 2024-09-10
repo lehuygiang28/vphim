@@ -18,6 +18,10 @@
                     "buildTarget": "api:build:development",
                     "inspect": false
                 },
+                "debug": {
+                    "buildTarget": "api:build:development",
+                    "inspect": true
+                },
                 "production": {
                     "buildTarget": "api:build:production"
                 }

@@ -1,4 +1,3 @@
-import { join } from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
@@ -30,7 +29,7 @@ import { UsersModule } from './users';
         MongodbModule,
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
-            autoSchemaFile: join(process.cwd(), `./apps/api/src/app/schema.gql`),
+            autoSchemaFile: true,
             playground: true,
             csrfPrevention: false,
         }),
