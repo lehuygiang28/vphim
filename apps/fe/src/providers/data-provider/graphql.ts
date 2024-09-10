@@ -4,13 +4,13 @@ import { AxiosInstance } from 'axios';
 import camelCase from 'camelcase';
 import { BaseRecord, GetListParams, GetListResponse } from '@refinedev/core';
 import { baseApiUrl } from '@/config';
-
-import type { Movie } from 'apps/api/src/app/movies/movie.schema';
 import {
     handleFilterQuery,
     handlePaginationQuery,
     handleSortQuery,
 } from '@/libs/utils/data-provider.util';
+
+import type { Movie } from 'apps/api/src/app/movies/movie.schema';
 
 export const graphqlDataProvider = (axios: AxiosInstance) => {
     const baseUrl = `${baseApiUrl}/graphql`;
