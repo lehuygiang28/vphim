@@ -2,35 +2,114 @@
 import './header.css';
 
 import React, { useState, useEffect, ReactNode } from 'react';
-import { Layout, Menu, Input, Button, Drawer, Grid } from 'antd';
+import { Layout, Menu, Input, Button, Drawer, Grid, Typography } from 'antd';
 import { SearchOutlined, UserOutlined, MenuOutlined } from '@ant-design/icons';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import Image from 'next/image';
+import { stringifyTableParams } from '@refinedev/core';
 import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
+import { RouteNameEnum } from '@/constants/route.constant';
+
+import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
 
 const { Header } = Layout;
+const { Link } = Typography;
 const { useBreakpoint } = Grid;
 
 const baseNavItems: ItemType<MenuItemType>[] = [
     {
         key: 'home',
-        label: <Link href={'/'}>Trang Chủ</Link>,
+        label: <NextLink href={'/'}>Trang Chủ</NextLink>,
     },
     {
-        key: 'phim-bo',
-        label: <Link href={'/the-loai/phim-bo'}>Phim Bộ</Link>,
+        key: MovieTypeEnum.SERIES,
+        label: (
+            <Link
+                href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                    filters: [
+                        {
+                            field: 'type',
+                            operator: 'eq',
+                            value: MovieTypeEnum.SERIES,
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'updatedAt',
+                            order: 'desc',
+                        },
+                    ],
+                })}`}
+            >
+                Phim Bộ
+            </Link>
+        ),
     },
     {
-        key: 'phim-le',
-        label: <Link href={'/the-loai/phim-le'}>Phim Lẻ</Link>,
+        key: MovieTypeEnum.SINGLE,
+        label: (
+            <Link
+                href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                    filters: [
+                        {
+                            field: 'type',
+                            operator: 'eq',
+                            value: MovieTypeEnum.SINGLE,
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'updateAt',
+                            order: 'desc',
+                        },
+                    ],
+                })}`}
+            >
+                Phim Lẻ
+            </Link>
+        ),
     },
     {
         key: 'phim-hay',
-        label: <Link href={'/the-loai/phim-hay'}>Phim Hay</Link>,
+        label: (
+            <Link
+                href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                    filters: [],
+                    sorters: [
+                        {
+                            field: 'view',
+                            order: 'desc',
+                        },
+                    ],
+                })}`}
+            >
+                Phim Hay
+            </Link>
+        ),
     },
     {
-        key: 'tv-shows',
-        label: <Link href={'/the-loai/tv-shows'}>TV Shows</Link>,
+        key: MovieTypeEnum.TV_SHOWS,
+        label: (
+            <Link
+                href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                    filters: [
+                        {
+                            field: 'type',
+                            operator: 'eq',
+                            value: MovieTypeEnum.TV_SHOWS,
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'updateAt',
+                            order: 'desc',
+                        },
+                    ],
+                })}`}
+            >
+                TV Shows
+            </Link>
+        ),
     },
 ];
 
