@@ -14,6 +14,20 @@ export type HigherHeightImageProps = {
     className?: string;
     reverse?: boolean;
     quality?: number;
+    environmentNames?: string[];
+};
+
+const isBase64Image = (url: string) => {
+    return url.includes('data:image/jpeg;base64,') || url.includes('data:image/png;base64,');
+};
+
+const extractBase64Data = (url: string) => {
+    const base64Marker = 'base64,';
+    const base64Index = url.indexOf(base64Marker);
+    if (base64Index !== -1) {
+        return url.substring(base64Index + base64Marker.length);
+    }
+    return url;
 };
 
 export function HigherHeightImage({
@@ -26,11 +40,57 @@ export function HigherHeightImage({
     reverse = false,
     style,
     quality = 75,
+    environmentNames = ['giang04', 'techcell', 'gcp-1408'],
 }: HigherHeightImageProps) {
     const [showImage1, setShowImage1] = useState(true);
-    const [loading, setLoading] = useState(true);
+    const [currentUrl1, setCurrentUrl1] = useState(url1);
+    const [currentUrl2, setCurrentUrl2] = useState(url2);
+    const [isLoading, setIsLoading] = useState(true);
     const image1Ref = useRef<HTMLImageElement>(null);
     const image2Ref = useRef<HTMLImageElement>(null);
+
+    const getCloudinaryUrl = (url: string, envName: string) =>
+        `https://res.cloudinary.com/${envName}/image/fetch/${url}`;
+
+    const handleImageError = (imageNumber: 1 | 2) => {
+        const updateUrl = (
+            originalUrl: string,
+            currentUrl: string,
+            setUrl: React.Dispatch<React.SetStateAction<string>>,
+        ) => {
+            if (isBase64Image(originalUrl)) {
+                console.error(`Failed to load base64 image`);
+                return;
+            }
+
+            if (currentUrl === originalUrl) {
+                if (environmentNames.length > 0) {
+                    setUrl(getCloudinaryUrl(originalUrl, environmentNames[0]));
+                }
+            } else {
+                const currentEnvIndex = environmentNames.findIndex((env) =>
+                    currentUrl.includes(`res.cloudinary.com/${env}`),
+                );
+                if (currentEnvIndex < environmentNames.length - 1) {
+                    setUrl(getCloudinaryUrl(originalUrl, environmentNames[currentEnvIndex + 1]));
+                } else {
+                    console.error(`Failed to load image after trying all environment names`);
+                }
+            }
+        };
+
+        if (imageNumber === 1) {
+            updateUrl(url1, currentUrl1, setCurrentUrl1);
+        } else {
+            updateUrl(url2, currentUrl2, setCurrentUrl2);
+        }
+    };
+
+    useEffect(() => {
+        setCurrentUrl1(url1);
+        setCurrentUrl2(url2);
+        setIsLoading(true);
+    }, [url1, url2]);
 
     useEffect(() => {
         const checkAndSetImage = () => {
@@ -42,21 +102,13 @@ export function HigherHeightImage({
                 const isImage2Vertical = img2.naturalHeight > img2.naturalWidth;
 
                 if (reverse) {
-                    // If reverse is true, choose the horizontal image
-                    if (!isImage1Vertical && !isImage2Vertical) {
-                        setShowImage1(true);
-                    } else {
-                        setShowImage1(!isImage1Vertical);
-                    }
+                    setShowImage1(
+                        !isImage1Vertical && !isImage2Vertical ? true : !isImage1Vertical,
+                    );
                 } else {
-                    // If reverse is false (default), choose the vertical image
-                    if (isImage1Vertical || isImage2Vertical) {
-                        setShowImage1(isImage1Vertical);
-                    } else {
-                        setShowImage1(true);
-                    }
+                    setShowImage1(isImage1Vertical || isImage2Vertical ? isImage1Vertical : true);
                 }
-                setLoading(false);
+                setIsLoading(false);
             }
         };
 
@@ -67,7 +119,6 @@ export function HigherHeightImage({
             if (image1.complete && image2.complete) {
                 checkAndSetImage();
             } else {
-                setLoading(true);
                 const handleLoad = () => {
                     if (image1.complete && image2.complete) {
                         checkAndSetImage();
@@ -83,39 +134,72 @@ export function HigherHeightImage({
                 };
             }
         }
-    }, [reverse]);
+    }, [reverse, currentUrl1, currentUrl2]);
+
+    const renderImage = (
+        url: string,
+        showImage: boolean,
+        imageRef: React.RefObject<HTMLImageElement>,
+        imageNumber: 1 | 2,
+    ) => {
+        if (isBase64Image(url)) {
+            const base64Data = extractBase64Data(url);
+            const imageType = url.includes('data:image/jpeg') ? 'jpeg' : 'png';
+            const fullBase64Url = `data:image/${imageType};base64,${base64Data}`;
+
+            return (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    ref={imageRef}
+                    src={fullBase64Url}
+                    alt={alt}
+                    style={{
+                        opacity: showImage && !isLoading ? 1 : 0,
+                        objectFit: 'cover',
+                        ...style,
+                    }}
+                    className={showImage ? className : ''}
+                    onError={() => handleImageError(imageNumber)}
+                    onLoad={() => setIsLoading(false)}
+                />
+            );
+        } else {
+            return (
+                <Image
+                    ref={imageRef}
+                    src={url}
+                    alt={alt}
+                    fill
+                    sizes={`(max-width: ${width}px) 100vw, ${width}px`}
+                    style={{
+                        opacity: showImage && !isLoading ? 1 : 0,
+                        objectFit: 'cover',
+                        ...style,
+                    }}
+                    className={showImage ? className : ''}
+                    quality={quality}
+                    onError={() => handleImageError(imageNumber)}
+                    onLoad={() => setIsLoading(false)}
+                />
+            );
+        }
+    };
 
     return (
         <>
-            <Skeleton.Image
-                active={loading}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    position: 'absolute',
-                    top: 0,
-                }}
-            />
-            <Image
-                ref={image1Ref}
-                src={url1}
-                alt={alt}
-                fill
-                sizes={`(max-width: ${width}px) 100vw, ${width}px`}
-                style={{ opacity: showImage1 && !loading ? 1 : 0, ...style }}
-                className={showImage1 ? className : ''}
-                quality={quality}
-            />
-            <Image
-                ref={image2Ref}
-                src={url2}
-                alt={alt}
-                fill
-                sizes={`(max-width: ${width}px) 100vw, ${width}px`}
-                style={{ opacity: !showImage1 && !loading ? 1 : 0, ...style }}
-                className={!showImage1 ? className : ''}
-                quality={quality}
-            />
+            {isLoading && (
+                <Skeleton.Image
+                    active={isLoading}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        position: 'absolute',
+                        top: 0,
+                    }}
+                />
+            )}
+            {renderImage(currentUrl1, showImage1, image1Ref, 1)}
+            {renderImage(currentUrl2, !showImage1, image2Ref, 2)}
         </>
     );
 }
