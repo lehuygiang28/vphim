@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Divider, Space, Typography, Breadcrumb, List, Grid } from 'antd';
+import { Divider, Space, Typography, Breadcrumb, List, Grid, Empty } from 'antd';
 import {
     CrudFilter,
     useTable,
@@ -133,6 +133,13 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                         xl: 6,
                         xxl: 8,
                     }}
+                    locale={{
+                        emptyText: (
+                            <>
+                                <Empty description="Không tìm thấy phim" />
+                            </>
+                        ),
+                    }}
                     dataSource={data?.data}
                     renderItem={(item: MovieType, index) => (
                         <List.Item>
@@ -159,7 +166,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                         </List.Item>
                     )}
                     pagination={
-                        isLoading
+                        isLoading || data?.data?.length === 0
                             ? false
                             : {
                                   style: { marginTop: '4rem' },
