@@ -87,7 +87,15 @@ export function HigherHeightImage({
 
     return (
         <>
-            {loading && <Skeleton.Image active={true} />}
+            <Skeleton.Image
+                active={loading}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'absolute',
+                    top: 0,
+                }}
+            />
             <Image
                 ref={image1Ref}
                 src={url1}
