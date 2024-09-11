@@ -50,7 +50,7 @@ export const graphqlDataProvider = (axios: AxiosInstance) => {
                 }),
             );
 
-            const { data, total } = res[operation];
+            const { data = [], total = 0 } = res[operation] || {};
 
             return {
                 data: data.map((d: any) => ({ ...d, id: d?._id?.toString() })),
