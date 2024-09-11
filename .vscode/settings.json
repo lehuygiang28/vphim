@@ -3,8 +3,10 @@
     "cSpell.words": [
         "camelcase",
         "chieurap",
+        "cloudinary",
         "customfav",
         "Docquyen",
+        "hoathinh",
         "hoverable",
         "KKPHIM",
         "nextjs",
@@ -17,6 +19,7 @@
         "smembers",
         "srem",
         "swiper",
+        "tvshows",
         "vphim"
     ],
     "conventionalCommits.scopes": ["be/i18n", "api", "fe"]
