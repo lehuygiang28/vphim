@@ -3,13 +3,68 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 import React, { useState } from 'react';
-import { useList } from '@refinedev/core';
+import { CrudFilter, CrudSort, stringifyTableParams, useList } from '@refinedev/core';
 
-import { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import MovieList from '@/components/swiper/movie-list';
 import { MovieSwiper } from '@/components/swiper/movie';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import Loading from '@/app/loading';
+import { RouteNameEnum } from '@/constants/route.constant';
+
+import { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+
+type MovieAsset = {
+    filters: CrudFilter[];
+    sorters: CrudSort[];
+};
+
+const newMovieAsset: MovieAsset = {
+    filters: [
+        {
+            field: 'years',
+            value: `${new Date().getFullYear()}`,
+            operator: 'eq',
+        },
+    ],
+    sorters: [
+        {
+            field: 'year',
+            order: 'asc',
+        },
+    ],
+};
+
+const actionMovieAsset: MovieAsset = {
+    filters: [
+        {
+            field: 'categories',
+            value: 'hanh-dong',
+            operator: 'eq',
+        },
+    ],
+    sorters: [
+        {
+            field: 'year',
+            order: 'desc',
+        },
+    ],
+};
+
+const cartoonMovieAsset: MovieAsset = {
+    filters: [
+        {
+            field: 'categories',
+            value: 'hoat-hinh,',
+            operator: 'eq',
+        },
+    ],
+    sorters: [
+        {
+            field: 'year',
+            order: 'desc',
+        },
+    ],
+};
 
 export function Home() {
     const [activeList, setActiveList] = useState<string | null>(null);
@@ -30,45 +85,21 @@ export function Home() {
         dataProviderName: 'graphql',
         meta: { gqlQuery: MOVIES_LIST_QUERY },
         resource: 'movies',
-        filters: [
-            {
-                field: 'years',
-                value: `${new Date().getFullYear()}`,
-                operator: 'eq',
-            },
-        ],
-        sorters: [
-            {
-                field: 'year',
-                order: 'asc',
-            },
-        ],
+        ...newMovieAsset,
     });
 
     const { data: actionMovies } = useList<MovieResponseDto>({
         dataProviderName: 'graphql',
         meta: { gqlQuery: MOVIES_LIST_QUERY },
         resource: 'movies',
-        filters: [
-            {
-                field: 'categories',
-                value: 'hanh-dong',
-                operator: 'eq',
-            },
-        ],
+        ...actionMovieAsset,
     });
 
     const { data: cartoonMovies } = useList<MovieResponseDto>({
         dataProviderName: 'graphql',
         meta: { gqlQuery: MOVIES_LIST_QUERY },
         resource: 'movies',
-        filters: [
-            {
-                field: 'categories',
-                value: 'hoat-hinh,',
-                operator: 'eq',
-            },
-        ],
+        ...cartoonMovieAsset,
     });
 
     if (mostViewedLoading) {
@@ -89,6 +120,9 @@ export function Home() {
                     clearVisibleContentCard={activeList !== 'newMovies'}
                     title="PHIM MỚI"
                     movies={newMovies?.data}
+                    viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
+                        actionMovieAsset,
+                    )}`}
                 />
             </div>
 
@@ -102,7 +136,9 @@ export function Home() {
                     clearVisibleContentCard={activeList !== 'actionMovies'}
                     title="PHIM HÀNH ĐỘNG"
                     movies={actionMovies?.data}
-                    viewMoreHref={'/the-loai/hanh-dong'}
+                    viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
+                        actionMovieAsset,
+                    )}`}
                 />
             </div>
 
@@ -116,7 +152,9 @@ export function Home() {
                     clearVisibleContentCard={activeList !== 'cartoonMovies'}
                     title="PHIM HOẠT HÌNH"
                     movies={cartoonMovies?.data}
-                    viewMoreHref={'/the-loai/hoat-hinh'}
+                    viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
+                        cartoonMovieAsset,
+                    )}`}
                 />
             </div>
         </>
