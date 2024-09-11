@@ -11,6 +11,13 @@ export class MovieResponseDto extends OmitType(Movie, [
     'countries',
     'directors',
 ]) {
+    constructor(movie: Movie) {
+        super(movie);
+        Object.assign(this, movie);
+        this.posterUrl = movie?.posterUrl || '';
+        this.thumbUrl = movie?.thumbUrl || '';
+    }
+
     @ApiProperty({ type: [Actor] })
     actors?: Actor[];
 

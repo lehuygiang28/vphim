@@ -3,8 +3,9 @@ import { FilterQuery, PipelineStage } from 'mongoose';
 import { createRegex } from '@vn-utils/text';
 
 import { MovieRepository } from './movie.repository';
-import { GetMoviesDto } from './dtos';
+import { GetMoviesDto, MovieResponseDto } from './dtos';
 import { Movie } from './movie.schema';
+import { isNullOrUndefined } from '../../libs/utils/common';
 
 @Injectable()
 export class MovieService {
@@ -113,15 +114,29 @@ export class MovieService {
         }
 
         if (years) {
-            match.year = { $in: years.split(',').map(Number) };
+            match.year = {
+                $in: years
+                    .split(',')
+                    .map((year) => !isNullOrUndefined(year) && Number(year.trim())),
+            };
         }
 
         if (categories) {
-            match['categories.slug'] = { $in: categories.split(',') };
+            match['categories.slug'] = {
+                $in: categories
+                    .split(',')
+                    .filter((c) => !isNullOrUndefined(c))
+                    .map((c) => c.trim()),
+            };
         }
 
         if (countries) {
-            match['countries.slug'] = { $in: countries.split(',') };
+            match['countries.slug'] = {
+                $in: countries
+                    .split(',')
+                    .filter((c) => !isNullOrUndefined(c))
+                    .map((c) => c.trim()),
+            };
         }
 
         pipeline.push({ $match: match });
@@ -147,8 +162,8 @@ export class MovieService {
                 total: number;
             }[]
         >(pipeline)) as { movies: Movie[]; total: number }[];
-        const movies = result?.[0]?.movies;
-        const total = result?.[0]?.total;
+        const movies = result?.[0]?.movies?.map((movie) => new MovieResponseDto(movie));
+        const total = result?.[0]?.total || 0;
 
         return {
             data: movies,
