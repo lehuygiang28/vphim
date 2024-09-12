@@ -87,7 +87,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             <Col xs={24} sm={12} md={6} lg={4}>
                 <Select
                     placeholder="Xắp xếp theo"
-                    value={localSorter.field || 'view'}
+                    value={localSorter?.field || 'view'}
                     style={{ width: '100%' }}
                     onChange={onSorterChange}
                 >
@@ -119,7 +119,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 <Select
                     style={{ width: '100%' }}
                     placeholder="Định dạng"
-                    value={getFilterValue('type')[0] || undefined}
+                    value={getFilterValue('type')?.[0] || undefined}
                     onChange={(value) => handleFilterChange('type', value)}
                     allowClear
                     onClear={() => handleFilterChange('type', undefined)}

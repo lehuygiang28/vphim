@@ -62,6 +62,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         },
         filters: {
             mode: 'server',
+            defaultBehavior: 'replace',
             initial: parsedFilters || [],
         },
         pagination: {
@@ -85,13 +86,18 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     };
 
     const handleFilterChange = (key: string, value: any) => {
-        const oldFilters = localFilters;
-        const newFilters = oldFilters.filter((x) => (x as LogicalFilter)?.field !== key);
-        newFilters.push({
-            field: key,
-            operator: 'in',
-            value: Array.isArray(value) ? value.join(',') : value,
-        });
+        let newFilters = localFilters?.filter((x) => (x as LogicalFilter)?.field !== key);
+
+        if (value !== undefined && value !== null) {
+            newFilters = [
+                ...newFilters,
+                {
+                    field: key,
+                    value: Array.isArray(value) ? value.join(',') : value,
+                    operator: Array.isArray(value) ? 'in' : 'eq',
+                },
+            ];
+        }
         setLocalFilters(newFilters);
     };
 
@@ -100,7 +106,9 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     };
 
     const applyFilters = () => {
-        return Promise.all([setFilters(localFilters), setSorters([localSorter]), setCurrent(1)]);
+        setFilters(localFilters);
+        setSorters([localSorter]);
+        setCurrent(1);
     };
 
     return (
