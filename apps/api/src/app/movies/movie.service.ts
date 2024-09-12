@@ -15,6 +15,33 @@ export class MovieService {
         this.logger = new Logger(MovieService.name);
     }
 
+    async getMovie(slug: string) {
+        const movie = await this.movieRepo.findOneOrThrow({
+            filterQuery: { slug },
+            queryOptions: {
+                populate: [
+                    {
+                        path: 'actors',
+                        justOne: false,
+                    },
+                    {
+                        path: 'categories',
+                        justOne: false,
+                    },
+                    {
+                        path: 'countries',
+                        justOne: false,
+                    },
+                    {
+                        path: 'directors',
+                        justOne: false,
+                    },
+                ],
+            },
+        });
+        return new MovieResponseDto(movie);
+    }
+
     async getMovies(dto: GetMoviesDto) {
         const {
             keywords,

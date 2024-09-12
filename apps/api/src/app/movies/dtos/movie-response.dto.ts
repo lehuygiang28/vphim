@@ -16,6 +16,10 @@ export class MovieResponseDto extends OmitType(Movie, [
         Object.assign(this, movie);
         this.posterUrl = movie?.posterUrl || '';
         this.thumbUrl = movie?.thumbUrl || '';
+        this.actors = (movie?.actors as unknown as Actor[]) || [];
+        this.categories = (movie?.categories as unknown as Category[]) || [];
+        this.countries = (movie?.countries as unknown as Region[]) || [];
+        this.directors = (movie?.directors as unknown as Director[]) || [];
     }
 
     @ApiProperty({ type: [Actor] })

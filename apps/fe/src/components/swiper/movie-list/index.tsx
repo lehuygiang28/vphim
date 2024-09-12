@@ -1,5 +1,5 @@
 import React, { useRef, CSSProperties, useState, useEffect } from 'react';
-import { Typography, Grid } from 'antd';
+import { Typography, Grid, Skeleton, Row, Col } from 'antd';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
@@ -17,6 +17,20 @@ import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import { MovieCard } from '@/components/card/movie-card';
 import { randomString } from '@/libs/utils/common';
 
+const getSlidesPerView = (md = false, lg = false, xl = false, xxl = false) => {
+    if (xxl) {
+        return 6;
+    } else if (xl) {
+        return 5;
+    } else if (lg) {
+        return 4;
+    } else if (md) {
+        return 3;
+    } else {
+        return 2;
+    }
+};
+
 export type MovieListProps = {
     title?: string;
     movies?: MovieResponseDto[];
@@ -32,8 +46,9 @@ export default function MovieList({
     isLoading,
     viewMoreHref,
     clearVisibleContentCard,
+    style,
 }: MovieListProps) {
-    const { md } = useBreakpoint();
+    const { md, lg, xl, xxl } = useBreakpoint();
     const swiperRef = useRef<SwiperType>();
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -54,12 +69,15 @@ export default function MovieList({
         }
     };
 
-    if (isLoading) return <div>Loading...</div>;
-
     return (
         <div
             className="movie-list-container"
-            style={{ overflow: 'visible', padding: md ? '0 3rem' : '0 1.5rem', position: 'relative' }}
+            style={{
+                overflow: 'visible',
+                padding: md ? '0 3rem' : '0 1.5rem',
+                position: 'relative',
+                ...style,
+            }}
         >
             <div
                 style={{
@@ -78,12 +96,12 @@ export default function MovieList({
                 )}
                 {viewMoreHref && (
                     <Link href={viewMoreHref} style={{ display: 'flex', alignItems: 'center' }}>
-                        View More <ArrowRightOutlined style={{ marginLeft: '4px' }} />
+                        Xem thêm <ArrowRightOutlined style={{ marginLeft: '4px' }} />
                     </Link>
                 )}
             </div>
             <Swiper
-                slidesPerView={md ? 6 : 2}
+                slidesPerView={getSlidesPerView(md, lg, xl, xxl)}
                 spaceBetween={12}
                 modules={[Navigation]}
                 navigation={{

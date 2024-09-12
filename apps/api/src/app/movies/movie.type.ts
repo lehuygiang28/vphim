@@ -26,7 +26,7 @@ class EpisodeServerDataType implements EpisodeServerData {
 }
 
 @ObjectType('Episode')
-class EpisodeType implements Episode {
+export class EpisodeType implements Episode {
     @Field(() => [EpisodeServerDataType])
     serverData: EpisodeServerDataType[];
 

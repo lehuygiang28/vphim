@@ -4,3 +4,9 @@ export enum MovieTypeEnum {
     TV_SHOWS = 'tvshows',
     HOAT_HINH = 'hoathinh',
 }
+
+export enum MovieStatusEnum {
+    ON_GOING = 'ongoing',
+    TRAILER = 'trailer',
+    COMPLETED = 'completed',
+}

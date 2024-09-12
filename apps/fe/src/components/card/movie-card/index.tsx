@@ -1,6 +1,7 @@
 'use client';
 
 import React, { FC } from 'react';
+import Link from 'next/link';
 import { Button, Card, Divider, Grid, Space, Tag, Typography } from 'antd';
 import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
@@ -157,14 +158,16 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                             {movie.content}
                         </Paragraph>
                     </Space>
-                    <Button
-                        type="primary"
-                        size="small"
-                        icon={<PlayCircleOutlined />}
-                        style={{ width: '100%', fontSize: md ? '0.8rem' : '0.6rem' }}
-                    >
-                        Xem ngay
-                    </Button>
+                    <Link href={`/phim/${movie.slug}`}>
+                        <Button
+                            type="primary"
+                            size="small"
+                            icon={<PlayCircleOutlined />}
+                            style={{ width: '100%', fontSize: md ? '0.8rem' : '0.6rem' }}
+                        >
+                            Xem ngay
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </Card>

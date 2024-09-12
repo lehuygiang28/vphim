@@ -69,7 +69,7 @@ export default function LayoutComp({ children }: PropsWithChildren) {
                 {children}
             </Content>
 
-            <div style={{ marginTop: md ? '5rem' : '1.5rem' }}>
+            <div style={{ marginTop: md ? '3rem' : '1.5rem' }}>
                 <Footer categories={categories?.data} regions={regions?.data} />
             </div>
         </Layout>

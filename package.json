@@ -98,6 +98,7 @@
         "@types/node": "18.16.9",
         "@types/passport": "^1.0.16",
         "@types/passport-jwt": "^4.0.1",
+        "@types/pluralize": "^0.0.33",
         "@types/react": "18.3.1",
         "@types/react-dom": "18.3.0",
         "@typescript-eslint/eslint-plugin": "^7.16.0",

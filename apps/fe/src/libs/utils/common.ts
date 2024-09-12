@@ -1,3 +1,5 @@
+import { EpisodeType, MovieType } from 'apps/api/src/app/movies/movie.type';
+
 export function sortArrayByKey<T>(array: T[], key: keyof T, order: 'asc' | 'desc' = 'asc'): T[] {
     if (!array) {
         return [];
@@ -30,4 +32,16 @@ export function randomString(length: number, { onlyLetters = false } = {}): stri
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+}
+
+export function getEpisodesWithMaxServerDataLength(movie: MovieType): EpisodeType {
+    if (!movie?.episode || movie?.episode?.length === 0) {
+        throw new Error('Movie has no episode');
+    }
+
+    const maxServerDataLength = Math.max(
+        ...movie.episode.map((episode) => episode.serverData.length),
+    );
+
+    return movie.episode.filter((episode) => episode.serverData.length === maxServerDataLength)[0];
 }

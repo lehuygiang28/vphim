@@ -2,7 +2,8 @@ import dataProvider, { GraphQLClient } from '@refinedev/graphql';
 import { print } from 'graphql/language/printer';
 import { AxiosInstance } from 'axios';
 import camelCase from 'camelcase';
-import { BaseRecord, GetListParams, GetListResponse } from '@refinedev/core';
+import pluralize from 'pluralize';
+import { BaseRecord, GetListParams, GetListResponse, MetaQuery } from '@refinedev/core';
 import { baseApiUrl } from '@/config';
 import {
     handleFilterQuery,
@@ -56,6 +57,35 @@ export const graphqlDataProvider = (axios: AxiosInstance) => {
                 data: data.map((d: any) => ({ ...d, id: d?._id?.toString() })),
                 total: total,
             };
+        },
+        getOne: async ({
+            resource,
+            id,
+            meta,
+        }: {
+            resource: string;
+            id: BaseRecord['id'];
+            meta: MetaQuery;
+        }) => {
+            const singularResource = pluralize.singular(resource) as string;
+            const camelResource = camelCase(singularResource);
+            const operation = meta?.operation ?? camelResource;
+
+            const variables = {
+                slug: id,
+                ...meta?.variables,
+            };
+
+            const {
+                data: { data: res },
+            } = await axios.post<any>(baseUrl, {
+                query: print(meta?.gqlQuery as any),
+                variables: {
+                    input: variables,
+                },
+            });
+
+            return { data: res[operation] };
         },
     };
 };
