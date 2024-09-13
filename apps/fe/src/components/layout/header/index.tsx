@@ -180,8 +180,21 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 transition: 'background-color 0.3s ease',
             }}
         >
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', marginRight: '24px' }}>
-                <Image src="/placeholder.svg" alt="vphim Logo" width={100} height={40} />
+            <Link
+                href="/"
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginRight: '1rem',
+                    height: '100%',
+                }}
+            >
+                <Image
+                    src="/assets/images/logo-mini.png"
+                    alt="vphim Logo"
+                    width={100}
+                    height={30}
+                />
             </Link>
             {screens.md && (
                 <Menu

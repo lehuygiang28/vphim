@@ -44,7 +44,12 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
             >
                 <Col xs={24} sm={24} md={6} lg={6}>
                     <Link href="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
-                        <Image src="/placeholder.svg" alt="vphim Logo" width={100} height={40} />
+                        <Image
+                            src="/assets/images/logo-mini.png"
+                            alt="vphim Logo"
+                            width={100}
+                            height={30}
+                        />
                     </Link>
                     <Text
                         style={{
