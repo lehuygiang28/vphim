@@ -5,7 +5,7 @@ import dataProviderSimpleRest from '@refinedev/simple-rest';
 import { AxiosInstance } from 'axios';
 import { handleFilter, handlePagination, handleSort } from '@/libs/utils/data-provider.util';
 
-import { type Movie } from 'apps/api/src/app/movies/movie.schema';
+import type { Movie } from 'apps/api/src/app/movies/movie.schema';
 import { baseApiUrl } from '@/config';
 
 export const restfulDataProvider = (axios: AxiosInstance) => {

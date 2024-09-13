@@ -6,7 +6,7 @@ import { useOne } from '@refinedev/core';
 import { Typography, Grid } from 'antd';
 import { GET_MOVIE_QUERY } from '@/queries/movies';
 
-import { MovieType, EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
+import type { MovieType, EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
 

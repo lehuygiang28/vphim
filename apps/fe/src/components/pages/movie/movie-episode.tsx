@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button, Divider, Flex, Typography } from 'antd';
-import { MovieType, EpisodeType } from 'apps/api/src/app/movies/movie.type';
+import type { MovieType, EpisodeType } from 'apps/api/src/app/movies/movie.type';
 
 const { Title } = Typography;
 

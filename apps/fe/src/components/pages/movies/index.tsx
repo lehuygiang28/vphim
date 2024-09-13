@@ -14,7 +14,7 @@ import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieCard } from '@/components/card/movie-card';
 import { MovieFilters } from './movie-filter';
 
-import { MovieType } from 'apps/api/src/app/movies/movie.type';
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;

@@ -11,7 +11,7 @@ import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import Loading from '@/app/loading';
 import { RouteNameEnum } from '@/constants/route.constant';
 
-import { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
 type MovieAsset = {
     filters: CrudFilter[];

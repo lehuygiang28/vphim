@@ -1,5 +1,5 @@
 import { DefaultJWT } from 'next-auth/jwt';
-import { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
+import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 
 declare module 'next-auth' {
     /**

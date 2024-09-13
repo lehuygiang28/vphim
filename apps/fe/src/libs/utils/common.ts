@@ -1,4 +1,4 @@
-import { EpisodeType, MovieType } from 'apps/api/src/app/movies/movie.type';
+import type { EpisodeType, MovieType } from 'apps/api/src/app/movies/movie.type';
 
 export function sortArrayByKey<T>(array: T[], key: keyof T, order: 'asc' | 'desc' = 'asc'): T[] {
     if (!array) {

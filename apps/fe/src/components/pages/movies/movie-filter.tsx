@@ -7,8 +7,8 @@ import { createRegex } from '@vn-utils/text';
 import { movieTypeTranslations } from '@/constants/translation-enum';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 import { REGIONS_LIST_QUERY } from '@/queries/regions';
-import { Category } from 'apps/api/src/app/categories/category.schema';
-import { Region } from 'apps/api/src/app/regions/region.schema';
+import type { Category } from 'apps/api/src/app/categories/category.schema';
+import type { Region } from 'apps/api/src/app/regions/region.schema';
 
 const { Option } = Select;
 

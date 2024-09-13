@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
-import { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
+import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 import { useAxios } from './useAxios';
 
 export function useRefreshToken() {

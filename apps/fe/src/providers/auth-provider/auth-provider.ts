@@ -6,7 +6,7 @@ import { AxiosError } from 'axios';
 import axios from '@/libs/axios';
 
 import { type ProblemDetails } from 'apps/api/src/libs/dtos';
-import { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
+import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 
 import type { LoginActionPayload, LoginAction, RequestLoginAction } from './types/login.type';
 import {
