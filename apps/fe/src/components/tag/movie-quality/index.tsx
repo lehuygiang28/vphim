@@ -12,6 +12,7 @@ export function MovieQualityTag({ quality, style, children }: MovieQualityTagPro
     switch (quality.toUpperCase()) {
         case 'HD':
         case 'FHD':
+        case 'FULL HD':
             color = 'green';
             break;
         case 'SD':
