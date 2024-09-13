@@ -8,7 +8,7 @@ import { RegionType } from '../regions/region.type';
 import { DirectorType } from '../directors/director.type';
 
 @ObjectType('EpisodeServerData')
-class EpisodeServerDataType implements EpisodeServerData {
+export class EpisodeServerDataType implements EpisodeServerData {
     @Field()
     slug: string;
 
