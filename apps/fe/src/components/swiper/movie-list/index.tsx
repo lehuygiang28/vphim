@@ -1,5 +1,5 @@
 import React, { useRef, CSSProperties, useState, useEffect } from 'react';
-import { Typography, Grid, Skeleton, Row, Col } from 'antd';
+import { Typography, Grid } from 'antd';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
