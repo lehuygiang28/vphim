@@ -55,20 +55,20 @@ export class CategoryCrawler implements OnModuleInit, OnModuleDestroy {
 
         // Fetch existing slugs from the database
         const existingSlugs = (
-            await this.categoryRepo.find({
+            (await this.categoryRepo.find({
                 filterQuery: {},
                 projectionType: { slug: 1 },
-            })
-        ).map((region) => region.slug);
+            })) || []
+        )?.map((category) => category.slug);
 
         // Filter new category based on slug
         // Then map them to the format required by the database
         const newCategories: Category[] = fetchedCategories
-            .filter((region: OPhimCategory) => !existingSlugs.includes(region.slug))
-            .map((region: OPhimCategory) => ({
-                _id: region?._id ? new Types.ObjectId(region._id) : null,
-                name: region.name,
-                slug: region.slug,
+            .filter((category: OPhimCategory) => !existingSlugs.includes(category.slug))
+            .map((category: OPhimCategory) => ({
+                _id: category?._id ? new Types.ObjectId(category._id) : null,
+                name: category.name,
+                slug: category.slug,
             }));
 
         if (newCategories?.length === 0) {
