@@ -1,5 +1,3 @@
-import './movie-related.css';
-
 import MovieList from '@/components/swiper/movie-list';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieAsset } from '@/types/movie-asset.type';

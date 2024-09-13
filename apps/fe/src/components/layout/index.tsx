@@ -62,7 +62,7 @@ export default function LayoutComp({ children }: PropsWithChildren) {
             />
             <Content
                 style={{
-                    minHeight: '150vh',
+                    minHeight: '110vh',
                     position: 'relative',
                 }}
             >

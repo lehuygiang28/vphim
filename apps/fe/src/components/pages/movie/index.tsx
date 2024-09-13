@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { Button, Col, Divider, Grid, Row, Space, Tag, Typography, Flex } from 'antd';
+import { Col, Grid, Row, Space, Tag, Typography } from 'antd';
 import { useOne } from '@refinedev/core';
 import { MovieType } from 'apps/api/src/app/movies/movie.type';
 import { CalendarOutlined, EyeOutlined } from '@ant-design/icons';
@@ -8,7 +10,6 @@ import { HigherHeightImage } from '@/components/image/higher-image';
 import { GET_MOVIE_QUERY } from '@/queries/movies';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { movieTypeTranslations, movieStatusTranslations } from '@/constants/translation-enum';
-import { getEpisodesWithMaxServerDataLength } from '@/libs/utils/common';
 
 import { MovieTypeEnum, MovieStatusEnum } from 'apps/api/src/app/movies/movie.constant';
 import { MovieEpisode } from './movie-episode';
@@ -118,7 +119,6 @@ export function Movie({ slug }: MovieProps) {
         <>
             {movie && (
                 <div
-                    key={movie?._id.toString()}
                     style={{
                         filter: 'blur(1rem) brightness(0.8)',
                         position: 'absolute',
@@ -258,7 +258,7 @@ export function Movie({ slug }: MovieProps) {
                                         <div style={{ marginTop: '0.5rem' }}>
                                             {movie?.categories?.map((category) => (
                                                 <Tag
-                                                    key={category?._id?.toString()}
+                                                    key={category?.slug}
                                                     style={{
                                                         fontSize: md ? '0.7rem' : '0.5rem',
                                                         background: 'rgba(0 0 0 / 0.4)',

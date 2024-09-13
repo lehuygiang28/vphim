@@ -1,11 +1,10 @@
-'use client';
-
 import React from 'react';
-import { usePathname } from 'next/navigation';
 import { Movie } from '@/components/pages/movie';
 
-export default function MoviePage() {
-    const pathname = usePathname();
+export type MoviePageProps = {
+    params: { slug: string };
+};
 
-    return <Movie slug={pathname?.split('/')?.[pathname?.split('/')?.length - 1] ?? ''} />;
+export default function MoviePage({ params }: MoviePageProps) {
+    return <Movie slug={params?.slug ?? ''} />;
 }

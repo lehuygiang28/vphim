@@ -59,7 +59,7 @@ const baseNavItems: ItemType<MenuItemType>[] = [
                     ],
                     sorters: [
                         {
-                            field: 'updateAt',
+                            field: 'updatedAt',
                             order: 'desc',
                         },
                     ],
@@ -101,7 +101,7 @@ const baseNavItems: ItemType<MenuItemType>[] = [
                     ],
                     sorters: [
                         {
-                            field: 'updateAt',
+                            field: 'updatedAt',
                             order: 'desc',
                         },
                     ],
