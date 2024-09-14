@@ -74,7 +74,6 @@ export default function MovieList({
             className="movie-list-container"
             style={{
                 overflow: 'visible',
-                padding: md ? '0 3rem' : '0 1.5rem',
                 position: 'relative',
                 ...style,
             }}
@@ -108,7 +107,10 @@ export default function MovieList({
                     nextEl: `#${nextButtonId}`,
                     prevEl: `#${prevButtonId}`,
                 }}
-                style={{ overflow: 'visible' }}
+                style={{
+                    overflow: 'visible',
+                    padding: md ? '0 3rem' : undefined,
+                }}
                 onSwiper={(swiper) => {
                     swiperRef.current = swiper;
                 }}
@@ -126,7 +128,11 @@ export default function MovieList({
                         onMouseEnter={() => handleVisibleContentCard(index)}
                         onMouseLeave={() => handleVisibleContentCard(null)}
                     >
-                        <MovieCard movie={movie} visibleContent={selectedIndex === index} />
+                        <MovieCard
+                            movie={movie}
+                            visibleContent={selectedIndex === index}
+                            scale={md ? undefined : 1.1}
+                        />
                     </SwiperSlide>
                 ))}
             </Swiper>

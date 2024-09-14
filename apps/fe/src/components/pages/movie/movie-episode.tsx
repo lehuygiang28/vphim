@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Button, Divider, Flex, Typography } from 'antd';
+import { Button, Divider, Flex, Typography, Grid } from 'antd';
 import type { MovieType, EpisodeType } from 'apps/api/src/app/movies/movie.type';
 
 const { Title } = Typography;
+const { useBreakpoint } = Grid;
 
 export type MovieEpisodeProps = {
     movie: MovieType;
@@ -23,6 +24,8 @@ export function MovieEpisode({
     useServersDivider = true,
     useEpisodesDivider = true,
 }: MovieEpisodeProps) {
+    const { md } = useBreakpoint();
+
     const renderDivider = (title: string, useDivider: boolean) => {
         if (useDivider) {
             return (
@@ -58,16 +61,15 @@ export function MovieEpisode({
                 style={{
                     maxHeight: '20rem',
                     overflowY: 'auto',
-                    padding: '0.5rem',
                 }}
             >
-                <Flex wrap gap={10}>
+                <Flex wrap gap={md ? 10 : 5}>
                     {movie?.episode && movie?.episode?.length > 0
                         ? movie?.episode?.[activeServerIndex]?.serverData?.map((item) => (
                               <Link
                                   key={item.slug}
                                   href={`/phim/${movie.slug}/${item.slug}`}
-                                  style={{ marginBottom: '5px' }}
+                                  style={{ marginBottom: md ? '5px' : '2px' }}
                               >
                                   <Button
                                       type={activeEpisodeSlug === item.slug ? 'primary' : 'default'}
@@ -77,10 +79,7 @@ export function MovieEpisode({
                               </Link>
                           ))
                         : movie?.trailerUrl && (
-                              <Link
-                                  href={`/phim/${movie.slug}/trailer`}
-                                  style={{ marginBottom: '5px' }}
-                              >
+                              <Link href={`/phim/${movie.slug}/trailer`}>
                                   <Button key={movie.slug} type="default">
                                       Trailer
                                   </Button>
