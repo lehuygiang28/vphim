@@ -2,14 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Divider, Space, Typography, Breadcrumb, List, Grid, Empty } from 'antd';
-import {
-    CrudFilter,
-    useTable,
-    parseTableParams,
-    useRouterContext,
-    LogicalFilter,
-} from '@refinedev/core';
+import { CrudFilter, useTable, LogicalFilter, CrudSort } from '@refinedev/core';
+import { parseTableParams } from '@refinedev/nextjs-router';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieCard } from '@/components/card/movie-card';
 import { MovieFilters } from './movie-filter';
@@ -25,12 +21,44 @@ export type MoviePageProps = {
 
 export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     const { md } = useBreakpoint();
+    const search = useSearchParams();
 
-    const { useLocation } = useRouterContext();
-    const { search } = useLocation();
-    const { parsedCurrent, parsedPageSize, parsedSorter, parsedFilters } = parseTableParams(
-        search ?? '?',
-    );
+    const [query, setQuery] = useState<
+        | undefined
+        | {
+              pagination: {
+                  current: number | undefined;
+                  pageSize: number | undefined;
+              };
+              filters?: CrudFilter[] | undefined;
+              sorters?: CrudSort[] | undefined;
+              current?: number | undefined;
+              pageSize?: number | undefined;
+          }
+    >(undefined);
+
+    useEffect(() => {
+        setQuery(parseTableParams(search?.toString()));
+    }, [search]);
+
+    useEffect(() => {
+        if (query) {
+            if (query?.filters) {
+                setFilters(query.filters);
+            }
+            if (query?.sorters) {
+                setSorters(query.sorters);
+            }
+
+            if (query?.current) {
+                setCurrent(query.current);
+            }
+
+            if (query?.pageSize) {
+                setPageSize(query.pageSize);
+            }
+        }
+    }, [query]);
 
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [localFilters, setLocalFilters] = useState<CrudFilter[]>([
@@ -54,6 +82,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         current,
         setCurrent,
         pageSize,
+        setPageSize,
     } = useTable<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
@@ -63,18 +92,18 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         filters: {
             mode: 'server',
             defaultBehavior: 'replace',
-            initial: parsedFilters && parsedFilters?.length > 0 ? parsedFilters : [],
+            initial: query?.filters && query?.filters?.length > 0 ? query?.filters : [],
         },
         pagination: {
             mode: 'server',
-            current: parsedCurrent || 1,
-            pageSize: Math.min(parsedPageSize || 24, 24),
+            current: query?.current || 1,
+            pageSize: Math.min(query?.pageSize || 24, 24),
         },
         sorters: {
             mode: 'server',
             initial:
-                parsedSorter && parsedSorter?.length > 0
-                    ? parsedSorter
+                query?.sorters && query?.sorters?.length > 0
+                    ? query?.sorters
                     : [{ field: 'view', order: 'desc' }],
         },
     });
