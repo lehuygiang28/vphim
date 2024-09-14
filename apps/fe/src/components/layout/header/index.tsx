@@ -236,7 +236,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
             <div style={{ display: 'flex', alignItems: 'center' }}>
                 {screens.md ? (
                     <Input
-                        placeholder="Search..."
+                        placeholder="Tìm kiếm"
                         prefix={<SearchOutlined />}
                         style={{ width: 200, marginRight: '16px' }}
                         value={searchValue}
@@ -277,7 +277,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
             >
                 <div style={{ padding: '16px' }}>
                     <Input
-                        placeholder="Search..."
+                        placeholder="Tìm kiếm"
                         prefix={<SearchOutlined />}
                         style={{ width: '100%', marginBottom: '16px' }}
                         value={searchValue}
@@ -303,7 +303,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                     height="auto"
                 >
                     <Input
-                        placeholder="Search..."
+                        placeholder="Tìm kiếm"
                         prefix={<SearchOutlined />}
                         style={{ width: '100%' }}
                         value={searchValue}
