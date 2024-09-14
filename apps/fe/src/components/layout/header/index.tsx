@@ -1,11 +1,12 @@
 'use client';
-import './header.css';
 
+import './header.css';
 import React, { useState, useEffect, ReactNode } from 'react';
 import { Layout, Menu, Input, Button, Drawer, Grid, Typography } from 'antd';
 import { SearchOutlined, UserOutlined, MenuOutlined } from '@ant-design/icons';
 import NextLink from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { stringifyTableParams } from '@refinedev/core';
 import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
 import { RouteNameEnum } from '@/constants/route.constant';
@@ -41,7 +42,7 @@ const baseNavItems: ItemType<MenuItemType>[] = [
                     ],
                 })}`}
             >
-                Phim Bộ
+                Phim Bộ
             </Link>
         ),
     },
@@ -65,7 +66,7 @@ const baseNavItems: ItemType<MenuItemType>[] = [
                     ],
                 })}`}
             >
-                Phim Lẻ
+                Phim Lẻ
             </Link>
         ),
     },
@@ -123,6 +124,8 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [searchVisible, setSearchVisible] = useState(false);
     const screens = useBreakpoint();
+    const [searchValue, setSearchValue] = useState('');
+    const router = useRouter();
 
     const navItems = [
         ...baseNavItems,
@@ -163,6 +166,28 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
 
     const toggleSearch = () => {
         setSearchVisible(!searchVisible);
+    };
+
+    const handleSearch = () => {
+        if (!searchValue) {
+            return;
+        }
+
+        router.push(
+            `${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                filters: [
+                    {
+                        field: 'keywords',
+                        operator: 'eq',
+                        value: searchValue,
+                    },
+                ],
+                sorters: [],
+            })}`,
+        );
+        if (!screens.md) {
+            toggleSearch();
+        }
     };
 
     return (
@@ -214,6 +239,11 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                         placeholder="Search..."
                         prefix={<SearchOutlined />}
                         style={{ width: 200, marginRight: '16px' }}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        onPressEnter={handleSearch}
+                        allowClear
+                        onClear={() => setSearchValue('')}
                     />
                 ) : (
                     <>
@@ -250,6 +280,11 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                         placeholder="Search..."
                         prefix={<SearchOutlined />}
                         style={{ width: '100%', marginBottom: '16px' }}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        onPressEnter={handleSearch}
+                        allowClear
+                        onClear={() => setSearchValue('')}
                     />
                     <Menu
                         mode="inline"
@@ -271,6 +306,11 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                         placeholder="Search..."
                         prefix={<SearchOutlined />}
                         style={{ width: '100%' }}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        onPressEnter={handleSearch}
+                        allowClear
+                        onClear={() => setSearchValue('')}
                     />
                 </Drawer>
             )}
