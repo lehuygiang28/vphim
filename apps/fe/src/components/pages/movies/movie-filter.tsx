@@ -109,7 +109,11 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             <Col xs={12} sm={8} md={6} lg={4}>
                 <Select
                     placeholder="Xắp xếp theo"
-                    value={`${localSorter?.field},${localSorter?.order}` || 'view'}
+                    value={
+                        localSorter?.field && localSorter?.order
+                            ? `${localSorter?.field},${localSorter?.order}`
+                            : 'view,desc'
+                    }
                     style={{ width: '100%' }}
                     onChange={onSorterChange}
                 >
@@ -142,7 +146,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     style={{ width: '100%' }}
                     placeholder="Năm phát hành"
                     value={getFilterValue('years')}
-                    onChange={(value) => debouncedFilterChange('years', value)}
+                    onChange={(value) => handleImmediateFilterChange('years', value)}
                     allowClear
                     onClear={() => handleImmediateFilterChange('years', undefined)}
                 >
@@ -160,7 +164,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     style={{ width: '100%' }}
                     placeholder="Thể loại"
                     value={getFilterValue('categories')}
-                    onChange={(value) => debouncedFilterChange('categories', value)}
+                    onChange={(value) => handleImmediateFilterChange('categories', value)}
                     onClear={() => handleImmediateFilterChange('categories', undefined)}
                     onSearch={(keyword) => {
                         const regex = createRegex(keyword);
@@ -183,7 +187,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     style={{ width: '100%' }}
                     placeholder="Quốc gia"
                     value={getFilterValue('countries')}
-                    onChange={(value) => debouncedFilterChange('countries', value)}
+                    onChange={(value) => handleImmediateFilterChange('countries', value)}
                     onClear={() => handleImmediateFilterChange('countries', undefined)}
                     onSearch={(keyword) => {
                         const regex = createRegex(keyword);

@@ -63,7 +63,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         filters: {
             mode: 'server',
             defaultBehavior: 'replace',
-            initial: parsedFilters || [],
+            initial: parsedFilters && parsedFilters?.length > 0 ? parsedFilters : [],
         },
         pagination: {
             mode: 'server',
@@ -72,7 +72,10 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         },
         sorters: {
             mode: 'server',
-            initial: parsedSorter || [{ field: 'view', order: 'desc' }],
+            initial:
+                parsedSorter && parsedSorter?.length > 0
+                    ? parsedSorter
+                    : [{ field: 'view', order: 'desc' }],
         },
     });
 
