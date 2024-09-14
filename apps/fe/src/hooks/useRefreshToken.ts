@@ -24,7 +24,7 @@ export function useRefreshToken() {
             session.user = res.data;
         } catch (error) {
             console.error('Failed to refresh tokens:', error);
-            signOut();
+            return signOut();
         } finally {
             setIsRefreshing(false);
         }

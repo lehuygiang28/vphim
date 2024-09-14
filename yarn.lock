@@ -2348,6 +2348,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hookform/resolvers@npm:^3.9.0":
+  version: 3.9.0
+  resolution: "@hookform/resolvers@npm:3.9.0"
+  peerDependencies:
+    react-hook-form: ^7.0.0
+  checksum: 10c0/0e0e55f63abbd212cf14abbd39afad1f9b6105d6b25ce827fc651b624ed2be467ebe9b186026e0f032062db59ce2370b14e9583b436ae2d057738bdd6f04356c
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.11.14":
   version: 0.11.14
   resolution: "@humanwhocodes/config-array@npm:0.11.14"
@@ -6058,6 +6067,7 @@ __metadata:
     "@ant-design/icons": "npm:^5.4.0"
     "@ant-design/nextjs-registry": "npm:^1.0.1"
     "@apollo/server": "npm:^4.11.0"
+    "@hookform/resolvers": "npm:^3.9.0"
     "@nestjs-modules/mailer": "npm:^2.0.2"
     "@nestjs/apollo": "npm:^12.2.0"
     "@nestjs/bullmq": "npm:^10.2.1"
@@ -6158,6 +6168,7 @@ __metadata:
     prom-client: "npm:14"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
+    react-hook-form: "npm:^7.53.0"
     reflect-metadata: "npm:^0.1.13"
     rxjs: "npm:^7.8.0"
     sharp: "npm:^0.33.5"
@@ -18048,6 +18059,15 @@ __metadata:
   peerDependencies:
     react: ^18.3.1
   checksum: 10c0/a752496c1941f958f2e8ac56239172296fcddce1365ce45222d04a1947e0cc5547df3e8447f855a81d6d39f008d7c32eab43db3712077f09e3f67c4874973e85
+  languageName: node
+  linkType: hard
+
+"react-hook-form@npm:^7.53.0":
+  version: 7.53.0
+  resolution: "react-hook-form@npm:7.53.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18 || ^19
+  checksum: 10c0/6d62b150618a833c17d59e669b707661499e2bb516a8d340ca37699f99eb448bbba7b5b78324938c8948014e21efaa32e3510c2ba246fd5e97a96fca0cfa7c98
   languageName: node
   linkType: hard
 

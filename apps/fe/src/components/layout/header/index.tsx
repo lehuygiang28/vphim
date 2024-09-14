@@ -2,16 +2,18 @@
 
 import './header.css';
 import React, { useState, useEffect, ReactNode } from 'react';
-import { Layout, Menu, Input, Button, Drawer, Grid, Typography } from 'antd';
-import { SearchOutlined, UserOutlined, MenuOutlined } from '@ant-design/icons';
+import { Layout, Menu, Input, Button, Drawer, Grid, Typography, Dropdown, Avatar } from 'antd';
+import { SearchOutlined, UserOutlined, MenuOutlined, DownOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { stringifyTableParams } from '@refinedev/core';
+import { stringifyTableParams, useGetIdentity } from '@refinedev/core';
 import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
 import { RouteNameEnum } from '@/constants/route.constant';
 
 import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
+import { UserDto } from 'apps/api/src/app/users/dtos/user.dto';
+import { signOut } from 'next-auth/react';
 
 const { Header } = Layout;
 const { useBreakpoint } = Grid;
@@ -125,6 +127,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
     const screens = useBreakpoint();
     const [searchValue, setSearchValue] = useState('');
     const router = useRouter();
+    const { data: user, isLoading } = useGetIdentity<UserDto>();
 
     const navItems = [
         ...baseNavItems,
@@ -261,9 +264,53 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                         />
                     </>
                 )}
-                <Button type="default" icon={<UserOutlined />}>
-                    {screens.md ? 'Login' : null}
-                </Button>
+                {user && !isLoading ? (
+                    <Dropdown
+                        menu={{
+                            items: [
+                                {
+                                    key: '1',
+                                    label: <Link href={'/'}>Thông tin tài khoản</Link>,
+                                },
+                                {
+                                    key: '2',
+                                    label: <Link href={'/'}>Tủ phim</Link>,
+                                },
+                                {
+                                    key: '3',
+                                    label: <Link href={'/'}>Đổi mật khẩu</Link>,
+                                },
+                                {
+                                    key: '4',
+                                    label: (
+                                        <Link href={'#'} onClick={() => signOut()}>
+                                            Đăng xuất
+                                        </Link>
+                                    ),
+                                },
+                            ],
+                        }}
+                        trigger={['click']}
+                    >
+                        <Link
+                            href={'#'}
+                            onClick={(e) => e.preventDefault()}
+                            style={{ display: 'flex', alignItems: 'center' }}
+                        >
+                            <Avatar
+                                src={user.avatar?.url}
+                                icon={<UserOutlined />}
+                                style={{ marginRight: '0.3rem' }}
+                            />
+                            <span style={{ marginRight: '0.3rem' }}>{user.fullName}</span>
+                            <DownOutlined />
+                        </Link>
+                    </Dropdown>
+                ) : (
+                    <Link href={RouteNameEnum.LOGIN_PAGE}>
+                        <Button type="default" icon={<UserOutlined />}></Button>
+                    </Link>
+                )}
             </div>
             <Drawer
                 title="Menu"
