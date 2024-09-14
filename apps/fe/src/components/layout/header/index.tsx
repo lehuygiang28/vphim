@@ -4,7 +4,7 @@ import './header.css';
 import React, { useState, useEffect, ReactNode } from 'react';
 import { Layout, Menu, Input, Button, Drawer, Grid, Typography } from 'antd';
 import { SearchOutlined, UserOutlined, MenuOutlined } from '@ant-design/icons';
-import NextLink from 'next/link';
+import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { stringifyTableParams } from '@refinedev/core';
@@ -14,13 +14,12 @@ import { RouteNameEnum } from '@/constants/route.constant';
 import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
 
 const { Header } = Layout;
-const { Link } = Typography;
 const { useBreakpoint } = Grid;
 
 const baseNavItems: ItemType<MenuItemType>[] = [
     {
         key: 'home',
-        label: <NextLink href={'/'}>Trang Chủ</NextLink>,
+        label: <Link href={'/'}>Trang Chủ</Link>,
     },
     {
         key: MovieTypeEnum.SERIES,
