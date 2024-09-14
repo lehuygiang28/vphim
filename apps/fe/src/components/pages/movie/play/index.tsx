@@ -74,7 +74,8 @@ export function MoviePlay({ params }: MoviePlayProps) {
                 style={{
                     position: 'relative',
                     width: '90vw',
-                    maxWidth: '1600px', // Set a max-width to prevent excessive stretching on very wide screens
+                    maxWidth: '1600px',
+                    margin: '0 auto',
                     paddingTop: 'calc(80vw * 9 / 16)', // This creates the 16:9 aspect ratio
                     height: 0, // Height is controlled by padding-top
                 }}
@@ -112,7 +113,12 @@ export function MoviePlay({ params }: MoviePlayProps) {
                             }
                             title={movie?.data?.name}
                             allowFullScreen
-                            style={{ border: 'none' }}
+                            style={{
+                                border: 'none',
+                                maxWidth: '100%',
+                                maxHeight: '100%',
+                                objectFit: 'contain',
+                            }}
                         />
                     )}
                 </div>
