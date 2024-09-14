@@ -45,3 +45,7 @@ export function getEpisodesWithMaxServerDataLength(movie: MovieType): EpisodeTyp
 
     return movie.episode.filter((episode) => episode.serverData.length === maxServerDataLength)[0];
 }
+
+export const removeLeadingTrailingSlashes = (route: string) => {
+    return route.replace(/^\/|\/$/g, '');
+};
