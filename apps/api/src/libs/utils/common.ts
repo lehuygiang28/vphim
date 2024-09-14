@@ -97,3 +97,25 @@ export function isNullOrUndefined(value: unknown): value is null | undefined {
 export function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+/**
+ * Sorts and stringifies an argument
+ * @param arg The argument to be sorted and stringified
+ * @returns The sorted and stringified argument as a string
+ */
+export function sortedStringify(arg: unknown): string {
+    if (typeof arg !== 'object' || arg === null || arg === undefined) {
+        return JSON.stringify(arg);
+    }
+
+    if (Array.isArray(arg)) {
+        return '[' + arg.map(sortedStringify).join(',') + ']';
+    }
+
+    const keys = Object.keys(arg as object).sort((a, b) => a.localeCompare(b));
+    const keyValuePairs = keys.map((key) => {
+        const value = sortedStringify((arg as { [key: string]: unknown })[key]);
+        return '"' + key + '":' + value;
+    });
+    return '{' + keyValuePairs.join(',') + '}';
+}

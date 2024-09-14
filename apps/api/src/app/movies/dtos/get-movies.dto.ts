@@ -1,8 +1,10 @@
 import { ApiPropertyOptional, IntersectionType, PartialType, PickType } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 import { PaginationRequestDto } from 'apps/api/src/libs/dtos';
 import { Movie } from '../movie.schema';
+import { Transform } from 'class-transformer';
+import { isTrue } from 'apps/api/src/libs/utils/common';
 
 export class GetMoviesDto extends IntersectionType(
     PaginationRequestDto,
@@ -27,4 +29,10 @@ export class GetMoviesDto extends IntersectionType(
     @IsOptional()
     @IsString()
     years: string;
+
+    @ApiPropertyOptional({ type: Boolean, example: true })
+    @IsOptional()
+    @IsBoolean()
+    @Transform(({ value }) => isTrue(value))
+    resetCache?: boolean;
 }

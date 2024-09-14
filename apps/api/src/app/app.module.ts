@@ -27,11 +27,16 @@ import { UsersModule } from './users';
         }),
         PinoModule,
         MongodbModule,
-        GraphQLModule.forRoot<ApolloDriverConfig>({
+        RedisModule,
+        GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            autoSchemaFile: true,
-            playground: true,
-            csrfPrevention: false,
+            useFactory: async () => {
+                return {
+                    autoSchemaFile: './schema.gql',
+                    playground: true,
+                    csrfPrevention: false,
+                };
+            },
         }),
         AuthModule,
         UsersModule,

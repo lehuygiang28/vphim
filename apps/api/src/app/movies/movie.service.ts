@@ -5,13 +5,17 @@ import { createRegex } from '@vn-utils/text';
 import { MovieRepository } from './movie.repository';
 import { GetMoviesDto, MovieResponseDto } from './dtos';
 import { Movie } from './movie.schema';
-import { isNullOrUndefined } from '../../libs/utils/common';
+import { isNullOrUndefined, sortedStringify } from '../../libs/utils/common';
+import { RedisService } from '../../libs/modules/redis/services';
 
 @Injectable()
 export class MovieService {
     private readonly logger: Logger;
 
-    constructor(private readonly movieRepo: MovieRepository) {
+    constructor(
+        private readonly movieRepo: MovieRepository,
+        private readonly redisService: RedisService,
+    ) {
         this.logger = new Logger(MovieService.name);
     }
 
@@ -43,6 +47,21 @@ export class MovieService {
     }
 
     async getMovies(dto: GetMoviesDto) {
+        const { resetCache } = dto;
+        const cacheKey = `CACHED:MOVIES:${sortedStringify(dto)}`;
+
+        if (resetCache) {
+            await this.redisService.del(cacheKey);
+        } else {
+            const fromCache = await this.redisService.get(cacheKey);
+            if (fromCache) {
+                this.logger.debug(`CACHE: ${cacheKey}`);
+                return fromCache;
+            }
+        }
+
+        this.logger.debug(`DB: ${cacheKey}`);
+
         const {
             keywords,
             cinemaRelease,
@@ -192,9 +211,11 @@ export class MovieService {
         const movies = result?.[0]?.movies?.map((movie) => new MovieResponseDto(movie));
         const total = result?.[0]?.total || 0;
 
-        return {
+        const res = {
             data: movies,
             total,
         };
+        await this.redisService.set(cacheKey, res, 1000 * 60 * 60);
+        return res;
     }
 }

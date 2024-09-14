@@ -41,4 +41,7 @@ export class GetMoviesInput implements GetMoviesDto {
 
     @Field({ nullable: true })
     years: string;
+
+    @Field({ nullable: true })
+    resetCache?: boolean;
 }
