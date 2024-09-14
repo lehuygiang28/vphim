@@ -12,6 +12,7 @@
         "nextjs",
         "ophim",
         "Passwordless",
+        "Plyr",
         "Pwdless",
         "refinedev",
         "sadd",
@@ -20,6 +21,7 @@
         "srem",
         "swiper",
         "tvshows",
+        "vidstack",
         "vphim"
     ],
     "conventionalCommits.scopes": ["be/i18n", "api", "fe"]
