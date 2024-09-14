@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import React, { Suspense } from 'react';
 import { RefineContext } from './_refine_context';
-import Layout from '@/components/layout';
 
 export const metadata: Metadata = {
     title: 'Refine',
@@ -12,7 +11,7 @@ export const metadata: Metadata = {
     },
 };
 
-export default function RootLayout({
+export default function DefaultNoLayoutStyle({
     children,
 }: Readonly<{
     children: React.ReactNode;
@@ -26,7 +25,7 @@ export default function RootLayout({
             <body>
                 <Suspense>
                     <RefineContext defaultMode={defaultMode}>
-                        <Layout>{children}</Layout>
+                        <>{children}</>
                     </RefineContext>
                 </Suspense>
             </body>
