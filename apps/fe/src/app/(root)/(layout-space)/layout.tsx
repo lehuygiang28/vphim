@@ -11,9 +11,9 @@ export default function MovieLayout({ children }: PropsWithChildren) {
     return (
         <div
             style={{
-                marginTop: md ? '6rem' : '1.5rem',
-                marginLeft: md ? '3rem' : '1rem',
-                marginRight: md ? '3rem' : '1rem',
+                marginTop: md ? '6rem' : '5rem',
+                marginLeft: md ? '3rem' : '0.7rem',
+                marginRight: md ? '3rem' : '0.7rem',
             }}
         >
             {children}
