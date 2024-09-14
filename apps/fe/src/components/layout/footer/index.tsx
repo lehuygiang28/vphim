@@ -4,6 +4,8 @@ import React from 'react';
 import { Layout, Row, Col, Typography, Grid, Divider } from 'antd';
 import Link from 'next/link';
 import Image from 'next/image';
+import { stringifyTableParams } from '@refinedev/core';
+import { RouteNameEnum } from '@/constants/route.constant';
 
 import type { Category } from 'apps/api/src/app/categories/category.schema';
 import type { Region } from 'apps/api/src/app/regions/region.schema';
@@ -13,10 +15,10 @@ const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 
 const helperLinks = [
-    { label: 'About Us', url: '/about' },
-    { label: 'Contact', url: '/contact' },
-    { label: 'Terms of Service', url: '/terms' },
-    { label: 'Privacy Policy', url: '/privacy' },
+    { label: 'Về chúng tôi', url: '#' },
+    { label: 'Liên hệ', url: '#' },
+    { label: 'Điều khoản', url: '#' },
+    { label: 'Chính sách bảo mật', url: '#' },
 ];
 
 export type FooterComponentProps = {
@@ -67,7 +69,7 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
                         level={4}
                         style={{ color: 'white', marginBottom: '1rem', fontSize: '1.125rem' }}
                     >
-                        Helpful Links
+                        Thông tin
                     </Title>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         {helperLinks.map((link) => (
@@ -97,7 +99,16 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
                         {categories?.slice(0, 6)?.map((category) => (
                             <li key={category.slug} style={{ marginBottom: '0.5rem' }}>
                                 <Link
-                                    href={`/the-loai/${category?.slug}`}
+                                    href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                                        filters: [
+                                            {
+                                                field: 'categories',
+                                                value: category.slug,
+                                                operator: 'in',
+                                            },
+                                        ],
+                                        sorters: [],
+                                    })}`}
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.65)',
                                         fontSize: '0.875rem',
@@ -121,7 +132,16 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
                         {regions?.slice(0, 6)?.map((region) => (
                             <li key={region.slug} style={{ marginBottom: '0.5rem' }}>
                                 <Link
-                                    href={`/the-loai/${region?.slug}`}
+                                    href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                                        filters: [
+                                            {
+                                                field: 'countries',
+                                                value: region.slug,
+                                                operator: 'in',
+                                            },
+                                        ],
+                                        sorters: [],
+                                    })}`}
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.65)',
                                         fontSize: '0.875rem',

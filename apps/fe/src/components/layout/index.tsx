@@ -3,7 +3,7 @@
 import { PropsWithChildren } from 'react';
 import { Layout, Grid } from 'antd';
 import Link from 'next/link';
-import { useList } from '@refinedev/core';
+import { stringifyTableParams, useList } from '@refinedev/core';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 import { REGIONS_LIST_QUERY } from '@/queries/regions';
 
@@ -12,6 +12,7 @@ import Footer from './footer';
 
 import type { Category } from 'apps/api/src/app/categories/category.schema';
 import type { Region } from 'apps/api/src/app/regions/region.schema';
+import { RouteNameEnum } from '@/constants/route.constant';
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -53,11 +54,29 @@ export default function LayoutComp({ children }: PropsWithChildren) {
             <Header
                 categoryMenu={categories?.data?.map((c) => ({
                     key: c.slug,
-                    label: <Link href={`/the-loai/${c.slug}`}>{c.name}</Link>,
+                    label: (
+                        <Link
+                            href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                                filters: [{ field: 'categories', value: c.slug, operator: 'in' }],
+                                sorters: [],
+                            })}`}
+                        >
+                            {c.name}
+                        </Link>
+                    ),
                 }))}
                 regionMenu={regions?.data?.map((r) => ({
                     key: r.slug,
-                    label: <Link href={`/quoc-gia/${r.slug}`}>{r.name}</Link>,
+                    label: (
+                        <Link
+                            href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+                                filters: [{ field: 'countries', value: r.slug, operator: 'in' }],
+                                sorters: [],
+                            })}`}
+                        >
+                            {r.name}
+                        </Link>
+                    ),
                 }))}
             />
             <Content
