@@ -1,8 +1,9 @@
-import React from 'react';
-import { Row, Col, Select, Button } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Row, Col, Select, Button, Input } from 'antd';
 import { CrudFilters, LogicalFilter, useList } from '@refinedev/core';
 import { SearchOutlined } from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { movieTypeTranslations } from '@/constants/translation-enum';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
@@ -21,9 +22,10 @@ interface MovieFiltersProps {
 }
 
 const sortOptions = [
-    { value: 'view', label: 'Xem nhiều' },
-    { value: 'year', label: 'Năm' },
-    { value: 'updatedAt', label: 'Cập nhật gần đây' },
+    { value: 'view,desc', label: 'Phổ biến nhất' },
+    { value: 'year,desc', label: 'Mới nhất' },
+    { value: 'year,asc', label: 'Cũ nhất' },
+    { value: 'updatedAt,desc', label: 'Cập nhật gần đây' },
 ];
 
 export const MovieFilters: React.FC<MovieFiltersProps> = ({
@@ -35,6 +37,12 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
 }) => {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 124 }, (_, i) => currentYear - i);
+    const [keywordsInput, setKeywordsInput] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        const keywordsFilter = getFilterValue('keywords');
+        setKeywordsInput(keywordsFilter?.[0] || undefined);
+    }, [localFilters]);
 
     const { data: categories } = useList<Category>({
         dataProviderName: 'graphql',
@@ -62,32 +70,46 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         },
     });
 
-    const getFilterValue = (field: string) => {
-        const filter = localFilters?.find(
-            (x) => (x as LogicalFilter)?.field === field,
-        ) as LogicalFilter;
-        return (
-            (filter?.value?.toString() as string)
-                ?.split(',')
-                ?.filter((f) => !!f)
-                ?.map((y: string) => y?.trim()) || []
-        );
-    };
+    const getFilterValue = useCallback(
+        (field: string) => {
+            const filter = localFilters?.find(
+                (x) => (x as LogicalFilter)?.field === field,
+            ) as LogicalFilter;
+            return (
+                (filter?.value?.toString() as string)
+                    ?.split(',')
+                    ?.filter((f) => !!f)
+                    ?.map((y: string) => y?.trim()) || []
+            );
+        },
+        [localFilters],
+    );
 
-    const handleFilterChange = (field: string, value: unknown) => {
+    const debouncedFilterChange = useDebouncedCallback((field: string, value: unknown) => {
         if (value === undefined || (Array.isArray(value) && value.length === 0)) {
             onFilterChange(field, undefined);
         } else {
             onFilterChange(field, value);
         }
-    };
+    }, 300);
+
+    const handleImmediateFilterChange = useCallback(
+        (field: string, value: unknown) => {
+            if (value === undefined || (Array.isArray(value) && value.length === 0)) {
+                onFilterChange(field, undefined);
+            } else {
+                onFilterChange(field, value);
+            }
+        },
+        [onFilterChange],
+    );
 
     return (
         <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={12} md={6} lg={4}>
+            <Col xs={12} sm={8} md={6} lg={4}>
                 <Select
                     placeholder="Xắp xếp theo"
-                    value={localSorter?.field || 'view'}
+                    value={`${localSorter?.field},${localSorter?.order}` || 'view'}
                     style={{ width: '100%' }}
                     onChange={onSorterChange}
                 >
@@ -98,31 +120,14 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     ))}
                 </Select>
             </Col>
-            <Col xs={24} sm={12} md={6} lg={4}>
-                <Select
-                    mode="multiple"
-                    style={{ width: '100%' }}
-                    placeholder="Năm phát hành"
-                    value={getFilterValue('years')}
-                    onChange={(value) => handleFilterChange('years', value)}
-                    allowClear
-                    onClear={() => handleFilterChange('years', undefined)}
-                >
-                    {yearOptions.map((year) => (
-                        <Option key={year} value={year.toString()}>
-                            {year}
-                        </Option>
-                    ))}
-                </Select>
-            </Col>
-            <Col xs={24} sm={12} md={6} lg={4}>
+            <Col xs={12} sm={8} md={6} lg={4}>
                 <Select
                     style={{ width: '100%' }}
                     placeholder="Định dạng"
                     value={getFilterValue('type')?.[0] || undefined}
-                    onChange={(value) => handleFilterChange('type', value)}
+                    onChange={(value) => handleImmediateFilterChange('type', value)}
                     allowClear
-                    onClear={() => handleFilterChange('type', undefined)}
+                    onClear={() => handleImmediateFilterChange('type', undefined)}
                 >
                     {Object.entries(movieTypeTranslations).map(([key, value]) => (
                         <Option key={key} value={key}>
@@ -131,15 +136,32 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     ))}
                 </Select>
             </Col>
-            <Col xs={24} sm={12} md={6} lg={4}>
+            <Col xs={12} sm={8} md={6} lg={4}>
+                <Select
+                    mode="multiple"
+                    style={{ width: '100%' }}
+                    placeholder="Năm phát hành"
+                    value={getFilterValue('years')}
+                    onChange={(value) => debouncedFilterChange('years', value)}
+                    allowClear
+                    onClear={() => handleImmediateFilterChange('years', undefined)}
+                >
+                    {yearOptions.map((year) => (
+                        <Option key={year} value={year.toString()}>
+                            {year}
+                        </Option>
+                    ))}
+                </Select>
+            </Col>
+            <Col xs={12} sm={8} md={6} lg={4}>
                 <Select
                     mode="multiple"
                     allowClear
                     style={{ width: '100%' }}
                     placeholder="Thể loại"
                     value={getFilterValue('categories')}
-                    onChange={(value) => handleFilterChange('categories', value)}
-                    onClear={() => handleFilterChange('categories', undefined)}
+                    onChange={(value) => debouncedFilterChange('categories', value)}
+                    onClear={() => handleImmediateFilterChange('categories', undefined)}
                     onSearch={(keyword) => {
                         const regex = createRegex(keyword);
                         return categories?.data?.filter(
@@ -154,15 +176,15 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     ))}
                 </Select>
             </Col>
-            <Col xs={24} sm={12} md={6} lg={4}>
+            <Col xs={12} sm={8} md={6} lg={4}>
                 <Select
                     mode="multiple"
                     allowClear
                     style={{ width: '100%' }}
                     placeholder="Quốc gia"
                     value={getFilterValue('countries')}
-                    onChange={(value) => handleFilterChange('countries', value)}
-                    onClear={() => handleFilterChange('countries', undefined)}
+                    onChange={(value) => debouncedFilterChange('countries', value)}
+                    onClear={() => handleImmediateFilterChange('countries', undefined)}
                     onSearch={(keyword) => {
                         const regex = createRegex(keyword);
                         return regions?.data?.filter(
@@ -177,8 +199,25 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     ))}
                 </Select>
             </Col>
-            <Col xs={24} sm={12} md={6} lg={4}>
-                <Button onClick={onApplyFilters} icon={<SearchOutlined />} />
+            <Col xs={12} sm={8} md={6} lg={4}>
+                <Input
+                    placeholder="Tên phim, diễn viên, đạo diễn..."
+                    allowClear
+                    value={keywordsInput}
+                    onChange={(e) => setKeywordsInput(e.target.value)}
+                    onBlur={() =>
+                        handleImmediateFilterChange('keywords', keywordsInput || undefined)
+                    }
+                    onClear={() => {
+                        setKeywordsInput('');
+                        handleImmediateFilterChange('keywords', undefined);
+                    }}
+                />
+            </Col>
+            <Col xs={12} sm={8} md={6} lg={4}>
+                <Button onClick={onApplyFilters} icon={<SearchOutlined />}>
+                    Tìm kiếm
+                </Button>
             </Col>
         </Row>
     );

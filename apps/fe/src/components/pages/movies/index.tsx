@@ -102,7 +102,8 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     };
 
     const handleSorterChange = (value: string) => {
-        setLocalSorter({ field: value, order: 'desc' });
+        const [val, ord] = value?.split(',');
+        setLocalSorter({ field: val, order: ord === 'asc' ? 'asc' : 'desc' });
     };
 
     const applyFilters = () => {
