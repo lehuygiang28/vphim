@@ -16,7 +16,7 @@ export function useRefreshToken() {
         setIsRefreshing(true);
 
         try {
-            const path = '/auth/refresh';
+            const path = '/api/auth/refresh';
             const res = await axiosInstance.post<LoginResponseDto>(path, {
                 refreshToken: session.user.refreshToken,
             });

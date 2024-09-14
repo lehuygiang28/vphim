@@ -1,6 +1,6 @@
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
-import { AxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { useAxios } from './useAxios';
 import { useRefreshToken } from './useRefreshToken';
@@ -46,11 +46,42 @@ export function useAxiosAuth(payload?: UseAxiosAuthPayload) {
             (error) => Promise.reject(error),
         );
 
+        const graphqlResponseIntercept = axiosInstance.interceptors.response.use(
+            (response: AxiosResponse) => {
+                // Check for GraphQL errors
+                if (response?.data?.errors) {
+                    const unauthorizedError = response.data.errors.find(
+                        (error: any) =>
+                            error?.message?.toLowerCase() === 'unauthorized' ||
+                            error?.extensions?.code === 'UNAUTHENTICATED',
+                    );
+                    if (unauthorizedError) {
+                        // Throw a custom error to trigger the refresh flow
+                        return Promise.reject(
+                            new AxiosError(
+                                'Unauthorized',
+                                'GRAPHQL_UNAUTHORIZED',
+                                response.config,
+                                response.request,
+                                response,
+                            ),
+                        );
+                    }
+                }
+                return response;
+            },
+            undefined,
+        );
+
         const responseIntercept = axiosInstance.interceptors.response.use(
-            (response) => response,
-            (error) => {
+            undefined,
+            async (error) => {
                 const prevRequest = error?.config;
-                if (error?.response?.status === 401 && !prevRequest?.sent) {
+                console.log({ code: error?.code, sent: prevRequest?.sent });
+                if (
+                    (error?.response?.status === 401 || error?.code === 'GRAPHQL_UNAUTHORIZED') &&
+                    prevRequest?.sent !== true
+                ) {
                     prevRequest.sent = true; // prevent infinite loop
 
                     // Create a Promise to pause the request
@@ -61,6 +92,7 @@ export function useAxiosAuth(payload?: UseAxiosAuthPayload) {
 
                     if (!isRefreshing) {
                         isRefreshing = true;
+
                         refreshToken()
                             .then(() => {
                                 // Retry all queued requests
@@ -99,6 +131,7 @@ export function useAxiosAuth(payload?: UseAxiosAuthPayload) {
 
         return () => {
             axiosInstance.interceptors.request.eject(requestIntercept);
+            axiosInstance.interceptors.response.eject(graphqlResponseIntercept);
             axiosInstance.interceptors.response.eject(responseIntercept);
         };
     }, [axiosInstance, session, refreshToken, status, payload]);
