@@ -1,5 +1,3 @@
-'use client';
-
 import MoviePage from '@/components/pages/movies';
 
 export default function MoviesPage() {
