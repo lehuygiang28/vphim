@@ -9,6 +9,7 @@ import { GET_MOVIE_QUERY } from '@/queries/movies';
 import type { MovieType, EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
+import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
@@ -21,6 +22,7 @@ export function MoviePlay({ params }: MoviePlayProps) {
     const { movieSlug, episodeSlug } = params;
     const router = useRouter();
     const { md } = useBreakpoint();
+    const { host } = useCurrentUrl();
 
     const [selectedServerIndex, setSelectedServerIndex] = useState<number>(0);
     const [selectedEpisode, setSelectedEpisode] = useState<EpisodeServerDataType | null>(null);
@@ -70,23 +72,50 @@ export function MoviePlay({ params }: MoviePlayProps) {
             </Title>
             <div
                 style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    marginBottom: 20,
-                    width: md ? '90vw' : '100%',
-                    height: md ? '80vh' : '35vh',
+                    position: 'relative',
+                    width: '90vw',
+                    maxWidth: '1600px', // Set a max-width to prevent excessive stretching on very wide screens
+                    paddingTop: 'calc(80vw * 9 / 16)', // This creates the 16:9 aspect ratio
+                    height: 0, // Height is controlled by padding-top
                 }}
             >
-                {selectedEpisode?.linkEmbed && (
-                    <iframe
-                        width="100%"
-                        height="100%"
-                        src={selectedEpisode.linkEmbed}
-                        title="Embedded Video"
-                        allowFullScreen
-                        style={{ border: 'none' }}
-                    />
-                )}
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        maxHeight: md ? '90vh' : '25vh',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {selectedEpisode?.linkM3u8 && (
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            src={
+                                selectedEpisode?.linkM3u8
+                                    ? `${host}/player/${encodeURIComponent(
+                                          selectedEpisode.linkM3u8,
+                                      )}?poster=${encodeURIComponent(
+                                          movie?.data?.thumbUrl?.includes('/phimimg.com/upload')
+                                              ? movie?.data?.thumbUrl
+                                              : movie?.data?.posterUrl,
+                                      )}&m=${encodeURIComponent(movieSlug)}&ep=${encodeURIComponent(
+                                          selectedEpisode.slug,
+                                      )}`
+                                    : selectedEpisode?.linkEmbed
+                            }
+                            title={movie?.data?.name}
+                            allowFullScreen
+                            style={{ border: 'none' }}
+                        />
+                    )}
+                </div>
             </div>
             {movie && (
                 <MovieEpisode
