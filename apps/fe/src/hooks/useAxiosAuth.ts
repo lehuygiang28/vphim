@@ -51,6 +51,7 @@ export function useAxiosAuth(payload?: UseAxiosAuthPayload) {
                 // Check for GraphQL errors
                 if (response?.data?.errors) {
                     const unauthorizedError = response.data.errors.find(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         (error: any) =>
                             error?.message?.toLowerCase() === 'unauthorized' ||
                             error?.extensions?.code === 'UNAUTHENTICATED',
