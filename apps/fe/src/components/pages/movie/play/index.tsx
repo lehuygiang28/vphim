@@ -2,24 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useOne } from '@refinedev/core';
 import { Typography, Grid } from 'antd';
-import { GET_MOVIE_QUERY } from '@/queries/movies';
 
-import type { MovieType, EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
+import { useCurrentUrl } from '@/hooks/useCurrentUrl';
+import { RouteNameEnum } from '@/constants/route.constant';
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
-import { useCurrentUrl } from '@/hooks/useCurrentUrl';
+
+import type { MovieType, EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
 
 export type MoviePlayProps = {
-    params: { movieSlug: string; episodeSlug: string };
+    movie: MovieType;
+    episodeSlug: string;
 };
 
-export function MoviePlay({ params }: MoviePlayProps) {
-    const { movieSlug, episodeSlug } = params;
+export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const router = useRouter();
     const { md } = useBreakpoint();
     const { host } = useCurrentUrl();
@@ -27,23 +27,13 @@ export function MoviePlay({ params }: MoviePlayProps) {
     const [selectedServerIndex, setSelectedServerIndex] = useState<number>(0);
     const [selectedEpisode, setSelectedEpisode] = useState<EpisodeServerDataType | null>(null);
 
-    const { data: movie } = useOne<MovieType>({
-        dataProviderName: 'graphql',
-        resource: 'movies',
-        meta: {
-            gqlQuery: GET_MOVIE_QUERY,
-            operation: 'movie',
-        },
-        id: movieSlug,
-    });
-
     useEffect(() => {
-        if (movie?.data?.episode) {
-            const episode = movie.data.episode.find((ep) =>
+        if (movie?.episode) {
+            const episode = movie.episode.find((ep) =>
                 ep.serverData.some((server) => server.slug === episodeSlug),
             );
             if (episode) {
-                const serverIndex = movie.data.episode.findIndex(
+                const serverIndex = movie.episode.findIndex(
                     (ep) => ep.serverName === episode.serverName,
                 );
                 setSelectedServerIndex(serverIndex);
@@ -56,11 +46,13 @@ export function MoviePlay({ params }: MoviePlayProps) {
 
     const handleServerChange = (serverIndex: number) => {
         setSelectedServerIndex(serverIndex);
-        const newEpisode = movie?.data?.episode?.[serverIndex]?.serverData[0];
+        const newEpisode = movie?.episode?.[serverIndex]?.serverData[0];
         if (newEpisode) {
             setSelectedEpisode(newEpisode);
             router.push(
-                `/phim/${encodeURIComponent(movieSlug)}/${encodeURIComponent(newEpisode.slug)}`,
+                `${RouteNameEnum.MOVIE_PAGE}/${encodeURIComponent(
+                    movie?.slug,
+                )}/${encodeURIComponent(newEpisode.slug)}`,
             );
         }
     };
@@ -68,7 +60,7 @@ export function MoviePlay({ params }: MoviePlayProps) {
     return (
         <>
             <Title level={4}>
-                {movie?.data?.name} - {selectedEpisode?.name}
+                {movie?.name} - {selectedEpisode?.name}
             </Title>
             <div
                 style={{
@@ -103,15 +95,15 @@ export function MoviePlay({ params }: MoviePlayProps) {
                                     ? `${host}/player/${encodeURIComponent(
                                           selectedEpisode.linkM3u8,
                                       )}?poster=${encodeURIComponent(
-                                          movie?.data?.thumbUrl?.includes('/phimimg.com/upload')
-                                              ? movie?.data?.thumbUrl
-                                              : movie?.data?.posterUrl,
-                                      )}&m=${encodeURIComponent(movieSlug)}&ep=${encodeURIComponent(
-                                          selectedEpisode.slug,
-                                      )}`
+                                          movie?.thumbUrl?.includes('/phimimg.com/upload')
+                                              ? movie?.thumbUrl
+                                              : movie?.posterUrl,
+                                      )}&m=${encodeURIComponent(
+                                          movie?.slug,
+                                      )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
                                     : selectedEpisode?.linkEmbed
                             }
-                            title={movie?.data?.name}
+                            title={movie?.name}
                             allowFullScreen
                             style={{
                                 border: 'none',
@@ -125,7 +117,7 @@ export function MoviePlay({ params }: MoviePlayProps) {
             </div>
             {movie && (
                 <MovieEpisode
-                    movie={movie?.data}
+                    movie={movie}
                     activeEpisodeSlug={episodeSlug}
                     activeServerIndex={selectedServerIndex}
                     showServers={true}
@@ -136,7 +128,7 @@ export function MoviePlay({ params }: MoviePlayProps) {
             )}
             {movie && (
                 <div style={{ marginTop: '2rem', marginBottom: md ? '4rem' : '2rem' }}>
-                    <MovieRelated movie={movie?.data} />
+                    <MovieRelated movie={movie} />
                 </div>
             )}
         </>
