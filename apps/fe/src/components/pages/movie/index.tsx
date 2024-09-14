@@ -150,34 +150,34 @@ export function Movie({ slug }: MovieProps) {
                     width: '100%',
                 }}
             >
-                <div
-                    style={{
-                        height: md ? '60vh' : '36vh',
-                    }}
+                <Row
+                    justify="center"
+                    align={md ? 'middle' : 'top'}
+                    style={{ width: '100%', height: '100%', minHeight: '36vh' }}
                 >
-                    <Row
-                        justify="center"
-                        align={md ? 'middle' : 'top'}
+                    <Col
+                        xs={{ span: 10, order: 1 }}
+                        md={{ span: 6, order: 2 }}
                         style={{ width: '100%', height: '100%' }}
                     >
-                        <Col
-                            xs={{ span: 10, order: 1 }}
-                            md={{ span: 6, order: 2 }}
-                            style={{ width: '100%', height: '100%' }}
+                        <div
+                            style={{
+                                display: 'flex',
+                                position: 'relative',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                width: '100%',
+                                height: '100%',
+                                textAlign: 'center',
+                                background: 'transparent',
+                            }}
                         >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    position: 'relative',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                    height: '100%',
-                                    textAlign: 'center',
-                                    background: 'transparent',
-                                }}
-                            >
-                                {(movie?.thumbUrl || movie?.posterUrl) && (
+                            {(movie?.thumbUrl || movie?.posterUrl) && (
+                                <div
+                                    style={{
+                                        height: md ? '60vh' : '36vh',
+                                    }}
+                                >
                                     <HigherHeightImage
                                         url1={movie?.thumbUrl || ''}
                                         url2={movie?.posterUrl || ''}
@@ -199,96 +199,100 @@ export function Movie({ slug }: MovieProps) {
                                         }}
                                         className="posterImage"
                                     />
-                                )}
-                            </div>
-                        </Col>
-                        <Col xs={{ span: 14, order: 2 }} md={{ span: 18, order: 1 }}>
-                            <div
-                                style={{
-                                    padding: '0',
-                                    color: '#fff',
-                                    textAlign: 'left',
-                                    marginTop: md ? undefined : '5rem',
-                                }}
-                                className="textContent"
-                            >
-                                <Space direction="vertical" size={md ? 'middle' : 'small'}>
-                                    <div>
-                                        <Title level={md ? 1 : 4} style={{ marginBottom: '0' }}>
-                                            {movie?.name}
-                                        </Title>
-                                        <Text type="secondary">{movie?.originName}</Text>
-                                        <div style={{ marginTop: '0.5rem' }}>
-                                            <Space wrap size={[8, 8]}>
-                                                <MovieQualityTag
-                                                    quality={movie?.quality || 'N/A'}
-                                                />
-                                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                                    |
+                                </div>
+                            )}
+                        </div>
+                    </Col>
+                    <Col xs={{ span: 14, order: 2 }} md={{ span: 18, order: 1 }}>
+                        <div
+                            style={{
+                                padding: '0',
+                                color: '#fff',
+                                textAlign: 'left',
+                                marginTop: md ? undefined : '5rem',
+                            }}
+                            className="textContent"
+                        >
+                            <Space direction="vertical" size={md ? 'middle' : 'small'}>
+                                <div>
+                                    <Title level={md ? 1 : 4} style={{ marginBottom: '0' }}>
+                                        {movie?.name}
+                                    </Title>
+                                    <Text type="secondary">{movie?.originName}</Text>
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        <Space wrap size={[8, 8]}>
+                                            <MovieQualityTag quality={movie?.quality || 'N/A'} />
+                                            <Text type="secondary" style={{ fontSize: 12 }}>
+                                                |
+                                            </Text>
+                                            <Space size={2}>
+                                                <CalendarOutlined style={{ fontSize: 12 }} />
+                                                <Text style={{ fontSize: 12 }}>
+                                                    {movie?.year || 'N/A'}
                                                 </Text>
-                                                <Space size={2}>
-                                                    <CalendarOutlined style={{ fontSize: 12 }} />
-                                                    <Text style={{ fontSize: 12 }}>
-                                                        {movie?.year || 'N/A'}
-                                                    </Text>
-                                                </Space>
-                                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                                    |
-                                                </Text>
-                                                <Space
-                                                    size={2}
-                                                    style={{
-                                                        maxWidth: '100%',
-                                                        display: 'inline-flex',
-                                                    }}
-                                                >
-                                                    <EyeOutlined style={{ fontSize: 12 }} />{' '}
-                                                    <Text
-                                                        style={{
-                                                            fontSize: 12,
-                                                            wordBreak: 'break-word',
-                                                            whiteSpace: 'normal',
-                                                        }}
-                                                    >
-                                                        {movie?.view?.toLocaleString() || 'N/A'}
-                                                    </Text>
-                                                </Space>
                                             </Space>
-                                        </div>
-                                        <div style={{ marginTop: '0.5rem' }}>
-                                            {movie?.categories?.map((category) => (
-                                                <Tag
-                                                    key={category?.slug}
+                                            <Text type="secondary" style={{ fontSize: 12 }}>
+                                                |
+                                            </Text>
+                                            <Space
+                                                size={2}
+                                                style={{
+                                                    maxWidth: '100%',
+                                                    display: 'inline-flex',
+                                                }}
+                                            >
+                                                <EyeOutlined style={{ fontSize: 12 }} />{' '}
+                                                <Text
                                                     style={{
-                                                        fontSize: md ? '0.7rem' : '0.5rem',
-                                                        background: 'rgba(0 0 0 / 0.4)',
-                                                        border: 'none',
+                                                        fontSize: 12,
+                                                        wordBreak: 'break-word',
+                                                        whiteSpace: 'normal',
                                                     }}
                                                 >
-                                                    {category?.name}
-                                                </Tag>
-                                            ))}
-                                        </div>
+                                                    {movie?.view?.toLocaleString() || 'N/A'}
+                                                </Text>
+                                            </Space>
+                                        </Space>
                                     </div>
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        {movie?.categories?.map((category) => (
+                                            <Tag
+                                                key={category?.slug}
+                                                style={{
+                                                    fontSize: md ? '0.7rem' : '0.5rem',
+                                                    background: 'rgba(0 0 0 / 0.4)',
+                                                    border: 'none',
+                                                }}
+                                            >
+                                                {category?.name}
+                                            </Tag>
+                                        ))}
+                                    </div>
+                                </div>
 
-                                    {md && renderMovieInfoSection()}
-                                </Space>
-                            </div>
+                                {md && renderMovieInfoSection()}
+                            </Space>
+                        </div>
+                    </Col>
+                </Row>
+                {!md && (
+                    <Row>
+                        <Col span={24}>{renderMovieInfoSection()}</Col>
+                    </Row>
+                )}
+                {movie && (
+                    <Row>
+                        <Col span={24}>
+                            <MovieEpisode movie={movie} />
                         </Col>
                     </Row>
-                </div>
-                {!md && (
-                    <>
-                        <Row>
-                            <Col span={24}>{renderMovieInfoSection()}</Col>
-                        </Row>
-                    </>
                 )}
-                {movie && <MovieEpisode movie={movie} />}
                 {movie && (
-                    <div style={{ marginTop: '2rem', marginBottom: md ? '4rem' : '2rem' }}>
-                        <MovieRelated movie={movie} />
-                    </div>
+                    <Row style={{ marginTop: '2rem', marginBottom: md ? '4rem' : '2rem' }}>
+                        <Col span={24}>
+                            <MovieRelated movie={movie} />
+                        </Col>
+                    </Row>
                 )}
             </Space>
         </>
