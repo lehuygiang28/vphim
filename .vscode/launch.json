@@ -10,7 +10,6 @@
             "request": "launch",
             "args": ["apps/api/src/main.ts"],
             "runtimeArgs": [
-                "--watch",
                 "--require",
                 "ts-node/register",
                 "--require",

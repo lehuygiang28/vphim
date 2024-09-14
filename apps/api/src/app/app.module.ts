@@ -35,6 +35,7 @@ import { UsersModule } from './users';
                     autoSchemaFile: './schema.gql',
                     playground: true,
                     csrfPrevention: false,
+                    context: ({ req, res }) => ({ req, res }),
                 };
             },
         }),
