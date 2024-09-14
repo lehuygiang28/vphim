@@ -51,6 +51,7 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
                             alt="vphim Logo"
                             width={100}
                             height={30}
+                            priority
                         />
                     </Link>
                     <Text
@@ -72,8 +73,8 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
                         Thông tin
                     </Title>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                        {helperLinks.map((link) => (
-                            <li key={link.url} style={{ marginBottom: '0.5rem' }}>
+                        {helperLinks.map((link, index) => (
+                            <li key={`helper-link-${index}`} style={{ marginBottom: '0.5rem' }}>
                                 <Link
                                     href={link.url}
                                     style={{

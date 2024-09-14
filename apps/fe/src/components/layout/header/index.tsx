@@ -218,6 +218,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                     alt="vphim Logo"
                     width={100}
                     height={30}
+                    priority
                 />
             </Link>
             {screens.md && (

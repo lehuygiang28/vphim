@@ -82,7 +82,13 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                     <MediaProvider>
                         {searchParams?.poster && initialLoad && (
                             <Poster asChild>
-                                <Image src={searchParams.poster} alt="Video poster" fill />
+                                <Image
+                                    src={searchParams.poster}
+                                    alt="Video poster"
+                                    fill
+                                    quality={100}
+                                    priority
+                                />
                             </Poster>
                         )}
                     </MediaProvider>
@@ -114,6 +120,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                                             alt="vphim Logo"
                                             width={50}
                                             height={15}
+                                            priority
                                         />
                                     </Link>
                                 </ChapterTitle>
