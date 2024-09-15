@@ -34,6 +34,7 @@ import {
     IMAGE_FILE_MAX_SIZE_IN_MB,
 } from 'apps/api/src/libs/modules/cloudinary.com';
 import { RequiredRoles } from 'apps/api/src/app/auth/guards';
+import { MulterFile } from './multer.type';
 
 @ApiBadRequestResponse({
     description: 'Invalid request, please check your request data!',
@@ -142,7 +143,7 @@ export class ImagesController {
                 fileIsRequired: true,
             }),
         )
-        images: Express.Multer.File[],
+        images: MulterFile[],
     ): Promise<(ImageUploadedResponseDTO | undefined)[]> {
         return this.imagesService.uploadArrayImage({
             images,

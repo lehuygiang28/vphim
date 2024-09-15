@@ -7,6 +7,7 @@ import {
 import { PinoLogger } from 'nestjs-pino';
 import { ImageUploadedResponseDTO } from './dtos/image-uploaded-response.dto';
 import { CloudinaryService } from 'apps/api/src/libs/modules/cloudinary.com';
+import { MulterFile } from './multer.type';
 
 @Injectable()
 export class ImagesService {
@@ -58,7 +59,7 @@ export class ImagesService {
         }
     }
 
-    private async uploadSingleImage(image: Express.Multer.File) {
+    private async uploadSingleImage(image: MulterFile) {
         try {
             const uploadedImage = await this.cloudinaryService.uploadImage(image);
             return new ImageUploadedResponseDTO(uploadedImage);
@@ -68,7 +69,7 @@ export class ImagesService {
         }
     }
 
-    async uploadArrayImage({ images }: { images: Express.Multer.File[] }) {
+    async uploadArrayImage({ images }: { images: MulterFile[] }) {
         const uploadedFilenames = new Set();
 
         const uploadedImages = await Promise.all(

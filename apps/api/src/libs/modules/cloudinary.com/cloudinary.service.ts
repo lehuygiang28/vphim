@@ -9,10 +9,11 @@ import { CloudinaryResponse } from './cloudinary-response';
 import * as streamifier from 'streamifier';
 import { CLOUDINARY_ALLOW_IMAGE_FORMATS, CLOUDINARY_ROOT_FOLDER_NAME } from './cloudinary.constant';
 import { buildPublicId } from './cloudinary.util';
+import { MulterFile } from 'apps/api/src/app/images/multer.type';
 
 @Injectable()
 export class CloudinaryService {
-    async uploadImage(file: Express.Multer.File): Promise<CloudinaryResponse> {
+    async uploadImage(file: MulterFile): Promise<CloudinaryResponse> {
         const options: UploadApiOptions = {
             folder: CLOUDINARY_ROOT_FOLDER_NAME,
             allowedFormats: CLOUDINARY_ALLOW_IMAGE_FORMATS,
@@ -25,7 +26,7 @@ export class CloudinaryService {
             },
         };
 
-        const uploadPromise = (file: Express.Multer.File) =>
+        const uploadPromise = (file: MulterFile) =>
             new Promise<CloudinaryResponse>((resolve, reject) => {
                 const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
                     if (error) {
