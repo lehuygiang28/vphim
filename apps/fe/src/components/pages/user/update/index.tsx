@@ -4,18 +4,7 @@ import { useEffect, useState } from 'react';
 import { useGetIdentity, useNotification, useApiUrl, useUpdate } from '@refinedev/core';
 import { useForm } from '@refinedev/react-hook-form';
 import { Controller } from 'react-hook-form';
-import {
-    Form,
-    Input,
-    Upload,
-    Button,
-    Avatar,
-    Typography,
-    Space,
-    Grid,
-    Skeleton,
-    message,
-} from 'antd';
+import { Form, Input, Upload, Button, Avatar, Typography, Space, Skeleton, message } from 'antd';
 import { UserOutlined, MailOutlined, UploadOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 import { useSession } from 'next-auth/react';
@@ -25,7 +14,6 @@ import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 
 const { Title, Text } = Typography;
-const { useBreakpoint } = Grid;
 
 export type UserUpdateComponentProps = {
     onBack?: () => void;
@@ -35,7 +23,6 @@ const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif',
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
-    const { md } = useBreakpoint();
     const apiUrl = useApiUrl();
     const { data: user } = useGetIdentity<LoginResponseDto>();
     const { open } = useNotification();
@@ -48,7 +35,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
         refineCore: { formLoading },
         control,
         handleSubmit,
-        formState: { errors, isValid },
+        formState: { errors },
         setValue,
         watch,
     } = useForm({
@@ -92,7 +79,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
 
     const imageUrl = watch('avatar.url');
 
-    const onSubmit = async (values: any) => {
+    const onSubmit = async (values: unknown) => {
         update({
             resource: 'users',
             id: user?._id?.toString(),
@@ -127,7 +114,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
     }
 
     return (
-        <div style={{ width: md ? '25vw' : '90vw' }}>
+        <div>
             <Space align="start">
                 <Link href={'/'} style={{ all: 'unset' }} onClick={onBack}>
                     <Button type="text">

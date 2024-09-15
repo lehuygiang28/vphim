@@ -1,5 +1,9 @@
 import { UserUpdateComponent } from '@/components/pages/user/update';
 
 export default function UserUpdatePage() {
-    return <UserUpdateComponent />;
+    return (
+        <div style={{ minWidth: '25vw' }}>
+            <UserUpdateComponent />
+        </div>
+    );
 }
