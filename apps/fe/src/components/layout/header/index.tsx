@@ -270,7 +270,11 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                             items: [
                                 {
                                     key: '1',
-                                    label: <Link href={'/'}>Thông tin tài khoản</Link>,
+                                    label: (
+                                        <Link href={'/nguoi-dung/cap-nhat-thong-tin'}>
+                                            Thông tin tài khoản
+                                        </Link>
+                                    ),
                                 },
                                 {
                                     key: '2',
@@ -292,7 +296,8 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                         }}
                         trigger={['click']}
                     >
-                        <Link
+                        <Button
+                            type="text"
                             href={'#'}
                             onClick={(e) => e.preventDefault()}
                             style={{ display: 'flex', alignItems: 'center' }}
@@ -304,7 +309,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                             />
                             <span style={{ marginRight: '0.3rem' }}>{user.fullName}</span>
                             <DownOutlined />
-                        </Link>
+                        </Button>
                     </Dropdown>
                 ) : (
                     <Link href={RouteNameEnum.LOGIN_PAGE}>
