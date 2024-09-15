@@ -26,11 +26,10 @@ export class RolesGuard implements CanActivate {
                     if (typeof userDecoded === 'string') {
                         return false;
                     }
+                    this.addUserToRequest(userDecoded, context);
                     if (!roles?.length) {
                         return true;
                     }
-
-                    this.addUserToRequest(userDecoded, context);
                     return roles.includes(userDecoded?.role as UserRoleEnum);
                 } catch (error) {
                     throw new UnauthorizedException(error?.message);

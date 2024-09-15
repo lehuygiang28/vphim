@@ -28,11 +28,11 @@ type BlockActivityLogType {
 
 type UserBlockType {
   isBlocked: Boolean!
-  activityLogs: [BlockActivityLogType!]!
+  activityLogs: [BlockActivityLogType!]
 }
 
 type AvatarType {
-  url: String!
+  url: String
 }
 
 type UserType {
@@ -137,15 +137,11 @@ type GetMoviesOutput {
 }
 
 type Query {
-  mutation_me(input: MutationMeInput!): UserType!
+  getMe: UserType!
   regions(input: GetRegionsInput!): GetRegionsOutput!
   categories(input: GetCategoriesInput!): GetCategoriesOutput!
   movie(input: GetMovieInput!): Movie!
   movies(input: GetMoviesInput!): GetMoviesOutput!
-}
-
-input MutationMeInput {
-  _id: String!
 }
 
 input GetRegionsInput {
@@ -180,7 +176,17 @@ input GetMoviesInput {
 }
 
 type Mutation {
+  mutationMe(input: MutationMeInput!): UserType!
   updateRegion(slug: String!, input: UpdateRegionInput!): Region!
+}
+
+input MutationMeInput {
+  fullName: String
+  avatar: AvatarMutationInput
+}
+
+input AvatarMutationInput {
+  url: String
 }
 
 input UpdateRegionInput {
