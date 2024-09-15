@@ -4,6 +4,7 @@ import { useNotificationProvider } from '@refinedev/antd';
 import { DataProvider, Refine } from '@refinedev/core';
 import { SessionProvider, useSession } from 'next-auth/react';
 import React from 'react';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import routerProvider from '@refinedev/nextjs-router';
 
@@ -62,6 +63,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                         }}
                     >
                         {props.children}
+                        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
                     </Refine>
                 </ColorModeContextProvider>
             </AntdRegistry>
