@@ -18,17 +18,11 @@ import { MovieCard } from '@/components/card/movie-card';
 import { randomString } from '@/libs/utils/common';
 
 const getSlidesPerView = (md = false, lg = false, xl = false, xxl = false) => {
-    if (xxl) {
-        return 6;
-    } else if (xl) {
-        return 5;
-    } else if (lg) {
-        return 4;
-    } else if (md) {
-        return 3;
-    } else {
-        return 2;
-    }
+    if (xxl) return 6;
+    if (xl) return 5;
+    if (lg) return 4;
+    if (md) return 3;
+    return 2;
 };
 
 export type MovieListProps = {
@@ -109,7 +103,7 @@ export default function MovieList({
                 }}
                 style={{
                     overflow: 'visible',
-                    padding: md ? '0 3rem' : undefined,
+                    padding: md ? '0 2rem' : '0 0.5rem',
                 }}
                 onSwiper={(swiper) => {
                     swiperRef.current = swiper;

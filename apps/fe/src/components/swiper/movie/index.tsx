@@ -50,7 +50,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     };
 
     const contentStyle: CSSProperties = {
-        padding: '2rem',
+        padding: md ? '3rem' : '0.7rem',
         textAlign: 'left',
         zIndex: 1,
         height: '100%',

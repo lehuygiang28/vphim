@@ -4,6 +4,7 @@ import 'swiper/css/pagination';
 
 import React, { useState } from 'react';
 import { CrudFilter, CrudSort, stringifyTableParams, useList } from '@refinedev/core';
+import { Grid } from 'antd';
 
 import MovieList from '@/components/swiper/movie-list';
 import { MovieSwiper } from '@/components/swiper/movie';
@@ -13,6 +14,7 @@ import { RouteNameEnum } from '@/constants/route.constant';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
+const { useBreakpoint } = Grid;
 type MovieAsset = {
     filters: CrudFilter[];
     sorters: CrudSort[];
@@ -67,6 +69,7 @@ const cartoonMovieAsset: MovieAsset = {
 };
 
 export function Home() {
+    const { md } = useBreakpoint();
     const [activeList, setActiveList] = useState<string | null>(null);
 
     const { data: mostViewed, isLoading: mostViewedLoading } = useList<MovieResponseDto>({
@@ -109,11 +112,12 @@ export function Home() {
     return (
         <>
             <MovieSwiper movies={mostViewed?.data} />
-
             <div
                 onClick={() => setActiveList('newMovies')}
                 style={{
                     marginTop: '1rem',
+                    marginLeft: md ? '3rem' : '0.7rem',
+                    marginRight: md ? '3rem' : '0.7rem',
                 }}
             >
                 <MovieList
@@ -130,6 +134,8 @@ export function Home() {
                 onClick={() => setActiveList('actionMovies')}
                 style={{
                     marginTop: '1rem',
+                    marginLeft: md ? '3rem' : '0.7rem',
+                    marginRight: md ? '3rem' : '0.7rem',
                 }}
             >
                 <MovieList
@@ -146,6 +152,8 @@ export function Home() {
                 onClick={() => setActiveList('cartoonMovies')}
                 style={{
                     marginTop: '1rem',
+                    marginLeft: md ? '3rem' : '0.7rem',
+                    marginRight: md ? '3rem' : '0.7rem',
                 }}
             >
                 <MovieList
