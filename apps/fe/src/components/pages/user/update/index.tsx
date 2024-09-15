@@ -4,13 +4,25 @@ import { useEffect, useState } from 'react';
 import { useGetIdentity, useNotification, useApiUrl, useUpdate } from '@refinedev/core';
 import { useForm } from '@refinedev/react-hook-form';
 import { Controller } from 'react-hook-form';
-import { Form, Input, Upload, Button, Avatar, Typography, Space, Grid, Skeleton } from 'antd';
+import {
+    Form,
+    Input,
+    Upload,
+    Button,
+    Avatar,
+    Typography,
+    Space,
+    Grid,
+    Skeleton,
+    message,
+} from 'antd';
 import { UserOutlined, MailOutlined, UploadOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 import { useSession } from 'next-auth/react';
 import { GET_ME_QUERY, MUTATION_ME_QUERY } from '@/queries/users';
 import Loading from '@/app/loading';
 import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -18,6 +30,9 @@ const { useBreakpoint } = Grid;
 export type UserUpdateComponentProps = {
     onBack?: () => void;
 };
+
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
     const { md } = useBreakpoint();
@@ -27,6 +42,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
     const { data: session, status } = useSession();
     const { mutate: update } = useUpdate();
     const [isAvatarLoading, setIsAvatarLoading] = useState(false);
+    const queryClient = useQueryClient();
 
     const {
         refineCore: { formLoading },
@@ -77,7 +93,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
     const imageUrl = watch('avatar.url');
 
     const onSubmit = async (values: any) => {
-        return update({
+        update({
             resource: 'users',
             id: user?._id?.toString(),
             values,
@@ -91,6 +107,19 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
                 },
             },
         });
+        queryClient.invalidateQueries({ queryKey: ['auth', 'identity'] });
+    };
+
+    const beforeUpload = (file: File) => {
+        const isAllowedType = ALLOWED_FILE_TYPES.includes(file.type);
+        if (!isAllowedType) {
+            message.error('Định dạng ảnh chưa hợp lệ (JPG/PNG/GIF/WebP)');
+        }
+        const isLessThan10MB = file.size <= MAX_FILE_SIZE;
+        if (!isLessThan10MB) {
+            message.error('Kích thước ảnh quá lớn (tối đa 10MB)');
+        }
+        return isAllowedType && isLessThan10MB;
     };
 
     if (status === 'loading') {
@@ -135,16 +164,25 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
                                         }}
                                         name="images"
                                         showUploadList={false}
-                                        beforeUpload={() => {
-                                            setIsAvatarLoading(true);
-                                            return true;
+                                        beforeUpload={(file) => {
+                                            const canUpload = beforeUpload(file);
+                                            if (canUpload) {
+                                                setIsAvatarLoading(true);
+                                            }
+                                            return canUpload || Upload.LIST_IGNORE;
                                         }}
                                         onChange={(info) => {
                                             if (info.file.status === 'done') {
                                                 setIsAvatarLoading(false);
                                                 field.onChange(info.file.response[0].url);
+                                            } else if (info.file.status === 'error') {
+                                                setIsAvatarLoading(false);
+                                                message.error(
+                                                    'Tải ảnh thất bại, vui lòng thử lại sau!',
+                                                );
                                             }
                                         }}
+                                        accept={ALLOWED_FILE_TYPES.join(',')}
                                     >
                                         <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
                                     </Upload>
