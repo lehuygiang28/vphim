@@ -2,8 +2,9 @@
 
 import { AuthProvider } from '@refinedev/core';
 import { signIn, getSession, signOut } from 'next-auth/react';
-import { AxiosError } from 'axios';
-import axios from '@/libs/axios';
+import { AxiosError, AxiosInstance } from 'axios';
+import { print } from 'graphql/language/printer';
+import { axiosInstance } from '@/libs/axios';
 
 import { type ProblemDetails } from 'apps/api/src/libs/dtos';
 import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
@@ -16,8 +17,12 @@ import {
 } from './types/register.type';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { baseApiUrl } from '@/config';
+import { GET_ME_QUERY } from '@/queries/users';
 
-export const authProvider = (): AuthProvider => {
+export const authProvider = (
+    _axios: AxiosInstance = axiosInstance,
+    authAxios: AxiosInstance = axiosInstance,
+): AuthProvider => {
     const baseUrl = `${baseApiUrl}/api`;
 
     return {
@@ -26,7 +31,7 @@ export const authProvider = (): AuthProvider => {
                 const path = `${baseUrl}/auth/login/pwdless`;
                 const requestData = data as RequestLoginAction;
 
-                return axios
+                return _axios
                     .post<void>(path, requestData)
                     .then(() => {
                         return {
@@ -111,7 +116,7 @@ export const authProvider = (): AuthProvider => {
                 const { email, fullName = undefined, returnUrl } = loginData;
                 const path = `${baseUrl}/auth/register`;
 
-                return axios
+                return _axios
                     .post<void>(path, { email, fullName, returnUrl })
                     .then(() => {
                         return {
@@ -158,7 +163,7 @@ export const authProvider = (): AuthProvider => {
                 const registerData = data as RegisterAction;
                 const { hash } = registerData;
 
-                return axios
+                return _axios
                     .post<void>(path, { hash })
                     .then(() => {
                         return {
@@ -245,6 +250,18 @@ export const authProvider = (): AuthProvider => {
             const auth = await getSession();
             if (auth?.user) {
                 const { refreshToken, accessToken, ...user } = auth.user as LoginResponseDto;
+                const {
+                    data: { data: res },
+                } = await authAxios.post<any>(`${baseApiUrl}/graphql`, {
+                    query: print(GET_ME_QUERY),
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+                const getMe = res?.['getMe'];
+                if (getMe) {
+                    return { ...user, ...getMe };
+                }
                 return user;
             }
             return null;
