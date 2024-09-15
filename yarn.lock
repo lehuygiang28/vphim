@@ -4751,6 +4751,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@refinedev/react-hook-form@npm:^4.9.0":
+  version: 4.9.0
+  resolution: "@refinedev/react-hook-form@npm:4.9.0"
+  dependencies:
+    lodash: "npm:^4.17.21"
+    lodash-es: "npm:^4.17.21"
+    react-hook-form: "npm:^7.43.5"
+  peerDependencies:
+    "@refinedev/core": ^4.46.1
+    "@types/react": ^17.0.0 || ^18.0.0
+    "@types/react-dom": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+    react-hook-form: ^7.43.5
+  checksum: 10c0/75b713d9e1ed03bac4ea2499c8f882555955bc97873204819a2428a86d1a77803aa1eb550e5d32756bfab17275a84ad2a4fd3ba0913cb06d44ae016e5f6eb147
+  languageName: node
+  linkType: hard
+
 "@refinedev/simple-rest@npm:^5.0.8":
   version: 5.0.8
   resolution: "@refinedev/simple-rest@npm:5.0.8"
@@ -6120,6 +6138,7 @@ __metadata:
     "@refinedev/core": "npm:^4.54.0"
     "@refinedev/graphql": "npm:^6.5.4"
     "@refinedev/nextjs-router": "npm:^6.1.0"
+    "@refinedev/react-hook-form": "npm:^4.9.0"
     "@refinedev/simple-rest": "npm:^5.0.8"
     "@swc-node/register": "npm:~1.9.1"
     "@swc/core": "npm:~1.5.7"
@@ -18118,7 +18137,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hook-form@npm:^7.53.0":
+"react-hook-form@npm:^7.43.5, react-hook-form@npm:^7.53.0":
   version: 7.53.0
   resolution: "react-hook-form@npm:7.53.0"
   peerDependencies:

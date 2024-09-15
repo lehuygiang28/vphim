@@ -87,5 +87,22 @@ export const graphqlDataProvider = (axios: AxiosInstance) => {
 
             return { data: res[operation] };
         },
+        update: async ({ resource, id, variables, meta }) => {
+            const singularResource = pluralize.singular(resource) as string;
+            const camelResource = camelCase(singularResource);
+            const operation = meta?.operation ?? camelResource;
+
+            const variablesClone = {
+                ...variables,
+                ...meta?.variables,
+            };
+            const {
+                data: { data: res },
+            } = await axios.post<any>(baseUrl, {
+                query: print((meta?.gqlMutation || meta?.gqlQuery) as any),
+                variables: variablesClone,
+            });
+            return { data: res[operation] };
+        },
     };
 };

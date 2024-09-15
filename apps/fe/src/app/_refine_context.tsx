@@ -53,7 +53,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             graphql: graphqlDataProvider(axiosAuth) as DataProvider,
                         }}
                         notificationProvider={useNotificationProvider}
-                        authProvider={authProvider()}
+                        authProvider={authProvider(undefined, axiosAuth)}
                         resources={[]}
                         options={{
                             syncWithLocation: true,

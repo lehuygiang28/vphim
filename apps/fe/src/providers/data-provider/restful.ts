@@ -9,10 +9,14 @@ import type { Movie } from 'apps/api/src/app/movies/movie.schema';
 import { baseApiUrl } from '@/config';
 
 export const restfulDataProvider = (axios: AxiosInstance) => {
-    axios.defaults.baseURL = `${baseApiUrl}/api`;
+    const apiUrl = `${baseApiUrl}/api`;
+    axios.defaults.baseURL = apiUrl;
 
     return {
         ...dataProviderSimpleRest('', axios),
+        getApiUrl: () => {
+            return apiUrl;
+        },
         getList: async ({
             resource,
             pagination,
