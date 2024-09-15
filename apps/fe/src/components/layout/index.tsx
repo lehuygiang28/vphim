@@ -1,9 +1,10 @@
 'use client';
 
 import { PropsWithChildren } from 'react';
-import { Layout, Grid } from 'antd';
+import { Layout, Grid, BackTop } from 'antd';
 import Link from 'next/link';
 import { stringifyTableParams, useList } from '@refinedev/core';
+import { ArrowUpOutlined } from '@ant-design/icons';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 import { REGIONS_LIST_QUERY } from '@/queries/regions';
 
@@ -51,6 +52,21 @@ export default function LayoutComp({ children }: PropsWithChildren) {
                 overflowX: 'hidden',
             }}
         >
+            <BackTop>
+                <ArrowUpOutlined
+                    style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        borderRadius: '99%',
+                        height: md ? '2.5rem' : '2rem',
+                        width: md ? '2.5rem' : '2rem',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        display: 'flex',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem',
+                    }}
+                />
+            </BackTop>
             <Header
                 categoryMenu={categories?.data?.map((c) => ({
                     key: c.slug,
