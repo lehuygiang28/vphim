@@ -1,5 +1,5 @@
 import React, { useRef, CSSProperties, useState, useEffect } from 'react';
-import { Typography, Grid } from 'antd';
+import { Typography, Grid, Skeleton } from 'antd';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
@@ -12,6 +12,7 @@ import './movie-list.css';
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
+const { Image: SkeletonImage } = Skeleton;
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import { MovieCard } from '@/components/card/movie-card';
@@ -37,7 +38,7 @@ export type MovieListProps = {
 export default function MovieList({
     title,
     movies = [],
-    isLoading,
+    isLoading = false,
     viewMoreHref,
     clearVisibleContentCard,
     style,
@@ -63,6 +64,30 @@ export default function MovieList({
         }
     };
 
+    const renderSkeleton = () => {
+        const skeletonCount = getSlidesPerView(md, lg, xl, xxl);
+        return Array(skeletonCount)
+            .fill(null)
+            .map((_, index) => (
+                <SwiperSlide
+                    key={`skeleton-${index}`}
+                    style={{
+                        overflow: 'visible',
+                        width: md ? '13rem' : '8rem',
+                        height: md ? '20rem' : '15rem',
+                    }}
+                >
+                    <SkeletonImage
+                        style={{
+                            width: md ? '13rem' : '8rem',
+                            height: md ? '20rem' : '15rem',
+                        }}
+                        active={true}
+                    />
+                </SwiperSlide>
+            ));
+    };
+
     return (
         <div
             className="movie-list-container"
@@ -83,13 +108,17 @@ export default function MovieList({
                 {title && (
                     <Link href={viewMoreHref ?? '#'}>
                         <Title level={md ? 3 : 4} style={{ fontWeight: 'bold' }}>
-                            {title}
+                            {isLoading ? (
+                                <Skeleton.Input style={{ width: '5rem' }} active />
+                            ) : (
+                                title
+                            )}
                         </Title>
                     </Link>
                 )}
-                {viewMoreHref && (
+                {viewMoreHref && !isLoading && (
                     <Link href={viewMoreHref} style={{ display: 'flex', alignItems: 'center' }}>
-                        Xem thêm <ArrowRightOutlined style={{ marginLeft: '4px' }} />
+                        Xem thêm <ArrowRightOutlined style={{ marginLeft: '0.5rem' }} />
                     </Link>
                 )}
             </div>
@@ -109,29 +138,35 @@ export default function MovieList({
                     swiperRef.current = swiper;
                 }}
             >
-                {movies?.map((movie, index) => (
-                    <SwiperSlide
-                        key={movie._id.toString()}
-                        style={{
-                            overflow: 'visible',
-                            width: md ? '13rem' : '8rem',
-                            height: md ? '20rem' : '15rem',
-                            zIndex: index === selectedIndex ? '100' : '1',
-                        }}
-                        onClick={() => handleVisibleContentCard(index)}
-                        onMouseEnter={() => handleVisibleContentCard(index)}
-                        onMouseLeave={() => handleVisibleContentCard(null)}
-                    >
-                        <MovieCard
-                            movie={movie}
-                            visibleContent={selectedIndex === index}
-                            scale={md ? undefined : 1.1}
-                        />
-                    </SwiperSlide>
-                ))}
+                {isLoading
+                    ? renderSkeleton()
+                    : movies?.map((movie, index) => (
+                          <SwiperSlide
+                              key={movie._id.toString()}
+                              style={{
+                                  overflow: 'visible',
+                                  width: md ? '13rem' : '8rem',
+                                  height: md ? '20rem' : '15rem',
+                                  zIndex: index === selectedIndex ? '100' : '1',
+                              }}
+                              onClick={() => handleVisibleContentCard(index)}
+                              onMouseEnter={() => handleVisibleContentCard(index)}
+                              onMouseLeave={() => handleVisibleContentCard(null)}
+                          >
+                              <MovieCard
+                                  movie={movie}
+                                  visibleContent={selectedIndex === index}
+                                  scale={md ? undefined : 1.1}
+                              />
+                          </SwiperSlide>
+                      ))}
             </Swiper>
-            <div className="swiper-button-prev" id={prevButtonId} />
-            <div className="swiper-button-next" id={nextButtonId} />
+            {!isLoading && movies?.length > 0 && (
+                <>
+                    <div className="swiper-button-prev" id={prevButtonId} />
+                    <div className="swiper-button-next" id={nextButtonId} />
+                </>
+            )}
         </div>
     );
 }
