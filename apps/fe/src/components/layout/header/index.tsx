@@ -282,10 +282,6 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                                 },
                                 {
                                     key: '3',
-                                    label: <Link href={'/'}>Đổi mật khẩu</Link>,
-                                },
-                                {
-                                    key: '4',
                                     label: (
                                         <Link href={'#'} onClick={() => signOut()}>
                                             Đăng xuất
