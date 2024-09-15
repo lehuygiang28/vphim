@@ -2,7 +2,7 @@
 
 import './header.css';
 import React, { useState, useEffect, ReactNode } from 'react';
-import { Layout, Menu, Input, Button, Drawer, Grid, Typography, Dropdown, Avatar } from 'antd';
+import { Layout, Menu, Input, Button, Drawer, Grid, Dropdown, Avatar } from 'antd';
 import { SearchOutlined, UserOutlined, MenuOutlined, DownOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -195,7 +195,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
     return (
         <Header
             style={{
-                position: 'fixed',
+                position: 'absolute',
                 top: 0,
                 zIndex: 999,
                 width: '100%',
@@ -303,7 +303,9 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                                 icon={<UserOutlined />}
                                 style={{ marginRight: '0.3rem' }}
                             />
-                            <span style={{ marginRight: '0.3rem' }}>{user.fullName}</span>
+                            {screens?.md && (
+                                <span style={{ marginRight: '0.3rem' }}>{user.fullName}</span>
+                            )}
                             <DownOutlined />
                         </Button>
                     </Dropdown>
