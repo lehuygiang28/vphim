@@ -5,16 +5,21 @@ import { useGetIdentity, useNotification, useApiUrl, useUpdate } from '@refinede
 import { useForm } from '@refinedev/react-hook-form';
 import { Controller } from 'react-hook-form';
 import { Form, Input, Upload, Button, Avatar, Typography, Space, Grid, Skeleton } from 'antd';
-import { UserOutlined, MailOutlined, UploadOutlined } from '@ant-design/icons';
+import { UserOutlined, MailOutlined, UploadOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 import { useSession } from 'next-auth/react';
 import { GET_ME_QUERY, MUTATION_ME_QUERY } from '@/queries/users';
 import Loading from '@/app/loading';
+import Link from 'next/link';
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 
-export function UserUpdateComponent() {
+export type UserUpdateComponentProps = {
+    onBack?: () => void;
+};
+
+export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
     const { md } = useBreakpoint();
     const apiUrl = useApiUrl();
     const { data: user } = useGetIdentity<LoginResponseDto>();
@@ -94,6 +99,13 @@ export function UserUpdateComponent() {
 
     return (
         <div style={{ width: md ? '25vw' : '90vw' }}>
+            <Space align="start">
+                <Link href={'/'} style={{ all: 'unset' }} onClick={onBack}>
+                    <Button type="text">
+                        <ArrowLeftOutlined />
+                    </Button>
+                </Link>
+            </Space>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
                 <div style={{ textAlign: 'center' }}>
                     <Title level={3} style={{ marginBottom: '4px' }}>
