@@ -126,9 +126,12 @@ export const authOptions: AuthOptions = {
          * @see https://authjs.dev/reference/core#jwt
          */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        async jwt({ token, user }: { token: any; user: User | null }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token = { ...token, ...user };
+            }
+            if (trigger === 'update') {
+                token = { ...token, ...session?.user };
             }
             return token;
         },

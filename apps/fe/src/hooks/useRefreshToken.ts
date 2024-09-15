@@ -5,7 +5,7 @@ import { useAxios } from './useAxios';
 
 export function useRefreshToken() {
     const { instance: axiosInstance } = useAxios();
-    const { data: session } = useSession();
+    const { data: session, update } = useSession();
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const refreshToken = async () => {
@@ -21,7 +21,14 @@ export function useRefreshToken() {
                 refreshToken: session.user.refreshToken,
             });
 
-            session.user = res.data;
+            session.user = {
+                ...(
+                    await update({
+                        ...session,
+                        user: { ...session?.user, ...res.data },
+                    })
+                )?.user,
+            };
         } catch (error) {
             console.error('Failed to refresh tokens:', error);
             return signOut();
