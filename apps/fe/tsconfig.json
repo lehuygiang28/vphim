@@ -20,7 +20,7 @@
         "paths": {
             "@/*": ["./apps/fe/src/*"]
         },
-        "types": ["jest", "node"]
+        "types": ["jest", "node", "Multer"]
     },
     "include": [
         "**/*.ts",
