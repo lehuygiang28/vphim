@@ -21,6 +21,7 @@
         "showtimes",
         "smembers",
         "srem",
+        "streamifier",
         "swiper",
         "tvshows",
         "vidstack",

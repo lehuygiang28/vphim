@@ -18,6 +18,7 @@ import { DirectorModule } from './directors';
 import { MovieModule } from './movies';
 import { RegionsModule } from './regions';
 import { UsersModule } from './users';
+import { ImagesModule } from './images';
 
 @Module({
     imports: [
@@ -53,6 +54,7 @@ import { UsersModule } from './users';
             }),
             inject: [RedisService],
         }),
+        ImagesModule,
         RegionsModule,
         CategoryModule,
         MovieModule,
