@@ -39,7 +39,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     };
 
     const bgImageStyle: CSSProperties = {
-        filter: 'blur(1rem) brightness(0.8)',
+        filter: 'blur(1rem) brightness(0.2)',
         position: 'absolute',
         top: 0,
         left: 0,

@@ -121,7 +121,6 @@ export type HeaderProps = {
 };
 
 export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: HeaderProps) {
-    const [scrolled, setScrolled] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [searchVisible, setSearchVisible] = useState(false);
     const screens = useBreakpoint();
@@ -142,21 +141,6 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
             children: regionMenu,
         },
     ];
-
-    useEffect(() => {
-        const handleScroll = () => {
-            const isScrolled = window.scrollY > 10;
-            if (isScrolled !== scrolled) {
-                setScrolled(isScrolled);
-            }
-        };
-
-        document.addEventListener('scroll', handleScroll, { passive: true });
-
-        return () => {
-            document.removeEventListener('scroll', handleScroll);
-        };
-    }, [scrolled]);
 
     const showDrawer = () => {
         setDrawerVisible(true);
@@ -203,7 +187,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: screens.md ? '0 50px' : '0 15px',
-                background: scrolled ? undefined : 'transparent',
+                background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.0))',
                 transition: 'background-color 0.3s ease',
             }}
         >
