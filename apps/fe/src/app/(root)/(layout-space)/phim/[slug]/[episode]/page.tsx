@@ -18,6 +18,11 @@ export default function MovieEpisodePage({ params }: MovieEpisodePageProps) {
         meta: {
             gqlQuery: GET_MOVIE_QUERY,
             operation: 'movie',
+            variables: {
+                input: {
+                    slug: params?.slug,
+                },
+            },
         },
         id: params?.slug,
     });

@@ -2,7 +2,6 @@
 
 import React, { FC } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button, Card, Divider, Grid, Space, Tag, Typography } from 'antd';
 import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
@@ -21,7 +20,6 @@ interface MovieCardProps {
 
 export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1.25 }) => {
     const { md } = useBreakpoint();
-    const router = useRouter();
 
     return (
         <Card
@@ -41,7 +39,6 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
             styles={{
                 body: { padding: 0, height: '100%', width: '100%' },
             }}
-            onClick={() => md && router.push(`/phim/${movie.slug}`)}
         >
             <div
                 style={{

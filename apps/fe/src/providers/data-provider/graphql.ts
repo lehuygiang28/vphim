@@ -72,7 +72,7 @@ export const graphqlDataProvider = (axios: AxiosInstance) => {
             const operation = meta?.operation ?? camelResource;
 
             const variables = {
-                slug: id,
+                id,
                 ...meta?.variables,
             };
 
@@ -80,9 +80,7 @@ export const graphqlDataProvider = (axios: AxiosInstance) => {
                 data: { data: res },
             } = await axios.post<any>(baseUrl, {
                 query: print(meta?.gqlQuery as any),
-                variables: {
-                    input: variables,
-                },
+                variables,
             });
 
             return { data: res[operation] };

@@ -1,10 +1,16 @@
 'use client';
 
-import React from 'react';
-import { Col, Grid, Row, Space, Tag, Typography } from 'antd';
-import { useOne } from '@refinedev/core';
+import React, { useEffect, useState } from 'react';
+import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip } from 'antd';
+import { useOne, useUpdate } from '@refinedev/core';
 import { MovieType } from 'apps/api/src/app/movies/movie.type';
-import { CalendarOutlined, EyeOutlined } from '@ant-design/icons';
+import {
+    CalendarOutlined,
+    EyeOutlined,
+    HeartFilled,
+    HeartOutlined,
+    PlayCircleOutlined,
+} from '@ant-design/icons';
 
 import { HigherHeightImage } from '@/components/image/higher-image';
 import { GET_MOVIE_QUERY } from '@/queries/movies';
@@ -14,6 +20,14 @@ import { movieTypeTranslations, movieStatusTranslations } from '@/constants/tran
 import { MovieTypeEnum, MovieStatusEnum } from 'apps/api/src/app/movies/movie.constant';
 import { MovieEpisode } from './movie-episode';
 import { MovieRelated } from './movie-related';
+import Link from 'next/link';
+import { UserType } from 'apps/api/src/app/users/user.type';
+import {
+    FOLLOW_MOVIE_MUTATION,
+    GET_OWN_FOLLOWING_MOVIES,
+    UNFOLLOW_MOVIE_MUTATION,
+} from '@/queries/users';
+import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -50,6 +64,7 @@ export type MovieProps = {
 
 export function Movie({ slug }: MovieProps) {
     const { md } = useBreakpoint();
+    const [isFollowing, setIsFollowing] = useState(false);
 
     const { data: { data: movie } = {} } = useOne<MovieType>({
         dataProviderName: 'graphql',
@@ -58,8 +73,81 @@ export function Movie({ slug }: MovieProps) {
         meta: {
             gqlQuery: GET_MOVIE_QUERY,
             operation: 'movie',
+            variables: {
+                input: {
+                    slug,
+                },
+            },
         },
     });
+    const { data: { data: followMovies } = {} } = useOne<Pick<UserType, 'followMovies'>>({
+        dataProviderName: 'graphql',
+        resource: 'users',
+        id: 'me',
+        meta: {
+            gqlQuery: GET_OWN_FOLLOWING_MOVIES,
+            operation: 'getMe',
+        },
+    });
+    const { mutate: updateUser } = useUpdate({
+        dataProviderName: 'graphql',
+        resource: 'users',
+        successNotification: false,
+        errorNotification: false,
+        mutationMode: 'optimistic',
+    });
+
+    useEffect(() => {
+        if (followMovies?.followMovies?.find((movie) => movie?.slug === slug)) {
+            setIsFollowing(true);
+        } else {
+            setIsFollowing(false);
+        }
+    }, [followMovies, slug]);
+
+    const handleFollowMovie = (movie: MovieType, follow: boolean) => {
+        if (follow) {
+            updateUser({
+                id: 'me',
+                values: {},
+                mutationMode: 'optimistic',
+                meta: {
+                    gqlMutation: FOLLOW_MOVIE_MUTATION,
+                    operation: 'followMovie',
+                    variables: {
+                        input: {
+                            movieSlug: movie.slug,
+                        },
+                    },
+                },
+                successNotification: {
+                    message: 'Đã theo dõi phim thành công',
+                    type: 'success',
+                    key: 'followMovie',
+                },
+            });
+        } else {
+            updateUser({
+                id: 'me',
+                values: {},
+                mutationMode: 'optimistic',
+                meta: {
+                    gqlMutation: UNFOLLOW_MOVIE_MUTATION,
+                    operation: 'unfollowMovie',
+                    variables: {
+                        input: {
+                            movieSlug: movie.slug,
+                        },
+                    },
+                },
+                successNotification: {
+                    message: 'Bỏ theo dõi phim thành công',
+                    type: 'success',
+                    key: 'unfollowMovie',
+                },
+            });
+        }
+    };
 
     const renderMovieInfoSection = () => {
         return (
@@ -269,8 +357,52 @@ export function Movie({ slug }: MovieProps) {
                                         ))}
                                     </div>
                                 </div>
-
                                 {md && renderMovieInfoSection()}
+                                <Row gutter={[8, 8]} style={{ width: md ? '30%' : 'auto' }}>
+                                    <Col span={18}>
+                                        <Link
+                                            href={`/phim/${movie?.slug}/${getFirstEpisodeSlug(
+                                                movie,
+                                            )}`}
+                                        >
+                                            <Button
+                                                type="primary"
+                                                size="middle"
+                                                icon={<PlayCircleOutlined />}
+                                                style={{
+                                                    width: '100%',
+                                                }}
+                                            >
+                                                Xem ngay
+                                            </Button>
+                                        </Link>
+                                    </Col>
+                                    <Col span={6}>
+                                        <Tooltip
+                                            title={`${
+                                                isFollowing ? 'Bỏ theo dõi' : 'Theo dõi'
+                                            } phim`}
+                                            trigger={'hover'}
+                                        >
+                                            <Button
+                                                type="default"
+                                                size="middle"
+                                                style={{
+                                                    width: '100%',
+                                                }}
+                                                onClick={() =>
+                                                    handleFollowMovie(movie, !isFollowing)
+                                                }
+                                            >
+                                                {isFollowing ? (
+                                                    <HeartFilled style={{ color: 'red' }} />
+                                                ) : (
+                                                    <HeartOutlined />
+                                                )}
+                                            </Button>
+                                        </Tooltip>
+                                    </Col>
+                                </Row>
                             </Space>
                         </div>
                     </Col>
