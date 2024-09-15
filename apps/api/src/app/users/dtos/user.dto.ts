@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { IntersectionType } from '@nestjs/swagger';
+import { IntersectionType, OmitType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
     IsDate,
@@ -27,7 +27,10 @@ export class AvatarDto extends IntersectionType(AvatarSchema) implements AvatarS
 
 // Extend IntersectionType to get data for swagger
 // Implement User to get data field for dto to validate
-export class UserDto extends IntersectionType(User) implements User {
+export class UserDto
+    extends OmitType(User, ['followMovies'])
+    implements Omit<User, 'followMovies'>
+{
     @IsNotEmpty()
     @IsMongoId()
     _id: Types.ObjectId;

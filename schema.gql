@@ -18,36 +18,6 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type BlockActivityLogType {
-  action: String!
-  actionAt: DateTime!
-  actionBy: ID!
-  note: String!
-  reason: String!
-}
-
-type UserBlockType {
-  isBlocked: Boolean!
-  activityLogs: [BlockActivityLogType!]
-}
-
-type AvatarType {
-  url: String
-}
-
-type UserType {
-  _id: ID!
-  email: String!
-  createdAt: DateTime!
-  emailVerified: Boolean!
-  fullName: String!
-  password: String!
-  role: String!
-  updatedAt: DateTime!
-  avatar: AvatarType
-  block: UserBlockType
-}
-
 type Category {
   _id: ID!
   name: String!
@@ -67,11 +37,6 @@ type Region {
   slug: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-type GetRegionsOutput {
-  data: [Region!]!
-  total: Float!
 }
 
 type Director {
@@ -131,6 +96,48 @@ type Movie {
   year: Float
 }
 
+type BlockActivityLogType {
+  action: String!
+  actionAt: DateTime!
+  actionBy: ID!
+  note: String!
+  reason: String!
+}
+
+type UserBlockType {
+  isBlocked: Boolean!
+  activityLogs: [BlockActivityLogType!]
+}
+
+type AvatarType {
+  url: String
+}
+
+type MovieFollowType {
+  _id: ID!
+  name: String!
+  slug: String!
+}
+
+type UserType {
+  _id: ID!
+  email: String!
+  createdAt: DateTime!
+  emailVerified: Boolean!
+  fullName: String!
+  password: String!
+  role: String!
+  updatedAt: DateTime!
+  avatar: AvatarType
+  block: UserBlockType
+  followMovies: [MovieFollowType!]
+}
+
+type GetRegionsOutput {
+  data: [Region!]!
+  total: Float!
+}
+
 type GetMoviesOutput {
   data: [Movie!]!
   total: Float!
@@ -138,20 +145,10 @@ type GetMoviesOutput {
 
 type Query {
   getMe: UserType!
-  regions(input: GetRegionsInput!): GetRegionsOutput!
-  categories(input: GetCategoriesInput!): GetCategoriesOutput!
   movie(input: GetMovieInput!): Movie!
   movies(input: GetMoviesInput!): GetMoviesOutput!
-}
-
-input GetRegionsInput {
-  limit: Float = 10
-  page: Float = 1
-}
-
-input GetCategoriesInput {
-  limit: Float = 10
-  page: Float = 1
+  categories(input: GetCategoriesInput!): GetCategoriesOutput!
+  regions(input: GetRegionsInput!): GetRegionsOutput!
 }
 
 input GetMovieInput {
@@ -175,8 +172,20 @@ input GetMoviesInput {
   resetCache: Boolean
 }
 
+input GetCategoriesInput {
+  limit: Float = 10
+  page: Float = 1
+}
+
+input GetRegionsInput {
+  limit: Float = 10
+  page: Float = 1
+}
+
 type Mutation {
   mutationMe(input: MutationMeInput!): UserType!
+  followMovie(input: MutationFollowMovieInput!): UserType!
+  unfollowMovie(input: MutationUnfollowMovieInput!): UserType!
   updateRegion(slug: String!, input: UpdateRegionInput!): Region!
 }
 
@@ -187,6 +196,14 @@ input MutationMeInput {
 
 input AvatarMutationInput {
   url: String
+}
+
+input MutationFollowMovieInput {
+  movieSlug: String!
+}
+
+input MutationUnfollowMovieInput {
+  movieSlug: String!
 }
 
 input UpdateRegionInput {

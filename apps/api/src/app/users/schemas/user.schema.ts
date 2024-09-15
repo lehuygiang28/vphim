@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { Exclude, Expose } from 'class-transformer';
 import { IsEmail } from 'class-validator';
 
@@ -69,6 +69,9 @@ export class User extends AbstractDocument {
     @Expose({ groups: [UserRoleEnum.Admin], toPlainOnly: true })
     @Prop({ type: UserBlockSchema, default: {} })
     block?: UserBlockSchema;
+
+    @Prop({ type: Types.ObjectId, default: [], ref: 'Movie' })
+    followMovies?: Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

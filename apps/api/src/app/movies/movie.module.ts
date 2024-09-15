@@ -52,6 +52,6 @@ import { MovieResolver } from './movie.resolver';
     ],
     controllers: [MovieController],
     providers: [MovieResolver, MovieRepository, MovieService, MovieCrawler, KKPhimCrawler],
-    exports: [MovieRepository],
+    exports: [MovieRepository, MovieService],
 })
 export class MovieModule {}

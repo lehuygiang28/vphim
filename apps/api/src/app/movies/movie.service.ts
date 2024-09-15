@@ -19,28 +19,30 @@ export class MovieService {
         this.logger = new Logger(MovieService.name);
     }
 
-    async getMovie(slug: string) {
+    async getMovie(slug: string, { populate = true }: { populate?: boolean } = {}) {
         const movie = await this.movieRepo.findOneOrThrow({
             filterQuery: { slug },
             queryOptions: {
-                populate: [
-                    {
-                        path: 'actors',
-                        justOne: false,
-                    },
-                    {
-                        path: 'categories',
-                        justOne: false,
-                    },
-                    {
-                        path: 'countries',
-                        justOne: false,
-                    },
-                    {
-                        path: 'directors',
-                        justOne: false,
-                    },
-                ],
+                ...(populate && {
+                    populate: [
+                        {
+                            path: 'actors',
+                            justOne: false,
+                        },
+                        {
+                            path: 'categories',
+                            justOne: false,
+                        },
+                        {
+                            path: 'countries',
+                            justOne: false,
+                        },
+                        {
+                            path: 'directors',
+                            justOne: false,
+                        },
+                    ],
+                }),
             },
         });
         return new MovieResponseDto(movie);

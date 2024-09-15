@@ -5,7 +5,7 @@ import {
     Logger,
     UnprocessableEntityException,
 } from '@nestjs/common';
-import { FilterQuery, Types } from 'mongoose';
+import { FilterQuery, ProjectionType, QueryOptions, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
 import type { NullableType } from '../../libs/types';
@@ -25,6 +25,7 @@ import { User } from './schemas';
 import { UserJwt } from '../auth';
 import { ConfigService } from '@nestjs/config';
 import { BlockActivityLog } from './schemas/block.schema';
+import { MovieService } from '../movies/movie.service';
 
 @Injectable()
 export class UsersService {
@@ -32,6 +33,7 @@ export class UsersService {
     constructor(
         public readonly usersRepository: UsersRepository,
         private readonly configService: ConfigService,
+        private readonly movieService: MovieService,
     ) {}
 
     async create(createProfileDto: CreateUserDto): Promise<User> {
@@ -158,17 +160,30 @@ export class UsersService {
         return user ? new User(user) : null;
     }
 
-    async findById(id: string | Types.ObjectId): Promise<NullableType<User>> {
+    async findById(
+        id: string | Types.ObjectId,
+        options?: {
+            queryOptions?: Partial<QueryOptions<User>>;
+            projectionType?: ProjectionType<User>;
+        },
+    ): Promise<NullableType<User>> {
         const user = await this.usersRepository.findOne({
             filterQuery: {
                 _id: convertToObjectId(id),
             },
+            ...options,
         });
         return user ? new User(user) : null;
     }
 
-    async findByIdOrThrow(id: string | Types.ObjectId): Promise<User> {
-        const user = await this.findById(id);
+    async findByIdOrThrow(
+        id: string | Types.ObjectId,
+        options?: {
+            queryOptions?: Partial<QueryOptions<User>>;
+            projectionType?: ProjectionType<User>;
+        },
+    ): Promise<User> {
+        const user = await this.findById(id, options);
         if (!user) {
             throw new UnprocessableEntityException({
                 errors: {
@@ -383,6 +398,86 @@ export class UsersService {
             },
             updateQuery: {
                 ...user,
+            },
+        });
+    }
+
+    async followMovie({ actor: _actor, movieSlug }: { actor: UserJwt; movieSlug: string }) {
+        const actor = await this.findByIdOrThrow(_actor.userId);
+        const movie = await this.movieService.getMovie(movieSlug, { populate: false });
+
+        if (!movie) {
+            throw new HttpException(
+                {
+                    status: HttpStatus.UNPROCESSABLE_ENTITY,
+                    errors: {
+                        movie: 'notFoundMovie',
+                    },
+                },
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
+        console.log(actor);
+
+        const follows = Array.from(
+            new Set(
+                [
+                    ...(actor?.followMovies || []).map((follow) => follow?.toString()),
+                    movie?._id?.toString(),
+                ].filter(Boolean),
+            ),
+        );
+
+        return this.usersRepository.findOneAndUpdate({
+            filterQuery: {
+                _id: convertToObjectId(_actor.userId),
+            },
+            updateQuery: {
+                followMovies: follows.map((follow) => convertToObjectId(follow)),
+            },
+            queryOptions: {
+                populate: [
+                    {
+                        path: 'followMovies',
+                        justOne: false,
+                    },
+                ],
+            },
+        });
+    }
+
+    async unfollowMovie({ actor: _actor, movieSlug }: { actor: UserJwt; movieSlug: string }) {
+        const actor = await this.findByIdOrThrow(_actor.userId);
+        const movie = await this.movieService.getMovie(movieSlug, { populate: false });
+
+        if (!movie) {
+            throw new HttpException(
+                {
+                    status: HttpStatus.UNPROCESSABLE_ENTITY,
+                    errors: {
+                        movie: 'notFoundMovie',
+                    },
+                },
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
+
+        let follows = actor?.followMovies ?? [];
+        follows = follows.filter((follow) => follow.toString() !== movie?._id.toString());
+
+        if (follows?.length >= actor?.followMovies?.length) {
+            return actor;
+        }
+
+        return this.usersRepository.findOneAndUpdate({
+            filterQuery: {
+                _id: convertToObjectId(_actor.userId),
+            },
+            updateQuery: {
+                followMovies: follows,
+            },
+            queryOptions: {
+                populate: ['followMovies'],
             },
         });
     }

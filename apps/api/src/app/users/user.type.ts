@@ -1,7 +1,8 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, PickType } from '@nestjs/graphql';
 import { Types } from 'mongoose';
 import { AvatarDto, UserDto } from './dtos';
 import { BlockActivityLog, UserBlockSchema } from './schemas/block.schema';
+import { MovieType } from '../movies/movie.type';
 
 @ObjectType()
 export class BlockActivityLogType implements BlockActivityLog {
@@ -37,6 +38,18 @@ export class AvatarType implements AvatarDto {
 }
 
 @ObjectType()
+export class MovieFollowType extends PickType(MovieType, ['slug', '_id', 'name']) {
+    @Field(() => ID)
+    _id: Types.ObjectId;
+
+    @Field()
+    name: string;
+
+    @Field()
+    slug: string;
+}
+
+@ObjectType()
 export class UserType implements UserDto {
     @Field(() => ID)
     _id: Types.ObjectId;
@@ -67,4 +80,7 @@ export class UserType implements UserDto {
 
     @Field(() => UserBlockType, { nullable: true })
     block?: UserBlockType;
+
+    @Field(() => [MovieFollowType], { nullable: true })
+    followMovies?: MovieFollowType[];
 }
