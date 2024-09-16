@@ -230,6 +230,19 @@ export class MovieService {
         return res;
     }
 
+    async updateView(slug: string) {
+        const movie = await this.movieRepo.findOneOrThrow({ filterQuery: { slug } });
+        const movieUpdated = await this.movieRepo.findOneAndUpdateOrThrow({
+            filterQuery: { slug },
+            updateQuery: { view: (movie?.view || 0) + 1 },
+        });
+        return {
+            status: 'success',
+            view: movie?.view || 0,
+            newView: movieUpdated?.view || 0,
+        };
+    }
+
     async getRating(movieSlug: string): Promise<GetRatingOutput> {
         const movie = await this.movieRepo.findOneOrThrow({ filterQuery: { slug: movieSlug } });
         const result: GetRatingOutput = {

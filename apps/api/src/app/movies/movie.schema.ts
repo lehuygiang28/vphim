@@ -194,10 +194,8 @@ MovieSchema.index({
     originName: 'text',
     content: 'text',
     slug: 'text',
-    'categories.name': 'text',
-    'countries.name': 'text',
-    'actors.name': 'text',
-    'directors.name': 'text',
+    view: -1,
+    year: -1,
 });
 
 MovieSchema.pre('save', function () {
