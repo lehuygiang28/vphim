@@ -9,28 +9,28 @@ import { DirectorType } from '../directors/director.type';
 
 @ObjectType('EpisodeServerData')
 export class EpisodeServerDataType implements EpisodeServerData {
-    @Field()
+    @Field({ nullable: true })
     slug: string;
 
-    @Field()
+    @Field({ nullable: true })
     name: string;
 
-    @Field()
+    @Field({ nullable: true })
     filename: string;
 
-    @Field()
+    @Field({ nullable: true })
     linkM3u8: string;
 
-    @Field()
+    @Field({ nullable: true })
     linkEmbed: string;
 }
 
 @ObjectType('Episode')
 export class EpisodeType implements Episode {
-    @Field(() => [EpisodeServerDataType])
+    @Field(() => [EpisodeServerDataType], { nullable: true })
     serverData: EpisodeServerDataType[];
 
-    @Field()
+    @Field({ nullable: true })
     serverName: string;
 }
 

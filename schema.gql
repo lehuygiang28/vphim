@@ -51,16 +51,16 @@ type Director {
 }
 
 type EpisodeServerData {
-  slug: String!
-  name: String!
-  filename: String!
-  linkM3u8: String!
-  linkEmbed: String!
+  slug: String
+  name: String
+  filename: String
+  linkM3u8: String
+  linkEmbed: String
 }
 
 type Episode {
-  serverData: [EpisodeServerData!]!
-  serverName: String!
+  serverData: [EpisodeServerData!]
+  serverName: String
 }
 
 type Movie {
