@@ -64,7 +64,7 @@ export default function MovieEpisodePage({ params }: MovieEpisodePageProps) {
                     },
                 ]}
             />
-            <MoviePlay movie={movie?.data || null} episodeSlug={params?.episode || ''} />
+            {movie?.data && <MoviePlay movie={movie?.data} episodeSlug={params?.episode || ''} />}
         </>
     );
 }

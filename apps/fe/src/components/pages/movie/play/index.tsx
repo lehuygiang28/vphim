@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Typography, Grid, Divider, Button, Space } from 'antd';
+import { Typography, Grid, Divider, Button, Space, Alert } from 'antd';
 import { ExpandAltOutlined, StepForwardOutlined, StepBackwardOutlined } from '@ant-design/icons';
 
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
@@ -33,9 +33,30 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const [selectedEpisode, setSelectedEpisode] = useState<EpisodeServerDataType | null>(null);
     const [hasPrevEpisode, setHasPrevEpisode] = useState<boolean>(false);
     const [hasNextEpisode, setHasNextEpisode] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (movie?.episode) {
+        if (
+            movie?.trailerUrl &&
+            (episodeSlug === 'trailer' ||
+                !movie.episode ||
+                movie.episode.length === 0 ||
+                !movie.episode[0].serverData[0].linkM3u8)
+        ) {
+            setSelectedEpisode({
+                slug: 'trailer',
+                name: 'Trailer',
+                filename: 'trailer',
+                linkM3u8: movie.trailerUrl,
+                linkEmbed: movie.trailerUrl,
+            });
+            setHasPrevEpisode(false);
+            setHasNextEpisode(false);
+        } else if (
+            movie?.episode &&
+            movie.episode.length > 0 &&
+            movie.episode[0].serverData[0].linkM3u8
+        ) {
             const episode = movie.episode.find((ep) =>
                 ep.serverData.some((server) => server.slug === episodeSlug),
             );
@@ -54,6 +75,8 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 setHasPrevEpisode(currentEpisodeIndex > 0);
                 setHasNextEpisode(currentEpisodeIndex < episode.serverData.length - 1);
             }
+        } else {
+            setError('Phim đang được cập nhật, vui lòng quay lại sau.');
         }
     }, [movie, episodeSlug]);
 
@@ -128,85 +151,97 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div
-                ref={videoContainerRef}
-                style={{
-                    position: 'relative',
-                    width: '90vw',
-                    maxWidth: '1600px',
-                    margin: '0 auto',
-                    paddingTop: 'calc(85vw * 9 / 16)', // This creates the 16:9 aspect ratio
-                }}
-            >
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        maxHeight: md ? '90vh' : '25vh',
-                        overflow: 'hidden',
-                    }}
-                >
-                    {selectedEpisode?.linkM3u8 && (
-                        <iframe
-                            id="video-player"
-                            width="100%"
-                            height="100%"
-                            src={
-                                selectedEpisode?.linkM3u8
-                                    ? `${host}/player/${encodeURIComponent(
-                                          selectedEpisode.linkM3u8,
-                                      )}?poster=${encodeURIComponent(
-                                          movie?.thumbUrl?.includes('/phimimg.com/upload')
-                                              ? movie?.thumbUrl
-                                              : movie?.posterUrl,
-                                      )}&m=${encodeURIComponent(
-                                          movie?.slug,
-                                      )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
-                                    : selectedEpisode?.linkEmbed
-                            }
-                            title={movie?.name}
-                            allowFullScreen
+            {error ? (
+                <Alert
+                    message="Đang cập nhật..."
+                    description={error}
+                    type="warning"
+                    showIcon
+                    style={{ marginBottom: '1rem', width: '100%' }}
+                />
+            ) : (
+                <>
+                    <div
+                        ref={videoContainerRef}
+                        style={{
+                            position: 'relative',
+                            width: '90vw',
+                            maxWidth: '1600px',
+                            margin: '0 auto',
+                            paddingTop: 'calc(85vw * 9 / 16)', // This creates the 16:9 aspect ratio
+                        }}
+                    >
+                        <div
                             style={{
-                                border: 'none',
-                                maxWidth: '100%',
-                                maxHeight: '100%',
-                                objectFit: 'contain',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                maxHeight: md ? '90vh' : '25vh',
+                                overflow: 'hidden',
                             }}
-                        />
-                    )}
-                </div>
-            </div>
-            <Space
-                ref={controlsRef}
-                style={{
-                    backgroundColor: 'transparent',
-                    borderRadius: 8,
-                    marginTop: md ? undefined : '1rem',
-                }}
-            >
-                <Button
-                    icon={<StepBackwardOutlined />}
-                    onClick={() => goToAdjacentEpisode('prev')}
-                    disabled={!hasPrevEpisode}
-                >
-                    {md && 'Tập trước đó'}
-                </Button>
-                {md && (
-                    <Button icon={<ExpandAltOutlined />} onClick={fitToScreen}>
-                        Đang phát
-                    </Button>
-                )}
-                <Button
-                    icon={<StepForwardOutlined />}
-                    onClick={() => goToAdjacentEpisode('next')}
-                    disabled={!hasNextEpisode}
-                >
-                    {md && 'Tập tiếp theo'}
-                </Button>
-            </Space>
+                        >
+                            {selectedEpisode?.linkM3u8 && (
+                                <iframe
+                                    id="video-player"
+                                    width="100%"
+                                    height="100%"
+                                    src={
+                                        selectedEpisode?.linkM3u8
+                                            ? `${host}/player/${encodeURIComponent(
+                                                  selectedEpisode.linkM3u8,
+                                              )}?poster=${encodeURIComponent(
+                                                  movie?.thumbUrl?.includes('/phimimg.com/upload')
+                                                      ? movie?.thumbUrl
+                                                      : movie?.posterUrl,
+                                              )}&m=${encodeURIComponent(
+                                                  movie?.slug,
+                                              )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
+                                            : selectedEpisode?.linkEmbed
+                                    }
+                                    title={movie?.name}
+                                    allowFullScreen
+                                    style={{
+                                        border: 'none',
+                                        maxWidth: '100%',
+                                        maxHeight: '100%',
+                                        objectFit: 'contain',
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                    <Space
+                        ref={controlsRef}
+                        style={{
+                            backgroundColor: 'transparent',
+                            borderRadius: 8,
+                            marginTop: md ? undefined : '1rem',
+                        }}
+                    >
+                        <Button
+                            icon={<StepBackwardOutlined />}
+                            onClick={() => goToAdjacentEpisode('prev')}
+                            disabled={!hasPrevEpisode}
+                        >
+                            {md && 'Tập trước đó'}
+                        </Button>
+                        {md && (
+                            <Button icon={<ExpandAltOutlined />} onClick={fitToScreen}>
+                                Đang phát
+                            </Button>
+                        )}
+                        <Button
+                            icon={<StepForwardOutlined />}
+                            onClick={() => goToAdjacentEpisode('next')}
+                            disabled={!hasNextEpisode}
+                        >
+                            {md && 'Tập tiếp theo'}
+                        </Button>
+                    </Space>
+                </>
+            )}
             <div style={{ width: '100%', marginTop: 16 }}>
                 {movie && (
                     <MovieEpisode
