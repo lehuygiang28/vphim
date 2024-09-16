@@ -56,7 +56,15 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             }}
                             notificationProvider={useNotificationProvider}
                             authProvider={authProvider(undefined, axiosAuth)}
-                            resources={[]}
+                            resources={[
+                                {
+                                    name: 'movies',
+                                    list: '/movies',
+                                    create: '/movies/create',
+                                    show: '/movies/show/:slug',
+                                    edit: '/movies/edit/:slug',
+                                },
+                            ]}
                             options={{
                                 syncWithLocation: true,
                                 warnWhenUnsavedChanges: true,
