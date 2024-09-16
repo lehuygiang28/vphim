@@ -1,5 +1,8 @@
+import './movie-episode.css';
+
 import Link from 'next/link';
 import { Button, Divider, Flex, Typography, Grid, Alert } from 'antd';
+import { randomString } from '@/libs/utils/common';
 import type { MovieType, EpisodeType } from 'apps/api/src/app/movies/movie.type';
 
 const { Title } = Typography;
@@ -77,9 +80,9 @@ export function MovieEpisode({
                         </Link>
                     )}
                     {hasValidEpisodes ? (
-                        movie.episode[activeServerIndex].serverData.map((item) => (
+                        movie.episode[activeServerIndex].serverData.map((item, index) => (
                             <Link
-                                key={item.slug}
+                                key={`serverData-${item.slug}-${index}`}
                                 href={`/phim/${movie.slug}/${item.slug}`}
                                 style={{ marginBottom: md ? '5px' : '2px' }}
                             >
@@ -113,7 +116,7 @@ export function MovieEpisode({
                     <Flex wrap gap={10} style={{ marginBottom: '1rem' }}>
                         {movie?.episode?.map((ep: EpisodeType, index: number) => (
                             <Button
-                                key={`server-${index}`}
+                                key={`server-${randomString(5)}-${index}`}
                                 onClick={() => onServerChange && onServerChange(index)}
                                 type={activeServerIndex === index ? 'primary' : 'default'}
                             >
