@@ -15,7 +15,7 @@ RUN yarn nx build api
 
 FROM base AS production
 
-LABEL git="https://github.com/lehuygiang28/tasktr"
+LABEL git="https://github.com/lehuygiang28/vphim"
 LABEL author="lehuygiang28 <lehuygiang28@gmail.com>"
 LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>"
 

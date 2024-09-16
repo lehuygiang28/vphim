@@ -50,7 +50,7 @@ export default registerAs<MailConfig>('mail', () => {
     validateConfig(process.env, EnvironmentVariablesValidator);
 
     return {
-        sender: process.env.MAIL_SENDER || 'TaskTr',
+        sender: process.env.MAIL_SENDER || 'VePhim',
         sendgridHost: process.env.SENDGRID_HOST || 'smtp.sendgrid.net',
         sendgridUser: process.env.SENDGRID_USER || 'apikey',
         sendgridPassword: process.env.SENDGRID_PASSWORD || '',

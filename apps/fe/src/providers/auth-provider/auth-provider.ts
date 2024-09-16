@@ -171,7 +171,7 @@ export const authProvider = (
                             redirectTo: RouteNameEnum.LOGIN_PAGE,
                             successNotification: {
                                 message: 'You have successfully registered',
-                                description: 'Back to login and continue to TaskTr',
+                                description: 'Back to login and continue to VePhim',
                             },
                         };
                     })

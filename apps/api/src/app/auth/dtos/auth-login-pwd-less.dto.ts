@@ -16,7 +16,7 @@ export class AuthLoginPasswordlessDto {
     email: string;
 
     @ApiProperty({
-        example: 'https://tasktr.giaang.id.vn',
+        example: 'https://admin.giaang.id.vn',
         description: 'Return url to redirect',
         required: true,
         type: String,

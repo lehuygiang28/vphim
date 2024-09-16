@@ -50,7 +50,7 @@ export default registerAs<AppConfig>('app', () => {
             : 'api',
         feDomain: process.env?.FE_DOMAIN
             ? removeLeadingAndTrailingSlashes(process.env.FE_DOMAIN)
-            : 'https://tasktr.vercel.app',
+            : 'https://vephim.vercel.app',
         port: process.env?.PORT ? parseInt(process.env?.PORT, 10) : 8000,
         fallbackLanguage: process.env?.FALLBACK_LANGUAGE || 'en',
         apiStatsPath: process.env?.API_STATS_PATH

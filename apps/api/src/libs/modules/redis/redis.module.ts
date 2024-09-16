@@ -10,7 +10,7 @@ import { RedisService } from './services';
             inject: [ConfigService],
             useFactory: (config: ConfigService) => {
                 return new Redis({
-                    name: config.get<string>('REDIS_NAME') || 'tasktr_redis_default',
+                    name: config.get<string>('REDIS_NAME') || 'vphim_redis_default',
                     host: config.getOrThrow<string>('REDIS_HOST'),
                     port: config.getOrThrow<number>('REDIS_PORT'),
                     username: config.get<string>('REDIS_USER') || undefined,
