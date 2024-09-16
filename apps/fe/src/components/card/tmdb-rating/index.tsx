@@ -41,8 +41,8 @@ export function TMDBRating({ id, type, size = 'middle' }: TMDBRatingProps) {
     }, [id, type]);
 
     const tagSizes = {
-        small: { height: '1.5rem', fontSize: '0.85rem' },
-        middle: { height: '2rem', fontSize: '1rem' },
+        small: { height: '1.2rem', fontSize: '0.7rem' },
+        middle: { height: '1.55rem', fontSize: '0.85rem' },
         large: { height: '2.5rem', fontSize: '1.15rem' },
     };
 

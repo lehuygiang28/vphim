@@ -313,19 +313,7 @@ export function Movie({ slug }: MovieProps) {
                             )}
                         </div>
                     </Col>
-                    <Col
-                        xs={{ span: 14, order: 2 }}
-                        md={{ span: 18, order: 1 }}
-                        style={
-                            md
-                                ? undefined
-                                : {
-                                      justifyContent: 'center',
-                                      alignItems: 'center',
-                                      display: 'flex',
-                                  }
-                        }
-                    >
+                    <Col xs={{ span: 14, order: 2 }} md={{ span: 18, order: 1 }}>
                         <div
                             style={{
                                 padding: '0',
@@ -376,7 +364,7 @@ export function Movie({ slug }: MovieProps) {
                                         </Space>
                                     </div>
                                     {(movie?.tmdb?.id || movie?.imdb?.id) && (
-                                        <Space align="center">
+                                        <div style={{ marginTop: '0.5rem' }}>
                                             {movie?.imdb?.id && (
                                                 <IMDBRating
                                                     id={movie?.imdb?.id}
@@ -390,7 +378,7 @@ export function Movie({ slug }: MovieProps) {
                                                     size={md ? 'middle' : 'small'}
                                                 />
                                             )}
-                                        </Space>
+                                        </div>
                                     )}
 
                                     <div style={{ marginTop: '0.5rem' }}>
