@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useShow } from '@refinedev/core';
 import { Show, MarkdownField } from '@refinedev/antd';
 import { Typography, Row, Col, Tag, Divider, List, Card, Avatar, Image, Space, Button } from 'antd';
@@ -181,7 +182,7 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
                                                             <Space>
                                                                 <Text>{server.name}</Text>
                                                                 {server.linkEmbed && (
-                                                                    <a
+                                                                    <Link
                                                                         href={server.linkEmbed}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
@@ -191,22 +192,25 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
                                                                                 <PlayCircleOutlined />
                                                                             }
                                                                         >
-                                                                            Watch
+                                                                            Embed
                                                                         </Button>
-                                                                    </a>
+                                                                    </Link>
                                                                 )}
-                                                                {server.linkM3u8 && (
-                                                                    <a
-                                                                        href={server.linkM3u8}
+                                                                {server?.linkM3u8 && (
+                                                                    <Link
+                                                                        href={`https://vephim.vercel.app/player/${encodeURIComponent(
+                                                                            server.linkM3u8,
+                                                                        )}?movieSlug=${encodeURIComponent(
+                                                                            record?.slug,
+                                                                        )}`}
                                                                         target="_blank"
-                                                                        rel="noopener noreferrer"
                                                                     >
                                                                         <Button
                                                                             icon={<LinkOutlined />}
                                                                         >
                                                                             M3U8
                                                                         </Button>
-                                                                    </a>
+                                                                    </Link>
                                                                 )}
                                                             </Space>
                                                         </List.Item>
