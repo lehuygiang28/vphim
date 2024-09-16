@@ -11,8 +11,6 @@ import { ColorModeContext } from '~fe/contexts/color-mode';
 import { UserRoleEnum } from '~api/app/users/users.enum';
 import { type UserType } from '~api/app/users/user.type';
 
-import { Header } from '~mnt/components/header';
-
 const { Text } = Typography;
 
 function CustomSider({ mode, user }: { mode: string; user: UserType }) {
@@ -73,7 +71,6 @@ export function ThemedLayout({ children }: PropsWithChildren) {
 
     return (
         <ThemedLayoutV2
-            Header={() => <Header user={user} sticky />}
             Sider={() => <CustomSider mode={mode} user={user} />}
             Footer={() => <CustomFooter mode={mode} />}
         >
