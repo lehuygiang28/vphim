@@ -33,6 +33,7 @@ export type MovieListProps = {
     style?: CSSProperties;
     viewMoreHref?: string;
     clearVisibleContentCard?: boolean;
+    disableNavigation?: boolean;
 };
 
 export default function MovieList({
@@ -42,6 +43,7 @@ export default function MovieList({
     viewMoreHref,
     clearVisibleContentCard,
     style,
+    disableNavigation,
 }: MovieListProps) {
     const { md, lg, xl, xxl } = useBreakpoint();
     const swiperRef = useRef<SwiperType>();
@@ -125,14 +127,18 @@ export default function MovieList({
             <Swiper
                 slidesPerView={getSlidesPerView(md, lg, xl, xxl)}
                 spaceBetween={12}
-                modules={[Navigation]}
-                navigation={{
-                    nextEl: `#${nextButtonId}`,
-                    prevEl: `#${prevButtonId}`,
-                }}
+                modules={[...(disableNavigation ? [] : [Navigation])]}
+                navigation={
+                    disableNavigation
+                        ? false
+                        : {
+                              nextEl: `#${nextButtonId}`,
+                              prevEl: `#${prevButtonId}`,
+                          }
+                }
                 style={{
                     overflow: 'visible',
-                    padding: md ? '0 2rem' : '0 0.5rem',
+                    padding: disableNavigation ? undefined : md ? '0 2rem' : '0 0.5rem',
                 }}
                 onSwiper={(swiper) => {
                     swiperRef.current = swiper;
@@ -161,7 +167,7 @@ export default function MovieList({
                           </SwiperSlide>
                       ))}
             </Swiper>
-            {!isLoading && movies?.length > 0 && (
+            {!isLoading && movies?.length > 0 && !disableNavigation && (
                 <>
                     <div className="swiper-button-prev" id={prevButtonId} />
                     <div className="swiper-button-next" id={nextButtonId} />
