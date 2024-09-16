@@ -29,6 +29,8 @@ import {
     UNFOLLOW_MOVIE_MUTATION,
 } from '@/queries/users';
 import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
+import { IMDBRating } from '@/components/card/imdb-rating';
+import { TMDBRating } from '@/components/card/tmdb-rating';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -373,6 +375,24 @@ export function Movie({ slug }: MovieProps) {
                                             </Space>
                                         </Space>
                                     </div>
+                                    {(movie?.tmdb?.id || movie?.imdb?.id) && (
+                                        <Space align="center">
+                                            {movie?.imdb?.id && (
+                                                <IMDBRating
+                                                    id={movie?.imdb?.id}
+                                                    size={md ? 'middle' : 'small'}
+                                                />
+                                            )}
+                                            {movie?.tmdb?.id && (
+                                                <TMDBRating
+                                                    id={movie?.tmdb?.id}
+                                                    type={movie?.tmdb?.type}
+                                                    size={md ? 'middle' : 'small'}
+                                                />
+                                            )}
+                                        </Space>
+                                    )}
+
                                     <div style={{ marginTop: '0.5rem' }}>
                                         {movie?.categories?.map((category) => (
                                             <Tag

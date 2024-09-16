@@ -233,36 +233,39 @@ export class MovieService {
         };
         const headers = {
             accept: 'application/json',
-            Authorization: `Bearer ${process?.env?.TMDB_TOKEN}`,
         };
 
-        if (movie?.imdb?.id) {
-            result.imdb = { id: movie?.imdb?.id };
-            const res = await this.httpService.axiosRef.get(
-                `https://api.themoviedb.org/3/find/${movie?.imdb?.id}?external_source=imdb_id`,
-                {
-                    headers,
-                },
-            );
-            const imdbResult = this.extractRatingFromImdbData(res?.data);
-            if (imdbResult) {
-                result.imdb = { id: movie?.imdb?.id, ...imdbResult };
+        try {
+            if (movie?.imdb?.id) {
+                result.imdb = { id: movie?.imdb?.id };
+                const res = await this.httpService.axiosRef.get(
+                    `https://api.themoviedb.org/3/find/${movie?.imdb?.id}?external_source=imdb_id&api_key=${process?.env?.TMDB_API_KEY}`,
+                    {
+                        headers,
+                    },
+                );
+                const imdbResult = this.extractRatingFromImdbData(res?.data);
+                if (imdbResult) {
+                    result.imdb = { id: movie?.imdb?.id, ...imdbResult };
+                }
             }
-        }
 
-        if (movie?.tmdb?.id) {
-            result.tmdb = { id: movie?.tmdb?.id };
-            const res = await this.httpService.axiosRef.get(
-                `https://api.themoviedb.org/3/movie/${movie?.tmdb?.id}?language=en-US`,
-                {
-                    headers,
-                },
-            );
-            result.tmdb = {
-                id: movie?.tmdb?.id,
-                voteAverage: res?.data?.vote_average || 0,
-                voteCount: res?.data?.vote_count || 0,
-            };
+            if (movie?.tmdb?.id) {
+                result.tmdb = { id: movie?.tmdb?.id };
+                const res = await this.httpService.axiosRef.get(
+                    `https://api.themoviedb.org/3/movie/${movie?.tmdb?.id}?language=en-US&api_key=${process?.env?.TMDB_API_KEY}`,
+                    {
+                        headers,
+                    },
+                );
+                result.tmdb = {
+                    id: movie?.tmdb?.id,
+                    voteAverage: res?.data?.vote_average || 0,
+                    voteCount: res?.data?.vote_count || 0,
+                };
+            }
+        } catch (error) {
+            this.logger.error(error);
         }
 
         return result;

@@ -54,6 +54,13 @@ export const GET_MOVIE_QUERY = gql`
                 }
                 serverName
             }
+            imdb {
+                id
+            }
+            tmdb {
+                id
+                type
+            }
         }
     }
 `;
@@ -74,6 +81,18 @@ export const MOVIES_LIST_QUERY = gql`
                 content
             }
             total
+        }
+    }
+`;
+
+export const GET_MOVE_RATING_QUERY = gql`
+    query GetRating($input: GetMovieInput!) {
+        getRating(input: $input) {
+            tmdb {
+                id
+                voteCount
+                voteAverage
+            }
         }
     }
 `;

@@ -63,6 +63,18 @@ type Episode {
   serverName: String
 }
 
+type TmdbType {
+  type: String
+  id: String
+  season: Float
+  voteAverage: Float
+  voteCount: Float
+}
+
+type ImdbType {
+  id: String
+}
+
 type Movie {
   _id: ID!
   name: String!
@@ -94,6 +106,8 @@ type Movie {
   updatedAt: DateTime
   view: Float
   year: Float
+  imdb: ImdbType
+  tmdb: TmdbType
 }
 
 type BlockActivityLogType {
@@ -144,6 +158,8 @@ type MovieFollowType {
   updatedAt: DateTime
   view: Float
   year: Float
+  imdb: ImdbType
+  tmdb: TmdbType
 }
 
 type UserType {

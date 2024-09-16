@@ -34,7 +34,8 @@ export class EpisodeType implements Episode {
     serverName: string;
 }
 
-export class ImdbType {
+@ObjectType()
+export class TmdbType {
     @Field({ nullable: true })
     type: 'tv' | 'movie' | null | string;
 
@@ -51,7 +52,8 @@ export class ImdbType {
     voteCount?: number;
 }
 
-export class TmdbType {
+@ObjectType()
+export class ImdbType {
     @Field({ nullable: true })
     id?: string;
 }
@@ -150,6 +152,9 @@ export class MovieType
     @Field({ nullable: true })
     year?: number;
 
+    @Field(() => ImdbType, { nullable: true })
     imdb?: ImdbType;
+
+    @Field(() => TmdbType, { nullable: true })
     tmdb?: TmdbType;
 }

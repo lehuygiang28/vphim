@@ -20,6 +20,7 @@
         "refinedev",
         "sadd",
         "showtimes",
+        "slugtify",
         "smembers",
         "srem",
         "streamifier",
