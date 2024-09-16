@@ -13,6 +13,7 @@ export type MovieEpisodeProps = {
     onServerChange?: (index: number) => void;
     useServersDivider?: boolean;
     useEpisodesDivider?: boolean;
+    showTrailerAsFirstEpisode?: boolean;
 };
 
 export function MovieEpisode({
@@ -23,6 +24,7 @@ export function MovieEpisode({
     onServerChange,
     useServersDivider = true,
     useEpisodesDivider = true,
+    showTrailerAsFirstEpisode = true,
 }: MovieEpisodeProps) {
     const { md } = useBreakpoint();
 
@@ -64,6 +66,16 @@ export function MovieEpisode({
                 }}
             >
                 <Flex wrap gap={md ? 10 : 5}>
+                    {showTrailerAsFirstEpisode && movie.trailerUrl && (
+                        <Link
+                            href={`/phim/${movie.slug}/trailer`}
+                            style={{ marginBottom: md ? '5px' : '2px' }}
+                        >
+                            <Button type={activeEpisodeSlug === 'trailer' ? 'primary' : 'default'}>
+                                Trailer
+                            </Button>
+                        </Link>
+                    )}
                     {hasValidEpisodes ? (
                         movie.episode[activeServerIndex].serverData.map((item) => (
                             <Link
@@ -78,7 +90,7 @@ export function MovieEpisode({
                                 </Button>
                             </Link>
                         ))
-                    ) : movie.trailerUrl ? (
+                    ) : !showTrailerAsFirstEpisode && movie.trailerUrl ? (
                         <Link href={`/phim/${movie.slug}/trailer`}>
                             <Button
                                 key={movie.slug}
