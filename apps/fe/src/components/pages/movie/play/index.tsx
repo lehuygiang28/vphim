@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Typography, Grid } from 'antd';
+import Link from 'next/link';
+import { Typography, Grid, Divider } from 'antd';
 
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
+import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
 
 import type { MovieType, EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
 
-const { Title } = Typography;
+const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
 
 export type MoviePlayProps = {
@@ -123,6 +125,39 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                     useEpisodesDivider={false}
                 />
             )}
+            <Divider />
+            <div style={{ marginTop: '2rem' }}>
+                <Title level={2}>
+                    {movie?.name} - {getEpisodeNameBySlug(movie, selectedEpisode?.slug)}
+                </Title>
+                <Title level={3}>
+                    {movie?.name} - {movie?.originName} ({movie?.quality})
+                </Title>
+                <Title level={4} type="secondary">
+                    {getEpisodeNameBySlug(movie, selectedEpisode?.slug)}
+                </Title>
+                <Paragraph
+                    onClick={() => {}}
+                    ellipsis={{
+                        rows: 5,
+                        expandable: true,
+                        symbol: (
+                            <>
+                                <Link
+                                    href={`${RouteNameEnum.MOVIE_PAGE}/${encodeURIComponent(
+                                        movie?.slug,
+                                    )}`}
+                                >
+                                    <Text type="warning">Xem Thêm</Text>
+                                </Link>
+                            </>
+                        ),
+                    }}
+                >
+                    {movie?.content}
+                </Paragraph>
+            </div>
+            <Divider />
             {movie && (
                 <div style={{ marginTop: '2rem', marginBottom: md ? '4rem' : '2rem' }}>
                     <MovieRelated movie={movie} />

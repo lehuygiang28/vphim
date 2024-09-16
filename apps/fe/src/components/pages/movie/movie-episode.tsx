@@ -29,7 +29,7 @@ export function MovieEpisode({
     const renderDivider = (title: string, useDivider: boolean) => {
         if (useDivider) {
             return (
-                <Divider orientation="left" style={{ borderColor: '#fff' }}>
+                <Divider orientation="left">
                     <Title level={4}>{title}</Title>
                 </Divider>
             );
