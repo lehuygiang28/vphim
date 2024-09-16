@@ -7,11 +7,10 @@ import { Controller } from 'react-hook-form';
 import { Form, Input, Upload, Button, Avatar, Typography, Space, Skeleton, message } from 'antd';
 import { UserOutlined, MailOutlined, UploadOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
-import { useSession } from 'next-auth/react';
 import { GET_ME_QUERY, MUTATION_ME_QUERY } from '@/queries/users';
-import Loading from '@/app/loading';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 
 const { Title, Text } = Typography;
 
@@ -26,10 +25,10 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
     const apiUrl = useApiUrl();
     const { data: user } = useGetIdentity<LoginResponseDto>();
     const { open } = useNotification();
-    const { data: session, status } = useSession();
     const { mutate: update } = useUpdate();
     const [isAvatarLoading, setIsAvatarLoading] = useState(false);
     const queryClient = useQueryClient();
+    const axios = useAxiosAuth();
 
     const {
         refineCore: { formLoading },
@@ -70,6 +69,34 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
         },
     });
 
+    const customUpload = async (options: any) => {
+        const { onSuccess, onError, file } = options;
+        setIsAvatarLoading(true);
+
+        const formData = new FormData();
+        formData.append('images', file);
+
+        try {
+            const response = await axios.post(`${apiUrl}/images`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.data && response.data[0] && response.data[0].url) {
+                onSuccess(response, file);
+                setValue('avatar.url', response.data[0].url);
+            } else {
+                throw new Error('Invalid response format');
+            }
+        } catch (error) {
+            onError({ error });
+            message.error('Tải ảnh thất bại, vui lòng thử lại sau!');
+        } finally {
+            setIsAvatarLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (user) {
             setValue('fullName', user.fullName || '');
@@ -93,6 +120,14 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
                     input: values,
                 },
             },
+            errorNotification: {
+                type: 'error',
+                message: 'Cập nhật thông tin thất bạn, vui lòng thử lại sau!',
+            },
+            successNotification: {
+                type: 'success',
+                message: 'Cập nhật thông tin thành công!',
+            },
         });
         queryClient.invalidateQueries({ queryKey: ['auth', 'identity'] });
     };
@@ -108,10 +143,6 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
         }
         return isAllowedType && isLessThan10MB;
     };
-
-    if (status === 'loading') {
-        return <Loading />;
-    }
 
     return (
         <div>
@@ -145,11 +176,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
                                 name="avatar.url"
                                 render={({ field }) => (
                                     <Upload
-                                        action={`${apiUrl}/images`}
-                                        headers={{
-                                            Authorization: `Bearer ${session?.user?.accessToken}`,
-                                        }}
-                                        name="images"
+                                        customRequest={customUpload}
                                         showUploadList={false}
                                         beforeUpload={(file) => {
                                             const canUpload = beforeUpload(file);
@@ -157,17 +184,6 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
                                                 setIsAvatarLoading(true);
                                             }
                                             return canUpload || Upload.LIST_IGNORE;
-                                        }}
-                                        onChange={(info) => {
-                                            if (info.file.status === 'done') {
-                                                setIsAvatarLoading(false);
-                                                field.onChange(info.file.response[0].url);
-                                            } else if (info.file.status === 'error') {
-                                                setIsAvatarLoading(false);
-                                                message.error(
-                                                    'Tải ảnh thất bại, vui lòng thử lại sau!',
-                                                );
-                                            }
                                         }}
                                         accept={ALLOWED_FILE_TYPES.join(',')}
                                     >
