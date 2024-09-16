@@ -274,7 +274,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 chieurap,
                 content,
                 year,
-                view,
+                view = 0,
                 modified,
             } = movieDetail;
 
@@ -287,6 +287,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
 
             // Save movie
             const movieData: Movie = {
+                ...(existingMovie || {}),
                 ...movieDetail,
                 lastSyncModified: new Date(modified?.time),
                 _id: correctId,
@@ -311,7 +312,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 subDocquyen: sub_docquyen,
                 cinemaRelease: chieurap,
                 year,
-                view: view || 0,
+                view: Math.max(view, existingMovie?.view || 0, 0),
                 episode: movieDetail?.episodes?.map((episode) => {
                     const serverData: EpisodeServerData[] = episode?.server_data?.map((server) => {
                         return {

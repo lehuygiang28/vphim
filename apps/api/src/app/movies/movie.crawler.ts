@@ -286,6 +286,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
 
             // Save movie
             const movieData: Movie = {
+                ...(existingMovie || {}),
                 ...movieDetail,
                 lastSyncModified: new Date(modified?.time),
                 _id: correctId,
@@ -306,7 +307,7 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                 subDocquyen: sub_docquyen,
                 cinemaRelease: chieurap,
                 year,
-                view: view || 0,
+                view: Math.max(view, existingMovie?.view || 0, 0),
                 episode: movieDetail?.episodes?.map((episode) => {
                     const serverData: EpisodeServerData[] = episode?.server_data?.map((server) => {
                         return {
