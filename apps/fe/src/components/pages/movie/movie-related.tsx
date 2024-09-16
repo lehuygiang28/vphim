@@ -16,6 +16,11 @@ export function MovieRelated({ movie }: MovieRelatedProps) {
                 operator: 'in',
                 value: movie?.categories?.map((item) => item.slug).join(','),
             },
+            {
+                field: 'type',
+                operator: 'eq',
+                value: movie?.type,
+            },
         ],
         sorters: [
             {
