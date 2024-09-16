@@ -52,10 +52,15 @@ const playerStyle: CSSProperties = {
     borderRadius: 0,
 };
 
+const MIN_WATCH_TIME = 60; // Minimum watch time in seconds
+const MIN_WATCH_PERCENTAGE = 10; // Minimum watch percentage
+
 export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const { host } = useCurrentUrl();
     const player = useRef<MediaPlayerInstance>(null);
     const [viewUpdated, setViewUpdated] = useState(false);
+    const watchTimeRef = useRef(0);
+    const lastTimeRef = useRef(0);
 
     const { mutate: updateView } = useUpdate({
         errorNotification: false,
@@ -72,7 +77,19 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                 const { currentTime, duration } = player.current.state;
                 if (currentTime > 0 && duration > 0) {
                     const watchedPercentage = (currentTime / duration) * 100;
-                    if (watchedPercentage >= 10) {
+                    const timeDiff = currentTime - lastTimeRef.current;
+
+                    // Only count time if less than 5 seconds have passed
+                    if (timeDiff > 0 && timeDiff < 5) {
+                        watchTimeRef.current += timeDiff;
+                    }
+
+                    lastTimeRef.current = currentTime;
+
+                    if (
+                        watchTimeRef.current >= MIN_WATCH_TIME &&
+                        watchedPercentage >= MIN_WATCH_PERCENTAGE
+                    ) {
                         updateView({
                             id: searchParams.movieSlug,
                             resource: 'movies/update-view',
@@ -89,9 +106,9 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         };
 
         // Subscribe to state updates without triggering renders
-        const unsubscribe = player.current.subscribe(({ paused }) => {
-            if (!paused && !viewUpdated) {
-                intervalId = setInterval(handleViewUpdate, 10000); // Check every 10 seconds
+        const unsubscribe = player.current.subscribe(({ paused, seeking }) => {
+            if (!paused && !viewUpdated && !seeking) {
+                intervalId = setInterval(handleViewUpdate, 1000); // Check every second
             } else {
                 clearInterval(intervalId);
             }
@@ -101,8 +118,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
             unsubscribe();
             clearInterval(intervalId);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [updateView, viewUpdated]);
+    }, [updateView, viewUpdated, searchParams.movieSlug]);
 
     return (
         <Layout style={containerStyle}>
