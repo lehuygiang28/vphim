@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useOne, useList, stringifyTableParams } from '@refinedev/core';
-import { Empty, List, Grid, Typography, Breadcrumb } from 'antd';
+import { Empty, List, Grid, Typography, Breadcrumb, Divider } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { GET_OWN_FOLLOWING_MOVIES_WITH_DETAILS } from '@/queries/users';
 import { MovieCard } from '@/components/card/movie-card';
@@ -86,6 +86,7 @@ export default function MovieFollowingsPage() {
                     },
                 ]}
             />
+            <Divider />
             <List
                 loading={isLoading || isRefetching}
                 grid={{
@@ -141,7 +142,7 @@ export default function MovieFollowingsPage() {
                           }
                 }
             />
-
+            <Divider />
             <MovieList
                 style={{ marginTop: '4rem' }}
                 title="Có thể bạn quan tâm"
