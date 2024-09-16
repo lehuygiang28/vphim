@@ -263,7 +263,7 @@ export function Movie({ slug }: MovieProps) {
                     style={{
                         width: '100%',
                         height: '100%',
-                        minHeight: md ? '36vh' : '22vh',
+                        minHeight: md ? '36vh' : '28vh',
                     }}
                     gutter={[16, 16]}
                 >
@@ -311,7 +311,19 @@ export function Movie({ slug }: MovieProps) {
                             )}
                         </div>
                     </Col>
-                    <Col xs={{ span: 14, order: 2 }} md={{ span: 18, order: 1 }}>
+                    <Col
+                        xs={{ span: 14, order: 2 }}
+                        md={{ span: 18, order: 1 }}
+                        style={
+                            md
+                                ? undefined
+                                : {
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      display: 'flex',
+                                  }
+                        }
+                    >
                         <div
                             style={{
                                 padding: '0',
