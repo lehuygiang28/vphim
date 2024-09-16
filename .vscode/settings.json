@@ -20,6 +20,7 @@
         "refinedev",
         "sadd",
         "showtimes",
+        "Sider",
         "slugtify",
         "smembers",
         "srem",
@@ -33,5 +34,5 @@
         "vidstack",
         "vphim"
     ],
-    "conventionalCommits.scopes": ["be/i18n", "api", "fe"]
+    "conventionalCommits.scopes": ["be/i18n", "api", "fe", "mnt"]
 }

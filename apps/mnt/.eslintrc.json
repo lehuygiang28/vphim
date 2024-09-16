@@ -10,7 +10,8 @@
         {
             "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
             "rules": {
-                "@next/next/no-html-link-for-pages": ["error", "apps/mnt/pages"]
+                "@next/next/no-html-link-for-pages": ["error", "apps/mnt/pages"],
+                "@nx/enforce-module-boundaries": ["off"]
             }
         },
         {

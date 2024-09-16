@@ -16,7 +16,10 @@
         "baseUrl": ".",
         "paths": {
             "~api/app/*": ["apps/api/src/app/*"],
-            "~api/libs/*": ["apps/api/src/libs/*"]
+            "~api/libs/*": ["apps/api/src/libs/*"],
+            "@/*": ["apps/fe/src/*"],
+            "~fe/*": ["apps/fe/src/*"],
+            "~mnt/*": ["apps/mnt/src/*"]
         }
     },
     "exclude": ["node_modules", "tmp"]
