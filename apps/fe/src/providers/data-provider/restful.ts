@@ -13,7 +13,24 @@ export const restfulDataProvider = (axios: AxiosInstance) => {
     axios.defaults.baseURL = apiUrl;
 
     return {
-        ...dataProviderSimpleRest('', axios),
+        ...dataProviderSimpleRest(apiUrl, axios),
+        update: async ({ resource, id, variables, meta }) => {
+            const url = `${apiUrl}/${resource}/${id}`;
+
+            const { headers, method } = meta ?? {};
+            const requestMethod = method ?? 'patch';
+
+            const { data } = await axios.request({
+                url,
+                headers,
+                method: requestMethod,
+                data: variables,
+            });
+
+            return {
+                data,
+            };
+        },
         getApiUrl: () => {
             return apiUrl;
         },

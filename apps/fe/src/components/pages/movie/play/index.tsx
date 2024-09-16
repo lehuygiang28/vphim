@@ -191,12 +191,12 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                         selectedEpisode?.linkM3u8
                                             ? `${host}/player/${encodeURIComponent(
                                                   selectedEpisode.linkM3u8,
-                                              )}?poster=${encodeURIComponent(
+                                              )}?movieSlug=${encodeURIComponent(
+                                                  movie?.slug,
+                                              )}&poster=${encodeURIComponent(
                                                   movie?.thumbUrl?.includes('/phimimg.com/upload')
                                                       ? movie?.thumbUrl
                                                       : movie?.posterUrl,
-                                              )}&m=${encodeURIComponent(
-                                                  movie?.slug,
                                               )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
                                             : selectedEpisode?.linkEmbed
                                     }

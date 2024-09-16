@@ -3,12 +3,13 @@
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 
-import { CSSProperties, useRef } from 'react';
+import { CSSProperties, useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Layout } from 'antd';
 import { MediaPlayer, MediaPlayerInstance, MediaProvider, ChapterTitle } from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
+import { useUpdate } from '@refinedev/core';
 import { vietnameseLayoutTranslations } from './translate';
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
@@ -21,10 +22,10 @@ export type PlayerPageProps = {
         m3u8: string;
     };
     searchParams: {
+        movieSlug: string;
         poster?: string;
         lang?: string;
         name?: string;
-        m?: string;
         ep?: string;
     };
 };
@@ -52,8 +53,57 @@ const playerStyle: CSSProperties = {
 };
 
 export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
-    const player = useRef<MediaPlayerInstance>(null);
     const { host } = useCurrentUrl();
+    const player = useRef<MediaPlayerInstance>(null);
+    const [viewUpdated, setViewUpdated] = useState(false);
+
+    const { mutate: updateView } = useUpdate({
+        errorNotification: false,
+        successNotification: false,
+    });
+
+    useEffect(() => {
+        if (!player.current) return;
+
+        let intervalId: NodeJS.Timeout;
+
+        const handleViewUpdate = () => {
+            if (!viewUpdated && player?.current) {
+                const { currentTime, duration } = player.current.state;
+                if (currentTime > 0 && duration > 0) {
+                    const watchedPercentage = (currentTime / duration) * 100;
+                    if (watchedPercentage >= 10) {
+                        updateView({
+                            id: searchParams.movieSlug,
+                            resource: 'movies/update-view',
+                            meta: {
+                                method: 'POST',
+                            },
+                            values: {},
+                        });
+                        setViewUpdated(true);
+                        clearInterval(intervalId);
+                    }
+                }
+            }
+        };
+
+        // Subscribe to state updates without triggering renders
+        const unsubscribe = player.current.subscribe(({ paused }) => {
+            if (!paused && !viewUpdated) {
+                intervalId = setInterval(handleViewUpdate, 10000); // Check every 10 seconds
+            } else {
+                clearInterval(intervalId);
+            }
+        });
+
+        return () => {
+            unsubscribe();
+            clearInterval(intervalId);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [updateView, viewUpdated]);
+
     return (
         <Layout style={containerStyle}>
             <Content>
@@ -74,13 +124,13 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                                 <ChapterTitle className="vds-chapter-title">
                                     <Link
                                         href={
-                                            searchParams?.m
+                                            searchParams?.movieSlug
                                                 ? [
                                                       removeLeadingTrailingSlashes(host),
                                                       removeLeadingTrailingSlashes(
                                                           RouteNameEnum.MOVIE_PAGE,
                                                       ),
-                                                      encodeURIComponent(searchParams?.m),
+                                                      encodeURIComponent(searchParams?.movieSlug),
                                                       encodeURIComponent(searchParams?.ep),
                                                   ].join('/')
                                                 : `${host}/${RouteNameEnum.MOVIE_LIST_PAGE}`
