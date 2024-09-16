@@ -43,10 +43,10 @@ export class TmdbSchema {
     season?: number | null;
 
     @Prop({ type: Number, default: 0 })
-    vote_average?: number;
+    voteAverage?: number;
 
     @Prop({ type: Number, default: 0 })
-    vote_count?: number;
+    voteCount?: number;
 }
 
 export class ImdbSchema {

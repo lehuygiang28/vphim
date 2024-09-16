@@ -14,6 +14,7 @@
         "@hookform/resolvers": "^3.9.0",
         "@nestjs-modules/mailer": "^2.0.2",
         "@nestjs/apollo": "^12.2.0",
+        "@nestjs/axios": "^3.0.3",
         "@nestjs/bullmq": "^10.2.1",
         "@nestjs/cache-manager": "^2.2.2",
         "@nestjs/common": "^10.0.2",

@@ -4,6 +4,7 @@ import { MovieService } from './movie.service';
 import { GetMoviesInput } from './inputs/get-movies.input';
 import { GetMovieInput } from './inputs/get-movie.input';
 import { GetMoviesOutput } from './outputs/get-movies.output';
+import { GetRatingOutput } from './outputs/get-rating.output';
 
 @Resolver(() => MovieType)
 export class MovieResolver {
@@ -12,6 +13,11 @@ export class MovieResolver {
     @Query(() => MovieType, { name: 'movie' })
     getMovie(@Args('input') { slug }: GetMovieInput) {
         return this.movieService.getMovie(slug);
+    }
+
+    @Query(() => GetRatingOutput, { name: 'getRating' })
+    getRating(@Args('input') { slug }: GetMovieInput) {
+        return this.movieService.getRating(slug);
     }
 
     @Query(() => GetMoviesOutput, { name: 'movies' })

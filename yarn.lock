@@ -3243,6 +3243,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/axios@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "@nestjs/axios@npm:3.0.3"
+  peerDependencies:
+    "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
+    axios: ^1.3.1
+    rxjs: ^6.0.0 || ^7.0.0
+  checksum: 10c0/15320400f11375ab9a7b13b50159623e23f33bb0987ea555eaddc9d9b6ef6fcd815b57743179b957449c76e9ad6491398791f846be28a99a38ff108557ad03e3
+  languageName: node
+  linkType: hard
+
 "@nestjs/bull-shared@npm:^10.2.1":
   version: 10.2.1
   resolution: "@nestjs/bull-shared@npm:10.2.1"
@@ -6125,6 +6136,7 @@ __metadata:
     "@hookform/resolvers": "npm:^3.9.0"
     "@nestjs-modules/mailer": "npm:^2.0.2"
     "@nestjs/apollo": "npm:^12.2.0"
+    "@nestjs/axios": "npm:^3.0.3"
     "@nestjs/bullmq": "npm:^10.2.1"
     "@nestjs/cache-manager": "npm:^2.2.2"
     "@nestjs/common": "npm:^10.0.2"

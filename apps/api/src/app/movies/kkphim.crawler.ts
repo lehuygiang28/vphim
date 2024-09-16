@@ -328,7 +328,11 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                         serverData,
                     };
                 }),
-                tmdb: movieDetail?.tmdb,
+                tmdb: {
+                    ...movieDetail?.tmdb,
+                    voteAverage: movieDetail?.tmdb?.vote_average,
+                    voteCount: movieDetail?.tmdb?.vote_count,
+                },
                 imdb: movieDetail?.imdb,
             };
 

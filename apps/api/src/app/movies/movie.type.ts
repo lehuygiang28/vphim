@@ -34,8 +34,32 @@ export class EpisodeType implements Episode {
     serverName: string;
 }
 
+export class ImdbType {
+    @Field({ nullable: true })
+    type: 'tv' | 'movie' | null | string;
+
+    @Field({ nullable: true })
+    id?: string;
+
+    @Field({ nullable: true })
+    season?: number | null;
+
+    @Field({ nullable: true })
+    voteAverage?: number;
+
+    @Field({ nullable: true })
+    voteCount?: number;
+}
+
+export class TmdbType {
+    @Field({ nullable: true })
+    id?: string;
+}
+
 @ObjectType('Movie')
-export class MovieType implements Omit<Movie, 'actors' | 'categories' | 'countries' | 'directors'> {
+export class MovieType
+    implements Omit<Movie, 'actors' | 'categories' | 'countries' | 'directors' | 'tmdb' | 'imdb'>
+{
     @Field(() => ID)
     _id: Types.ObjectId;
 
@@ -125,4 +149,7 @@ export class MovieType implements Omit<Movie, 'actors' | 'categories' | 'countri
 
     @Field({ nullable: true })
     year?: number;
+
+    imdb?: ImdbType;
+    tmdb?: TmdbType;
 }

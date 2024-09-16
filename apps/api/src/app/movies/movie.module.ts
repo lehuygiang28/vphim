@@ -2,6 +2,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
+import { HttpModule } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 
@@ -23,6 +24,7 @@ import { MovieResolver } from './movie.resolver';
         ConfigModule.forRoot(),
         MongooseModule.forFeature([{ name: Movie.name, schema: MovieSchema }]),
         ScheduleModule.forRoot(),
+        HttpModule,
         RedisModule,
         CacheModule.registerAsync({
             imports: [ConfigModule],

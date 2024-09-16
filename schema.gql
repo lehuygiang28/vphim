@@ -170,9 +170,21 @@ type GetMoviesOutput {
   total: Float!
 }
 
+type RatingResultType {
+  id: String
+  voteAverage: Float
+  voteCount: Float
+}
+
+type GetRatingOutput {
+  imdb: RatingResultType
+  tmdb: RatingResultType
+}
+
 type Query {
   getMe: UserType!
   movie(input: GetMovieInput!): Movie!
+  getRating(input: GetMovieInput!): GetRatingOutput!
   movies(input: GetMoviesInput!): GetMoviesOutput!
   categories(input: GetCategoriesInput!): GetCategoriesOutput!
   regions(input: GetRegionsInput!): GetRegionsOutput!

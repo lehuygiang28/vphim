@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { FilterQuery, PipelineStage } from 'mongoose';
 import { createRegex } from '@vn-utils/text';
 
@@ -7,6 +8,8 @@ import { GetMoviesDto, MovieResponseDto } from './dtos';
 import { Movie } from './movie.schema';
 import { isNullOrUndefined, sortedStringify } from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis/services';
+import { RatingResultType } from './rating-result.type';
+import { GetRatingOutput } from './outputs/get-rating.output';
 
 @Injectable()
 export class MovieService {
@@ -15,6 +18,7 @@ export class MovieService {
     constructor(
         private readonly movieRepo: MovieRepository,
         private readonly redisService: RedisService,
+        private readonly httpService: HttpService,
     ) {
         this.logger = new Logger(MovieService.name);
     }
@@ -219,5 +223,72 @@ export class MovieService {
         };
         await this.redisService.set(cacheKey, res, 1000 * 60 * 60);
         return res;
+    }
+
+    async getRating(movieSlug: string): Promise<GetRatingOutput> {
+        const movie = await this.movieRepo.findOneOrThrow({ filterQuery: { slug: movieSlug } });
+        const result: GetRatingOutput = {
+            imdb: {},
+            tmdb: {},
+        };
+        const headers = {
+            accept: 'application/json',
+            Authorization: `Bearer ${process?.env?.TMDB_TOKEN}`,
+        };
+
+        if (movie?.imdb?.id) {
+            result.imdb = { id: movie?.imdb?.id };
+            const res = await this.httpService.axiosRef.get(
+                `https://api.themoviedb.org/3/find/${movie?.imdb?.id}?external_source=imdb_id`,
+                {
+                    headers,
+                },
+            );
+            const imdbResult = this.extractRatingFromImdbData(res?.data);
+            if (imdbResult) {
+                result.imdb = { id: movie?.imdb?.id, ...imdbResult };
+            }
+        }
+
+        if (movie?.tmdb?.id) {
+            result.tmdb = { id: movie?.tmdb?.id };
+            const res = await this.httpService.axiosRef.get(
+                `https://api.themoviedb.org/3/movie/${movie?.tmdb?.id}?language=en-US`,
+                {
+                    headers,
+                },
+            );
+            result.tmdb = {
+                id: movie?.tmdb?.id,
+                voteAverage: res?.data?.vote_average || 0,
+                voteCount: res?.data?.vote_count || 0,
+            };
+        }
+
+        return result;
+    }
+
+    private extractRatingFromImdbData(imdbData: unknown): RatingResultType | null {
+        const resultTypes = [
+            'movie_results',
+            'tv_results',
+            'person_results',
+            'tv_episode_results',
+            'tv_season_results',
+        ];
+
+        for (const type of resultTypes) {
+            if (imdbData[type] && imdbData[type].length > 0) {
+                const result = imdbData[type][0];
+                if (result?.vote_average !== undefined && result?.vote_count !== undefined) {
+                    return {
+                        voteAverage: result.vote_average,
+                        voteCount: result.vote_count,
+                    };
+                }
+            }
+        }
+
+        return null;
     }
 }
