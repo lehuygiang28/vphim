@@ -226,7 +226,7 @@ export class MovieService {
             data: movies,
             total,
         };
-        await this.redisService.set(cacheKey, res, 1000 * 60 * 60);
+        await this.redisService.set(cacheKey, res, 1000 * 60 * 10);
         return res;
     }
 
