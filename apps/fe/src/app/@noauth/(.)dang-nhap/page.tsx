@@ -1,14 +1,15 @@
 'use client';
 
-import { useIsAuthenticated } from '@refinedev/core';
+import { useGetIdentity } from '@refinedev/core';
 import { Modal } from 'antd';
 import { useRouter } from 'next/navigation';
 import Login from '@/components/pages/auth/login';
 import Loading from '@/app/loading';
+import type { UserType } from 'apps/api/src/app/users/user.type';
 
 export default function LoginParallelPage() {
     const router = useRouter();
-    const { data: isAuthData, isLoading: isLoadingAuth } = useIsAuthenticated();
+    const { data: isAuthData, isLoading: isLoadingAuth } = useGetIdentity<UserType>();
 
     const handleClose = () => {
         router.back();
@@ -18,7 +19,7 @@ export default function LoginParallelPage() {
         return <Loading />;
     }
 
-    if (isAuthData?.authenticated) {
+    if (isAuthData?.role) {
         router.push('/');
         return <></>;
     }
