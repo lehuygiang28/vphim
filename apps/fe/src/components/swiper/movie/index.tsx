@@ -281,6 +281,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                     height={md ? 745 : 200}
                                                     style={posterStyle}
                                                     className="posterImage"
+                                                    disableSkeleton
                                                 />
                                             </div>
                                         </Col>

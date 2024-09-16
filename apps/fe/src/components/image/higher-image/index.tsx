@@ -15,6 +15,7 @@ export type HigherHeightImageProps = {
     reverse?: boolean;
     quality?: number;
     environmentNames?: string[];
+    disableSkeleton?: boolean;
 };
 
 const isBase64Image = (url: string) => {
@@ -41,6 +42,7 @@ export function HigherHeightImage({
     style,
     quality = 75,
     environmentNames = ['giang04', 'techcell', 'gcp-1408'],
+    disableSkeleton = false, // Default to false to maintain current behavior
 }: HigherHeightImageProps) {
     const [showImage1, setShowImage1] = useState(true);
     const [currentUrl1, setCurrentUrl1] = useState(url1);
@@ -187,7 +189,7 @@ export function HigherHeightImage({
 
     return (
         <>
-            {isLoading && (
+            {isLoading && !disableSkeleton && (
                 <Skeleton.Image
                     active={isLoading}
                     style={{
