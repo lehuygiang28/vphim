@@ -3,18 +3,11 @@
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 
-import { CSSProperties, useRef, useState, useEffect } from 'react';
+import { CSSProperties, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Layout } from 'antd';
-import {
-    MediaPlayer,
-    MediaPlayerInstance,
-    MediaProvider,
-    Poster,
-    useMediaStore,
-    ChapterTitle,
-} from '@vidstack/react';
+import { MediaPlayer, MediaPlayerInstance, MediaProvider, ChapterTitle } from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { vietnameseLayoutTranslations } from './translate';
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
@@ -60,16 +53,7 @@ const playerStyle: CSSProperties = {
 
 export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const player = useRef<MediaPlayerInstance>(null);
-    const { paused } = useMediaStore(player);
-    const [initialLoad, setInitialLoad] = useState(true);
     const { host } = useCurrentUrl();
-
-    useEffect(() => {
-        if (!paused) {
-            setInitialLoad(false);
-        }
-    }, [paused]);
-
     return (
         <Layout style={containerStyle}>
             <Content>
@@ -79,19 +63,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                     playsInline
                     style={{ ...playerStyle }}
                 >
-                    <MediaProvider>
-                        {searchParams?.poster && initialLoad && (
-                            <Poster asChild>
-                                <Image
-                                    src={searchParams.poster}
-                                    alt="Video poster"
-                                    fill
-                                    quality={100}
-                                    priority
-                                />
-                            </Poster>
-                        )}
-                    </MediaProvider>
+                    <MediaProvider></MediaProvider>
                     <DefaultVideoLayout
                         icons={defaultLayoutIcons}
                         translations={
