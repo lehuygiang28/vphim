@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip } from 'antd';
+import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb, Divider } from 'antd';
 import { useOne, useUpdate } from '@refinedev/core';
 import { MovieType } from 'apps/api/src/app/movies/movie.type';
 import {
@@ -9,6 +9,7 @@ import {
     EyeOutlined,
     HeartFilled,
     HeartOutlined,
+    HomeOutlined,
     PlayCircleOutlined,
 } from '@ant-design/icons';
 
@@ -238,16 +239,35 @@ export function Movie({ slug }: MovieProps) {
                     width: '100%',
                 }}
             >
+                <Breadcrumb
+                    style={{ marginBottom: '1rem' }}
+                    items={[
+                        {
+                            title: (
+                                <Link href={'/'}>
+                                    <HomeOutlined style={{ marginRight: '0.5rem' }} />
+                                    Trang chủ
+                                </Link>
+                            ),
+                        },
+                        {
+                            title: <Link href={'/phim'}>Phim</Link>,
+                        },
+                        {
+                            title: <Link href={`/phim/${movie?.slug}`}>{movie?.name}</Link>,
+                        },
+                    ]}
+                />
                 <Row
                     justify="center"
-                    align={md ? 'middle' : 'top'}
-                    style={{ width: '100%', height: '100%', minHeight: '36vh' }}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minHeight: md ? '36vh' : '22vh',
+                    }}
+                    gutter={[16, 16]}
                 >
-                    <Col
-                        xs={{ span: 10, order: 1 }}
-                        md={{ span: 6, order: 2 }}
-                        style={{ width: '100%', height: '100%' }}
-                    >
+                    <Col xs={{ span: 10, order: 1 }} md={{ span: 6, order: 2 }}>
                         <div
                             style={{
                                 display: 'flex',
@@ -263,7 +283,7 @@ export function Movie({ slug }: MovieProps) {
                             {(movie?.thumbUrl || movie?.posterUrl) && (
                                 <div
                                     style={{
-                                        height: md ? '60vh' : '36vh',
+                                        height: '100%',
                                     }}
                                 >
                                     <HigherHeightImage
@@ -297,7 +317,6 @@ export function Movie({ slug }: MovieProps) {
                                 padding: '0',
                                 color: '#fff',
                                 textAlign: 'left',
-                                marginTop: md ? undefined : '5rem',
                             }}
                             className="textContent"
                         >

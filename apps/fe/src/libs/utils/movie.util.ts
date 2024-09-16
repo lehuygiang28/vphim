@@ -1,3 +1,4 @@
+import { canParseToNumber } from './common';
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 export function getFirstEpisodeSlug(movie?: MovieType): string {
@@ -14,4 +15,29 @@ export function getFirstEpisodeSlug(movie?: MovieType): string {
     }
 
     return 'trailer';
+}
+
+export function getEpisodeNameBySlug(movie: MovieType, slug: string): string {
+    if (!movie) {
+        return 'Trailer';
+    }
+
+    if (movie?.episode && movie?.episode?.length > 0) {
+        if (slug) {
+            for (const episode of movie.episode) {
+                if (episode.serverData && episode.serverData.length > 0) {
+                    for (const server of episode.serverData) {
+                        if (server.slug === slug) {
+                            const name = canParseToNumber(server.name)
+                                ? `Tập ${server.name}`
+                                : server.name;
+                            return name;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return 'Trailer';
 }

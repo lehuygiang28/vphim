@@ -49,3 +49,7 @@ export function getEpisodesWithMaxServerDataLength(movie: MovieType): EpisodeTyp
 export const removeLeadingTrailingSlashes = (route: string) => {
     return route.replace(/^\/|\/$/g, '');
 };
+
+export function canParseToNumber(value: string): boolean {
+    return !isNaN(Number(value?.trim()));
+}

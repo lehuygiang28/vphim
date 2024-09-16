@@ -59,9 +59,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
 
     return (
         <>
-            <Title level={4}>
-                {movie?.name} - {selectedEpisode?.name}
-            </Title>
             <div
                 style={{
                     position: 'relative',

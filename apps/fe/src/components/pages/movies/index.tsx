@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Divider, Space, Typography, Breadcrumb, List, Grid, Empty } from 'antd';
@@ -16,7 +16,7 @@ const { Title } = Typography;
 const { useBreakpoint } = Grid;
 
 export type MoviePageProps = {
-    breadcrumbs: { label: string; url?: string }[];
+    breadcrumbs: { label: string | ReactNode; url?: string }[];
 };
 
 export default function MoviePage({ breadcrumbs }: MoviePageProps) {
@@ -148,8 +148,8 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         <div style={{ width: '100%' }}>
             <Space direction="vertical" size={0} style={{ width: '100%' }}>
                 <Breadcrumb>
-                    {breadcrumbs.map((item) => (
-                        <Breadcrumb.Item key={item.label}>
+                    {breadcrumbs.map((item, index) => (
+                        <Breadcrumb.Item key={`breadcrumb-movies-page-${index}`}>
                             {item.url ? <Link href={item.url}>{item.label}</Link> : item.label}
                         </Breadcrumb.Item>
                     ))}
