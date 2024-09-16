@@ -52,7 +52,7 @@ export class MovieService {
         return new MovieResponseDto(movie);
     }
 
-    async getMovies(dto: GetMoviesDto) {
+    async getMovies(dto: GetMoviesDto, { deepSearch = false }: { deepSearch?: boolean } = {}) {
         const { resetCache } = dto;
         const cacheKey = `CACHED:MOVIES:${sortedStringify(dto)}`;
 
@@ -146,11 +146,16 @@ export class MovieService {
                 { originName: { $regex: keywordRegex } },
                 { content: { $regex: keywordRegex } },
                 { slug: { $regex: keywordRegex } },
-                { 'categories.name': { $regex: keywordRegex } },
-                { 'countries.name': { $regex: keywordRegex } },
-                { 'actors.name': { $regex: keywordRegex } },
-                { 'directors.name': { $regex: keywordRegex } },
             ];
+            if (deepSearch) {
+                match.$or = [
+                    ...match.$or,
+                    { 'categories.name': { $regex: keywordRegex } },
+                    { 'countries.name': { $regex: keywordRegex } },
+                    { 'actors.name': { $regex: keywordRegex } },
+                    { 'directors.name': { $regex: keywordRegex } },
+                ];
+            }
         }
 
         if (cinemaRelease !== undefined) {
