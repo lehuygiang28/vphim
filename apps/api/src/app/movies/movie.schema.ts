@@ -32,6 +32,28 @@ export class Episode {
     serverData: EpisodeServerData[];
 }
 
+export class TmdbSchema {
+    @Prop({ type: String, default: null })
+    type: 'tv' | 'movie' | null | string;
+
+    @Prop({ type: String, default: null })
+    id?: string;
+
+    @Prop({ type: Number, default: null })
+    season?: number | null;
+
+    @Prop({ type: Number, default: 0 })
+    vote_average?: number;
+
+    @Prop({ type: Number, default: 0 })
+    vote_count?: number;
+}
+
+export class ImdbSchema {
+    @Prop({ type: String, default: null })
+    id?: string;
+}
+
 @Schema({ timestamps: true, collection: 'movies' })
 export class Movie
     extends AbstractDocument
@@ -155,6 +177,14 @@ export class Movie
     @ApiProperty()
     @Prop({ type: Date, default: new Date() })
     lastSyncModified: Date;
+
+    @ApiProperty()
+    @Prop({ type: TmdbSchema, default: null, required: false })
+    tmdb?: TmdbSchema;
+
+    @ApiProperty()
+    @Prop({ type: ImdbSchema, default: null, required: false })
+    imdb?: ImdbSchema;
 }
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);

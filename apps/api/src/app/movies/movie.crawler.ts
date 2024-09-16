@@ -323,6 +323,8 @@ export class MovieCrawler implements OnModuleInit, OnModuleDestroy {
                         serverData,
                     };
                 }),
+                tmdb: movieDetail?.tmdb,
+                imdb: movieDetail?.imdb,
             };
 
             if (existingMovie) {

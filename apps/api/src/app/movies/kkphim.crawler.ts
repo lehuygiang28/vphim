@@ -297,8 +297,12 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 categories: categoryIds,
                 countries: countryIds,
                 directors: directorIds,
-                thumbUrl: resolveUrl(thumb_url, this.KKPHIM_IMG_HOST),
-                posterUrl: resolveUrl(poster_url, this.KKPHIM_IMG_HOST),
+
+                // With kkphim should reverse thumb and poster, because thumb should is vertical image
+                thumbUrl: resolveUrl(poster_url, this.KKPHIM_IMG_HOST),
+                posterUrl: resolveUrl(thumb_url, this.KKPHIM_IMG_HOST),
+                // With kkphim should reverse thumb and poster, because thumb should is vertical image
+
                 trailerUrl: trailer_url,
                 isCopyright: is_copyright,
                 originName: origin_name,
@@ -324,6 +328,8 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                         serverData,
                     };
                 }),
+                tmdb: movieDetail?.tmdb,
+                imdb: movieDetail?.imdb,
             };
 
             if (existingMovie) {
