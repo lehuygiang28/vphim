@@ -1,7 +1,7 @@
 'use client';
 
 import { PropsWithChildren } from 'react';
-import { Layout, Grid, BackTop } from 'antd';
+import { Layout, Grid, FloatButton } from 'antd';
 import Link from 'next/link';
 import { stringifyTableParams, useList } from '@refinedev/core';
 import { ArrowUpOutlined } from '@ant-design/icons';
@@ -16,6 +16,7 @@ import type { Region } from 'apps/api/src/app/regions/region.schema';
 import { RouteNameEnum } from '@/constants/route.constant';
 
 const { Content } = Layout;
+const { BackTop } = FloatButton;
 const { useBreakpoint } = Grid;
 
 export default function LayoutComp({ children }: PropsWithChildren) {
@@ -52,21 +53,7 @@ export default function LayoutComp({ children }: PropsWithChildren) {
                 overflowX: 'hidden',
             }}
         >
-            <BackTop>
-                <ArrowUpOutlined
-                    style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        borderRadius: '99%',
-                        height: md ? '2.5rem' : '2rem',
-                        width: md ? '2.5rem' : '2rem',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        display: 'flex',
-                        cursor: 'pointer',
-                        fontSize: '1.2rem',
-                    }}
-                />
-            </BackTop>
+            <BackTop />
             <Header
                 categoryMenu={categories?.data?.map((c) => ({
                     key: c.slug,
