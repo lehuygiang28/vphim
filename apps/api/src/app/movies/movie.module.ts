@@ -5,7 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { HttpModule } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { APP_GUARD } from '@nestjs/core';
 
@@ -21,6 +21,7 @@ import { MovieService } from './movie.service';
 import { MovieCrawler } from './movie.crawler';
 import { KKPhimCrawler } from './kkphim.crawler';
 import { MovieResolver } from './movie.resolver';
+import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
 
 @Module({
     imports: [
@@ -75,7 +76,7 @@ import { MovieResolver } from './movie.resolver';
     providers: [
         {
             provide: APP_GUARD,
-            useClass: ThrottlerGuard,
+            useClass: ThrottlerCustomGuard,
         },
         MovieResolver,
         MovieRepository,

@@ -1,4 +1,6 @@
 import { Resolver, Query, Args } from '@nestjs/graphql';
+import { SkipThrottle } from '@nestjs/throttler';
+
 import { MovieType } from './movie.type';
 import { MovieService } from './movie.service';
 import { GetMoviesInput } from './inputs/get-movies.input';
@@ -6,6 +8,7 @@ import { GetMovieInput } from './inputs/get-movie.input';
 import { GetMoviesOutput } from './outputs/get-movies.output';
 import { GetRatingOutput } from './outputs/get-rating.output';
 
+@SkipThrottle()
 @Resolver(() => MovieType)
 export class MovieResolver {
     constructor(private readonly movieService: MovieService) {}
