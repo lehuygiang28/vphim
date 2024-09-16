@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, PickType } from '@nestjs/graphql';
+import { ObjectType, Field, ID, OmitType } from '@nestjs/graphql';
 import { Types } from 'mongoose';
 import { AvatarDto, UserDto } from './dtos';
 import { BlockActivityLog, UserBlockSchema } from './schemas/block.schema';
@@ -38,7 +38,7 @@ export class AvatarType implements AvatarDto {
 }
 
 @ObjectType()
-export class MovieFollowType extends PickType(MovieType, ['slug', '_id', 'name']) {
+export class MovieFollowType extends OmitType(MovieType, []) {
     @Field(() => ID)
     _id: Types.ObjectId;
 

@@ -24,6 +24,25 @@ export const GET_OWN_FOLLOWING_MOVIES = gql`
     }
 `;
 
+export const GET_OWN_FOLLOWING_MOVIES_WITH_DETAILS = gql`
+    query GetMe {
+        getMe {
+            followMovies {
+                _id
+                name
+                originName
+                posterUrl
+                thumbUrl
+                episodeCurrent
+                slug
+                year
+                quality
+                content
+            }
+        }
+    }
+`;
+
 export const MUTATION_ME_QUERY = gql`
     mutation MutationMe($input: MutationMeInput!) {
         mutationMe(input: $input) {

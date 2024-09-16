@@ -116,7 +116,34 @@ type AvatarType {
 type MovieFollowType {
   _id: ID!
   name: String!
+  actors: [Actor!]
+  categories: [Category!]
+  cinemaRelease: Boolean
+  content: String
+  countries: [Region!]
+  createdAt: DateTime
+  directors: [Director!]
+  episode: [Episode!]
+  episodeCurrent: String!
+  episodeTotal: String!
+  isCopyright: Boolean!
+  lang: String
+  lastSyncModified: DateTime!
+  notify: String
+  originName: String
+  posterUrl: String!
+  quality: String
+  showtimes: String
   slug: String!
+  status: String!
+  subDocquyen: Boolean
+  thumbUrl: String!
+  time: String
+  trailerUrl: String
+  type: String!
+  updatedAt: DateTime
+  view: Float
+  year: Float
 }
 
 type UserType {

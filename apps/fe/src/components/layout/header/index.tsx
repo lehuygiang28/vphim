@@ -262,7 +262,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                                 },
                                 {
                                     key: '2',
-                                    label: <Link href={'/'}>Tủ phim</Link>,
+                                    label: <Link href={'/tu-phim'}>Tủ phim</Link>,
                                 },
                                 {
                                     key: '3',
