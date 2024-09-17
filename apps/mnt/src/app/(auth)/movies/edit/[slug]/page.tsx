@@ -1,9 +1,9 @@
 'use client';
 
+import { Spin } from 'antd';
 import { useForm } from '@refinedev/antd';
 import { Edit } from '@refinedev/antd';
 
-import Loading from '~mnt/app/loading';
 import { GET_FULL_MOVIE_DETAIL_QUERY } from '~mnt/queries/movie.query';
 import { MovieForm } from '~mnt/components/form/movie';
 import { MovieType } from '~api/app/movies/movie.type';
@@ -30,7 +30,7 @@ export default function Component({ params }: EditMoviePageProps) {
     });
 
     if (query?.isLoading) {
-        return <Loading />;
+        return <Spin fullscreen />;
     }
 
     return (
