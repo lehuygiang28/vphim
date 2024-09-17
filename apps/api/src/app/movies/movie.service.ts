@@ -6,11 +6,12 @@ import { createRegex } from '@vn-utils/text';
 import { MovieRepository } from './movie.repository';
 import { GetMoviesDto, MovieResponseDto } from './dtos';
 import { Movie } from './movie.schema';
-import { isNullOrUndefined, sortedStringify } from '../../libs/utils/common';
+import { convertToObjectId, isNullOrUndefined, sortedStringify } from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis/services';
 import { RatingResultType } from './rating-result.type';
 import { GetRatingOutput } from './outputs/get-rating.output';
 import { MovieType } from './movie.type';
+import { UpdateMovieInput } from './inputs/mutate-movie.input';
 
 @Injectable()
 export class MovieService {
@@ -256,6 +257,45 @@ export class MovieService {
             view: movie?.view || 0,
             newView: movieUpdated?.view || 0,
         };
+    }
+
+    async updateMovie(input: UpdateMovieInput): Promise<MovieType> {
+        const { _id, ...updateData } = input;
+        const { actors, categories, countries, directors, ...restUpdateData } = updateData;
+        const movieToUpdate: Partial<Movie> = { ...restUpdateData };
+
+        if (actors) {
+            movieToUpdate.actors = updateData.actors?.map((c) => convertToObjectId(c));
+        }
+        if (categories) {
+            movieToUpdate.categories = updateData.categories?.map((c) => convertToObjectId(c));
+        }
+        if (directors) {
+            movieToUpdate.directors = updateData.directors?.map((c) => convertToObjectId(c));
+        }
+        if (countries) {
+            movieToUpdate.countries = updateData.countries?.map((c) => convertToObjectId(c));
+        }
+
+        const updatedMovie = await this.movieRepo.findOneAndUpdateOrThrow({
+            filterQuery: { _id: convertToObjectId(_id) },
+            updateQuery: { $set: movieToUpdate },
+            queryOptions: {
+                new: true,
+                populate: [
+                    { path: 'actors' },
+                    { path: 'categories' },
+                    { path: 'countries' },
+                    { path: 'directors' },
+                ],
+            },
+        });
+
+        // Clear cache for this movie
+        const cacheKey = `CACHED:MOVIES:${updatedMovie.slug}`;
+        await this.redisService.del(cacheKey);
+
+        return new MovieType(updatedMovie as unknown as MovieType);
     }
 
     async getRating(movieSlug: string): Promise<GetRatingOutput> {

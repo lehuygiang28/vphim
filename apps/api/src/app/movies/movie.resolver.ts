@@ -1,4 +1,4 @@
-import { Resolver, Query, Args } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { SkipThrottle } from '@nestjs/throttler';
 
 import { MovieType } from './movie.type';
@@ -7,6 +7,7 @@ import { GetMoviesInput } from './inputs/get-movies.input';
 import { GetMovieInput } from './inputs/get-movie.input';
 import { GetMoviesOutput } from './outputs/get-movies.output';
 import { GetRatingOutput } from './outputs/get-rating.output';
+import { UpdateMovieInput } from './inputs/mutate-movie.input';
 
 @SkipThrottle()
 @Resolver(() => MovieType)
@@ -26,5 +27,10 @@ export class MovieResolver {
     @Query(() => GetMoviesOutput, { name: 'movies' })
     getMovies(@Args('input') input: GetMoviesInput) {
         return this.movieService.getMovies(input);
+    }
+
+    @Mutation(() => MovieType, { name: 'updateMovie' })
+    updateMovie(@Args('input') input: UpdateMovieInput) {
+        return this.movieService.updateMovie(input);
     }
 }

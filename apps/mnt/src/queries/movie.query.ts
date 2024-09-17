@@ -97,3 +97,11 @@ export const GET_FULL_MOVIE_DETAIL_QUERY = gql`
         }
     }
 `;
+
+export const MUTATION_UPDATE_MOVIE = gql`
+    mutation UpdateMovie($input: UpdateMovieInput!) {
+        updateMovie(input: $input) {
+            _id
+        }
+    }
+`;

@@ -91,9 +91,10 @@ export const graphqlDataProvider = (axios: AxiosInstance) => {
             const operation = meta?.operation ?? camelResource;
 
             const variablesClone = {
-                ...variables,
-                ...meta?.variables,
+                ...meta?.variables, // date to query here
+                ...variables, // data to update here
             };
+
             const {
                 data: { data: res },
             } = await axios.post<any>(baseUrl, {

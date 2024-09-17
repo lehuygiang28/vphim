@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, InputType } from '@nestjs/graphql';
 import { Types } from 'mongoose';
 
 import { Episode, EpisodeServerData, Movie } from './movie.schema';
@@ -7,6 +7,7 @@ import { CategoryType } from '../categories';
 import { RegionType } from '../regions/region.type';
 import { DirectorType } from '../directors/director.type';
 
+@InputType('EpisodeServerDataInputType')
 @ObjectType('EpisodeServerData')
 export class EpisodeServerDataType implements EpisodeServerData {
     @Field({ nullable: true })
@@ -25,6 +26,7 @@ export class EpisodeServerDataType implements EpisodeServerData {
     linkEmbed: string;
 }
 
+@InputType('EpisodeInputType')
 @ObjectType('Episode')
 export class EpisodeType implements Episode {
     @Field(() => [EpisodeServerDataType], { nullable: true })
@@ -34,6 +36,7 @@ export class EpisodeType implements Episode {
     serverName: string;
 }
 
+@InputType('TmdbInputType')
 @ObjectType()
 export class TmdbType {
     @Field({ nullable: true })
@@ -52,6 +55,7 @@ export class TmdbType {
     voteCount?: number;
 }
 
+@InputType('ImdbInputType')
 @ObjectType()
 export class ImdbType {
     @Field({ nullable: true })
