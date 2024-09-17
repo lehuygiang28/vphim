@@ -18,6 +18,11 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type GetActorsOutput {
+  data: [Actor!]!
+  total: Float!
+}
+
 type Category {
   _id: ID!
   name: String!
@@ -202,6 +207,7 @@ type Query {
   movie(input: GetMovieInput!): Movie!
   getRating(input: GetMovieInput!): GetRatingOutput!
   movies(input: GetMoviesInput!): GetMoviesOutput!
+  actors(input: GetActorsInput!): GetActorsOutput!
   categories(input: GetCategoriesInput!): GetCategoriesOutput!
   regions(input: GetRegionsInput!): GetRegionsOutput!
 }
@@ -228,9 +234,16 @@ input GetMoviesInput {
   status: String
 }
 
+input GetActorsInput {
+  limit: Float = 10
+  page: Float = 1
+  keywords: String
+}
+
 input GetCategoriesInput {
   limit: Float = 10
   page: Float = 1
+  keywords: String
 }
 
 input GetRegionsInput {

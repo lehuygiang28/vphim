@@ -7,6 +7,7 @@ import { Actor, ActorSchema } from './actor.schema';
 import { ActorRepository } from './actor.repository';
 import { ActorService } from './actor.service';
 import { ActorController } from './actor.controller';
+import { ActorResolver } from './actor.resolver';
 
 @Module({
     imports: [
@@ -15,7 +16,7 @@ import { ActorController } from './actor.controller';
         ScheduleModule.forRoot(),
     ],
     controllers: [ActorController],
-    providers: [ActorService, ActorRepository],
+    providers: [ActorResolver, ActorService, ActorRepository],
     exports: [ActorRepository],
 })
 export class ActorModule {}

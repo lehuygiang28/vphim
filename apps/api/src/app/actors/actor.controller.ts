@@ -14,7 +14,7 @@ export class ActorController {
 
     @Get('/')
     async getActor() {
-        return this.actorService.getActor();
+        return this.actorService.getActors();
     }
 
     @Patch('/:slug')

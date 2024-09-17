@@ -63,8 +63,8 @@ import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
                     throttlers: [
                         {
                             name: 'default',
-                            ttl: configService.get('THROTTLE_TTL') || 1000 * 60,
-                            limit: configService.get('THROTTLE_LIMIT') || 10,
+                            ttl: configService.get('THROTTLE_TTL') || 1,
+                            limit: configService.get('THROTTLE_LIMIT') || 1,
                         },
                     ],
                     storage: new ThrottlerStorageRedisService(redisService.getClient),
