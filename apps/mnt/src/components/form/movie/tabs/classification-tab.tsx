@@ -8,6 +8,7 @@ import { DirectorType } from '~api/app/directors/director.type';
 import { RegionType } from '~api/app/regions/region.type';
 import { GET_ACTOR_LIST_QUERY } from '~mnt/queries/actor.query';
 import { MNT_CATEGORIES_LIST_QUERY } from '~mnt/queries/category.query';
+import { GET_DIRECTOR_LIST_QUERY } from '~mnt/queries/director.query';
 import { MNT_REGIONS_LIST_QUERY } from '~mnt/queries/region.query';
 
 const { Option } = Select;
@@ -105,6 +106,29 @@ export function ClassificationTab({
         },
     });
 
+    const {
+        data: directorsData,
+        refetch: refetchDirectors,
+        isLoading: isDirectorsLoading,
+    } = useList<DirectorType>({
+        dataProviderName: 'graphql',
+        resource: 'directors',
+        meta: {
+            gqlQuery: GET_DIRECTOR_LIST_QUERY,
+            operation: 'directors',
+        },
+        filters: [
+            {
+                field: 'keywords',
+                operator: 'contains',
+                value: debouncedDirectorSearch,
+            },
+        ],
+        pagination: {
+            pageSize: 20,
+        },
+    });
+
     const handleActorSearch = (value: string) => {
         setActorSearch(value);
     };
@@ -134,6 +158,10 @@ export function ClassificationTab({
     }, [debouncedCountrySearch, refetchCountries]);
 
     useEffect(() => {
+        refetchDirectors();
+    }, [debouncedDirectorSearch, refetchDirectors]);
+
+    useEffect(() => {
         if (defaultActors) {
             formProps?.form.setFieldsValue({
                 actors: defaultActors.map((actor: ActorType) => actor._id?.toString()),
@@ -158,6 +186,16 @@ export function ClassificationTab({
             });
         }
     }, [defaultCountries, formProps]);
+
+    useEffect(() => {
+        if (defaultDirectors) {
+            formProps?.form.setFieldsValue({
+                directors: defaultDirectors.map((director: DirectorType) =>
+                    director._id?.toString(),
+                ),
+            });
+        }
+    }, [defaultDirectors, formProps]);
 
     return (
         <Card title="Classification" style={{ marginTop: 16 }} bordered={false}>
@@ -185,6 +223,34 @@ export function ClassificationTab({
                                 label={`${actor.name} (${actor.slug})`}
                             >
                                 {`${actor.name} (${actor.slug})`}
+                            </Option>
+                        ))}
+                </Select>
+            </Form.Item>
+
+            <Form.Item name="directors" label="Directors">
+                <Select
+                    mode="multiple"
+                    placeholder="Search for directors"
+                    defaultActiveFirstOption={false}
+                    suffixIcon={null}
+                    filterOption={false}
+                    onSearch={handleDirectorSearch}
+                    loading={isDirectorsLoading}
+                    onChange={(values) => formProps?.form.setFieldsValue({ directors: values })}
+                >
+                    {[...(defaultDirectors || []), ...(directorsData?.data || [])]
+                        .filter(
+                            (director, index, self) =>
+                                index === self.findIndex((t) => t._id === director._id),
+                        )
+                        .map((director: DirectorType) => (
+                            <Option
+                                key={director._id?.toString()}
+                                value={director._id?.toString()}
+                                label={`${director.name} (${director.slug})`}
+                            >
+                                {`${director.name} (${director.slug})`}
                             </Option>
                         ))}
                 </Select>

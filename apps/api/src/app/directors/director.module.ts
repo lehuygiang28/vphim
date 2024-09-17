@@ -7,6 +7,7 @@ import { Director, DirectorSchema } from './director.schema';
 import { DirectorRepository } from './director.repository';
 import { DirectorService } from './director.service';
 import { DirectorController } from './director.controller';
+import { DirectorResolver } from './director.resolver';
 
 @Module({
     imports: [
@@ -15,7 +16,7 @@ import { DirectorController } from './director.controller';
         ScheduleModule.forRoot(),
     ],
     controllers: [DirectorController],
-    providers: [DirectorService, DirectorRepository],
+    providers: [DirectorResolver, DirectorService, DirectorRepository],
     exports: [DirectorRepository],
 })
 export class DirectorModule {}

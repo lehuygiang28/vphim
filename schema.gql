@@ -181,6 +181,11 @@ type UserType {
   followMovies: [MovieFollowType!]
 }
 
+type GetDirectorsOutput {
+  data: [Director!]!
+  total: Float!
+}
+
 type GetRegionsOutput {
   data: [Region!]!
   total: Float!
@@ -234,6 +239,7 @@ type Query {
   movies(input: GetMoviesInput!): GetMoviesOutput!
   actors(input: GetActorsInput!): GetActorsOutput!
   categories(input: GetCategoriesInput!): GetCategoriesOutput!
+  directors(input: GetDirectorsInput!): GetDirectorsOutput!
   regions(input: GetRegionsInput!): GetRegionsOutput!
 }
 
@@ -266,6 +272,12 @@ input GetActorsInput {
 }
 
 input GetCategoriesInput {
+  limit: Float = 10
+  page: Float = 1
+  keywords: String
+}
+
+input GetDirectorsInput {
   limit: Float = 10
   page: Float = 1
   keywords: String
