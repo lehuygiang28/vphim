@@ -8,7 +8,6 @@ import { useGetIdentity } from '@refinedev/core';
 import { ThemedLayoutV2, ThemedSiderV2 } from '@refinedev/antd';
 
 import { ColorModeContext } from '~fe/contexts/color-mode';
-import { UserRoleEnum } from '~api/app/users/users.enum';
 import { type UserType } from '~api/app/users/user.type';
 
 const { Text } = Typography;
@@ -22,8 +21,8 @@ function CustomSider({ mode, user }: { mode: string; user: UserType }) {
                         <Image
                             src={'/assets/images/logo-mini.png'}
                             alt="logo tasktr"
-                            width={100}
-                            height={30}
+                            width={70}
+                            height={20}
                         />
                     </Link>
                 </>
@@ -32,10 +31,6 @@ function CustomSider({ mode, user }: { mode: string; user: UserType }) {
                 return (
                     <>
                         {items.map((item, index) => {
-                            if (item.key.includes('admin') && user?.role !== UserRoleEnum.Admin) {
-                                return <Fragment key={`${item.key}_${index}`}></Fragment>;
-                            }
-
                             return <Fragment key={`${item.key}_${index}`}>{item}</Fragment>;
                         })}
                         {logout}

@@ -79,7 +79,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             {props.children}
                             <ReactQueryDevtools
                                 initialIsOpen={false}
-                                buttonPosition="bottom-left"
+                                buttonPosition="bottom-right"
                             />
                             <RefineKbar />
                         </Refine>
