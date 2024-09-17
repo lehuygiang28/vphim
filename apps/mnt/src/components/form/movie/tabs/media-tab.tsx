@@ -1,6 +1,6 @@
-import { UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Form, FormProps, Input, Upload, Image, message } from 'antd';
-import { useState } from 'react';
+import { UploadOutlined, UndoOutlined } from '@ant-design/icons';
+import { Button, Card, Form, FormProps, Input, Upload, Image, message, Space } from 'antd';
+import { useState, useEffect } from 'react';
 import { useApiUrl } from '@refinedev/core';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 
@@ -17,6 +17,19 @@ export function MediaTab({ formProps }: MediaTabProps) {
 
     const [isPostLoading, setIsPostLoading] = useState(false);
     const [isThumbLoading, setIsThumbLoading] = useState(false);
+    const [posterUrl, setPosterUrl] = useState('');
+    const [thumbUrl, setThumbUrl] = useState('');
+    const [defaultPosterUrl, setDefaultPosterUrl] = useState('');
+    const [defaultThumbUrl, setDefaultThumbUrl] = useState('');
+
+    useEffect(() => {
+        const initialPosterUrl = formProps.form?.getFieldValue('posterUrl') || '';
+        const initialThumbUrl = formProps.form?.getFieldValue('thumbUrl') || '';
+        setPosterUrl(initialPosterUrl);
+        setThumbUrl(initialThumbUrl);
+        setDefaultPosterUrl(initialPosterUrl);
+        setDefaultThumbUrl(initialThumbUrl);
+    }, [formProps.form]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customUpload = async (options: any, type: 'poster' | 'thumb') => {
@@ -36,9 +49,15 @@ export function MediaTab({ formProps }: MediaTabProps) {
 
             if (response.data && response.data[0] && response.data[0].url) {
                 onSuccess(response, file);
+                const newUrl = response.data[0].url;
                 formProps.form?.setFieldsValue({
-                    [type === 'poster' ? 'posterUrl' : 'thumbUrl']: response.data[0].url,
+                    [type === 'poster' ? 'posterUrl' : 'thumbUrl']: newUrl,
                 });
+                if (type === 'poster') {
+                    setPosterUrl(newUrl);
+                } else {
+                    setThumbUrl(newUrl);
+                }
             } else {
                 throw new Error('Invalid response format');
             }
@@ -63,47 +82,87 @@ export function MediaTab({ formProps }: MediaTabProps) {
         return isAllowedType && isLessThan10MB;
     };
 
+    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'poster' | 'thumb') => {
+        const newUrl = e.target.value;
+        if (type === 'poster') {
+            setPosterUrl(newUrl);
+        } else {
+            setThumbUrl(newUrl);
+        }
+        formProps.form?.setFieldsValue({
+            [type === 'poster' ? 'posterUrl' : 'thumbUrl']: newUrl,
+        });
+    };
+
+    const restoreDefaultImage = (type: 'poster' | 'thumb') => {
+        const defaultUrl = type === 'poster' ? defaultPosterUrl : defaultThumbUrl;
+        if (type === 'poster') {
+            setPosterUrl(defaultUrl);
+        } else {
+            setThumbUrl(defaultUrl);
+        }
+        formProps.form?.setFieldsValue({
+            [type === 'poster' ? 'posterUrl' : 'thumbUrl']: defaultUrl,
+        });
+    };
+
     return (
         <Card title="Media" bordered={false}>
             <Form.Item label="Poster URL" name="posterUrl">
-                <Input />
+                <Input onChange={(e) => handleUrlChange(e, 'poster')} />
             </Form.Item>
             <Form.Item>
-                <Upload
-                    customRequest={(options) => customUpload(options, 'poster')}
-                    showUploadList={false}
-                    beforeUpload={beforeUpload}
-                    accept="image/*"
-                >
-                    <Button icon={<UploadOutlined />} loading={isPostLoading}>
-                        Upload Poster
-                    </Button>
-                </Upload>
+                <Space>
+                    <Upload
+                        customRequest={(options) => customUpload(options, 'poster')}
+                        showUploadList={false}
+                        beforeUpload={beforeUpload}
+                        accept="image/*"
+                    >
+                        <Button icon={<UploadOutlined />} loading={isPostLoading}>
+                            Upload Poster
+                        </Button>
+                    </Upload>
+                    {posterUrl !== defaultPosterUrl && (
+                        <Button
+                            icon={<UndoOutlined />}
+                            onClick={() => restoreDefaultImage('poster')}
+                        >
+                            Restore Default
+                        </Button>
+                    )}
+                </Space>
             </Form.Item>
             <Form.Item label="Poster Preview">
-                {formProps.form?.getFieldValue('posterUrl') && (
-                    <Image src={formProps.form?.getFieldValue('posterUrl')} alt="Movie Poster" />
-                )}
+                {posterUrl && <Image src={posterUrl} alt="Movie Poster" />}
             </Form.Item>
             <Form.Item label="Thumb URL" name="thumbUrl">
-                <Input />
+                <Input onChange={(e) => handleUrlChange(e, 'thumb')} />
             </Form.Item>
             <Form.Item>
-                <Upload
-                    customRequest={(options) => customUpload(options, 'thumb')}
-                    showUploadList={false}
-                    beforeUpload={beforeUpload}
-                    accept="image/*"
-                >
-                    <Button icon={<UploadOutlined />} loading={isThumbLoading}>
-                        Upload Thumb
-                    </Button>
-                </Upload>
+                <Space>
+                    <Upload
+                        customRequest={(options) => customUpload(options, 'thumb')}
+                        showUploadList={false}
+                        beforeUpload={beforeUpload}
+                        accept="image/*"
+                    >
+                        <Button icon={<UploadOutlined />} loading={isThumbLoading}>
+                            Upload Thumb
+                        </Button>
+                    </Upload>
+                    {thumbUrl !== defaultThumbUrl && (
+                        <Button
+                            icon={<UndoOutlined />}
+                            onClick={() => restoreDefaultImage('thumb')}
+                        >
+                            Restore Default
+                        </Button>
+                    )}
+                </Space>
             </Form.Item>
             <Form.Item label="Thumb Preview">
-                {formProps.form?.getFieldValue('thumbUrl') && (
-                    <Image src={formProps.form?.getFieldValue('thumbUrl')} alt="Movie Thumb" />
-                )}
+                {thumbUrl && <Image src={thumbUrl} alt="Movie Thumb" />}
             </Form.Item>
         </Card>
     );
