@@ -3,6 +3,9 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { RegionRepository } from './region.repository';
 import { UpdateRegionDto } from './dtos';
 import { GetRegionsInput } from './inputs';
+import { Region } from './region.schema';
+import { FilterQuery } from 'mongoose';
+import { createRegex } from '@vn-utils/text';
 
 @Injectable()
 export class RegionsService {
@@ -13,9 +16,17 @@ export class RegionsService {
     }
 
     async getRegions(query?: GetRegionsInput) {
+        const { keywords } = query;
+        const filters: FilterQuery<Region> = {};
+
+        if (keywords) {
+            const regex = createRegex(keywords);
+            filters.$or = [{ name: regex }, { slug: regex }, { content: regex }];
+        }
+
         const [regions, total] = await Promise.all([
-            this.regionsRepo.find({ filterQuery: {}, query }),
-            this.regionsRepo.count({ filterQuery: {} }),
+            this.regionsRepo.find({ filterQuery: filters, query }),
+            this.regionsRepo.count(filters),
         ]);
 
         return {

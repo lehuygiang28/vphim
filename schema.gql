@@ -202,6 +202,31 @@ type GetRatingOutput {
   tmdb: RatingResultType
 }
 
+input EpisodeServerDataInputType {
+  slug: String
+  name: String
+  filename: String
+  linkM3u8: String
+  linkEmbed: String
+}
+
+input EpisodeInputType {
+  serverData: [EpisodeServerDataInputType!]
+  serverName: String
+}
+
+input TmdbInputType {
+  type: String
+  id: String
+  season: Float
+  voteAverage: Float
+  voteCount: Float
+}
+
+input ImdbInputType {
+  id: String
+}
+
 type Query {
   getMe: UserType!
   movie(input: GetMovieInput!): Movie!
@@ -249,12 +274,14 @@ input GetCategoriesInput {
 input GetRegionsInput {
   limit: Float = 10
   page: Float = 1
+  keywords: String
 }
 
 type Mutation {
   mutationMe(input: MutationMeInput!): UserType!
   followMovie(input: MutationFollowMovieInput!): UserType!
   unfollowMovie(input: MutationUnfollowMovieInput!): UserType!
+  updateMovie(input: UpdateMovieInput!): Movie!
   updateRegion(slug: String!, input: UpdateRegionInput!): Region!
 }
 
@@ -273,6 +300,37 @@ input MutationFollowMovieInput {
 
 input MutationUnfollowMovieInput {
   movieSlug: String!
+}
+
+input UpdateMovieInput {
+  _id: ID!
+  name: String
+  actors: [ID!]
+  categories: [ID!]
+  cinemaRelease: Boolean
+  content: String
+  countries: [ID!]
+  directors: [ID!]
+  episodeCurrent: String
+  episodeTotal: String
+  isCopyright: Boolean
+  lang: String
+  notify: String
+  originName: String
+  posterUrl: String
+  quality: String
+  showtimes: String
+  slug: String
+  status: String
+  subDocquyen: Boolean
+  thumbUrl: String
+  time: String
+  trailerUrl: String
+  type: String
+  year: Float
+  episode: [EpisodeInputType!]
+  imdb: ImdbInputType
+  tmdb: TmdbInputType
 }
 
 input UpdateRegionInput {
