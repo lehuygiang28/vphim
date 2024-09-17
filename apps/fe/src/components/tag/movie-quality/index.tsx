@@ -13,6 +13,9 @@ export function MovieQualityTag({ quality, style, children }: MovieQualityTagPro
         case 'HD':
         case 'FHD':
         case 'FULL HD':
+        case 'FULLHD':
+        case 'HD 720P':
+        case '^HD':
             color = 'green';
             break;
         case 'SD':
@@ -22,6 +25,7 @@ export function MovieQualityTag({ quality, style, children }: MovieQualityTagPro
             color = 'red';
             break;
         case 'CAM':
+        case '360p':
             color = 'orange';
             break;
         default:
@@ -31,7 +35,7 @@ export function MovieQualityTag({ quality, style, children }: MovieQualityTagPro
 
     return (
         <Tag color={color} style={style}>
-            {quality.toUpperCase()}
+            {quality.toUpperCase() || 'N/A'}
             {children}
         </Tag>
     );
