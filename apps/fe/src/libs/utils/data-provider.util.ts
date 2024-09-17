@@ -28,9 +28,11 @@ export function handleFilter(
 export function handleSort(searchParams: URLSearchParams, sorters?: CrudSort | CrudSort[]) {
     if (sorters) {
         if (Array.isArray(sorters)) {
-            if (sorters[0]?.field && sorters[0]?.order) {
-                searchParams.set('sortBy', String(sorters[0]?.field));
-                searchParams.set('sortOrder', String(sorters[0]?.order));
+            const sortBy = sorters?.map((sorter) => sorter.field).join(',');
+            const sortOrder = sorters?.map((sorter) => sorter.order).join(',');
+            if (sortBy && sortOrder) {
+                searchParams.set('sortBy', sortBy);
+                searchParams.set('sortOrder', sortOrder);
             }
         } else if (sorters.field && sorters.order) {
             searchParams.set('sortBy', sorters.field);
@@ -69,10 +71,9 @@ export function handleSortQuery(sorters?: CrudSort | CrudSort[]):
     if (!sorters) return {};
 
     if (Array.isArray(sorters)) {
-        const firstSorter = sorters[0];
-        return firstSorter && firstSorter.field && firstSorter.order
-            ? { sortBy: firstSorter.field, sortOrder: firstSorter.order }
-            : {};
+        const sortBy = sorters.map((sorter) => sorter.field).join(',');
+        const sortOrder = sorters.map((sorter) => sorter.order).join(',');
+        return sortBy && sortOrder ? { sortBy, sortOrder } : {};
     }
 
     return sorters && sorters.field && sorters.order
