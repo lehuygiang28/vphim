@@ -8,6 +8,7 @@ import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@refinedev/antd/dist/reset.css';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { PlaySquareOutlined } from '@ant-design/icons';
 
 import { ColorModeContextProvider } from '~fe/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
@@ -61,8 +62,12 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     name: 'movies',
                                     list: '/movies',
                                     create: '/movies/create',
-                                    show: '/movies/show/:slug',
-                                    edit: '/movies/edit/:slug',
+                                    show: '/movies/show/:id',
+                                    edit: '/movies/edit/:id',
+                                    meta: {
+                                        icon: <PlaySquareOutlined />,
+                                        canDelete: true,
+                                    },
                                 },
                             ]}
                             options={{
