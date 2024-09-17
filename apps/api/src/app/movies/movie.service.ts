@@ -10,6 +10,7 @@ import { isNullOrUndefined, sortedStringify } from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis/services';
 import { RatingResultType } from './rating-result.type';
 import { GetRatingOutput } from './outputs/get-rating.output';
+import { MovieType } from './movie.type';
 
 @Injectable()
 export class MovieService {
@@ -59,10 +60,10 @@ export class MovieService {
         if (resetCache) {
             await this.redisService.del(cacheKey);
         } else {
-            const fromCache = await this.redisService.get(cacheKey);
+            const fromCache = await this.redisService.get<MovieType>(cacheKey);
             if (fromCache) {
                 this.logger.debug(`CACHE: ${cacheKey}`);
-                return fromCache;
+                return new MovieType(fromCache);
             }
         }
 
@@ -80,6 +81,7 @@ export class MovieService {
             page = 1,
             sortBy = 'year',
             sortOrder = 'asc',
+            status,
         } = dto;
 
         const pipeline: PipelineStage[] = [
@@ -170,6 +172,10 @@ export class MovieService {
             match.type = type;
         }
 
+        if (status) {
+            match.status = status;
+        }
+
         if (years) {
             match.year = {
                 $in: years
@@ -198,11 +204,20 @@ export class MovieService {
 
         pipeline.push({ $match: match });
 
+        // Handle multi-field sorting
+        const sortFields = sortBy.split(',');
+        const sortOrders = sortOrder.split(',');
+        const sortStage: Record<string, 1 | -1> = {};
+        sortFields.forEach((field, index) => {
+            const order = sortOrders[index] || sortOrders[sortOrders.length - 1];
+            sortStage[field.trim()] = order.toLowerCase() === 'asc' ? 1 : -1;
+        });
+
         pipeline.push(
             {
                 $facet: {
                     movies: [
-                        { $sort: { [sortBy]: sortOrder === 'asc' ? 1 : -1 } },
+                        { $sort: sortStage },
                         { $skip: (page - 1) * limit },
                         { $limit: Number(limit) },
                         { $project: { __v: 0, episode: 0 } },

@@ -189,14 +189,15 @@ export class Movie
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);
 
-MovieSchema.index({
-    name: 'text',
-    originName: 'text',
-    content: 'text',
-    slug: 'text',
-    view: -1,
-    year: -1,
-});
+MovieSchema.index(
+    { view: -1, year: -1, updatedAt: -1, lastSyncModified: -1, status: -1 },
+    { name: 'movie_number_index' },
+);
+MovieSchema.index({ view: -1 }, { name: 'movie_view_index' });
+MovieSchema.index({ year: -1 }, { name: 'movie_year_index' });
+MovieSchema.index({ status: -1 }, { name: 'movie_status_index' });
+MovieSchema.index({ updatedAt: -1 }, { name: 'movie_updatedAt_index' });
+MovieSchema.index({ lastSyncModified: -1 }, { name: 'movie_lastSyncModified_index' });
 
 MovieSchema.pre('save', function () {
     this.set({ updatedAt: new Date(), createdAt: new Date() });

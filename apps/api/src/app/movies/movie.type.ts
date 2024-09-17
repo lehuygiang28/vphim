@@ -62,6 +62,13 @@ export class ImdbType {
 export class MovieType
     implements Omit<Movie, 'actors' | 'categories' | 'countries' | 'directors' | 'tmdb' | 'imdb'>
 {
+    constructor(movie: MovieType) {
+        Object.assign(this, movie);
+        this.updatedAt = movie?.updatedAt ? new Date(movie?.updatedAt) : null;
+        this.createdAt = movie?.createdAt ? new Date(movie?.createdAt) : null;
+        this.lastSyncModified = new Date(movie?.lastSyncModified);
+    }
+
     @Field(() => ID)
     _id: Types.ObjectId;
 

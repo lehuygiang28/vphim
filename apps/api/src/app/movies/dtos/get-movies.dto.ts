@@ -8,7 +8,7 @@ import { isTrue } from 'apps/api/src/libs/utils/common';
 
 export class GetMoviesDto extends IntersectionType(
     PaginationRequestDto,
-    PickType(PartialType(Movie), ['cinemaRelease', 'isCopyright', 'slug', 'type']),
+    PickType(PartialType(Movie), ['cinemaRelease', 'isCopyright', 'slug', 'type', 'status']),
 ) {
     @ApiPropertyOptional({ example: 'One piece' })
     @IsOptional()

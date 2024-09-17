@@ -10,3 +10,16 @@ export enum MovieStatusEnum {
     TRAILER = 'trailer',
     COMPLETED = 'completed',
 }
+
+export enum MovieQualityEnum {
+    HD = 'HD',
+    FHD = 'FHD',
+    FULL_HD = 'FULL HD',
+    FULLHD = 'FULLHD',
+    HD_720P = 'HD 720P',
+    _HD = '^HD',
+    SD = 'SD',
+    _4K = '4K',
+    CAM = 'CAM',
+    _360P = '360p',
+}

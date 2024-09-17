@@ -225,6 +225,7 @@ input GetMoviesInput {
   type: String
   years: String
   resetCache: Boolean
+  status: String
 }
 
 input GetCategoriesInput {
