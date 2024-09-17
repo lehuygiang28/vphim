@@ -1,5 +1,34 @@
 import gql from 'graphql-tag';
 
+export const MNT_MOVIE_LIST_QUERY = gql`
+    query GetMovies($input: GetMoviesInput!) {
+        movies(input: $input) {
+            data {
+                _id
+                name
+                originName
+                thumbUrl
+                episodeCurrent
+                slug
+                year
+                quality
+                type
+                status
+                view
+                imdb {
+                    id
+                }
+                tmdb {
+                    id
+                    type
+                }
+                updatedAt
+            }
+            total
+        }
+    }
+`;
+
 export const GET_FULL_MOVIE_DETAIL_QUERY = gql`
     query GetMovie($input: GetMovieInput!) {
         movie(input: $input) {
