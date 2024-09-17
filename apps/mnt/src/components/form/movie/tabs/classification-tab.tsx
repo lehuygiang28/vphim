@@ -1,26 +1,40 @@
 import { useList } from '@refinedev/core';
-import { Card, Form, Select } from 'antd';
+import { Card, Form, FormProps, Select } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import { ActorType } from '~api/app/actors';
 import { CategoryType } from '~api/app/categories';
+import { DirectorType } from '~api/app/directors/director.type';
+import { RegionType } from '~api/app/regions/region.type';
 import { GET_ACTOR_LIST_QUERY } from '~mnt/queries/actor.query';
 import { MNT_CATEGORIES_LIST_QUERY } from '~mnt/queries/category.query';
+import { MNT_REGIONS_LIST_QUERY } from '~mnt/queries/region.query';
 
 const { Option } = Select;
 
 export type ClassificationTabProps = {
-    defaultActors: ActorType[];
-    defaultCategories: CategoryType[];
+    formProps: FormProps<unknown>;
+    defaultActors?: ActorType[];
+    defaultCategories?: CategoryType[];
+    defaultCountries?: RegionType[];
+    defaultDirectors?: DirectorType[];
 };
 
-export function ClassificationTab({ defaultActors, defaultCategories }: ClassificationTabProps) {
+export function ClassificationTab({
+    formProps,
+    defaultActors,
+    defaultCategories,
+    defaultCountries,
+    defaultDirectors,
+}: ClassificationTabProps) {
     const [actorSearch, setActorSearch] = useState('');
     const [categorySearch, setCategorySearch] = useState('');
+    const [countrySearch, setCountrySearch] = useState('');
+    const [directorSearch, setDirectorSearch] = useState('');
     const [debouncedActorSearch] = useDebounce(actorSearch, 300);
     const [debouncedCategorySearch] = useDebounce(categorySearch, 300);
-    const [selectedActors, setSelectedActors] = useState<string[]>([]);
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [debouncedCountrySearch] = useDebounce(countrySearch, 300);
+    const [debouncedDirectorSearch] = useDebounce(directorSearch, 300);
 
     const {
         data: actorsData,
@@ -68,12 +82,43 @@ export function ClassificationTab({ defaultActors, defaultCategories }: Classifi
         },
     });
 
+    const {
+        data: countriesData,
+        refetch: refetchCountries,
+        isLoading: isCountriesLoading,
+    } = useList<RegionType>({
+        dataProviderName: 'graphql',
+        resource: 'regions',
+        meta: {
+            gqlQuery: MNT_REGIONS_LIST_QUERY,
+            operation: 'regions',
+        },
+        filters: [
+            {
+                field: 'keywords',
+                operator: 'contains',
+                value: debouncedCountrySearch,
+            },
+        ],
+        pagination: {
+            pageSize: 20,
+        },
+    });
+
     const handleActorSearch = (value: string) => {
         setActorSearch(value);
     };
 
     const handleCategorySearch = (value: string) => {
         setCategorySearch(value);
+    };
+
+    const handleCountrySearch = (value: string) => {
+        setCountrySearch(value);
+    };
+
+    const handleDirectorSearch = (value: string) => {
+        setDirectorSearch(value);
     };
 
     useEffect(() => {
@@ -85,24 +130,38 @@ export function ClassificationTab({ defaultActors, defaultCategories }: Classifi
     }, [debouncedCategorySearch, refetchCategories]);
 
     useEffect(() => {
-        if (defaultActors) {
-            setSelectedActors(
-                defaultActors?.map((actor: ActorType) => actor._id?.toString()) || [],
-            );
-        }
-    }, [defaultActors]);
+        refetchCountries();
+    }, [debouncedCountrySearch, refetchCountries]);
 
     useEffect(() => {
         if (defaultActors) {
-            setSelectedCategories(
-                defaultActors?.map((category: CategoryType) => category._id?.toString()) || [],
-            );
+            formProps?.form.setFieldsValue({
+                actors: defaultActors.map((actor: ActorType) => actor._id?.toString()),
+            });
         }
-    }, [defaultActors]);
+    }, [defaultActors, formProps]);
+
+    useEffect(() => {
+        if (defaultCategories) {
+            formProps?.form.setFieldsValue({
+                categories: defaultCategories.map((category: CategoryType) =>
+                    category._id?.toString(),
+                ),
+            });
+        }
+    }, [defaultCategories, formProps]);
+
+    useEffect(() => {
+        if (defaultCountries) {
+            formProps?.form.setFieldsValue({
+                countries: defaultCountries.map((country: RegionType) => country._id?.toString()),
+            });
+        }
+    }, [defaultCountries, formProps]);
 
     return (
         <Card title="Classification" style={{ marginTop: 16 }} bordered={false}>
-            <Form.Item label="Actors" name={['actors', '_id']}>
+            <Form.Item name="actors" label="Actors">
                 <Select
                     mode="multiple"
                     showSearch
@@ -112,9 +171,7 @@ export function ClassificationTab({ defaultActors, defaultCategories }: Classifi
                     filterOption={false}
                     onSearch={handleActorSearch}
                     loading={isActorsLoading}
-                    value={selectedActors}
-                    onChange={(values) => setSelectedActors(values)}
-                    defaultValue={defaultActors?.map((category) => category._id?.toString())}
+                    onChange={(values) => formProps?.form.setFieldsValue({ actors: values })}
                 >
                     {[...(defaultActors || []), ...(actorsData?.data || [])]
                         .filter(
@@ -124,7 +181,7 @@ export function ClassificationTab({ defaultActors, defaultCategories }: Classifi
                         .map((actor: ActorType) => (
                             <Option
                                 key={actor._id?.toString()}
-                                value={actor._id}
+                                value={actor._id?.toString()}
                                 label={`${actor.name} (${actor.slug})`}
                             >
                                 {`${actor.name} (${actor.slug})`}
@@ -133,7 +190,7 @@ export function ClassificationTab({ defaultActors, defaultCategories }: Classifi
                 </Select>
             </Form.Item>
 
-            <Form.Item label="Categories" name={['categories', '_id']}>
+            <Form.Item name="categories" label="Categories">
                 <Select
                     mode="multiple"
                     placeholder="Search for categories"
@@ -142,9 +199,7 @@ export function ClassificationTab({ defaultActors, defaultCategories }: Classifi
                     filterOption={false}
                     onSearch={handleCategorySearch}
                     loading={isCategoriesLoading}
-                    value={selectedCategories}
-                    onChange={(values) => setSelectedCategories(values)}
-                    defaultValue={defaultCategories?.map((category) => category._id?.toString())}
+                    onChange={(values) => formProps?.form.setFieldsValue({ categories: values })}
                 >
                     {[...(defaultCategories || []), ...(categoriesData?.data || [])]
                         .filter(
@@ -154,10 +209,38 @@ export function ClassificationTab({ defaultActors, defaultCategories }: Classifi
                         .map((category: CategoryType) => (
                             <Option
                                 key={category._id?.toString()}
-                                value={category._id}
+                                value={category._id?.toString()}
                                 label={`${category.name} (${category.slug})`}
                             >
                                 {`${category.name} (${category.slug})`}
+                            </Option>
+                        ))}
+                </Select>
+            </Form.Item>
+
+            <Form.Item name="countries" label="Countries">
+                <Select
+                    mode="multiple"
+                    placeholder="Search for countries"
+                    defaultActiveFirstOption={false}
+                    suffixIcon={null}
+                    filterOption={false}
+                    onSearch={handleCountrySearch}
+                    loading={isCountriesLoading}
+                    onChange={(values) => formProps?.form.setFieldsValue({ countries: values })}
+                >
+                    {[...(defaultCountries || []), ...(countriesData?.data || [])]
+                        .filter(
+                            (country, index, self) =>
+                                index === self.findIndex((t) => t._id === country._id),
+                        )
+                        .map((country: RegionType) => (
+                            <Option
+                                key={country._id?.toString()}
+                                value={country._id?.toString()}
+                                label={`${country.name} (${country.slug})`}
+                            >
+                                {`${country.name} (${country.slug})`}
                             </Option>
                         ))}
                 </Select>
