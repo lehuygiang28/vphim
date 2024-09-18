@@ -257,10 +257,15 @@ export class MovieService {
         if (resetCache) {
             await this.redisService.del(cacheKey);
         } else {
-            const fromCache = await this.redisService.get<MovieType>(cacheKey);
+            const fromCache = await this.redisService.get<{ data: MovieType[]; total: number }>(
+                cacheKey,
+            );
             if (fromCache) {
                 this.logger.debug(`CACHE: ${cacheKey}`);
-                return new MovieType(fromCache);
+                return {
+                    data: fromCache.data.map((movie) => new MovieType(movie)),
+                    total: fromCache.total,
+                };
             }
         }
 
@@ -282,6 +287,7 @@ export class MovieService {
         } = dto;
 
         const must: QueryDslQueryContainer[] = [];
+        const filter: QueryDslQueryContainer[] = [];
         let keywordQuery: QueryDslQueryContainer | null = null;
 
         if (keywords) {
@@ -352,25 +358,40 @@ export class MovieService {
                 },
             };
         }
-        if (!isNullOrUndefined(cinemaRelease)) must.push({ term: { cinemaRelease } });
-        if (!isNullOrUndefined(isCopyright)) must.push({ term: { isCopyright } });
-        if (!isNullOrUndefined(type)) must.push({ term: { type } });
-        if (!isNullOrUndefined(status)) must.push({ term: { status } });
+        if (!isNullOrUndefined(cinemaRelease)) filter.push({ term: { cinemaRelease } });
+        if (!isNullOrUndefined(isCopyright)) filter.push({ term: { isCopyright } });
+        if (!isNullOrUndefined(type)) filter.push({ term: { type } });
+        if (!isNullOrUndefined(status)) filter.push({ term: { status } });
         if (!isNullOrUndefined(years)) {
-            must.push({
-                terms: {
-                    year: years
-                        .split(',')
-                        .map((year) => Number(year.trim()))
-                        .filter(Boolean),
-                },
-            });
+            if (years.includes('-')) {
+                const [startYear, endYear] = years.split('-');
+                const yearsArray = [];
+
+                for (let year = Number(startYear); year <= Number(endYear); year++) {
+                    yearsArray.push(year);
+                }
+
+                filter.push({
+                    terms: {
+                        year: yearsArray,
+                    },
+                });
+            } else {
+                filter.push({
+                    terms: {
+                        year: years
+                            .split(',')
+                            .map((year) => Number(year.trim()))
+                            .filter(Boolean),
+                    },
+                });
+            }
         }
 
         if (!isNullOrUndefined(categories)) {
             must.push({
                 terms: {
-                    'categories.slug': categories
+                    'categories.slug.keyword': categories
                         .split(',')
                         .filter((c) => !isNullOrUndefined(c))
                         .map((c) => c.trim()),
@@ -381,7 +402,7 @@ export class MovieService {
         if (!isNullOrUndefined(countries)) {
             must.push({
                 terms: {
-                    'countries.slug': countries
+                    'countries.slug.keyword': countries
                         .split(',')
                         .filter((c) => !isNullOrUndefined(c))
                         .map((c) => c.trim()),
@@ -392,20 +413,14 @@ export class MovieService {
         const query: QueryDslQueryContainer = {
             bool: {
                 must: [...must, ...(keywordQuery ? [keywordQuery] : [])],
+                filter,
             },
         };
 
         const sortFields = sortBy.split(',');
         const sortOrders = sortOrder.split(',');
         const sort = [
-            ...(keywords
-                ? [
-                      {
-                          _score: { order: 'desc' },
-                      },
-                  ]
-                : []),
-            ...sortFields.map((field, index) => {
+            ...(sortFields || []).map((field, index) => {
                 const order = (
                     sortOrders[index] || sortOrders[sortOrders.length - 1]
                 ).toLowerCase();
@@ -416,6 +431,13 @@ export class MovieService {
                     },
                 };
             }),
+            ...(keywords
+                ? [
+                      {
+                          _score: { order: 'desc' },
+                      },
+                  ]
+                : []),
         ] as Sort;
 
         const body = await this.elasticsearchService.search({
@@ -430,7 +452,7 @@ export class MovieService {
 
         const movies = body.hits.hits.map(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (hit) => new MovieResponseDto({ ...(hit as any)?.['_source'], _id: hit?._id }),
+            (hit) => new MovieType({ ...(hit as any)?.['_source'], _id: hit?._id }),
         );
         const total = (body.hits.total as SearchTotalHits).value;
 
