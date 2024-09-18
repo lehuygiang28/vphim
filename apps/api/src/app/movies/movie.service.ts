@@ -5,7 +5,7 @@ import { ElasticsearchService } from '@nestjs/elasticsearch';
 import {
     QueryDslQueryContainer,
     SearchTotalHits,
-    Sort,
+    SortCombinations,
 } from '@elastic/elasticsearch/lib/api/types';
 
 import { MovieRepository } from './movie.repository';
@@ -438,7 +438,7 @@ export class MovieService {
                       },
                   ]
                 : []),
-        ] as Sort;
+        ] as SortCombinations[];
 
         const body = await this.elasticsearchService.search({
             index: 'movies',
@@ -447,6 +447,7 @@ export class MovieService {
                 sort,
                 from: (page - 1) * limit,
                 size: limit,
+                track_total_hits: true,
             },
         });
 

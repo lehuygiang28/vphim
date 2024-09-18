@@ -102,5 +102,36 @@ export class SearchService {
         } while (movies.length === batchSize);
 
         this.logger.log('Finished indexing all movies');
+        await this.setMaxResultWindow();
+    }
+
+    async setMaxResultWindow(indexName = 'movies', maxResultWindow = 350000) {
+        try {
+            const response = await this.elasticsearchService.indices.putSettings({
+                index: indexName,
+                body: {
+                    'index.max_result_window': maxResultWindow,
+                },
+            });
+
+            if (response.acknowledged) {
+                this.logger.log(
+                    `Successfully set index.max_result_window to ${maxResultWindow} for index ${indexName}`,
+                );
+            } else {
+                this.logger.warn(
+                    `Failed to set index.max_result_window for index ${indexName}. Response: ${JSON.stringify(
+                        response,
+                    )}`,
+                );
+            }
+
+            return response;
+        } catch (error) {
+            this.logger.error(
+                `Error setting index.max_result_window for index ${indexName}: ${error.message}`,
+            );
+            throw error;
+        }
     }
 }
