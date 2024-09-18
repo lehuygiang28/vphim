@@ -1,0 +1,7 @@
+FROM bitnami/kibana:8.15.1
+
+# ENV
+# KIBANA_ELASTICSEARCH_URL = http://localhost:9200
+# KIBANA_ELASTICSEARCH_PASSWORD = ...
+# KIBANA_CREATE_USER = true
+# KIBANA_PASSWORD = ...
