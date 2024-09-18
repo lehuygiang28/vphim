@@ -404,7 +404,7 @@ export class UsersService {
 
     async followMovie({ actor: _actor, movieSlug }: { actor: UserJwt; movieSlug: string }) {
         const actor = await this.findByIdOrThrow(_actor.userId);
-        const movie = await this.movieService.getMovie(movieSlug, { populate: false });
+        const movie = await this.movieService.getMovie({ slug: movieSlug }, { populate: false });
 
         if (!movie) {
             throw new HttpException(
@@ -448,7 +448,7 @@ export class UsersService {
 
     async unfollowMovie({ actor: _actor, movieSlug }: { actor: UserJwt; movieSlug: string }) {
         const actor = await this.findByIdOrThrow(_actor.userId);
-        const movie = await this.movieService.getMovie(movieSlug, { populate: false });
+        const movie = await this.movieService.getMovie({ slug: movieSlug }, { populate: false });
 
         if (!movie) {
             throw new HttpException(

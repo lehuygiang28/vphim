@@ -1,5 +1,5 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
 import { HttpModule } from '@nestjs/axios';
@@ -8,6 +8,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { APP_GUARD } from '@nestjs/core';
+import { ElasticsearchModule } from '@nestjs/elasticsearch';
 
 import { Movie, MovieSchema } from './movie.schema';
 import { MovieRepository } from './movie.repository';
@@ -22,12 +23,33 @@ import { MovieCrawler } from './movie.crawler';
 import { KKPhimCrawler } from './kkphim.crawler';
 import { MovieResolver } from './movie.resolver';
 import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
+import { SearchService } from './search.service';
 
+@Global()
 @Module({
     imports: [
         ConfigModule.forRoot(),
-        MongooseModule.forFeature([{ name: Movie.name, schema: MovieSchema }]),
         ScheduleModule.forRoot(),
+        ElasticsearchModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                node: configService.getOrThrow('ELASTIC_URL'),
+                auth: {
+                    username: 'elastic',
+                    password: configService.getOrThrow('ELASTIC_PASSWORD'),
+                },
+            }),
+        }),
+        MongooseModule.forFeatureAsync([
+            {
+                name: Movie.name,
+                useFactory: async () => {
+                    const schema = MovieSchema;
+                    return schema;
+                },
+            },
+        ]),
         HttpModule,
         RedisModule,
         CacheModule.registerAsync({
@@ -78,12 +100,21 @@ import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
             provide: APP_GUARD,
             useClass: ThrottlerCustomGuard,
         },
+        SearchService,
         MovieResolver,
         MovieRepository,
         MovieService,
         MovieCrawler,
         KKPhimCrawler,
+        {
+            provide: 'SEARCH_SERVICE',
+            useFactory: (searchService: SearchService) => {
+                global.searchService = searchService;
+                return searchService;
+            },
+            inject: [SearchService],
+        },
     ],
-    exports: [MovieRepository, MovieService],
+    exports: [MovieRepository, MovieService, SearchService, 'SEARCH_SERVICE'],
 })
 export class MovieModule {}

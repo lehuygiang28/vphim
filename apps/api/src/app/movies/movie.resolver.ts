@@ -15,8 +15,8 @@ export class MovieResolver {
     constructor(private readonly movieService: MovieService) {}
 
     @Query(() => MovieType, { name: 'movie' })
-    getMovie(@Args('input') { slug }: GetMovieInput) {
-        return this.movieService.getMovie(slug);
+    getMovie(@Args('input') input: GetMovieInput) {
+        return this.movieService.getMovie(input);
     }
 
     @Query(() => GetRatingOutput, { name: 'getRating' })
@@ -26,7 +26,7 @@ export class MovieResolver {
 
     @Query(() => GetMoviesOutput, { name: 'movies' })
     getMovies(@Args('input') input: GetMoviesInput) {
-        return this.movieService.getMovies(input);
+        return this.movieService.getMoviesEs(input);
     }
 
     @Mutation(() => MovieType, { name: 'updateMovie' })

@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { FilterQuery, PipelineStage } from 'mongoose';
-import { createRegex } from '@vn-utils/text';
+import { ElasticsearchService } from '@nestjs/elasticsearch';
+import {
+    QueryDslQueryContainer,
+    SearchTotalHits,
+    Sort,
+} from '@elastic/elasticsearch/lib/api/types';
 
 import { MovieRepository } from './movie.repository';
 import { GetMoviesDto, MovieResponseDto } from './dtos';
@@ -12,6 +17,8 @@ import { RatingResultType } from './rating-result.type';
 import { GetRatingOutput } from './outputs/get-rating.output';
 import { MovieType } from './movie.type';
 import { UpdateMovieInput } from './inputs/mutate-movie.input';
+import { GetMovieInput } from './inputs/get-movie.input';
+import { SearchService } from './search.service';
 
 @Injectable()
 export class MovieService {
@@ -21,13 +28,19 @@ export class MovieService {
         private readonly movieRepo: MovieRepository,
         private readonly redisService: RedisService,
         private readonly httpService: HttpService,
+        private readonly searchService: SearchService,
+        private readonly elasticsearchService: ElasticsearchService,
     ) {
         this.logger = new Logger(MovieService.name);
     }
 
-    async getMovie(slug: string, { populate = true }: { populate?: boolean } = {}) {
+    async getMovie({ id, slug }: GetMovieInput, { populate = true }: { populate?: boolean } = {}) {
+        if (isNullOrUndefined(id) && isNullOrUndefined(slug)) {
+            return null;
+        }
+        const filter = !isNullOrUndefined(id) ? { _id: convertToObjectId(id) } : { slug };
         const movie = await this.movieRepo.findOneOrThrow({
-            filterQuery: { slug },
+            filterQuery: filter,
             queryOptions: {
                 ...(populate && {
                     populate: [
@@ -85,7 +98,10 @@ export class MovieService {
             status,
         } = dto;
 
-        const pipeline: PipelineStage[] = [
+        const pipeline: PipelineStage[] = [];
+        const match: FilterQuery<Movie> = {};
+
+        const lookupStage = [
             {
                 $lookup: {
                     from: 'categories',
@@ -140,52 +156,33 @@ export class MovieService {
             },
         ];
 
-        const match: FilterQuery<Movie> = {};
-
         if (keywords) {
-            const keywordRegex = createRegex(keywords, { outputCase: 'lowerAndUpper' });
-            match.$or = [
-                { name: { $regex: keywordRegex } },
-                { originName: { $regex: keywordRegex } },
-                { content: { $regex: keywordRegex } },
-                { slug: { $regex: keywordRegex } },
-            ];
-            if (deepSearch) {
-                match.$or = [
-                    ...match.$or,
-                    { 'categories.name': { $regex: keywordRegex } },
-                    { 'countries.name': { $regex: keywordRegex } },
-                    { 'actors.name': { $regex: keywordRegex } },
-                    { 'directors.name': { $regex: keywordRegex } },
-                ];
-            }
-        }
+            const searchResults = await this.searchService.search(keywords);
+            const total = searchResults.length;
+            const movies = searchResults
+                .slice((page - 1) * limit, page * limit)
+                .map((result) => new MovieResponseDto(result));
 
-        if (cinemaRelease !== undefined) {
-            match.cinemaRelease = cinemaRelease;
-        }
-
-        if (isCopyright !== undefined) {
-            match.isCopyright = isCopyright;
-        }
-
-        if (type) {
-            match.type = type;
-        }
-
-        if (status) {
-            match.status = status;
-        }
-
-        if (years) {
-            match.year = {
-                $in: years
-                    .split(',')
-                    .map((year) => !isNullOrUndefined(year) && Number(year.trim())),
+            return {
+                data: movies,
+                total,
             };
         }
 
-        if (categories) {
+        if (!isNullOrUndefined(cinemaRelease)) match.cinemaRelease = cinemaRelease;
+        if (!isNullOrUndefined(isCopyright)) match.isCopyright = isCopyright;
+        if (!isNullOrUndefined(type)) match.type = type;
+        if (!isNullOrUndefined(status)) match.status = status;
+        if (!isNullOrUndefined(years)) {
+            match.year = {
+                $in: years
+                    .split(',')
+                    .map((year) => Number(year.trim()))
+                    .filter(Boolean),
+            };
+        }
+
+        if (!isNullOrUndefined(categories)) {
             match['categories.slug'] = {
                 $in: categories
                     .split(',')
@@ -194,7 +191,7 @@ export class MovieService {
             };
         }
 
-        if (countries) {
+        if (!isNullOrUndefined(countries)) {
             match['countries.slug'] = {
                 $in: countries
                     .split(',')
@@ -203,7 +200,14 @@ export class MovieService {
             };
         }
 
-        pipeline.push({ $match: match });
+        if (deepSearch) {
+            // If is keyword search with deep search, then need to lookup earlier match stage
+            pipeline.push(...lookupStage);
+            pipeline.push({ $match: match });
+        } else {
+            pipeline.push({ $match: match });
+            pipeline.push(...lookupStage);
+        }
 
         // Handle multi-field sorting
         const sortFields = sortBy.split(',');
@@ -246,6 +250,199 @@ export class MovieService {
         return res;
     }
 
+    async getMoviesEs(dto: GetMoviesDto) {
+        const { resetCache } = dto;
+        const cacheKey = `CACHED:MOVIES:ES:${sortedStringify(dto)}`;
+
+        if (resetCache) {
+            await this.redisService.del(cacheKey);
+        } else {
+            const fromCache = await this.redisService.get<MovieType>(cacheKey);
+            if (fromCache) {
+                this.logger.debug(`CACHE: ${cacheKey}`);
+                return new MovieType(fromCache);
+            }
+        }
+
+        this.logger.debug(`ES: ${cacheKey}`);
+
+        const {
+            keywords,
+            cinemaRelease,
+            isCopyright,
+            type,
+            years,
+            categories,
+            countries,
+            limit = 10,
+            page = 1,
+            sortBy = 'year',
+            sortOrder = 'asc',
+            status,
+        } = dto;
+
+        const must: QueryDslQueryContainer[] = [];
+        let keywordQuery: QueryDslQueryContainer | null = null;
+
+        if (keywords) {
+            keywordQuery = {
+                function_score: {
+                    query: {
+                        bool: {
+                            should: [
+                                // Stage 1: Search in name and originName
+                                {
+                                    multi_match: {
+                                        query: keywords,
+                                        fields: ['name^3', 'originName^2'],
+                                        type: 'phrase',
+                                        slop: 2,
+                                        boost: 2,
+                                    },
+                                },
+                                // Stage 2: Search in slug and content
+                                {
+                                    multi_match: {
+                                        query: keywords,
+                                        fields: ['slug^1.5', 'content'],
+                                        type: 'best_fields',
+                                        slop: 3,
+                                        boost: 1.5,
+                                    },
+                                },
+                                // Stage 3: Search in related fields
+                                {
+                                    multi_match: {
+                                        query: keywords,
+                                        fields: [
+                                            'categories.name^0.8',
+                                            'countries.name^0.8',
+                                            'directors.name^0.9',
+                                            'actors.name^0.9',
+                                            'categories.slug^0.7',
+                                            'countries.slug^0.7',
+                                            'directors.slug^0.8',
+                                            'actors.slug^0.8',
+                                        ],
+                                        type: 'best_fields',
+                                        slop: 2,
+                                        boost: 1,
+                                    },
+                                },
+                            ],
+                            minimum_should_match: 1,
+                        },
+                    },
+                    functions: [
+                        {
+                            filter: { match_phrase: { name: { query: keywords, slop: 1 } } },
+                            weight: 3,
+                        },
+                        {
+                            filter: { match_phrase: { originName: { query: keywords, slop: 1 } } },
+                            weight: 2,
+                        },
+                        {
+                            filter: { match_phrase: { slug: { query: keywords, slop: 1 } } },
+                            weight: 1.5,
+                        },
+                    ],
+                    score_mode: 'sum',
+                    boost_mode: 'multiply',
+                },
+            };
+        }
+        if (!isNullOrUndefined(cinemaRelease)) must.push({ term: { cinemaRelease } });
+        if (!isNullOrUndefined(isCopyright)) must.push({ term: { isCopyright } });
+        if (!isNullOrUndefined(type)) must.push({ term: { type } });
+        if (!isNullOrUndefined(status)) must.push({ term: { status } });
+        if (!isNullOrUndefined(years)) {
+            must.push({
+                terms: {
+                    year: years
+                        .split(',')
+                        .map((year) => Number(year.trim()))
+                        .filter(Boolean),
+                },
+            });
+        }
+
+        if (!isNullOrUndefined(categories)) {
+            must.push({
+                terms: {
+                    'categories.slug': categories
+                        .split(',')
+                        .filter((c) => !isNullOrUndefined(c))
+                        .map((c) => c.trim()),
+                },
+            });
+        }
+
+        if (!isNullOrUndefined(countries)) {
+            must.push({
+                terms: {
+                    'countries.slug': countries
+                        .split(',')
+                        .filter((c) => !isNullOrUndefined(c))
+                        .map((c) => c.trim()),
+                },
+            });
+        }
+
+        const query: QueryDslQueryContainer = {
+            bool: {
+                must: [...must, ...(keywordQuery ? [keywordQuery] : [])],
+            },
+        };
+
+        const sortFields = sortBy.split(',');
+        const sortOrders = sortOrder.split(',');
+        const sort = [
+            ...(keywords
+                ? [
+                      {
+                          _score: { order: 'desc' },
+                      },
+                  ]
+                : []),
+            ...sortFields.map((field, index) => {
+                const order = (
+                    sortOrders[index] || sortOrders[sortOrders.length - 1]
+                ).toLowerCase();
+                return {
+                    [field.trim()]: {
+                        order,
+                        unmapped_type: 'keyword',
+                    },
+                };
+            }),
+        ] as Sort;
+
+        const body = await this.elasticsearchService.search({
+            index: 'movies',
+            body: {
+                query,
+                sort,
+                from: (page - 1) * limit,
+                size: limit,
+            },
+        });
+
+        const movies = body.hits.hits.map(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (hit) => new MovieResponseDto({ ...(hit as any)?.['_source'], _id: hit?._id }),
+        );
+        const total = (body.hits.total as SearchTotalHits).value;
+
+        const res = {
+            data: movies,
+            total,
+        };
+        await this.redisService.set(cacheKey, res, 1000 * 30);
+
+        return res;
+    }
+
     async updateView(slug: string) {
         const movie = await this.movieRepo.findOneOrThrow({ filterQuery: { slug } });
         const movieUpdated = await this.movieRepo.findOneAndUpdateOrThrow({
@@ -283,10 +480,10 @@ export class MovieService {
             queryOptions: {
                 new: true,
                 populate: [
-                    { path: 'actors' },
-                    { path: 'categories' },
-                    { path: 'countries' },
-                    { path: 'directors' },
+                    { path: 'actors', justOne: false },
+                    { path: 'categories', justOne: false },
+                    { path: 'countries', justOne: false },
+                    { path: 'directors', justOne: false },
                 ],
             },
         });
