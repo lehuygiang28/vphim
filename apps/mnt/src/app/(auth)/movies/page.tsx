@@ -119,7 +119,7 @@ export default function MovieListPage() {
             }
             if (yearValue && yearValue !== '-' && yearValue !== ',') {
                 filters.push({
-                    field: 'year',
+                    field: 'years',
                     operator: 'eq',
                     value: yearValue,
                 });
@@ -252,6 +252,14 @@ export default function MovieListPage() {
                 }}
                 size="small"
                 columns={[
+                    {
+                        title: 'No.',
+                        render: (_, __, index) => {
+                            if (!tableProps.pagination) return index + 1;
+                            const { current, pageSize } = tableProps.pagination || {};
+                            return (current - 1) * pageSize + index + 1;
+                        },
+                    },
                     {
                         title: 'Thumb',
                         render: (movie?: MovieType) => {
