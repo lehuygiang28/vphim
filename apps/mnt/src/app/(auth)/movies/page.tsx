@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     useTable,
     List,
@@ -11,8 +11,8 @@ import {
     FilterDropdown,
     DateField,
 } from '@refinedev/antd';
-import { CrudFilters } from '@refinedev/core';
-import { Table, Space, Tag, Input, Select, Form, Image as AntImage } from 'antd';
+import { CrudFilters, LogicalFilter } from '@refinedev/core';
+import { Table, Space, Tag, Input, Select, Form, Image as AntImage, Button } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 
 import { MovieType } from '~api/app/movies/movie.type';
@@ -22,53 +22,226 @@ import Link from 'next/link';
 const { Option } = Select;
 
 export default function MovieListPage() {
-    const { tableProps, searchFormProps, sorters, setFilters } = useTable<MovieType>({
-        dataProviderName: 'graphql',
+    const [yearPickerType, setYearPickerType] = useState<'multiple' | 'range'>('multiple');
+
+    const { tableProps, searchFormProps, sorters, filters, setFilters } = useTable<MovieType>({
         resource: 'movies',
+        dataProviderName: 'graphql',
         meta: {
             gqlQuery: MNT_MOVIE_LIST_QUERY,
         },
         filters: {
             mode: 'server',
-            defaultBehavior: 'replace',
-            initial: [],
+            defaultBehavior: 'merge',
+        },
+        sorters: {
+            mode: 'server',
+            initial: [{ field: 'updatedAt', order: 'desc' }],
         },
         pagination: {
             mode: 'server',
             current: 1,
             pageSize: 24,
         },
-        sorters: {
-            mode: 'server',
-            initial: [{ field: 'updatedAt', order: 'desc' }],
-        },
-        onSearch: (params) => {
-            const filters: CrudFilters = [];
-            const { keywords } = params as any;
+    });
 
-            if (keywords) {
+    const handleYearPickerTypeChange = useCallback(
+        (value: 'multiple' | 'range') => {
+            setYearPickerType(value);
+            searchFormProps.form?.setFieldsValue({ years: undefined });
+        },
+        [searchFormProps.form],
+    );
+
+    const handleYearChange = useCallback(
+        (value: number | null, type: 'start' | 'end') => {
+            const form = searchFormProps.form;
+            if (!form) return;
+
+            const [startYear, endYear] = form.getFieldValue('years') || [];
+
+            if (type === 'start' && value !== null) {
+                if (endYear && value > endYear) {
+                    form.setFieldsValue({ years: [value, null] });
+                } else {
+                    form.setFieldsValue({ years: [value, endYear] });
+                }
+            } else if (type === 'end' && value !== null) {
+                if (startYear && value < startYear) {
+                    form.setFieldsValue({ years: [null, value] });
+                } else {
+                    form.setFieldsValue({ years: [startYear, value] });
+                }
+            }
+        },
+        [searchFormProps.form],
+    );
+
+    const handleFinishSearchForm = (params: Record<string, unknown>) => {
+        const filters: CrudFilters = [];
+        const { keywords, type, status, years } = params ?? {};
+
+        if (keywords) {
+            filters.push({
+                field: 'keywords',
+                operator: 'contains',
+                value: keywords,
+            });
+        }
+
+        if (type) {
+            filters.push({
+                field: 'type',
+                operator: 'eq',
+                value: type,
+            });
+        }
+
+        if (status) {
+            filters.push({
+                field: 'status',
+                operator: 'eq',
+                value: status,
+            });
+        }
+
+        if (years) {
+            let yearValue: string;
+            if (Array.isArray(years)) {
+                if (yearPickerType === 'multiple') {
+                    yearValue = years.join(',');
+                } else {
+                    const [startYear, endYear] = years;
+                    yearValue = `${startYear}-${endYear}`;
+                }
+            } else {
+                yearValue = years.toString();
+            }
+            if (yearValue && yearValue !== '-' && yearValue !== ',') {
                 filters.push({
-                    field: 'keywords',
-                    operator: 'contains',
-                    value: keywords,
+                    field: 'year',
+                    operator: 'eq',
+                    value: yearValue,
                 });
             }
+        }
 
-            return setFilters(filters);
-        },
-        syncWithLocation: true,
-    });
+        return setFilters(filters, 'replace');
+    };
+
+    useEffect(() => {
+        const yearFilter = filters.find((filter) => (filter as LogicalFilter).field === 'years');
+        if (yearFilter && yearFilter.value) {
+            let yearValue: number[];
+            if (typeof yearFilter.value === 'string') {
+                if (yearFilter.value.includes('-')) {
+                    setYearPickerType('range');
+                    const [startYear, endYear] = yearFilter.value.split('-');
+                    yearValue = [parseInt(startYear), parseInt(endYear)];
+                } else if (yearFilter.value.includes(',')) {
+                    setYearPickerType('multiple');
+                    yearValue = yearFilter.value.split(',').map(Number);
+                } else {
+                    setYearPickerType('multiple');
+                    yearValue = [parseInt(yearFilter.value)];
+                }
+                searchFormProps.form?.setFieldsValue({ years: yearValue });
+            }
+        }
+    }, [filters, searchFormProps.form]);
+
+    const currentYear = new Date().getFullYear();
+    const yearOptions = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i);
 
     return (
         <List>
-            <Form {...searchFormProps} layout="vertical">
-                <Form.Item name="keywords">
-                    <Input
-                        placeholder="Search keywords"
-                        prefix={<SearchOutlined />}
-                        style={{ marginBottom: 16 }}
-                    />
-                </Form.Item>
+            <Form {...searchFormProps} layout="vertical" onFinish={handleFinishSearchForm}>
+                <Space wrap>
+                    <Form.Item name="keywords">
+                        <Input placeholder="Search keywords" prefix={<SearchOutlined />} />
+                    </Form.Item>
+                    <Form.Item name="type">
+                        <Select style={{ width: 120 }} placeholder="Select type">
+                            <Option value="movie">Movie</Option>
+                            <Option value="series">Series</Option>
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="status">
+                        <Select style={{ width: 120 }} placeholder="Select status">
+                            <Option value="completed">Completed</Option>
+                            <Option value="ongoing">Ongoing</Option>
+                            <Option value="trailer">Trailer</Option>
+                        </Select>
+                    </Form.Item>
+                    <Space style={{ marginLeft: '1rem' }}>
+                        <Form.Item>
+                            <Select
+                                style={{ width: 150 }}
+                                placeholder="Select year type"
+                                onChange={handleYearPickerTypeChange}
+                                value={yearPickerType}
+                            >
+                                <Option value="multiple">Multiple Years</Option>
+                                <Option value="range">Year Range</Option>
+                            </Select>
+                        </Form.Item>
+                        {yearPickerType === 'range' ? (
+                            <Space>
+                                <Form.Item>From</Form.Item>
+                                <Form.Item name={['years', 0]}>
+                                    <Select
+                                        style={{ width: 100 }}
+                                        placeholder="Start Year"
+                                        onChange={(value) => handleYearChange(value, 'start')}
+                                        allowClear
+                                    >
+                                        {yearOptions.map((year) => (
+                                            <Option key={year} value={year}>
+                                                {year}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                                <Form.Item>to</Form.Item>
+                                <Form.Item name={['years', 1]}>
+                                    <Select
+                                        style={{ width: 100 }}
+                                        placeholder="End Year"
+                                        onChange={(value) => handleYearChange(value, 'end')}
+                                        allowClear
+                                    >
+                                        {yearOptions.map((year) => (
+                                            <Option key={year} value={year}>
+                                                {year}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </Space>
+                        ) : (
+                            <Form.Item name="years">
+                                <Select
+                                    mode="multiple"
+                                    style={{ width: 300 }}
+                                    placeholder="Select years"
+                                    tokenSeparators={[',']}
+                                    allowClear
+                                >
+                                    {yearOptions.map((year) => (
+                                        <Option key={year} value={year}>
+                                            {year}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        )}
+                    </Space>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Search
+                        </Button>
+                    </Form.Item>
+                </Space>
             </Form>
             <Table<MovieType>
                 {...tableProps}
@@ -100,72 +273,27 @@ export default function MovieListPage() {
                     {
                         title: 'Name',
                         dataIndex: 'name',
-                        sorter: { multiple: 1 },
-                        defaultSortOrder: getDefaultSortOrder('name', sorters),
-                        filterDropdown: (props) => (
-                            <Input
-                                {...props}
-                                placeholder="Search name"
-                                prefix={<SearchOutlined />}
-                            />
-                        ),
                     },
                     {
                         title: 'Type',
                         dataIndex: 'type',
-                        sorter: { multiple: 2 },
-                        defaultSortOrder: getDefaultSortOrder('type', sorters),
-                        filters: [
-                            { text: 'Movie', value: 'movie' },
-                            { text: 'Series', value: 'series' },
-                        ],
-                        filterDropdown: (props) => (
-                            <FilterDropdown {...props}>
-                                <Select style={{ width: 120 }} {...props} placeholder="Select type">
-                                    <Option value="movie">Movie</Option>
-                                    <Option value="series">Series</Option>
-                                </Select>
-                            </FilterDropdown>
-                        ),
                     },
                     {
                         title: 'Year',
                         dataIndex: 'year',
-                        sorter: { multiple: 3 },
+                        sorter: true,
                         defaultSortOrder: getDefaultSortOrder('year', sorters),
                     },
                     {
                         title: 'Status',
                         dataIndex: 'status',
-                        sorter: { multiple: 4 },
-                        defaultSortOrder: getDefaultSortOrder('status', sorters),
                         render: (status: string) => (
                             <Tag color={status === 'completed' ? 'green' : 'orange'}>{status}</Tag>
-                        ),
-                        filters: [
-                            { text: 'Completed', value: 'completed' },
-                            { text: 'Ongoing', value: 'ongoing' },
-                            { text: 'Trailer', value: 'trailer' },
-                        ],
-                        filterDropdown: (props) => (
-                            <FilterDropdown {...props}>
-                                <Select
-                                    style={{ width: 120 }}
-                                    {...props}
-                                    placeholder="Select status"
-                                >
-                                    <Option value="completed">Completed</Option>
-                                    <Option value="ongoing">Ongoing</Option>
-                                    <Option value="trailer">Trailer</Option>
-                                </Select>
-                            </FilterDropdown>
                         ),
                     },
                     {
                         title: 'Imdb',
                         dataIndex: ['imdb', 'id'],
-                        sorter: { multiple: 5 },
-                        defaultSortOrder: getDefaultSortOrder('imdb.id', sorters),
                         render: (id?: number) => (
                             <>
                                 {id ? (
@@ -185,8 +313,6 @@ export default function MovieListPage() {
                     {
                         title: 'Tmdb',
                         dataIndex: ['tmdb'],
-                        sorter: { multiple: 6 },
-                        defaultSortOrder: getDefaultSortOrder('tmdb.id', sorters),
                         render: (tmdb?: { id: string; type: string }) => {
                             const { id = null, type = null } = tmdb || {};
                             return (
@@ -209,24 +335,38 @@ export default function MovieListPage() {
                     {
                         title: 'Views',
                         dataIndex: 'view',
-                        sorter: { multiple: 7 },
+                        sorter: true,
                         defaultSortOrder: getDefaultSortOrder('view', sorters),
                     },
                     {
                         title: 'Last Update',
                         dataIndex: 'updatedAt',
-                        sorter: { multiple: 8 },
+                        sorter: true,
                         defaultSortOrder: getDefaultSortOrder('updatedAt', sorters),
-                        render: (date: string) => <DateField value={date} format="H:m D/M/YY" />,
+                        render: (date: string) => (
+                            <DateField value={new Date(date)} format="H:m D/M/YY" />
+                        ),
                     },
                     {
                         title: 'Actions',
                         dataIndex: 'actions',
                         render: (_, record) => (
                             <Space>
-                                <EditButton hideText size="small" recordItemId={record._id?.toString()} />
-                                <ShowButton hideText size="small" recordItemId={record._id?.toString()} />
-                                <DeleteButton hideText size="small" recordItemId={record._id?.toString()} />
+                                <EditButton
+                                    hideText
+                                    size="small"
+                                    recordItemId={record._id?.toString()}
+                                />
+                                <ShowButton
+                                    hideText
+                                    size="small"
+                                    recordItemId={record._id?.toString()}
+                                />
+                                <DeleteButton
+                                    hideText
+                                    size="small"
+                                    recordItemId={record._id?.toString()}
+                                />
                             </Space>
                         ),
                     },
