@@ -10,14 +10,14 @@ import { MovieForm } from '~mnt/components/form/movie';
 import { MovieType } from '~api/app/movies/movie.type';
 
 export type EditMoviePageProps = {
-    params: { slug: string };
+    params: { id: string };
 };
 
-export default function Component({ params }: EditMoviePageProps) {
+export default function MovieEditPage({ params }: EditMoviePageProps) {
     const { formProps, saveButtonProps, query, onFinish } = useForm<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
-        id: params.slug,
+        id: params.id,
         action: 'edit',
         meta: {
             gqlQuery: GET_FULL_MOVIE_DETAIL_QUERY,
@@ -25,10 +25,11 @@ export default function Component({ params }: EditMoviePageProps) {
             operation: 'movie',
             variables: {
                 input: {
-                    slug: params.slug,
+                    id: params.id,
                 },
             },
         },
+        redirect: 'show',
     });
 
     const handleOnfinish = useCallback(

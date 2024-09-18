@@ -224,9 +224,9 @@ export default function MovieListPage() {
                         dataIndex: 'actions',
                         render: (_, record) => (
                             <Space>
-                                <EditButton hideText size="small" recordItemId={record.slug} />
-                                <ShowButton hideText size="small" recordItemId={record.slug} />
-                                <DeleteButton hideText size="small" recordItemId={record.slug} />
+                                <EditButton hideText size="small" recordItemId={record._id?.toString()} />
+                                <ShowButton hideText size="small" recordItemId={record._id?.toString()} />
+                                <DeleteButton hideText size="small" recordItemId={record._id?.toString()} />
                             </Space>
                         ),
                     },

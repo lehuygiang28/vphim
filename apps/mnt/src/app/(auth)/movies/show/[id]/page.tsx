@@ -14,7 +14,7 @@ const { Title, Text, Paragraph } = Typography;
 
 export type MovieShowPageProps = {
     params: {
-        slug: string;
+        id: string;
     };
 };
 
@@ -22,13 +22,13 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
     const { query } = useShow<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
-        id: params.slug,
+        id: params.id,
         meta: {
             gqlQuery: GET_FULL_MOVIE_DETAIL_QUERY,
             operation: 'movie',
             variables: {
                 input: {
-                    slug: params.slug,
+                    id: params.id,
                 },
             },
         },
