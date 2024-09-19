@@ -22,7 +22,13 @@ import { RedisService } from '../../../libs/modules/redis';
 import { CategoryRepository } from '../../categories';
 import { RegionRepository } from '../../regions/region.repository';
 import { DirectorRepository } from '../../directors';
-import { convertToVietnameseTime, mapLanguage, mapQuality, MOVIE_TYPE_MAP } from './mapping-data';
+import {
+    convertToVietnameseTime,
+    mapLanguage,
+    mapQuality,
+    mapStatus,
+    MOVIE_TYPE_MAP,
+} from './mapping-data';
 
 @Injectable()
 export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
@@ -200,7 +206,9 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 time,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 quality,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 language,
             } = movieDetail;
 
@@ -223,6 +231,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 time: convertToVietnameseTime(movieDetail?.time || existingMovie?.time),
                 quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
+                status: mapStatus(existingMovie?.status || this.processMovieStatus(movieDetail)),
 
                 _id: correctId,
                 slug: existingMovie?.slug
@@ -241,7 +250,6 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                     directorIds && directorIds?.length > 0
                         ? directorIds
                         : existingMovie?.directors || [],
-                status: this.processMovieStatus(movieDetail) || existingMovie?.status || '',
                 thumbUrl: thumb_url || existingMovie?.thumbUrl || '',
                 posterUrl: poster_url || existingMovie?.posterUrl || '',
 

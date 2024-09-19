@@ -74,6 +74,18 @@ export const mapLanguage = (language: string): string => {
     return words(langRes);
 };
 
+export function mapStatus(status: string): string {
+    switch (status?.trim()?.toLowerCase()) {
+        case 'ongoing':
+        case 'completed':
+        case 'trailer':
+            return status;
+        case 'updating':
+        default:
+            return 'updating';
+    }
+}
+
 const wordMap: { [key: string]: string } = {
     gio: 'tiếng',
     tieng: 'tiếng',
