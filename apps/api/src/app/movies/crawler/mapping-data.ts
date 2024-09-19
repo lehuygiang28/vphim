@@ -6,6 +6,10 @@ export const MOVIE_TYPE_MAP = {
     'phim bộ': 'series',
     'tv shows': 'tvshows',
     'phim hoạt hình': 'hoathinh',
+    single: 'single',
+    series: 'series',
+    tvshows: 'tvshows',
+    hoathinh: 'hoathinh',
 };
 
 export const mapQuality = (quality: string) => {
