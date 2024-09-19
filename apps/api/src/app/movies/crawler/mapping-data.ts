@@ -108,7 +108,6 @@ function normalizeAndCorrect(input: string): string {
 }
 
 export function convertToVietnameseTime(timeString: string): string {
-    console.log(`timeString: ${timeString}`);
     if (
         !timeString ||
         timeString.toLowerCase().includes('cập nhật') ||
