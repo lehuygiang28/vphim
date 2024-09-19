@@ -1,0 +1,18 @@
+services:
+    vphim_api_redis:
+        container_name: vphim_api_redis
+        hostname: vphim_api_redis
+        build:
+            context: ./
+            dockerfile: ./containers/be-with-redis/Dockerfile
+        image: lehuygiang28/vphim_api_redis:${COMPOSE_TAG:-latest}
+        env_file:
+            - ./containers/be-with-redis/.env
+        ports:
+            - 8000:${API_PORT:-8000}
+        networks:
+            - vphim_net
+        restart: unless-stopped
+
+networks:
+    vphim_net:
