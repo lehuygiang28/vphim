@@ -27,4 +27,6 @@ export type AuthConfig = {
     googleId: string;
     /** Secret key for Google authentication. */
     googleSecret: string;
+    /** Secret key used to sign the OTP token. */
+    otpSecret: string;
 };

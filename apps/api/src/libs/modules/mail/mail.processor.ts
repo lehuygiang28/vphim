@@ -45,11 +45,12 @@ export class MailProcessor extends WorkerHost implements OnModuleInit {
     }
 
     private async sendEmailLogin(job: Job<unknown, unknown, MailJobName>): Promise<unknown> {
-        const { email, url } = job.data as { email: string; url: string };
+        const { email, url, otp } = job.data as { email: string; url: string; otp: string };
         return this.mailService.sendLogin({
             to: email,
             mailData: {
                 url,
+                otp,
             },
         });
     }

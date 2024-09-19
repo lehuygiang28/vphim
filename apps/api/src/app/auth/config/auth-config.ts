@@ -42,6 +42,9 @@ class EnvironmentVariablesValidator {
 
     @IsString()
     AUTH_GOOGLE_SECRET: string;
+
+    @IsString()
+    AUTH_OTP_SECRET: string;
 }
 
 export default registerAs<AuthConfig>('auth', () => {
@@ -60,5 +63,6 @@ export default registerAs<AuthConfig>('auth', () => {
         confirmEmailSecret: process.env.AUTH_CONFIRM_EMAIL_SECRET,
         googleId: process.env.AUTH_GOOGLE_ID,
         googleSecret: process.env.AUTH_GOOGLE_SECRET,
+        otpSecret: process.env.AUTH_OTP_SECRET,
     };
 });

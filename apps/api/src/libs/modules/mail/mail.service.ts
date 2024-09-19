@@ -134,7 +134,7 @@ export class MailService {
         });
     }
 
-    async sendLogin(data: { to: string; mailData: { url: string } }) {
+    async sendLogin(data: { to: string; mailData: { url: string; otp: string } }) {
         const { to, mailData } = data;
         const template = 'login';
 
@@ -151,7 +151,15 @@ export class MailService {
             to,
             subject: emailConfirmTitle,
             template,
-            context: { title: emailConfirmTitle, url: mailData.url, text1, text2, text3, btn1 },
+            context: {
+                title: emailConfirmTitle,
+                url: mailData.url,
+                otp: mailData.otp,
+                text1,
+                text2,
+                text3,
+                btn1,
+            },
         });
     }
 }

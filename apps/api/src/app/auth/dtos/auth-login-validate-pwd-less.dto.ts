@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class AuthValidatePasswordlessDto {
     @ApiProperty({
@@ -10,4 +10,14 @@ export class AuthValidatePasswordlessDto {
     @IsNotEmpty()
     @IsString()
     hash: string;
+
+    @ApiPropertyOptional({
+        example: 'email',
+        required: false,
+        type: String,
+    })
+    @IsOptional()
+    @IsString()
+    @IsEmail()
+    email?: string;
 }

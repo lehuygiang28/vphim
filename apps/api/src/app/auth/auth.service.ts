@@ -12,6 +12,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { OAuth2Client } from 'google-auth-library';
 import { Octokit } from '@octokit/rest';
+import * as otplib from 'otplib';
 
 import { RedisService } from '../../libs/modules/redis';
 import { convertToObjectId, getGravatarUrl } from '../../libs/utils/common';
@@ -21,6 +22,7 @@ import {
     AuthLoginGoogleDto,
     AuthLoginPasswordlessDto,
     AuthSignupDto,
+    AuthValidatePasswordlessDto,
     LoginResponseDto,
 } from './dtos';
 import { UserJwt } from './strategies/types';
@@ -244,7 +246,7 @@ export class AuthService implements OnModuleInit {
             });
         }
 
-        const key = `auth:requestLoginPwdlessHash:${user._id.toString()}`;
+        const key = `auth:requestLoginPwdlessHash:${user.email}`;
         const hash = await this.jwtService.signAsync(
             {
                 userId: user._id,
@@ -258,13 +260,16 @@ export class AuthService implements OnModuleInit {
             },
         );
 
+        const otp = otplib.authenticator.generate(
+            this.configService.getOrThrow('auth.otpSecret', { infer: true }),
+        );
         const urlInMail = new URL(returnUrl);
         urlInMail.searchParams.set('hash', hash);
 
         const data = await Promise.all([
             this.redisService.set(
                 key,
-                { hash, userId: user._id.toString() },
+                { hash, otp, userId: user._id.toString(), email: user.email },
                 ms(
                     this.configService
                         .getOrThrow('auth.confirmEmailTokenExpiresIn', {
@@ -275,7 +280,7 @@ export class AuthService implements OnModuleInit {
             ),
             this.mailQueue.add(
                 'sendEmailLogin',
-                { email: user.email, url: urlInMail.toString() },
+                { email: user.email, url: urlInMail.toString(), otp },
                 {
                     removeOnComplete: true,
                     removeOnFail: true,
@@ -287,24 +292,57 @@ export class AuthService implements OnModuleInit {
         return 'OK';
     }
 
-    async validateRequestLoginPwdless(hash: string): Promise<LoginResponseDto> {
+    async validateRequestLoginPwdless({
+        hash: hashOrOtp,
+        email,
+    }: AuthValidatePasswordlessDto): Promise<LoginResponseDto> {
         let userId: UserDto['_id'];
         let jwtData: { hash: string; userId: string };
 
-        // Validate jwt, then get userId, jwtData
-        try {
-            jwtData = await this.jwtService.verifyAsync<{ hash: string; userId: string }>(hash, {
-                secret: this.configService.getOrThrow('auth.passwordlessSecret', { infer: true }),
-            });
-            userId = convertToObjectId(jwtData.userId);
-        } catch (error) {
-            this.logger.debug(error);
-            throw new UnprocessableEntityException({
-                errors: {
-                    hash: `invalidHash`,
-                },
-                message: 'Your login link is expired or invalid',
-            });
+        // Check if the input is a hash or OTP
+        const isOtp = hashOrOtp.length === 6 && /^\d+$/.test(hashOrOtp);
+
+        if (isOtp) {
+            // Validate OTP
+            const otpData = await this.redisService.get<
+                NullableType<{
+                    hash: string;
+                    otp: string;
+                    userId: string;
+                    email: string;
+                }>
+            >(`auth:requestLoginPwdlessHash:${email}`);
+            if (!otpData?.otp || otpData?.otp !== hashOrOtp) {
+                throw new UnprocessableEntityException({
+                    errors: {
+                        otp: `invalidOtp`,
+                    },
+                    message: 'Your OTP is expired or invalid',
+                });
+            }
+
+            userId = convertToObjectId(otpData.userId);
+        } else {
+            // Validate jwt, then get userId, jwtData
+            try {
+                jwtData = await this.jwtService.verifyAsync<{ hash: string; userId: string }>(
+                    hashOrOtp,
+                    {
+                        secret: this.configService.getOrThrow('auth.passwordlessSecret', {
+                            infer: true,
+                        }),
+                    },
+                );
+                userId = convertToObjectId(jwtData.userId);
+            } catch (error) {
+                this.logger.debug(error);
+                throw new UnprocessableEntityException({
+                    errors: {
+                        hash: `invalidHash`,
+                    },
+                    message: 'Your login link is expired or invalid',
+                });
+            }
         }
 
         // Check user
@@ -319,23 +357,24 @@ export class AuthService implements OnModuleInit {
             });
         }
 
-        // Get the hash is saved into redis
-        const key = `auth:requestLoginPwdlessHash:${user._id.toString()}`;
+        // Get the hash/otp data saved in redis
+        const key = `auth:requestLoginPwdlessHash:${user.email}`;
         const hashData = await this.redisService.get<
             NullableType<{
                 hash: string;
+                otp: string;
                 userId: string;
             }>
         >(key);
 
-        // Compare the hash
+        // Compare the hash or OTP
         // Ensure one time use only
-        if (hashData?.hash !== hash) {
+        if ((!isOtp && hashData?.hash !== hashOrOtp) || (isOtp && hashData?.otp !== hashOrOtp)) {
             throw new UnprocessableEntityException({
                 errors: {
-                    hash: `invalidHash`,
+                    [isOtp ? 'otp' : 'hash']: `invalid${isOtp ? 'Otp' : 'Hash'}`,
                 },
-                message: 'Your login link is expired or invalid',
+                message: `Your login ${isOtp ? 'OTP' : 'link'} is expired or invalid`,
             });
         }
 

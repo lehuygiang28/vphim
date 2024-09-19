@@ -49,8 +49,8 @@ export class AuthController {
 
     @ApiOkResponse({ type: LoginResponseDto })
     @Post('login/pwdless/validate')
-    validateLoginPwdless(@Body() { hash = '' }: AuthValidatePasswordlessDto) {
-        return this.authService.validateRequestLoginPwdless(hash);
+    validateLoginPwdless(@Body() { hash = '', email }: AuthValidatePasswordlessDto) {
+        return this.authService.validateRequestLoginPwdless({ hash, email });
     }
 
     @ApiOkResponse({ type: LoginResponseDto })
