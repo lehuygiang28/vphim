@@ -1,6 +1,7 @@
 name: NX-CI
 
 # Disable nx ci by setting branch to others than main
+
 on:
     push:
         branches:
