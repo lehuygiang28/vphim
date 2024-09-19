@@ -16,7 +16,7 @@ env:
 
 jobs:
     check-skip:
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        # if: ${{ github.event.workflow_run.conclusion == 'success' }}
         runs-on: ubuntu-latest
         outputs:
             commit_message: ${{ steps.get_commit_message.outputs.commit_message }}
