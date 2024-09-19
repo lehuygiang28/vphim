@@ -11,7 +11,7 @@ RUN yarn workspaces focus --all
 
 COPY . .
 
-RUN yarn nx build be
+RUN yarn nx build api
 
 FROM base AS production
 
