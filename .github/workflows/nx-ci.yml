@@ -1,10 +1,13 @@
 name: NX-CI
 
+# Disable nx ci by setting branch to others than main
 on:
     push:
         branches:
-            - main
+            - disable_nx_ci
     pull_request:
+        branches:
+            - disable_nx_ci
 
 permissions:
     actions: read
