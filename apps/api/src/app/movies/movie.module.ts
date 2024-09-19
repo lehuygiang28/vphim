@@ -24,6 +24,7 @@ import { KKPhimCrawler } from './kkphim.crawler';
 import { MovieResolver } from './movie.resolver';
 import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
 import { SearchService } from './search.service';
+import { NguoncCrawler } from './nguonc.crawler';
 
 @Global()
 @Module({
@@ -114,6 +115,7 @@ import { SearchService } from './search.service';
             },
             inject: [SearchService],
         },
+        NguoncCrawler,
     ],
     exports: [MovieRepository, MovieService, SearchService, 'SEARCH_SERVICE'],
 })
