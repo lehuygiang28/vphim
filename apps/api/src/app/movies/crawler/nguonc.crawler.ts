@@ -22,13 +22,7 @@ import { RedisService } from '../../../libs/modules/redis';
 import { CategoryRepository } from '../../categories';
 import { RegionRepository } from '../../regions/region.repository';
 import { DirectorRepository } from '../../directors';
-
-const MOVIE_TYPE_MAP = {
-    'phim lẻ': 'single',
-    'phim bộ': 'series',
-    'tv shows': 'tvshows',
-    'phim hoạt hình': 'hoathinh',
-};
+import { convertToVietnameseTime, mapLanguage, mapQuality, MOVIE_TYPE_MAP } from './mapping-data';
 
 @Injectable()
 export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
@@ -201,11 +195,13 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 description,
                 total_episodes,
                 current_episode,
+                modified,
+                episodes,
+
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 time,
                 quality,
                 language,
-                modified,
-                episodes,
             } = movieDetail;
 
             let correctId: Types.ObjectId;
@@ -219,13 +215,22 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
             const movieData: Partial<Movie> = {
                 ...(existingMovie || {}),
+
+                // Mapping data
+                type:
+                    MOVIE_TYPE_MAP[this.processMovieType(movieDetail) || existingMovie?.type] ||
+                    'N/A',
+                time: convertToVietnameseTime(movieDetail?.time || existingMovie?.time),
+                quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
+                lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
+
                 _id: correctId,
-                name: name || existingMovie?.name || '',
-                slug:
-                    slug ||
-                    (name
-                        ? slugifyVietnamese(name.toString(), { lower: true })
-                        : existingMovie?.slug || ''),
+                slug: existingMovie?.slug
+                    ? existingMovie.slug
+                    : slug ||
+                      (name
+                          ? slugifyVietnamese(name.toString(), { lower: true })
+                          : existingMovie?.slug || ''),
                 content: description
                     ? stripHtml(description.toString()).result
                     : existingMovie?.content || '',
@@ -236,17 +241,15 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                     directorIds && directorIds?.length > 0
                         ? directorIds
                         : existingMovie?.directors || [],
-                type: this.processMovieType(movieDetail) || existingMovie?.type || '',
                 status: this.processMovieStatus(movieDetail) || existingMovie?.status || '',
                 thumbUrl: thumb_url || existingMovie?.thumbUrl || '',
                 posterUrl: poster_url || existingMovie?.posterUrl || '',
-                originName: original_name || existingMovie?.originName || '',
-                episodeTotal: total_episodes?.toString() || existingMovie?.episodeTotal || '',
-                episodeCurrent: current_episode || existingMovie?.episodeCurrent || '',
-                time: time || existingMovie?.time || '',
-                quality: quality || existingMovie?.quality || '',
-                lang: language || existingMovie?.lang || '',
-                year: year || existingMovie?.year || null,
+
+                name: existingMovie?.name || name || '',
+                originName: existingMovie?.originName || original_name || '',
+                episodeTotal: existingMovie?.episodeTotal || total_episodes?.toString() || '',
+                episodeCurrent: existingMovie?.episodeCurrent || current_episode || '',
+                year: existingMovie?.year || year || null,
                 lastSyncModified: new Date(modified || Date.now()),
                 episode:
                     processedEpisodes.length > 0 ? processedEpisodes : existingMovie?.episode || [],
