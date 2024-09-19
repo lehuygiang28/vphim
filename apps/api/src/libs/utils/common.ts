@@ -1,6 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { Condition, ObjectId, Types, isValidObjectId } from 'mongoose';
 import { createHash } from 'node:crypto';
+import { removeTone, removeDiacritics } from '@vn-utils/text';
+import slug from 'slugify';
 
 /**
  * Checks if the environment is production
@@ -130,3 +132,7 @@ export function randomString(length: number, { onlyLetters = false } = {}): stri
     }
     return result;
 }
+
+export const slugifyVietnamese = (str: string, options?: Parameters<typeof slug>[1]) => {
+    return slug(removeDiacritics(removeTone(str)), options);
+};

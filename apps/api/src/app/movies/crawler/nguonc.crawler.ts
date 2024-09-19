@@ -5,14 +5,18 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { CronJob } from 'cron';
-import slugifyCore from 'slugify';
 import { stripHtml } from 'string-strip-html';
 import { parse } from 'node:url';
-import { removeTone, removeDiacritics } from '@vn-utils/text';
 
 import { EpisodeServerData, Movie, Episode } from './../movie.schema';
 import { MovieRepository } from './../movie.repository';
-import { convertToObjectId, isNullOrUndefined, isTrue, sleep } from '../../../libs/utils/common';
+import {
+    convertToObjectId,
+    isNullOrUndefined,
+    isTrue,
+    sleep,
+    slugifyVietnamese,
+} from '../../../libs/utils/common';
 import { ActorRepository } from '../../actors';
 import { RedisService } from '../../../libs/modules/redis';
 import { CategoryRepository } from '../../categories';
@@ -24,10 +28,6 @@ const MOVIE_TYPE_MAP = {
     'phim bộ': 'series',
     'tv shows': 'tvshows',
     'phim hoạt hình': 'hoathinh',
-};
-
-const slugify = (str: string, options: Parameters<typeof slugifyCore>[1]) => {
-    return slugifyCore(removeDiacritics(removeTone(str)), options);
 };
 
 @Injectable()
@@ -223,7 +223,9 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 name: name || existingMovie?.name || '',
                 slug:
                     slug ||
-                    (name ? slugify(name.toString(), { lower: true }) : existingMovie?.slug || ''),
+                    (name
+                        ? slugifyVietnamese(name.toString(), { lower: true })
+                        : existingMovie?.slug || ''),
                 content: description
                     ? stripHtml(description.toString()).result
                     : existingMovie?.content || '',
@@ -338,7 +340,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 if (typeof name !== 'string' || name.trim() === '') {
                     return null;
                 }
-                const slug = slugify(name.trim(), { lower: true });
+                const slug = slugifyVietnamese(name.trim(), { lower: true });
                 let entity = await repo.findOne({ filterQuery: { slug } });
                 if (!entity) {
                     entity = await repo.create({
@@ -362,15 +364,20 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             let serverName = episode.server_name;
             const serverData = (episode.items || [])
                 .filter((item: any) => item && (item.embed || item.m3u8))
-                .map(
-                    (item: any): EpisodeServerData => ({
-                        name: item.name || '',
-                        slug: item.slug || '',
+                .map((item: any, index): EpisodeServerData => {
+                    let name = item?.name;
+                    if (!name || !isNaN(Number(name))) {
+                        name = `Tập ${index + 1 < 10 ? '0' : ''}${index + 1}`;
+                    }
+                    const slug = slugifyVietnamese(item?.name, { lower: true });
+                    return {
+                        name: name,
+                        slug: slug,
                         filename: item.name || '',
                         linkEmbed: item.embed || '',
                         linkM3u8: item.m3u8 || '',
-                    }),
-                );
+                    };
+                });
 
             if (serverData.length === 0) return;
 
@@ -395,7 +402,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             }
 
             processedEpisodes.push({
-                serverName,
+                serverName: serverName || `NC #${ncCounter++}`,
                 serverData,
             });
 

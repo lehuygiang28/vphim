@@ -16,6 +16,7 @@ import {
     isTrue,
     resolveUrl,
     sleep,
+    slugifyVietnamese,
 } from '../../../libs/utils/common';
 import { ActorRepository } from '../../actors';
 import { RedisService } from '../../../libs/modules/redis';
@@ -308,19 +309,26 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                 cinemaRelease: chieurap,
                 year,
                 view: Math.max(view, existingMovie?.view || 0, 0),
-                episode: movieDetail?.episodes?.map((episode) => {
-                    const serverData: EpisodeServerData[] = episode?.server_data?.map((server) => {
-                        return {
-                            linkEmbed: resolveUrl(server?.link_embed),
-                            linkM3u8: resolveUrl(server?.link_m3u8),
-                            filename: server?.filename,
-                            name: server?.name,
-                            slug: server?.slug,
-                        };
-                    });
+                episode: movieDetail?.episodes?.map((server, index) => {
+                    const serverData: EpisodeServerData[] = server?.server_data?.map(
+                        (item, index) => {
+                            let name = item?.name;
+                            if (!name || !isNaN(Number(name))) {
+                                name = `Tập ${index + 1 < 10 ? '0' : ''}${index + 1}`;
+                            }
+                            const slug = slugifyVietnamese(item?.name, { lower: true });
+                            return {
+                                name: name,
+                                slug: slug,
+                                linkEmbed: resolveUrl(item?.link_embed),
+                                linkM3u8: resolveUrl(item?.link_m3u8),
+                                filename: item?.filename,
+                            };
+                        },
+                    );
 
                     return {
-                        serverName: episode.server_name,
+                        serverName: server?.server_name || `OP #${index + 1}`,
                         serverData,
                     };
                 }),
