@@ -1,14 +1,14 @@
 services:
-    redis:
-        container_name: redis
-        hostname: redis
+    redis-dev:
+        container_name: redis-dev
+        hostname: redis-dev
         image: docker.io/bitnami/redis:7.2
         environment:
             - REDIS_PASSWORD=${REDIS_PASSWORD:-giang}
-            - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
-            - REDIS_PORT_NUMBER=${REDIS_PORT:-6389}
+            # - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+            - REDIS_PORT_NUMBER=${REDIS_PORT:-9079}
         ports:
-            - ${REDIS_PORT:-6389}:${REDIS_PORT:-6389}
+            - ${REDIS_PORT:-9079}:${REDIS_PORT:-9079}
         volumes:
             - 'redis_data:/bitnami/redis/data'
         networks:
@@ -23,6 +23,4 @@ volumes:
     mongodb_data:
         driver: local
     redis_data:
-        driver: local
-    rabbitmq_data:
         driver: local
