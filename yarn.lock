@@ -5577,13 +5577,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/capitalize@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@types/capitalize@npm:2.0.2"
-  checksum: 10c0/5bbe28e576f1c0d4e88d84c3eb2a3f234d2adc92bcfdd17549ab1a5a116b56e16970522e9b1df761fbab6488150225378bc1a2d3ea2aaf6c43088d207b730fc8
-  languageName: node
-  linkType: hard
-
 "@types/connect-history-api-fallback@npm:^1.5.4":
   version: 1.5.4
   resolution: "@types/connect-history-api-fallback@npm:1.5.4"
@@ -6371,7 +6364,6 @@ __metadata:
     "@tanstack/react-query-devtools": "npm:^5.56.2"
     "@testing-library/react": "npm:15.0.6"
     "@types/bcryptjs": "npm:^2.4.6"
-    "@types/capitalize": "npm:^2.0.2"
     "@types/cors": "npm:^2.8.17"
     "@types/jest": "npm:^29.5.12"
     "@types/js-cookie": "npm:^3.0.6"
@@ -6395,7 +6387,6 @@ __metadata:
     bullmq: "npm:^5.12.10"
     cache-manager: "npm:^5.7.6"
     cache-manager-redis-yet: "npm:^5.1.4"
-    capitalize: "npm:^2.0.4"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.1"
     cloudinary: "npm:^2.4.0"
@@ -7971,13 +7962,6 @@ __metadata:
   version: 1.0.30001653
   resolution: "caniuse-lite@npm:1.0.30001653"
   checksum: 10c0/7aedf037541c93744148f599daea93d46d1f93ab4347997189efa2d1f003af8eadd7e1e05347ef09261ac1dc635ce375b8c6c00796245fffb4120a124824a14f
-  languageName: node
-  linkType: hard
-
-"capitalize@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "capitalize@npm:2.0.4"
-  checksum: 10c0/014b5aaaebef5c9af598361df99a8ccd9267c273d5f4e5412ebacf902c4ba40638b77a705f82d460ea371935d2d3c81ac09db2bb81b1f55ba89ed0ea54d15656
   languageName: node
   linkType: hard
 

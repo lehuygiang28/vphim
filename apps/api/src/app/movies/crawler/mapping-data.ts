@@ -1,5 +1,4 @@
 import { removeTone, removeDiacritics } from '@vn-utils/text';
-import { words } from 'capitalize';
 
 export const MOVIE_TYPE_MAP = {
     'phim lẻ': 'single',
@@ -13,69 +12,69 @@ export const MOVIE_TYPE_MAP = {
 };
 
 export const mapQuality = (quality: string) => {
-    switch (quality.toUpperCase()) {
-        case '4K':
-            return '4K';
-        case 'HD':
-        case 'FHD':
-        case 'FULL HD':
-        case 'FULLHD':
-        case 'HD 720P':
-        case '^HD':
-            return 'HD';
-        case 'SD':
-        case '360P':
-            return 'SD';
-        case 'CAM':
-            return 'CAM';
+    switch (quality.toLowerCase()) {
+        case '4k':
+            return '4k';
+        case 'hd':
+        case 'fhd':
+        case 'full hd':
+        case 'fullhd':
+        case 'hd 720p':
+        case '^hd':
+            return 'hd';
+        case 'sd':
+        case '360p':
+            return 'sd';
+        case 'cam':
+            return 'cam';
         default:
-            return quality;
+            return quality.toLowerCase();
     }
 };
 
 export const mapLanguage = (language: string): string => {
     let langRes = '';
-    switch (language?.trim()?.toUpperCase()) {
-        case 'VIỆT NAM':
-        case 'VIETSUB':
-        case 'VIETSUB (AI)':
+    switch (language?.trim()?.normalize()?.toLowerCase()) {
+        case 'việt nam':
+        case 'vietsub':
+        case 'vietsub (ai)':
         case '1':
-            langRes = 'VIETSUB';
+            langRes = 'vietsub';
             break;
-        case 'LỒNG TIẾNG':
-        case 'LỒNG TIẾNG VIỆT':
-            langRes = 'LỒNG TIẾNG';
+        case 'lồng tiếng':
+        case 'lồng tiếng việt':
+            langRes = 'lồng tiếng';
             break;
-        case 'THUYẾT MINH ':
-        case 'THUYẾT MINH':
-            langRes = 'THUYẾT MINH';
+        case 'thuyết minh ':
+        case 'thuyết minh':
+            langRes = 'thuyết minh';
             break;
-        case 'VIETSUB + THUYẾT MINH':
-        case 'VIETSUB + TM':
-            langRes = 'VIETSUB + THUYẾT MINH';
+        case 'vietsub + thuyết minh':
+        case 'vietsub + tm':
+            langRes = 'vietsub, thuyết minh';
             break;
-        case 'THUYẾT MINH + LỒNG TIẾNG':
-            langRes = 'THUYẾT MINH + LỒNG TIẾNG';
+        case 'thuyết minh + lồng tiếng':
+            langRes = 'thuyết minh, lồng tiếng';
             break;
-        case 'NOSUB':
-            langRes = 'CHƯA CÓ PHỤ ĐỀ';
+        case 'nosub':
+            langRes = 'chưa có phụ đề';
             break;
-        case 'ENGSUB':
-            langRes = 'PHỤ ĐỀ TIẾNG ANH';
+        case 'engsub':
+            langRes = 'phụ đề tiếng anh';
             break;
-        case 'VIETSUB + LT':
-        case 'VIETSUB + LỒNG TIẾNG':
-            langRes = 'VIETSUB + LỒNG TIẾNG';
+        case 'vietsub + lt':
+        case 'vietsub + lồng tiếng':
+            langRes = 'vietsub, lồng tiếng';
             break;
-        case 'VIETSUB + THUYẾT MINH + LỒNG TIẾNG':
-            langRes = 'VIETSUB + THUYẾT MINH + LỒNG TIẾNG';
+        case 'vietsub + thuyết minh + lồng tiếng':
+            langRes = 'vietsub, thuyết minh, lồng tiếng';
             break;
         default:
-            langRes = language?.trim()?.toUpperCase();
+            langRes = language?.trim()?.toLowerCase();
             break;
     }
 
-    return words(langRes);
+    return langRes;
 };
 
 export function mapStatus(status: string): string {
@@ -83,7 +82,7 @@ export function mapStatus(status: string): string {
         case 'ongoing':
         case 'completed':
         case 'trailer':
-            return status;
+            return status?.toLowerCase();
         case 'updating':
         default:
             return 'updating';
