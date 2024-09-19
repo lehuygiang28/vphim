@@ -3,8 +3,8 @@ import {
     HttpStatus,
     Injectable,
     InternalServerErrorException,
+    Logger,
 } from '@nestjs/common';
-import { PinoLogger } from 'nestjs-pino';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import sharp from 'sharp';
@@ -14,20 +14,30 @@ import { OptimizeImageDTO } from './dtos/optimize-image.dto';
 import { ImageUploadedResponseDTO } from './dtos';
 import { MulterFile } from './multer.type';
 import { CloudinaryService } from '../../libs/modules/cloudinary.com';
+import { ConfigService } from '@nestjs/config';
+import { isNullOrUndefined } from '../../libs/utils/common';
 
 @Injectable()
 export class ImagesService {
     private readonly CLOUDINARY_ENV_NAMES = ['giang04', 'techcell', 'gcp-1408'];
     private readonly IMAGE_HASH_KEY = 'optimized_images';
     private readonly IMAGE_EXPIRATION_KEY = 'optimized_images_expiration';
-    private readonly CACHE_DURATION = 3600; // 1 hour in seconds
+    private readonly CACHE_DURATION = 3600 * 4; // 4 hour in seconds
+    private readonly logger = new Logger(ImagesService.name);
 
     constructor(
         private readonly cloudinaryService: CloudinaryService,
-        private readonly logger: PinoLogger,
         private readonly redisService: RedisService,
+        private readonly configService: ConfigService,
     ) {
-        this.logger.setContext(ImagesService.name);
+        if (
+            !isNullOrUndefined(this.configService.get('IMAGE_OPTIMIZATION_CACHE_DURATION')) &&
+            !isNaN(Number(this.configService.get('IMAGE_OPTIMIZATION_CACHE_DURATION')))
+        ) {
+            this.CACHE_DURATION = parseInt(
+                this.configService.get('IMAGE_OPTIMIZATION_CACHE_DURATION'),
+            );
+        }
     }
 
     @SkipThrottle()
@@ -155,7 +165,7 @@ export class ImagesService {
                 // Remove from sorted set
                 await client.zremrangebyscore(this.IMAGE_EXPIRATION_KEY, 0, now);
 
-                this.logger.info(`Removed ${expiredKeys.length} expired images from cache`);
+                this.logger.log(`Removed ${expiredKeys.length} expired images from cache`);
             }
         } catch (error) {
             this.logger.error('Error during cache cleanup', error);
