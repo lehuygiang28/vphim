@@ -13,7 +13,7 @@ import {
     PlayCircleOutlined,
 } from '@ant-design/icons';
 
-import { HigherHeightImage } from '@/components/image/higher-image';
+import { ImageOptimized } from '@/components/image/image-optimized';
 import { GET_MOVIE_QUERY } from '@/queries/movies';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { movieTypeTranslations, movieStatusTranslations } from '@/constants/translation-enum';
@@ -221,13 +221,13 @@ export function Movie({ slug }: MovieProps) {
                         transition: 'opacity 0.5s ease-in-out',
                     }}
                 >
-                    <HigherHeightImage
-                        url1={movie?.thumbUrl || ''}
+                    <ImageOptimized
+                        url={movie?.thumbUrl || ''}
                         url2={movie?.posterUrl || ''}
                         alt={movie?.name || ''}
                         width={md ? 1900 : 750}
                         height={md ? 750 : 380}
-                        reverse={true}
+                        shouldShowHorizontalImage={true}
                     />
                 </div>
             )}
@@ -288,8 +288,8 @@ export function Movie({ slug }: MovieProps) {
                                         height: '100%',
                                     }}
                                 >
-                                    <HigherHeightImage
-                                        url1={movie?.thumbUrl || ''}
+                                    <ImageOptimized
+                                        url={movie?.thumbUrl || ''}
                                         url2={movie?.posterUrl || ''}
                                         alt={movie?.name || ''}
                                         width={md ? 500 : 150}

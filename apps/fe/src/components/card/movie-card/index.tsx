@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button, Card, Divider, Grid, Space, Tag, Typography } from 'antd';
 import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
-import { HigherHeightImage } from '@/components/image/higher-image';
+import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
@@ -50,9 +50,9 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                     borderRadius: '0.3rem',
                 }}
             >
-                <HigherHeightImage
+                <ImageOptimized
                     alt={movie.name}
-                    url1={movie.posterUrl}
+                    url={movie.posterUrl}
                     url2={movie.thumbUrl || movie.posterUrl}
                     width={md ? 220 : 150}
                     height={md ? 320 : 220}

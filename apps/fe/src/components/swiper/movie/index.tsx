@@ -13,7 +13,7 @@ import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
-import { HigherHeightImage } from '@/components/image/higher-image';
+import { ImageOptimized } from '@/components/image/image-optimized';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -88,13 +88,13 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                 opacity: index === currentMovieIndex ? 1 : 0,
                             }}
                         >
-                            <HigherHeightImage
-                                url1={movie?.thumbUrl}
+                            <ImageOptimized
+                                url={movie?.thumbUrl}
                                 url2={movie?.posterUrl}
                                 alt={movie?.name}
                                 width={md ? 1900 : 750}
                                 height={md ? 750 : 380}
-                                reverse={true}
+                                shouldShowHorizontalImage={true}
                             />
                         </div>
                     );
@@ -273,8 +273,8 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                     background: 'transparent',
                                                 }}
                                             >
-                                                <HigherHeightImage
-                                                    url1={movie?.thumbUrl}
+                                                <ImageOptimized
+                                                    url={movie?.thumbUrl}
                                                     url2={movie?.posterUrl}
                                                     alt={movie?.name}
                                                     width={md ? 500 : 150}
