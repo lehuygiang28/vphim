@@ -79,6 +79,7 @@ export class ImagesService {
     private setResponseHeaders(res: Response) {
         res.setHeader('Content-Type', 'image/webp');
         res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Access-Control-Allow-Origin', '*');
     }
 
     private async getCachedImage(cacheKey: string): Promise<Buffer | null> {
