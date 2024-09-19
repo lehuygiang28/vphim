@@ -10,6 +10,8 @@ import {
     Post,
     UseInterceptors,
     UploadedFiles,
+    Query,
+    Res,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
@@ -25,6 +27,8 @@ import {
     ApiTags,
     ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
+import { Response } from 'express';
+
 import { ImageUploadedResponseDTO, PublicIdDTO } from './dtos';
 import { ImagesService } from './images.service';
 import {
@@ -35,6 +39,8 @@ import {
 } from 'apps/api/src/libs/modules/cloudinary.com';
 import { RequiredRoles } from 'apps/api/src/app/auth/guards';
 import { MulterFile } from './multer.type';
+import { OptimizeImageDTO } from './dtos/optimize-image.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiBadRequestResponse({
     description: 'Invalid request, please check your request data!',
@@ -54,6 +60,16 @@ import { MulterFile } from './multer.type';
 })
 export class ImagesController {
     constructor(private readonly imagesService: ImagesService) {}
+
+    @SkipThrottle()
+    @Get('/optimize')
+    async optimizeImage(
+        @Query()
+        data: OptimizeImageDTO,
+        @Res() res: Response,
+    ) {
+        return this.imagesService.optimizeImage(data, res);
+    }
 
     @ApiOperation({
         summary: 'Get image by public id',

@@ -6,9 +6,12 @@
         "cloudinary",
         "customfav",
         "Docquyen",
+        "hdel",
+        "hget",
         "hoathinh",
         "hookform",
         "hoverable",
+        "hset",
         "Imdb",
         "KKPHIM",
         "nextjs",
@@ -32,7 +35,12 @@
         "Unfollow",
         "vephim",
         "vidstack",
-        "vphim"
+        "vphim",
+        "zadd",
+        "zrangebyscore",
+        "zrem",
+        "zremrangebyscore",
+        "zscore"
     ],
     "conventionalCommits.scopes": ["be/i18n", "api", "fe", "mnt"]
 }
