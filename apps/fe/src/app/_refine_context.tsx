@@ -41,16 +41,14 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
         return <Loading />;
     }
 
-    const defaultMode = props?.defaultMode;
-
     return (
         <>
             <AntdRegistry>
-                <ColorModeContextProvider defaultMode={defaultMode}>
+                <ColorModeContextProvider defaultMode={'dark'}>
                     <Refine
                         routerProvider={routerProvider}
                         dataProvider={{
-                            default: { ...restfulDataProvider(axiosAuth) } as DataProvider,
+                            default: restfulDataProvider(axiosAuth) as DataProvider,
                             graphql: graphqlDataProvider(axiosAuth) as DataProvider,
                         }}
                         notificationProvider={useNotificationProvider}
