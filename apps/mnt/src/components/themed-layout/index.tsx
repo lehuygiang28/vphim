@@ -20,7 +20,7 @@ function CustomSider({ mode, user }: { mode: string; user: UserType }) {
                     <Link href={'/'} style={{ all: 'unset', cursor: 'pointer' }}>
                         <Image
                             src={'/assets/images/logo-mini.png'}
-                            alt="logo tasktr"
+                            alt="logo vephim"
                             width={70}
                             height={20}
                         />
