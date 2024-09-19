@@ -5,9 +5,10 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { CronJob } from 'cron';
-import slugify from 'slugify';
+import slugifyCore from 'slugify';
 import { stripHtml } from 'string-strip-html';
 import { parse } from 'node:url';
+import { removeTone, removeDiacritics } from '@vn-utils/text';
 
 import { EpisodeServerData, Movie, Episode } from './movie.schema';
 import { MovieRepository } from './movie.repository';
@@ -23,6 +24,10 @@ const MOVIE_TYPE_MAP = {
     'phim bộ': 'series',
     'tv shows': 'tvshows',
     'phim hoạt hình': 'hoathinh',
+};
+
+const slugify = (str: string, options: Parameters<typeof slugifyCore>[1]) => {
+    return slugifyCore(removeDiacritics(removeTone(str)), options);
 };
 
 @Injectable()
