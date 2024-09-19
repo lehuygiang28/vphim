@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Typography, Grid, Divider, Button, Space, Alert } from 'antd';
@@ -34,6 +34,21 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const [hasPrevEpisode, setHasPrevEpisode] = useState<boolean>(false);
     const [hasNextEpisode, setHasNextEpisode] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [useEmbedLink, setUseEmbedLink] = useState<boolean>(false);
+    const [isM3u8Available, setIsM3u8Available] = useState<boolean>(true);
+
+    const preFetchM3u8 = useCallback(async (url: string) => {
+        try {
+            const response = await fetch(url, { method: 'GET' });
+            if (!response.ok) {
+                throw new Error('M3U8 file not available');
+            }
+            setIsM3u8Available(true);
+        } catch (error) {
+            console.error('Error pre-fetching M3U8:', error);
+            setIsM3u8Available(false);
+        }
+    }, []);
 
     useEffect(() => {
         if (
@@ -69,6 +84,10 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                     episode.serverData.find((server) => server.slug === episodeSlug) || null;
                 setSelectedEpisode(currentEpisode);
 
+                if (currentEpisode && currentEpisode.linkM3u8) {
+                    preFetchM3u8(currentEpisode.linkM3u8);
+                }
+
                 const currentEpisodeIndex = episode.serverData.findIndex(
                     (ep) => ep.slug === episodeSlug,
                 );
@@ -78,18 +97,31 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         } else {
             setError('Phim đang được cập nhật, vui lòng quay lại sau.');
         }
-    }, [movie, episodeSlug]);
+    }, [movie, episodeSlug, preFetchM3u8]);
 
     const handleServerChange = (serverIndex: number) => {
         setSelectedServerIndex(serverIndex);
         const newEpisode = movie?.episode?.[serverIndex]?.serverData[0];
         if (newEpisode) {
             setSelectedEpisode(newEpisode);
+            setUseEmbedLink(false);
+            setIsM3u8Available(true);
+            if (newEpisode.linkM3u8) {
+                preFetchM3u8(newEpisode.linkM3u8);
+            }
             router.push(
                 `${RouteNameEnum.MOVIE_PAGE}/${encodeURIComponent(
                     movie?.slug,
                 )}/${encodeURIComponent(newEpisode.slug)}`,
             );
+        }
+    };
+
+    const handleVideoError = () => {
+        if (isM3u8Available && !useEmbedLink && selectedEpisode?.linkEmbed) {
+            setUseEmbedLink(true);
+        } else {
+            setError('Không thể phát video. Vui lòng thử lại sau.');
         }
     };
 
@@ -125,7 +157,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             const scrollTop = window.scrollY || document.documentElement.scrollTop;
             const targetPosition = rect.top + scrollTop - 20; // 20px offset from the top
 
-            smoothScroll(document.documentElement, targetPosition, 300); // 500ms duration
+            smoothScroll(document.documentElement, targetPosition, 300); // 300ms duration
         }
     };
 
@@ -140,6 +172,11 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 movie?.episode?.[selectedServerIndex]?.serverData[adjacentIndex];
             if (adjacentEpisode) {
                 setSelectedEpisode(adjacentEpisode);
+                setUseEmbedLink(false);
+                setIsM3u8Available(true);
+                if (adjacentEpisode.linkM3u8) {
+                    preFetchM3u8(adjacentEpisode.linkM3u8);
+                }
                 router.push(
                     `${RouteNameEnum.MOVIE_PAGE}/${encodeURIComponent(
                         movie?.slug,
@@ -182,14 +219,15 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                 overflow: 'hidden',
                             }}
                         >
-                            {selectedEpisode?.linkM3u8 && (
+                            {selectedEpisode && (
                                 <iframe
                                     id="video-player"
                                     width="100%"
                                     height="100%"
                                     src={
-                                        selectedEpisode?.linkM3u8
-                                            ? `${host}/player/${encodeURIComponent(
+                                        !isM3u8Available || useEmbedLink
+                                            ? selectedEpisode.linkEmbed
+                                            : `${host}/player/${encodeURIComponent(
                                                   selectedEpisode.linkM3u8,
                                               )}?movieSlug=${encodeURIComponent(
                                                   movie?.slug,
@@ -198,7 +236,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                                       ? movie?.thumbUrl
                                                       : movie?.posterUrl,
                                               )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
-                                            : selectedEpisode?.linkEmbed
                                     }
                                     title={movie?.name}
                                     allowFullScreen
@@ -208,6 +245,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                         maxHeight: '100%',
                                         objectFit: 'contain',
                                     }}
+                                    onError={handleVideoError}
                                 />
                             )}
                         </div>
@@ -217,7 +255,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                         style={{
                             backgroundColor: 'transparent',
                             borderRadius: 8,
-                            marginTop: md ? undefined : '1rem',
+                            marginTop: md ? '0.5rem' : '1rem',
                         }}
                     >
                         <Button
@@ -266,6 +304,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                         {getEpisodeNameBySlug(movie, selectedEpisode?.slug)}
                     </Title>
                     <Paragraph
+                        // eslint-disable-next-line @typescript-eslint/no-empty-function
                         onClick={() => {}}
                         ellipsis={{
                             rows: 5,
