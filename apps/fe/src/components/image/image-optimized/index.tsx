@@ -1,22 +1,39 @@
 'use client';
 
-import React, { useState, useEffect, useRef, CSSProperties } from 'react';
-import Image from 'next/image';
-import { Skeleton } from 'antd';
+import React, { useState, useEffect, useRef, CSSProperties, forwardRef } from 'react';
+import { Skeleton, Image as AntImage, ImageProps } from 'antd';
+import { baseApiUrl } from '@/config';
 
-export type HigherHeightImageProps = {
-    url1: string;
-    url2: string;
+export type ImageOptimizedProps = {
+    url: string;
+    url2?: string;
     alt: string;
     width: number | string;
     height: number | string;
     style?: CSSProperties;
+    wrapperStyle?: CSSProperties;
     className?: string;
-    reverse?: boolean;
+    shouldShowHorizontalImage?: boolean;
     quality?: number;
     environmentNames?: string[];
     disableSkeleton?: boolean;
 };
+
+const ForwardedImage = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
+    return (
+        <AntImage
+            {...props}
+            onLoad={(e) => {
+                if (ref && 'current' in ref) {
+                    ref.current = e.target as HTMLImageElement;
+                }
+                props.onLoad?.(e);
+            }}
+        />
+    );
+});
+
+ForwardedImage.displayName = 'ForwardedImage';
 
 const isBase64Image = (url: string) => {
     return url.includes('data:image/jpeg;base64,') || url.includes('data:image/png;base64,');
@@ -31,23 +48,32 @@ const extractBase64Data = (url: string) => {
     return url;
 };
 
-export function HigherHeightImage({
-    url1,
+export function ImageOptimized({
+    url,
     url2,
     alt,
     width,
     height,
     className,
-    reverse = false,
+    shouldShowHorizontalImage: reverse = false,
     style,
+    wrapperStyle,
     quality = 75,
     environmentNames = ['giang04', 'techcell', 'gcp-1408'],
-    disableSkeleton = false, // Default to false to maintain current behavior
-}: HigherHeightImageProps) {
+    disableSkeleton = false,
+}: ImageOptimizedProps) {
     const [showImage1, setShowImage1] = useState(true);
-    const [currentUrl1, setCurrentUrl1] = useState(url1);
-    const [currentUrl2, setCurrentUrl2] = useState(url2);
+    const [currentUrl1, setCurrentUrl1] = useState(
+        `${baseApiUrl}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`,
+    );
+    const [currentUrl2, setCurrentUrl2] = useState(
+        url2
+            ? `${baseApiUrl}/api/images/optimize?url=${url2}&width=${width}&height=${height}&quality=${quality}`
+            : '',
+    );
     const [isLoading, setIsLoading] = useState(true);
+    const [image1Loaded, setImage1Loaded] = useState(false);
+    const [image2Loaded, setImage2Loaded] = useState(false);
     const image1Ref = useRef<HTMLImageElement>(null);
     const image2Ref = useRef<HTMLImageElement>(null);
 
@@ -82,20 +108,34 @@ export function HigherHeightImage({
         };
 
         if (imageNumber === 1) {
-            updateUrl(url1, currentUrl1, setCurrentUrl1);
-        } else {
+            updateUrl(url, currentUrl1, setCurrentUrl1);
+        } else if (url2) {
             updateUrl(url2, currentUrl2, setCurrentUrl2);
         }
     };
 
     useEffect(() => {
-        setCurrentUrl1(url1);
-        setCurrentUrl2(url2);
+        setCurrentUrl1(
+            `${baseApiUrl}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`,
+        );
+        if (url2) {
+            setCurrentUrl2(
+                `${baseApiUrl}/api/images/optimize?url=${url2}&width=${width}&height=${height}&quality=${quality}`,
+            );
+        }
         setIsLoading(true);
-    }, [url1, url2]);
+        setImage1Loaded(false);
+        setImage2Loaded(false);
+    }, [url, url2, width, height, quality]);
 
     useEffect(() => {
-        const checkAndSetImage = () => {
+        if (image1Loaded && (!url2 || image2Loaded)) {
+            if (!url2) {
+                setShowImage1(true);
+                setIsLoading(false);
+                return;
+            }
+
             const img1 = image1Ref.current;
             const img2 = image2Ref.current;
 
@@ -112,31 +152,16 @@ export function HigherHeightImage({
                 }
                 setIsLoading(false);
             }
-        };
-
-        const image1 = image1Ref.current;
-        const image2 = image2Ref.current;
-
-        if (image1 && image2) {
-            if (image1.complete && image2.complete) {
-                checkAndSetImage();
-            } else {
-                const handleLoad = () => {
-                    if (image1.complete && image2.complete) {
-                        checkAndSetImage();
-                    }
-                };
-
-                image1.addEventListener('load', handleLoad);
-                image2.addEventListener('load', handleLoad);
-
-                return () => {
-                    image1.removeEventListener('load', handleLoad);
-                    image2.removeEventListener('load', handleLoad);
-                };
-            }
         }
-    }, [reverse, currentUrl1, currentUrl2]);
+    }, [image1Loaded, image2Loaded, reverse, url2]);
+
+    const handleImageLoad = (imageNumber: 1 | 2) => {
+        if (imageNumber === 1) {
+            setImage1Loaded(true);
+        } else {
+            setImage2Loaded(true);
+        }
+    };
 
     const renderImage = (
         url: string,
@@ -144,6 +169,8 @@ export function HigherHeightImage({
         imageRef: React.RefObject<HTMLImageElement>,
         imageNumber: 1 | 2,
     ) => {
+        if (!url) return null;
+
         if (isBase64Image(url)) {
             const base64Data = extractBase64Data(url);
             const imageType = url.includes('data:image/jpeg') ? 'jpeg' : 'png';
@@ -156,32 +183,31 @@ export function HigherHeightImage({
                     src={fullBase64Url}
                     alt={alt}
                     style={{
-                        opacity: showImage && !isLoading ? 1 : 0,
                         objectFit: 'cover',
                         ...style,
+                        display: showImage && !isLoading ? style?.display ?? undefined : 'none',
                     }}
                     className={showImage ? className : ''}
                     onError={() => handleImageError(imageNumber)}
-                    onLoad={() => setIsLoading(false)}
+                    onLoad={() => handleImageLoad(imageNumber)}
                 />
             );
         } else {
             return (
-                <Image
+                <ForwardedImage
                     ref={imageRef}
                     src={url}
                     alt={alt}
-                    fill
-                    sizes={`(max-width: ${width}px) 100vw, ${width}px`}
+                    preview={false}
                     style={{
-                        opacity: showImage && !isLoading ? 1 : 0,
                         objectFit: 'cover',
                         ...style,
+                        display: showImage && !isLoading ? style?.display ?? undefined : 'none',
                     }}
                     className={showImage ? className : ''}
-                    quality={quality}
                     onError={() => handleImageError(imageNumber)}
-                    onLoad={() => setIsLoading(false)}
+                    onLoad={() => handleImageLoad(imageNumber)}
+                    wrapperStyle={{ display: 'unset', ...wrapperStyle }}
                 />
             );
         }
@@ -201,7 +227,7 @@ export function HigherHeightImage({
                 />
             )}
             {renderImage(currentUrl1, showImage1, image1Ref, 1)}
-            {renderImage(currentUrl2, !showImage1, image2Ref, 2)}
+            {url2 && renderImage(currentUrl2, !showImage1, image2Ref, 2)}
         </>
     );
 }
