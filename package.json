@@ -40,6 +40,7 @@
         "@refinedev/nextjs-router": "^6.1.0",
         "@refinedev/react-hook-form": "^4.9.0",
         "@refinedev/simple-rest": "^5.0.8",
+        "@types/cors": "^2.8.17",
         "@vidstack/react": "^1.12.9",
         "@vn-utils/text": "0.0.1-rc.2",
         "antd": "^5.20.3",

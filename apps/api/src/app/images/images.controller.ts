@@ -12,6 +12,7 @@ import {
     UploadedFiles,
     Query,
     Res,
+    Req,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
@@ -27,7 +28,8 @@ import {
     ApiTags,
     ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import cors from 'cors';
 
 import { ImageUploadedResponseDTO, PublicIdDTO } from './dtos';
 import { ImagesService } from './images.service';
@@ -66,9 +68,15 @@ export class ImagesController {
     async optimizeImage(
         @Query()
         data: OptimizeImageDTO,
+        @Req() req: Request,
         @Res() res: Response,
     ) {
-        return this.imagesService.optimizeImage(data, res);
+        cors()(req, res, async () => {
+            const result = await this.imagesService.optimizeImage(data);
+            res.setHeader('Content-Type', 'image/webp');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            return res.send(result);
+        });
     }
 
     @ApiOperation({

@@ -6,14 +6,14 @@ import {
 } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import { SkipThrottle } from '@nestjs/throttler';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import sharp from 'sharp';
-import { Response } from 'express';
+
 import { RedisService } from '../../libs/modules/redis';
 import { OptimizeImageDTO } from './dtos/optimize-image.dto';
 import { ImageUploadedResponseDTO } from './dtos';
 import { MulterFile } from './multer.type';
 import { CloudinaryService } from '../../libs/modules/cloudinary.com';
-import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class ImagesService {
@@ -31,7 +31,7 @@ export class ImagesService {
     }
 
     @SkipThrottle()
-    async optimizeImage(data: OptimizeImageDTO, res: Response) {
+    async optimizeImage(data: OptimizeImageDTO) {
         const { url, width, height, quality = 75 } = data;
         const cacheKey = `${url}:${width}:${height}:${quality}`;
 
@@ -39,8 +39,7 @@ export class ImagesService {
             const cachedImage = await this.getCachedImage(cacheKey);
 
             if (cachedImage) {
-                this.setResponseHeaders(res);
-                return res.send(cachedImage);
+                return cachedImage;
             }
 
             let imageBuffer: Buffer;
@@ -60,8 +59,7 @@ export class ImagesService {
 
             await this.cacheOptimizedImage(cacheKey, optimizedImage);
 
-            this.setResponseHeaders(res);
-            return res.send(optimizedImage);
+            return optimizedImage;
         } catch (error) {
             this.logger.error(error);
             throw new HttpException(
@@ -74,12 +72,6 @@ export class ImagesService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-    }
-
-    private setResponseHeaders(res: Response) {
-        res.setHeader('Content-Type', 'image/webp');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        res.setHeader('Access-Control-Allow-Origin', '*');
     }
 
     private async getCachedImage(cacheKey: string): Promise<Buffer | null> {
