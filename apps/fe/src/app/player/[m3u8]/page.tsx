@@ -128,6 +128,8 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                     src={decodeURIComponent(params.m3u8)}
                     playsInline
                     style={{ ...playerStyle }}
+                    aspectRatio="16/9"
+                    storage={'vephim-player-storage'}
                 >
                     <MediaProvider></MediaProvider>
                     <DefaultVideoLayout
