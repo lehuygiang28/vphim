@@ -75,6 +75,7 @@ export class ImagesController {
             const result = await this.imagesService.optimizeImage(data);
             res.setHeader('Content-Type', 'image/webp');
             res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
             return res.send(result);
         });
     }
