@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { Movie } from './movie.schema';
 import { MovieRepository } from './movie.repository';
+import { convertToObjectId } from '../../libs/utils/common';
 
 @Injectable()
 export class SearchService {
@@ -30,8 +31,31 @@ export class SearchService {
     }
 
     async indexMovie(movie: Movie) {
+        const movieData = await this.movieRepo.findOne({
+            filterQuery: { _id: convertToObjectId(movie?._id) },
+            queryOptions: {
+                populate: [
+                    {
+                        path: 'actors',
+                        justOne: false,
+                    },
+                    {
+                        path: 'categories',
+                        justOne: false,
+                    },
+                    {
+                        path: 'countries',
+                        justOne: false,
+                    },
+                    {
+                        path: 'directors',
+                        justOne: false,
+                    },
+                ],
+            },
+        });
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { _id, ...rest } = movie;
+        const { _id, ...rest } = movieData;
         const body: Omit<Movie, '_id'> = {
             ...rest,
         };
