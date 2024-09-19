@@ -19,12 +19,10 @@ import { DirectorModule } from '../directors';
 import { RegionsModule } from '../regions';
 import { MovieController } from './movies.controller';
 import { MovieService } from './movie.service';
-import { MovieCrawler } from './movie.crawler';
-import { KKPhimCrawler } from './kkphim.crawler';
 import { MovieResolver } from './movie.resolver';
 import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
 import { SearchService } from './search.service';
-import { NguoncCrawler } from './nguonc.crawler';
+import { NguoncCrawler, KKPhimCrawler, OphimCrawler } from './crawler';
 
 @Global()
 @Module({
@@ -105,8 +103,9 @@ import { NguoncCrawler } from './nguonc.crawler';
         MovieResolver,
         MovieRepository,
         MovieService,
-        MovieCrawler,
+        OphimCrawler,
         KKPhimCrawler,
+        NguoncCrawler,
         {
             provide: 'SEARCH_SERVICE',
             useFactory: (searchService: SearchService) => {
@@ -115,7 +114,6 @@ import { NguoncCrawler } from './nguonc.crawler';
             },
             inject: [SearchService],
         },
-        NguoncCrawler,
     ],
     exports: [MovieRepository, MovieService, SearchService, 'SEARCH_SERVICE'],
 })

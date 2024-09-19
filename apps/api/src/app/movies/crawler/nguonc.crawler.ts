@@ -10,14 +10,14 @@ import { stripHtml } from 'string-strip-html';
 import { parse } from 'node:url';
 import { removeTone, removeDiacritics } from '@vn-utils/text';
 
-import { EpisodeServerData, Movie, Episode } from './movie.schema';
-import { MovieRepository } from './movie.repository';
-import { convertToObjectId, isNullOrUndefined, isTrue, sleep } from '../../libs/utils/common';
-import { ActorRepository } from '../actors';
-import { RedisService } from '../../libs/modules/redis';
-import { CategoryRepository } from '../categories';
-import { RegionRepository } from '../regions/region.repository';
-import { DirectorRepository } from '../directors';
+import { EpisodeServerData, Movie, Episode } from './../movie.schema';
+import { MovieRepository } from './../movie.repository';
+import { convertToObjectId, isNullOrUndefined, isTrue, sleep } from '../../../libs/utils/common';
+import { ActorRepository } from '../../actors';
+import { RedisService } from '../../../libs/modules/redis';
+import { CategoryRepository } from '../../categories';
+import { RegionRepository } from '../../regions/region.repository';
+import { DirectorRepository } from '../../directors';
 
 const MOVIE_TYPE_MAP = {
     'phim lẻ': 'single',
@@ -32,7 +32,7 @@ const slugify = (str: string, options: Parameters<typeof slugifyCore>[1]) => {
 
 @Injectable()
 export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
-    private readonly NGUONC_CRON: string = '29 17 * * *';
+    private readonly NGUONC_CRON: string = '0 6 * * *';
     private readonly RETRY_DELAY = 5000;
     private readonly NGUONC_FORCE_UPDATE: boolean = true;
     private readonly NGUONC_HOST: string = 'https://phim.nguonc.com/api';
@@ -351,8 +351,8 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         return entities.filter(Boolean);
     }
 
-    private processEpisodes(newEpisodes: any[], existingEpisodes: Episode[]): Episode[] {
-        const processedEpisodes: Episode[] = [];
+    private processEpisodes(newEpisodes: any[], existingEpisodes: Episode[] = []): Episode[] {
+        const processedEpisodes: Episode[] = [...existingEpisodes];
         const existingServers = new Set(existingEpisodes.map((ep) => ep.serverName));
         let ncCounter = 1;
 
@@ -389,7 +389,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
                     if (existingHost !== newHost) {
                         // If hosts are different, create a new server name
-                        serverName = `NC${ncCounter++}`;
+                        serverName = `NC #${ncCounter++}`;
                     }
                 }
             }
@@ -400,13 +400,6 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             });
 
             existingServers.add(serverName);
-        });
-
-        // Merge with existing episodes
-        existingEpisodes.forEach((existingEp) => {
-            if (!processedEpisodes.some((ep) => ep.serverName === existingEp.serverName)) {
-                processedEpisodes.push(existingEp);
-            }
         });
 
         return processedEpisodes;
