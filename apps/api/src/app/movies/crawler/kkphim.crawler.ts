@@ -7,6 +7,7 @@ import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js'
 import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
+import { MOVIE_TYPE_MAP, convertToVietnameseTime, mapLanguage, mapQuality } from './mapping-data';
 
 import { EpisodeServerData, Movie } from './../movie.schema';
 import { MovieRepository } from './../movie.repository';
@@ -290,6 +291,13 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
             const movieData: Movie = {
                 ...(existingMovie || {}),
                 ...movieDetail,
+
+                // Mapping data
+                type: MOVIE_TYPE_MAP[movieDetail?.type] || 'N/A',
+                time: convertToVietnameseTime(movieDetail?.time || existingMovie?.time),
+                quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
+                lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
+
                 lastSyncModified: new Date(modified?.time),
                 _id: correctId,
                 name: movieDetail?.name,

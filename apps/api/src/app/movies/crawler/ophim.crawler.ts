@@ -23,6 +23,7 @@ import { RedisService } from '../../../libs/modules/redis';
 import { CategoryRepository } from '../../categories';
 import { RegionRepository } from '../../regions/region.repository';
 import { DirectorRepository } from '../../directors';
+import { convertToVietnameseTime, mapLanguage, mapQuality, MOVIE_TYPE_MAP } from './mapping-data';
 
 @Injectable()
 export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
@@ -289,6 +290,13 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
             const movieData: Movie = {
                 ...(existingMovie || {}),
                 ...movieDetail,
+
+                // Mapping data
+                type: MOVIE_TYPE_MAP[movieDetail?.type] || 'N/A',
+                time: convertToVietnameseTime(movieDetail?.time || existingMovie?.time),
+                quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
+                lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
+
                 lastSyncModified: new Date(modified?.time),
                 _id: correctId,
                 name: movieDetail?.name,
