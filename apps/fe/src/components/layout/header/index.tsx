@@ -1,7 +1,8 @@
 'use client';
 
 import './header.css';
-import React, { useState, useEffect, ReactNode } from 'react';
+
+import React, { useState, ReactNode, useEffect, useRef } from 'react';
 import { Layout, Menu, Input, Button, Drawer, Grid, Dropdown, Avatar } from 'antd';
 import { SearchOutlined, UserOutlined, MenuOutlined, DownOutlined } from '@ant-design/icons';
 import Link from 'next/link';
@@ -9,11 +10,12 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { stringifyTableParams, useGetIdentity } from '@refinedev/core';
 import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
+import { signOut } from 'next-auth/react';
+
 import { RouteNameEnum } from '@/constants/route.constant';
 
 import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
 import { UserDto } from 'apps/api/src/app/users/dtos/user.dto';
-import { signOut } from 'next-auth/react';
 
 const { Header } = Layout;
 const { useBreakpoint } = Grid;
@@ -123,10 +125,25 @@ export type HeaderProps = {
 export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: HeaderProps) {
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [searchVisible, setSearchVisible] = useState(false);
+    const [searchFocused, setSearchFocused] = useState(false);
     const screens = useBreakpoint();
     const [searchValue, setSearchValue] = useState('');
     const router = useRouter();
     const { data: user, isLoading } = useGetIdentity<UserDto>();
+    const searchRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setSearchFocused(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const navItems = [
         ...baseNavItems,
@@ -154,26 +171,27 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
         setSearchVisible(!searchVisible);
     };
 
-    const handleSearch = () => {
-        if (!searchValue) {
-            return;
-        }
+    const handleSearchIconClick = () => {
+        const searchQuery = stringifyTableParams({
+            filters: [
+                {
+                    field: 'keywords',
+                    operator: 'eq',
+                    value: searchValue,
+                },
+            ],
+            sorters: [],
+        });
 
-        router.push(
-            `${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
-                filters: [
-                    {
-                        field: 'keywords',
-                        operator: 'eq',
-                        value: searchValue,
-                    },
-                ],
-                sorters: [],
-            })}`,
-        );
+        router.push(`${RouteNameEnum.MOVIE_LIST_PAGE}?${searchQuery}`);
+
         if (!screens.md) {
             toggleSearch();
         }
+    };
+
+    const handleSearch = () => {
+        handleSearchIconClick();
     };
 
     return (
@@ -186,7 +204,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: screens.md ? '0 50px' : '0 15px',
+                padding: screens.md ? '0 3.125rem' : '0 0.9375rem',
                 background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.0))',
                 transition: 'background-color 0.3s ease',
             }}
@@ -220,31 +238,47 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                     }}
                 />
             )}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 {screens.md ? (
-                    <Input
-                        placeholder="Tìm kiếm"
-                        prefix={<SearchOutlined />}
-                        style={{ width: 200, marginRight: '16px' }}
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        onPressEnter={handleSearch}
-                        allowClear
-                        onClear={() => setSearchValue('')}
-                    />
+                    <div ref={searchRef} style={{ position: 'relative' }}>
+                        <Input
+                            placeholder="Tìm kiếm"
+                            suffix={
+                                <SearchOutlined
+                                    onClick={handleSearchIconClick}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            }
+                            style={{
+                                width: searchFocused ? '18.75rem' : '12.5rem',
+                                marginRight: '1rem',
+                                transition: 'all 0.3s ease',
+                            }}
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            onFocus={() => setSearchFocused(true)}
+                            onBlur={() => !searchValue && setSearchFocused(false)}
+                            onPressEnter={handleSearch}
+                            allowClear
+                            onClear={() => {
+                                setSearchValue('');
+                                setSearchFocused(false);
+                            }}
+                        />
+                    </div>
                 ) : (
                     <>
                         <Button
                             type="text"
                             icon={<SearchOutlined />}
                             onClick={toggleSearch}
-                            style={{ marginRight: '8px' }}
+                            style={{ marginRight: '0.5rem' }}
                         />
                         <Button
                             type="text"
                             icon={<MenuOutlined />}
                             onClick={showDrawer}
-                            style={{ marginRight: '8px' }}
+                            style={{ marginRight: '0.5rem' }}
                         />
                     </>
                 )}
@@ -309,11 +343,16 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 }}
                 width={'60%'}
             >
-                <div style={{ padding: '16px' }}>
+                <div style={{ padding: '1rem' }}>
                     <Input
                         placeholder="Tìm kiếm"
-                        prefix={<SearchOutlined />}
-                        style={{ width: '100%', marginBottom: '16px' }}
+                        suffix={
+                            <SearchOutlined
+                                onClick={handleSearchIconClick}
+                                style={{ cursor: 'pointer' }}
+                            />
+                        }
+                        style={{ width: '100%', marginBottom: '1rem' }}
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
                         onPressEnter={handleSearch}
@@ -338,7 +377,12 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 >
                     <Input
                         placeholder="Tìm kiếm"
-                        prefix={<SearchOutlined />}
+                        suffix={
+                            <SearchOutlined
+                                onClick={handleSearchIconClick}
+                                style={{ cursor: 'pointer' }}
+                            />
+                        }
                         style={{ width: '100%' }}
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
