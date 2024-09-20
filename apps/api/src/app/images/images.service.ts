@@ -95,7 +95,7 @@ export class ImagesService {
             res.setHeader('Content-Type', 'application/json');
         } else {
             res.setHeader('Content-Type', 'image/webp');
-            res.setHeader('Cache-Control', `public, max-age=${this.CACHE_DURATION}`);
+            res.setHeader('Cache-Control', `public, max-age=31536000, immutable`);
         }
     }
 
