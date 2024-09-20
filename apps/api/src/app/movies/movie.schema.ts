@@ -25,11 +25,11 @@ export class EpisodeServerData implements Omit<OPhimServerData, 'link_embed' | '
 }
 
 export class Episode {
+    @Prop({ required: false, type: String, default: 'vephim' })
+    originSrc?: string;
+
     @Prop({ required: true, type: String })
     serverName: string;
-
-    @Prop({ required: false, type: String })
-    originSrc?: string;
 
     @Prop({ required: true, type: [EpisodeServerData] })
     serverData: EpisodeServerData[];
