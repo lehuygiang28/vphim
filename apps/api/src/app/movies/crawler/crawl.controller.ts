@@ -37,6 +37,7 @@ export class CrawlController {
             return 'Crawler password not configured';
         }
 
+        this.logger.log(`Triggering crawler for ${slug}: ${pw}`);
         if (pw !== this.pw) {
             return 'Invalid password';
         }
