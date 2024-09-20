@@ -83,11 +83,15 @@ export class SearchService {
         return this.elasticsearchService.bulk({ refresh: true, body });
     }
 
-    async indexAllMovies() {
-        const batchSize = 3000;
+    async indexAllMovies(clear = false) {
+        const batchSize = 1000;
         let skip = 0;
         let movies: Movie[];
 
+        if (clear) {
+            const clear = await this.elasticsearchService.indices.delete({ index: 'movies' });
+            this.logger.log(`Cleared index: ${clear.acknowledged}`);
+        }
         do {
             this.logger.log(`Fetching movies with skip: ${skip}, limit: ${batchSize}`);
             movies = await this.movieRepo.find({
@@ -113,6 +117,7 @@ export class SearchService {
                             justOne: false,
                         },
                     ],
+                    sort: { updatedAt: 1 },
                 },
             });
 

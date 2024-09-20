@@ -5,7 +5,8 @@ import { KKPhimCrawler } from './kkphim.crawler';
 import { OphimCrawler } from './ophim.crawler';
 import { NguoncCrawler } from './nguonc.crawler';
 import { ConfigService } from '@nestjs/config';
-import { isNullOrUndefined } from 'apps/api/src/libs/utils/common';
+import { isNullOrUndefined, isTrue } from 'apps/api/src/libs/utils/common';
+import { SearchService } from '../search.service';
 
 @Controller({ path: 'trigger-crawl' })
 export class CrawlController {
@@ -16,11 +17,34 @@ export class CrawlController {
         private readonly ophim: OphimCrawler,
         private readonly nguonc: NguoncCrawler,
         private readonly configService: ConfigService,
+        private readonly searchService: SearchService,
     ) {
         if (!isNullOrUndefined(this.configService.get<string>('CRAWLER_PW'))) {
             this.pw = this.configService.getOrThrow<string>('CRAWLER_PW');
             this.logger.log(`Crawler password is configured`);
         }
+    }
+    @ApiBody({
+        schema: {
+            properties: {
+                pw: { type: 'string' },
+            },
+        },
+    })
+    @Post('/re-index')
+    async reIndex(@Body() { pw, clear = 'false' }: { pw: string; clear?: string }) {
+        if (isNullOrUndefined(this.pw)) {
+            return 'Crawler password not configured';
+        }
+
+        if (pw !== this.pw) {
+            return 'Invalid password';
+        }
+
+        this.logger.log(`Re-indexing crawler`);
+        await this.searchService.indexAllMovies(isTrue(clear));
+
+        return 'OK';
     }
 
     @ApiParam({ name: 'slug' })
@@ -37,7 +61,6 @@ export class CrawlController {
             return 'Crawler password not configured';
         }
 
-        this.logger.log(`Triggering crawler for ${slug}: ${pw}`);
         if (pw !== this.pw) {
             return 'Invalid password';
         }
