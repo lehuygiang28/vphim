@@ -71,6 +71,12 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
         if (!isNullOrUndefined(this.configService.get('KKPHIM_IMG_HOST'))) {
             this.KKPHIM_IMG_HOST = this.configService.getOrThrow<string>('KKPHIM_IMG_HOST');
         }
+
+        this.logger.log({
+            kkphim_cron: this.KKPHIM_CRON,
+            tz: process.env.TZ,
+            tzOffset: new Date().getTimezoneOffset(),
+        });
     }
 
     onModuleInit() {

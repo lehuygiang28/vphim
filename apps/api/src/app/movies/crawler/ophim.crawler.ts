@@ -71,6 +71,12 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
         if (!isNullOrUndefined(this.configService.get('OPHIM_IMG_HOST'))) {
             this.OPHIM_IMG_HOST = this.configService.getOrThrow<string>('OPHIM_IMG_HOST');
         }
+
+        this.logger.log({
+            kkphim_cron: this.OPHIM_CRON,
+            tz: process.env.TZ,
+            tzOffset: new Date().getTimezoneOffset(),
+        });
     }
 
     onModuleInit() {

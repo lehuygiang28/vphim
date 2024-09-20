@@ -58,6 +58,12 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 this.configService.getOrThrow<boolean>('NGUONC_FORCE_UPDATE'),
             );
         }
+
+        this.logger.log({
+            kkphim_cron: this.NGUONC_CRON,
+            tz: process.env.TZ,
+            tzOffset: new Date().getTimezoneOffset(),
+        });
     }
 
     onModuleInit() {
