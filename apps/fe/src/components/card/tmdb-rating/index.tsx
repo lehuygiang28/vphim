@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Tag, Tooltip, Spin } from 'antd';
+import { Tag, Tooltip } from 'antd';
 import Image from 'next/image';
 
 interface TMDBRatingProps {
@@ -48,12 +48,8 @@ export function TMDBRating({ id, type, size = 'middle' }: TMDBRatingProps) {
 
     const { height, fontSize } = tagSizes[size];
 
-    if (loading) {
-        return <Spin size={size === 'small' ? 'small' : 'default'} />;
-    }
-
-    if (!data) {
-        return null;
+    if (!data || loading) {
+        return <></>;
     }
 
     return (

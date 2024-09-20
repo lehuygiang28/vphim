@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { Tag, Spin, Tooltip } from 'antd';
+import { Tag, Tooltip } from 'antd';
 
 interface IMDBRatingProps {
     id: string;
@@ -44,12 +44,8 @@ export function IMDBRating({ id, size = 'middle' }: IMDBRatingProps) {
 
     const { height, fontSize } = tagSizes[size];
 
-    if (loading) {
-        return <Spin size={size === 'small' ? 'small' : 'default'} />;
-    }
-
-    if (!data) {
-        return null;
+    if (!data || loading) {
+        return <></>;
     }
 
     const [rating, votes] = data.imdbRating;
