@@ -41,37 +41,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         setQuery(parseTableParams(search?.toString()));
     }, [search]);
 
-    useEffect(() => {
-        if (query) {
-            if (query?.filters) {
-                setFilters(query.filters);
-            }
-            if (query?.sorters) {
-                setSorters(query.sorters);
-            }
-
-            if (query?.current) {
-                setCurrent(query.current);
-            }
-
-            if (query?.pageSize) {
-                setPageSize(query.pageSize);
-            }
-        }
-    }, [query]);
-
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-    const [localFilters, setLocalFilters] = useState<CrudFilter[]>([
-        {
-            field: 'years',
-            operator: 'in',
-            value: `${new Date().getFullYear()}`,
-        },
-    ]);
-    const [localSorter, setLocalSorter] = useState<{ field: string; order: 'asc' | 'desc' }>({
-        field: 'view',
-        order: 'desc',
-    });
 
     const {
         tableQuery: { data, isLoading, isRefetching },
@@ -82,7 +52,6 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         current,
         setCurrent,
         pageSize,
-        setPageSize,
     } = useTable<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
@@ -109,20 +78,26 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     });
 
     useEffect(() => {
-        setLocalFilters(filters);
-        setLocalSorter(sorters?.[0]);
-    }, [filters, sorters]);
+        setQuery({
+            pagination: {
+                current: current,
+                pageSize: pageSize,
+            },
+            filters: filters,
+            sorters: sorters,
+        });
+    }, [filters, sorters, current, pageSize]);
 
     const handleVisibleContentCard = (index: number | null) => {
         setSelectedIndex(index === selectedIndex ? null : index);
     };
 
-    const handleFilterChange = (key: string, value: any) => {
-        let newFilters = localFilters?.filter((x) => (x as LogicalFilter)?.field !== key);
+    const handleFilterChange = (key: string, value: unknown) => {
+        let newFilters = query?.filters?.filter((x) => (x as LogicalFilter)?.field !== key);
 
         if (value !== undefined && value !== null) {
             newFilters = [
-                ...newFilters,
+                ...(newFilters || []),
                 {
                     field: key,
                     value: Array.isArray(value) ? value.join(',') : value,
@@ -130,17 +105,22 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                 },
             ];
         }
-        setLocalFilters(newFilters);
+        setQuery((prev) => ({ ...prev, filters: newFilters }));
     };
 
     const handleSorterChange = (value: string) => {
-        const [val, ord] = value?.split(',');
-        setLocalSorter({ field: val, order: ord === 'asc' ? 'asc' : 'desc' });
+        const [val, ord] = value?.split(',') || [];
+        if (value !== null || value !== undefined) {
+            setQuery((prev) => ({
+                ...prev,
+                sorters: [{ field: val, order: ord === 'asc' ? 'asc' : 'desc' }],
+            }));
+        }
     };
 
     const applyFilters = () => {
-        setFilters(localFilters);
-        setSorters([localSorter]);
+        setFilters(query?.filters || []);
+        setSorters(query?.sorters ? [query?.sorters?.[0]] : []);
         setCurrent(1);
     };
 
@@ -156,8 +136,8 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                 </Breadcrumb>
                 <Divider />
                 <MovieFilters
-                    localFilters={localFilters}
-                    localSorter={localSorter}
+                    localFilters={query?.filters}
+                    localSorter={query?.sorters?.[0]}
                     onFilterChange={handleFilterChange}
                     onSorterChange={handleSorterChange}
                     onApplyFilters={applyFilters}

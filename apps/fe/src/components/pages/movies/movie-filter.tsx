@@ -3,7 +3,6 @@ import { Row, Col, Select, Button, Input } from 'antd';
 import { CrudFilters, LogicalFilter, useList } from '@refinedev/core';
 import { SearchOutlined } from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
-import { useDebouncedCallback } from 'use-debounce';
 
 import { movieTypeTranslations } from '@/constants/translation-enum';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
@@ -23,6 +22,7 @@ interface MovieFiltersProps {
 
 const sortOptions = [
     { value: 'view,desc', label: 'Phổ biến nhất' },
+    { value: 'bestMatch,asc', label: 'Phù hợp nhất' },
     { value: 'year,desc', label: 'Mới nhất' },
     { value: 'year,asc', label: 'Cũ nhất' },
     { value: 'updatedAt,desc', label: 'Cập nhật gần đây' },
@@ -84,14 +84,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         },
         [localFilters],
     );
-
-    const debouncedFilterChange = useDebouncedCallback((field: string, value: unknown) => {
-        if (value === undefined || (Array.isArray(value) && value.length === 0)) {
-            onFilterChange(field, undefined);
-        } else {
-            onFilterChange(field, value);
-        }
-    }, 300);
 
     const handleImmediateFilterChange = useCallback(
         (field: string, value: unknown) => {
