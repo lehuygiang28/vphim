@@ -88,7 +88,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
     }
 
     async crawMovie() {
-        this.logger.log('Crawling movie ...');
+        this.logger.log('Crawling movie from Ophim ...');
         return this.crawl();
     }
 
@@ -109,7 +109,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
             }
 
             // Crawl from the last crawled page or from the beginning
-            for (let i = lastCrawledPage + 1; i <= totalPages; i++) {
+            for (let i = lastCrawledPage; i <= totalPages; i++) {
                 await this.crawlPage(i);
 
                 // Cache the last crawled page for 24 hours

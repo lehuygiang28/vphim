@@ -71,7 +71,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     }
 
     async crawMovieFromNguonc() {
-        this.logger.log('Crawling movie from Nguonc...');
+        this.logger.log('Crawling movie from Nguonc ...');
         return this.crawl();
     }
 
@@ -90,7 +90,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 this.logger.error(`Error getting last crawled page from Redis: ${error}`);
             }
 
-            for (let i = lastCrawledPage + 1; i <= totalPages; i++) {
+            for (let i = lastCrawledPage; i <= totalPages; i++) {
                 await this.crawlPage(i);
                 await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
             }
