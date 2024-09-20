@@ -52,8 +52,8 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
             >
                 <ImageOptimized
                     alt={movie.name}
-                    url={movie.posterUrl}
-                    url2={movie.thumbUrl || movie.posterUrl}
+                    url={movie.thumbUrl}
+                    // url2={movie.posterUrl}
                     width={md ? 220 : 150}
                     height={md ? 320 : 220}
                     style={{ maxHeight: '100%', maxWidth: '100%' }}

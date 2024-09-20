@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb, Divider } from 'antd';
+import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb } from 'antd';
 import { useOne, useUpdate } from '@refinedev/core';
 import { MovieType } from 'apps/api/src/app/movies/movie.type';
 import {
@@ -222,12 +222,12 @@ export function Movie({ slug }: MovieProps) {
                     }}
                 >
                     <ImageOptimized
-                        url={movie?.thumbUrl || ''}
-                        url2={movie?.posterUrl || ''}
+                        url={movie?.posterUrl}
+                        // url2={movie?.thumbUrl}
                         alt={movie?.name || ''}
                         width={md ? 1900 : 750}
                         height={md ? 750 : 380}
-                        shouldShowHorizontalImage={true}
+                        // shouldShowHorizontalImage={true}
                     />
                 </div>
             )}
@@ -308,6 +308,7 @@ export function Movie({ slug }: MovieProps) {
                                             background: 'transparent',
                                         }}
                                         className="posterImage"
+                                        disableSkeleton
                                     />
                                 </div>
                             )}
@@ -358,7 +359,7 @@ export function Movie({ slug }: MovieProps) {
                                                         whiteSpace: 'normal',
                                                     }}
                                                 >
-                                                    {movie?.view?.toLocaleString() || 'N/A'}
+                                                    {movie?.view?.toLocaleString() || '0'}
                                                 </Text>
                                             </Space>
                                         </Space>
