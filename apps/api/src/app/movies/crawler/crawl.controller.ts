@@ -1,8 +1,9 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
+import { ApiBody, ApiParam } from '@nestjs/swagger';
+
 import { KKPhimCrawler } from './kkphim.crawler';
 import { OphimCrawler } from './ophim.crawler';
 import { NguoncCrawler } from './nguonc.crawler';
-import { ApiParam, ApiQuery } from '@nestjs/swagger';
 
 @Controller({ path: 'trigger-crawl' })
 export class CrawlController {
@@ -13,9 +14,15 @@ export class CrawlController {
     ) {}
 
     @ApiParam({ name: 'slug' })
-    @ApiQuery({ name: 'pw' })
-    @Get('/:slug')
-    triggerCrawler(@Param() { slug }: { slug: string }, @Query() { pw }: { pw: string }) {
+    @ApiBody({
+        schema: {
+            properties: {
+                pw: { type: 'string' },
+            },
+        },
+    })
+    @Post('/:slug')
+    triggerCrawler(@Param() { slug }: { slug: string }, @Body() { pw }: { pw: string }) {
         if (pw !== process.env.CRAWLER_PW) {
             return 'Invalid password';
         }
