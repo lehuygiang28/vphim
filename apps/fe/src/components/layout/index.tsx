@@ -4,7 +4,6 @@ import { PropsWithChildren } from 'react';
 import { Layout, Grid, FloatButton } from 'antd';
 import Link from 'next/link';
 import { stringifyTableParams, useList } from '@refinedev/core';
-import { ArrowUpOutlined } from '@ant-design/icons';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 import { REGIONS_LIST_QUERY } from '@/queries/regions';
 
@@ -19,7 +18,7 @@ const { Content } = Layout;
 const { BackTop } = FloatButton;
 const { useBreakpoint } = Grid;
 
-export default function LayoutComp({ children }: PropsWithChildren) {
+export function LayoutComponent({ children }: PropsWithChildren) {
     const { md } = useBreakpoint();
     const { data: categories } = useList<Category>({
         dataProviderName: 'graphql',

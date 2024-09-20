@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Layout from '@/components/layout';
+import { LayoutComponent } from '@/components/layout';
 
 export const metadata: Metadata = {
     title: 'VePhim - Xem phim miễn phí, phim hay theo thể loại, quốc gia, ...',
@@ -14,5 +14,5 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return <Layout>{children}</Layout>;
+    return <LayoutComponent>{children}</LayoutComponent>;
 }
