@@ -309,6 +309,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                 quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
                 status: mapStatus(movieDetail?.status || existingMovie?.status),
+                view: Math.max(view, existingMovie?.view || 0, 0),
 
                 lastSyncModified: new Date(modified?.time),
                 _id: correctId,
@@ -329,7 +330,6 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                 subDocquyen: sub_docquyen,
                 cinemaRelease: chieurap,
                 year,
-                view: Math.max(view, existingMovie?.view || 0, 0),
                 episode: movieDetail?.episodes?.map((server, index) => {
                     const serverData: EpisodeServerData[] = server?.server_data?.map(
                         (item, index) => {

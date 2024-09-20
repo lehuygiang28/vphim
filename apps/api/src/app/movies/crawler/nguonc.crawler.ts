@@ -238,6 +238,8 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
                 status: mapStatus(existingMovie?.status || this.processMovieStatus(movieDetail)),
+                // nguonc not provide view
+                // view: Math.max(view, existingMovie?.view || 0, 0),
 
                 _id: correctId,
                 slug: existingMovie?.slug
