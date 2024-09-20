@@ -23,6 +23,7 @@ import { MovieResolver } from './movie.resolver';
 import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
 import { SearchService } from './search.service';
 import { NguoncCrawler, KKPhimCrawler, OphimCrawler } from './crawler';
+import { CrawlController } from './crawler/crawl.controller';
 
 @Global()
 @Module({
@@ -93,7 +94,7 @@ import { NguoncCrawler, KKPhimCrawler, OphimCrawler } from './crawler';
             },
         }),
     ],
-    controllers: [MovieController],
+    controllers: [MovieController, CrawlController],
     providers: [
         {
             provide: APP_GUARD,
