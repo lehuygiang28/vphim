@@ -28,8 +28,8 @@ export class Episode {
     @Prop({ required: true, type: String })
     serverName: string;
 
-    @Prop({ required: true, type: String })
-    originSrc: string;
+    @Prop({ required: false, type: String })
+    originSrc?: string;
 
     @Prop({ required: true, type: [EpisodeServerData] })
     serverData: EpisodeServerData[];
