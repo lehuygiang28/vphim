@@ -56,7 +56,8 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             (episodeSlug === 'trailer' ||
                 !movie.episode ||
                 movie.episode.length === 0 ||
-                !movie.episode[0].serverData[0].linkM3u8)
+                (!movie.episode[0].serverData[0].linkM3u8 &&
+                    !movie.episode[0].serverData[0].linkEmbed))
         ) {
             setSelectedEpisode({
                 slug: 'trailer',
@@ -67,11 +68,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             });
             setHasPrevEpisode(false);
             setHasNextEpisode(false);
-        } else if (
-            movie?.episode &&
-            movie.episode.length > 0 &&
-            movie.episode[0].serverData[0].linkM3u8
-        ) {
+        } else if (movie?.episode && movie.episode.length > 0) {
             const episode = movie.episode.find((ep) =>
                 ep.serverData.some((server) => server.slug === episodeSlug),
             );
@@ -84,8 +81,15 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                     episode.serverData.find((server) => server.slug === episodeSlug) || null;
                 setSelectedEpisode(currentEpisode);
 
-                if (currentEpisode && currentEpisode.linkM3u8) {
-                    preFetchM3u8(currentEpisode.linkM3u8);
+                if (currentEpisode) {
+                    if (currentEpisode.linkM3u8) {
+                        preFetchM3u8(currentEpisode.linkM3u8);
+                    } else if (currentEpisode.linkEmbed) {
+                        setUseEmbedLink(true);
+                        setIsM3u8Available(false);
+                    } else {
+                        setError('Phim đang được cập nhật, vui lòng quay lại sau.');
+                    }
                 }
 
                 const currentEpisodeIndex = episode.serverData.findIndex(
@@ -108,6 +112,9 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             setIsM3u8Available(true);
             if (newEpisode.linkM3u8) {
                 preFetchM3u8(newEpisode.linkM3u8);
+            } else if (newEpisode.linkEmbed) {
+                setUseEmbedLink(true);
+                setIsM3u8Available(false);
             }
             router.push(
                 `${RouteNameEnum.MOVIE_PAGE}/${encodeURIComponent(
@@ -192,7 +199,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 <Alert
                     message="Đang cập nhật..."
                     description={error}
-                    type="warning"
+                    type="info"
                     showIcon
                     style={{ marginBottom: '1rem', width: '100%' }}
                 />
@@ -290,8 +297,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                             activeServerIndex={selectedServerIndex}
                             showServers={true}
                             onServerChange={handleServerChange}
-                            // useServersDivider={false}
-                            // useEpisodesDivider={false}
                         />
                     </>
                 )}
@@ -301,7 +306,8 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                         {movie?.name} - {getEpisodeNameBySlug(movie, selectedEpisode?.slug)}
                     </Title>
                     <Title level={3}>
-                        {movie?.name} - {movie?.originName} ({movie?.quality})
+                        {movie?.name} - {movie?.originName} ({movie?.quality?.toUpperCase()} -{' '}
+                        {movie?.lang})
                     </Title>
                     <Title level={4} type="secondary">
                         {getEpisodeNameBySlug(movie, selectedEpisode?.slug)}

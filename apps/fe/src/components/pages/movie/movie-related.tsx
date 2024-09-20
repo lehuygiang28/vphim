@@ -1,7 +1,7 @@
 import MovieList from '@/components/swiper/movie-list';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieAsset } from '@/types/movie-asset.type';
-import { stringifyTableParams, useList } from '@refinedev/core';
+import { CrudFilters, stringifyTableParams, useList } from '@refinedev/core';
 import { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 export type MovieRelatedProps = {
@@ -11,16 +11,33 @@ export type MovieRelatedProps = {
 export function MovieRelated({ movie }: MovieRelatedProps) {
     const asset: MovieAsset = {
         filters: [
-            {
-                field: 'categories',
-                operator: 'in',
-                value: movie?.categories?.map((item) => item.slug).join(','),
-            },
-            {
-                field: 'type',
-                operator: 'eq',
-                value: movie?.type,
-            },
+            ...(movie?.categories && movie?.categories?.length > 0
+                ? ([
+                      {
+                          field: 'categories',
+                          operator: 'in',
+                          value: movie?.categories?.map((item) => item.slug).join(','),
+                      },
+                  ] satisfies CrudFilters)
+                : []),
+            ...(movie?.type
+                ? ([
+                      {
+                          field: 'type',
+                          operator: 'eq',
+                          value: movie?.type,
+                      },
+                  ] satisfies CrudFilters)
+                : []),
+            ...(!movie?.categories
+                ? ([
+                      {
+                          field: 'actors',
+                          operator: 'in',
+                          value: movie?.actors?.map((item) => item.name).join(','),
+                      },
+                  ] satisfies CrudFilters)
+                : []),
         ],
         sorters: [
             {

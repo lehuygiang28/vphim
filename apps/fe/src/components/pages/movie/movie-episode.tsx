@@ -60,7 +60,7 @@ export function MovieEpisode({
         movie.episode.length > 0 &&
         movie.episode[0].serverData &&
         movie.episode[0].serverData.length > 0 &&
-        movie.episode[0].serverData[0].linkM3u8;
+        (movie.episode[0].serverData[0].linkM3u8 || movie.episode[0].serverData[0].linkEmbed);
 
     const renderEpisodes = (serverIndex: number) => {
         if (!hasValidEpisodes && !movie?.trailerUrl) {
