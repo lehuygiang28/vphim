@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Typography, Row, Col, Space, Grid, Tag } from 'antd';
-import { CalendarOutlined } from '@ant-design/icons';
+import { CalendarOutlined, EyeOutlined } from '@ant-design/icons';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import { EffectFade, Pagination, Autoplay } from 'swiper/modules';
 
@@ -14,6 +14,9 @@ import 'swiper/css/pagination';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import { ImageOptimized } from '@/components/image/image-optimized';
+import { MovieQualityTag } from '@/components/tag/movie-quality';
+import { TMDBRating } from '@/components/card/tmdb-rating';
+import { IMDBRating } from '@/components/card/imdb-rating';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -47,6 +50,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
         height: md ? '85vh' : '55vh',
         zIndex: 0,
         transition: 'opacity 0.5s ease-in-out',
+        minHeight: '15vh',
     };
 
     const contentStyle: CSSProperties = {
@@ -89,12 +93,12 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                             }}
                         >
                             <ImageOptimized
-                                url={movie?.thumbUrl}
-                                url2={movie?.posterUrl}
+                                url={movie?.posterUrl}
+                                // url2={movie?.posterUrl}
                                 alt={movie?.name}
                                 width={md ? 1900 : 750}
                                 height={md ? 750 : 380}
-                                shouldShowHorizontalImage={true}
+                                // shouldShowHorizontalImage={true}
                             />
                         </div>
                     );
@@ -177,34 +181,76 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                             {movie.originName}
                                                         </Text>
                                                         <div style={{ marginTop: '0.5rem' }}>
-                                                            <Space size={md ? 'middle' : 'small'}>
-                                                                <span>
-                                                                    <CalendarOutlined
-                                                                        style={{
-                                                                            fontSize: '0.8rem',
-                                                                        }}
-                                                                    />
-                                                                    <Text
-                                                                        style={{
-                                                                            fontSize: '0.8rem',
-                                                                        }}
-                                                                    >
-                                                                        {' '}
-                                                                        {movie.year}
-                                                                    </Text>
-                                                                </span>
+                                                            <Space wrap size={[8, 8]}>
+                                                                <MovieQualityTag
+                                                                    quality={
+                                                                        movie?.quality || 'N/A'
+                                                                    }
+                                                                />
                                                                 <Text
-                                                                    style={{ fontSize: '0.8rem' }}
+                                                                    type="secondary"
+                                                                    style={{ fontSize: 12 }}
                                                                 >
                                                                     |
                                                                 </Text>
+                                                                <Space size={2}>
+                                                                    <CalendarOutlined
+                                                                        style={{ fontSize: 12 }}
+                                                                    />
+                                                                    <Text style={{ fontSize: 12 }}>
+                                                                        {movie?.year || 'N/A'}
+                                                                    </Text>
+                                                                </Space>
                                                                 <Text
-                                                                    style={{ fontSize: '0.8rem' }}
+                                                                    type="secondary"
+                                                                    style={{ fontSize: 12 }}
                                                                 >
-                                                                    {movie.episodeCurrent}
+                                                                    |
                                                                 </Text>
+                                                                <Space
+                                                                    size={2}
+                                                                    style={{
+                                                                        maxWidth: '100%',
+                                                                        display: 'inline-flex',
+                                                                    }}
+                                                                >
+                                                                    <EyeOutlined
+                                                                        style={{ fontSize: 12 }}
+                                                                    />{' '}
+                                                                    <Text
+                                                                        style={{
+                                                                            fontSize: 12,
+                                                                            wordBreak: 'break-word',
+                                                                            whiteSpace: 'normal',
+                                                                        }}
+                                                                    >
+                                                                        {movie?.view?.toLocaleString() ||
+                                                                            '0'}
+                                                                    </Text>
+                                                                </Space>
                                                             </Space>
                                                         </div>
+                                                        {(movie?.tmdb?.id || movie?.imdb?.id) && (
+                                                            <div style={{ marginTop: '0.5rem' }}>
+                                                                {movie?.imdb?.id && (
+                                                                    <IMDBRating
+                                                                        id={movie?.imdb?.id}
+                                                                        size={
+                                                                            md ? 'middle' : 'small'
+                                                                        }
+                                                                    />
+                                                                )}
+                                                                {movie?.tmdb?.id && (
+                                                                    <TMDBRating
+                                                                        id={movie?.tmdb?.id}
+                                                                        type={movie?.tmdb?.type}
+                                                                        size={
+                                                                            md ? 'middle' : 'small'
+                                                                        }
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                        )}
                                                         <div style={{ marginTop: '0.5rem' }}>
                                                             {movie?.categories?.map((category) => (
                                                                 <Tag
@@ -275,7 +321,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                             >
                                                 <ImageOptimized
                                                     url={movie?.thumbUrl}
-                                                    url2={movie?.posterUrl}
+                                                    // url2={movie?.posterUrl}
                                                     alt={movie?.name}
                                                     width={md ? 500 : 150}
                                                     height={md ? 745 : 200}

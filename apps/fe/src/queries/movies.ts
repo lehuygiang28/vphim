@@ -65,6 +65,34 @@ export const GET_MOVIE_QUERY = gql`
     }
 `;
 
+export const MOVIES_LIST_FOR_SWIPER_QUERY = gql`
+    query GetMovies($input: GetMoviesInput!) {
+        movies(input: $input) {
+            data {
+                _id
+                name
+                originName
+                posterUrl
+                thumbUrl
+                episodeCurrent
+                slug
+                year
+                quality
+                content
+                view
+                imdb {
+                    id
+                }
+                tmdb {
+                    id
+                    type
+                }
+            }
+            total
+        }
+    }
+`;
+
 export const MOVIES_LIST_QUERY = gql`
     query GetMovies($input: GetMoviesInput!) {
         movies(input: $input) {
