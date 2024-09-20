@@ -71,13 +71,7 @@ export class ImagesController {
         @Req() req: Request,
         @Res() res: Response,
     ) {
-        cors()(req, res, async () => {
-            const result = await this.imagesService.optimizeImage(data);
-            res.setHeader('Content-Type', 'image/webp');
-            res.setHeader('Cache-Control', 'public, max-age=3600');
-            res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-            return res.send(result);
-        });
+        return cors()(req, res, async () => this.imagesService.optimizeImage(data, res));
     }
 
     @ApiOperation({

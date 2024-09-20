@@ -5,9 +5,9 @@ import {
     InternalServerErrorException,
     Logger,
 } from '@nestjs/common';
-import { SkipThrottle } from '@nestjs/throttler';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import sharp from 'sharp';
+import { Response } from 'express';
 
 import { RedisService } from '../../libs/modules/redis';
 import { OptimizeImageDTO } from './dtos/optimize-image.dto';
@@ -40,16 +40,16 @@ export class ImagesService {
         }
     }
 
-    @SkipThrottle()
-    async optimizeImage(data: OptimizeImageDTO) {
+    async optimizeImage(data: OptimizeImageDTO, res: Response) {
         const { url, width, height, quality = 75 } = data;
         const cacheKey = `${url}:${width}:${height}:${quality}`;
 
         try {
+            this.setCorsHeaders(res);
             const cachedImage = await this.getCachedImage(cacheKey);
 
             if (cachedImage) {
-                return cachedImage;
+                return res.send(cachedImage);
             }
 
             let imageBuffer: Buffer;
@@ -57,7 +57,11 @@ export class ImagesService {
                 imageBuffer = await this.fetchImage(url);
             } catch (fetchError) {
                 this.logger.warn(`Failed to fetch image from original URL: ${url}`);
-                imageBuffer = await this.fetchFromCloudinary(url);
+                imageBuffer = await this.fetchThroughCloudinary(url);
+            }
+
+            if (!imageBuffer) {
+                throw new HttpException('cannotFetchImageBuffer', HttpStatus.UNPROCESSABLE_ENTITY);
             }
 
             const optimizedImage = await this.optimizeImageBuffer(
@@ -69,18 +73,29 @@ export class ImagesService {
 
             await this.cacheOptimizedImage(cacheKey, optimizedImage);
 
-            return optimizedImage;
+            return res.send(optimizedImage);
         } catch (error) {
             this.logger.error(error);
-            throw new HttpException(
-                {
-                    status: HttpStatus.UNPROCESSABLE_ENTITY,
-                    errors: {
-                        image: 'imageNotOptimized',
-                    },
+            this.setCorsHeaders(res, true);
+            return res.status(HttpStatus.UNPROCESSABLE_ENTITY).json({
+                status: HttpStatus.UNPROCESSABLE_ENTITY,
+                errors: {
+                    image: 'imageNotOptimized',
                 },
-                HttpStatus.UNPROCESSABLE_ENTITY,
-            );
+            });
+        }
+    }
+
+    private setCorsHeaders(res: Response, isError = false) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+        if (isError) {
+            res.setHeader('Content-Type', 'application/json');
+        } else {
+            res.setHeader('Content-Type', 'image/webp');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
         }
     }
 
@@ -136,11 +151,12 @@ export class ImagesService {
             .toBuffer();
     }
 
-    private async fetchFromCloudinary(url: string): Promise<Buffer> {
+    private async fetchThroughCloudinary(url: string): Promise<Buffer> {
         for (const envName of this.CLOUDINARY_ENV_NAMES) {
             try {
                 const cloudinaryUrl = `https://res.cloudinary.com/${envName}/image/fetch/${url}`;
-                return await this.fetchImage(cloudinaryUrl);
+                const imageBuffer = await this.fetchImage(cloudinaryUrl);
+                return imageBuffer;
             } catch (error) {
                 this.logger.warn(
                     `Failed to fetch image from Cloudinary (${envName}): ${error.message}`,
