@@ -8,7 +8,7 @@ import { Grid } from 'antd';
 
 import MovieList from '@/components/swiper/movie-list';
 import { MovieSwiper } from '@/components/swiper/movie';
-import { MOVIES_LIST_QUERY } from '@/queries/movies';
+import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
 import Loading from '@/app/loading';
 import { RouteNameEnum } from '@/constants/route.constant';
 
@@ -74,7 +74,7 @@ export function Home() {
 
     const { data: mostViewed, isLoading: mostViewedLoading } = useList<MovieResponseDto>({
         dataProviderName: 'graphql',
-        meta: { gqlQuery: MOVIES_LIST_QUERY },
+        meta: { gqlQuery: MOVIES_LIST_FOR_SWIPER_QUERY },
         resource: 'movies',
         sorters: [
             {
@@ -111,7 +111,9 @@ export function Home() {
 
     return (
         <>
-            <MovieSwiper movies={mostViewed?.data} />
+            <div style={{ minHeight: '15vh' }}>
+                <MovieSwiper movies={mostViewed?.data} />
+            </div>
             <div
                 onClick={() => setActiveList('newMovies')}
                 style={{
