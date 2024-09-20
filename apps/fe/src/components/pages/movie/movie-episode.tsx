@@ -1,12 +1,12 @@
-import './movie-episode.css';
+'use client';
 
+import './movie-episode.css';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Button, Divider, Flex, Typography, Grid, Alert } from 'antd';
-import { randomString } from '@/libs/utils/common';
+import { Tabs, Button, Typography, Alert, ConfigProvider, theme } from 'antd';
 import type { MovieType, EpisodeType } from 'apps/api/src/app/movies/movie.type';
 
 const { Title } = Typography;
-const { useBreakpoint } = Grid;
 
 export type MovieEpisodeProps = {
     movie: MovieType;
@@ -14,8 +14,6 @@ export type MovieEpisodeProps = {
     activeServerIndex?: number;
     showServers?: boolean;
     onServerChange?: (index: number) => void;
-    useServersDivider?: boolean;
-    useEpisodesDivider?: boolean;
     showTrailerAsFirstEpisode?: boolean;
 };
 
@@ -23,24 +21,39 @@ export function MovieEpisode({
     movie,
     activeEpisodeSlug,
     activeServerIndex = 0,
-    showServers = false,
+    showServers = true,
     onServerChange,
-    useServersDivider = true,
-    useEpisodesDivider = true,
     showTrailerAsFirstEpisode = true,
 }: MovieEpisodeProps) {
-    const { md } = useBreakpoint();
+    const [activeKey, setActiveKey] = useState(activeServerIndex.toString());
+    const episodeListRef = useRef<HTMLDivElement>(null);
+    const activeEpisodeRef = useRef<HTMLAnchorElement>(null);
 
-    const renderDivider = (title: string, useDivider: boolean) => {
-        if (useDivider) {
-            return (
-                <Divider orientation="left">
-                    <Title level={4}>{title}</Title>
-                </Divider>
-            );
+    useEffect(() => {
+        setActiveKey(activeServerIndex.toString());
+    }, [activeServerIndex]);
+
+    useEffect(() => {
+        if (episodeListRef.current && activeEpisodeRef.current) {
+            const container = episodeListRef.current;
+            const activeEpisode = activeEpisodeRef.current;
+
+            const scrollToActiveEpisode = () => {
+                const containerRect = container.getBoundingClientRect();
+                const activeEpisodeRect = activeEpisode.getBoundingClientRect();
+
+                if (
+                    activeEpisodeRect.top < containerRect.top ||
+                    activeEpisodeRect.bottom > containerRect.bottom
+                ) {
+                    activeEpisode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            };
+
+            // Delay the scroll to ensure the DOM has updated
+            setTimeout(scrollToActiveEpisode, 100);
         }
-        return <Title level={4}>{title}</Title>;
-    };
+    }, [activeEpisodeSlug, activeKey]);
 
     const hasValidEpisodes =
         movie?.episode &&
@@ -49,7 +62,7 @@ export function MovieEpisode({
         movie.episode[0].serverData.length > 0 &&
         movie.episode[0].serverData[0].linkM3u8;
 
-    const renderContent = () => {
+    const renderEpisodes = (serverIndex: number) => {
         if (!hasValidEpisodes && !movie?.trailerUrl) {
             return (
                 <Alert
@@ -61,74 +74,80 @@ export function MovieEpisode({
             );
         }
 
+        const episodes = hasValidEpisodes ? movie.episode[serverIndex].serverData : [];
+
         return (
             <div
-                style={{
-                    maxHeight: '20rem',
-                    overflowY: 'auto',
-                }}
+                ref={episodeListRef}
+                style={{ maxHeight: '20rem', overflowY: 'auto', padding: '0.5rem' }}
             >
-                <Flex wrap gap={md ? 10 : 5}>
-                    {showTrailerAsFirstEpisode && movie.trailerUrl && (
-                        <Link
-                            href={`/phim/${movie.slug}/trailer`}
-                            style={{ marginBottom: md ? '5px' : '2px' }}
+                {showTrailerAsFirstEpisode && movie.trailerUrl && (
+                    <Link
+                        href={`/phim/${movie.slug}/trailer`}
+                        ref={activeEpisodeSlug === 'trailer' ? activeEpisodeRef : null}
+                    >
+                        <Button type={activeEpisodeSlug === 'trailer' ? 'primary' : 'default'}>
+                            Trailer
+                        </Button>
+                    </Link>
+                )}
+                {episodes.map((item, index) => (
+                    <Link
+                        key={`serverData-${item.slug}-${index}`}
+                        href={`/phim/${movie.slug}/${item.slug}`}
+                        ref={activeEpisodeSlug === item.slug ? activeEpisodeRef : null}
+                    >
+                        <Button
+                            type={activeEpisodeSlug === item.slug ? 'primary' : 'default'}
+                            style={{ margin: '0.3rem' }}
                         >
-                            <Button type={activeEpisodeSlug === 'trailer' ? 'primary' : 'default'}>
-                                Trailer
-                            </Button>
-                        </Link>
-                    )}
-                    {hasValidEpisodes ? (
-                        movie.episode[activeServerIndex].serverData.map((item, index) => (
-                            <Link
-                                key={`serverData-${item.slug}-${index}`}
-                                href={`/phim/${movie.slug}/${item.slug}`}
-                                style={{ marginBottom: md ? '5px' : '2px' }}
-                            >
-                                <Button
-                                    type={activeEpisodeSlug === item.slug ? 'primary' : 'default'}
-                                >
-                                    {item.name}
-                                </Button>
-                            </Link>
-                        ))
-                    ) : !showTrailerAsFirstEpisode && movie.trailerUrl ? (
-                        <Link href={`/phim/${movie.slug}/trailer`}>
-                            <Button
-                                key={movie.slug}
-                                type={activeEpisodeSlug === 'trailer' ? 'primary' : 'default'}
-                            >
-                                Trailer
-                            </Button>
-                        </Link>
-                    ) : null}
-                </Flex>
+                            {item.name}
+                        </Button>
+                    </Link>
+                ))}
             </div>
         );
     };
 
-    return (
-        <>
-            {showServers && hasValidEpisodes && (
-                <>
-                    {renderDivider('Chọn máy chủ', useServersDivider)}
-                    <Flex wrap gap={10} style={{ marginBottom: '1rem' }}>
-                        {movie?.episode?.map((ep: EpisodeType, index: number) => (
-                            <Button
-                                key={`server-${randomString(5)}-${index}`}
-                                onClick={() => onServerChange && onServerChange(index)}
-                                type={activeServerIndex === index ? 'primary' : 'default'}
-                            >
-                                {ep.serverName}
-                            </Button>
-                        ))}
-                    </Flex>
-                </>
-            )}
+    const renderContent = () => {
+        if (!showServers || !hasValidEpisodes) {
+            return renderEpisodes(0);
+        }
 
-            {renderDivider('Danh sách tập', useEpisodesDivider)}
-            {renderContent()}
-        </>
+        return (
+            <Tabs
+                activeKey={activeKey}
+                onChange={(key) => {
+                    setActiveKey(key);
+                    onServerChange && onServerChange(parseInt(key));
+                }}
+                items={movie.episode.map((ep: EpisodeType, index: number) => ({
+                    key: index.toString(),
+                    label: ep.serverName,
+                    children: renderEpisodes(index),
+                }))}
+            />
+        );
+    };
+
+    return (
+        <ConfigProvider
+            theme={{
+                algorithm: theme.darkAlgorithm,
+                components: {
+                    Tabs: {
+                        itemSelectedColor: '#fff',
+                        itemHoverColor: 'primary',
+                    },
+                },
+            }}
+        >
+            <div style={{ background: '#141414', padding: '1rem', borderRadius: '8px' }}>
+                <Title level={4} style={{ color: '#fff', marginBottom: '1rem' }}>
+                    Danh sách tập
+                </Title>
+                {renderContent()}
+            </div>
+        </ConfigProvider>
     );
 }

@@ -454,8 +454,8 @@ export function Movie({ slug }: MovieProps) {
                 )}
                 {movie && (
                     <Row>
-                        <Col span={24}>
-                            <MovieEpisode movie={movie} />
+                        <Col span={24} style={{ marginTop: '2rem' }}>
+                            <MovieEpisode movie={movie} showServers={false} />
                         </Col>
                     </Row>
                 )}

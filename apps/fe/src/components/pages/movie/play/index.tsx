@@ -282,15 +282,18 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             )}
             <div style={{ width: '100%', marginTop: 16 }}>
                 {movie && (
-                    <MovieEpisode
-                        movie={movie}
-                        activeEpisodeSlug={episodeSlug}
-                        activeServerIndex={selectedServerIndex}
-                        showServers={true}
-                        onServerChange={handleServerChange}
-                        useServersDivider={true}
-                        useEpisodesDivider={false}
-                    />
+                    <>
+                        <Divider />
+                        <MovieEpisode
+                            movie={movie}
+                            activeEpisodeSlug={episodeSlug}
+                            activeServerIndex={selectedServerIndex}
+                            showServers={true}
+                            onServerChange={handleServerChange}
+                            // useServersDivider={false}
+                            // useEpisodesDivider={false}
+                        />
+                    </>
                 )}
                 <Divider />
                 <div style={{ marginTop: '2rem' }}>
