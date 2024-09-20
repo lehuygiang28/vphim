@@ -1,17 +1,27 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Logger, Param, Post } from '@nestjs/common';
 import { ApiBody, ApiParam } from '@nestjs/swagger';
 
 import { KKPhimCrawler } from './kkphim.crawler';
 import { OphimCrawler } from './ophim.crawler';
 import { NguoncCrawler } from './nguonc.crawler';
+import { ConfigService } from '@nestjs/config';
+import { isNullOrUndefined } from 'apps/api/src/libs/utils/common';
 
 @Controller({ path: 'trigger-crawl' })
 export class CrawlController {
+    private readonly pw: undefined | string;
+    private readonly logger = new Logger(CrawlController.name);
     constructor(
         private readonly kkphim: KKPhimCrawler,
         private readonly ophim: OphimCrawler,
         private readonly nguonc: NguoncCrawler,
-    ) {}
+        private readonly configService: ConfigService,
+    ) {
+        if (!isNullOrUndefined(this.configService.get<string>('CRAWLER_PW'))) {
+            this.pw = this.configService.getOrThrow<string>('CRAWLER_PW');
+            this.logger.log(`Crawler password is configured`);
+        }
+    }
 
     @ApiParam({ name: 'slug' })
     @ApiBody({
@@ -23,7 +33,11 @@ export class CrawlController {
     })
     @Post('/:slug')
     triggerCrawler(@Param() { slug }: { slug: string }, @Body() { pw }: { pw: string }) {
-        if (pw !== process.env.CRAWLER_PW) {
+        if (isNullOrUndefined(this.pw)) {
+            return 'Crawler password not configured';
+        }
+
+        if (pw !== this.pw) {
             return 'Invalid password';
         }
 
