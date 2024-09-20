@@ -88,7 +88,8 @@
         "swagger-themes": "^1.4.3",
         "swiper": "^11.1.11",
         "tslib": "^2.3.0",
-        "use-debounce": "^10.0.3"
+        "use-debounce": "^10.0.3",
+        "vnpay": "^1.6.0"
     },
     "devDependencies": {
         "@nestjs/schematics": "^10.0.1",

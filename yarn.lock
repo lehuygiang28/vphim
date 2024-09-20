@@ -6492,6 +6492,7 @@ __metadata:
     tslib: "npm:^2.3.0"
     typescript: "npm:~5.5.2"
     use-debounce: "npm:^10.0.3"
+    vnpay: "npm:^1.6.0"
     webpack-cli: "npm:^5.1.4"
   languageName: unknown
   linkType: soft
@@ -15367,6 +15368,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"moment-timezone@npm:^0.5.43":
+  version: 0.5.45
+  resolution: "moment-timezone@npm:0.5.45"
+  dependencies:
+    moment: "npm:^2.29.4"
+  checksum: 10c0/7497f23c4b8c875dbf07c03f9a1253f79edaeedc29d5732e36bfd3c5577e25aed1924fbd84cbb713ce1920dbe822be0e21bd487851a7d13907226f289a5e568b
+  languageName: node
+  linkType: hard
+
 "moment@npm:^2.29.4":
   version: 2.30.1
   resolution: "moment@npm:2.30.1"
@@ -21074,6 +21084,15 @@ __metadata:
     unist-util-stringify-position: "npm:^2.0.0"
     vfile-message: "npm:^2.0.0"
   checksum: 10c0/4816aecfedc794ba4d3131abff2032ef0e825632cfa8cd20dd9d83819ef260589924f4f3e8fa30e06da2d8e60d7ec8ef7d0af93e0483df62890738258daf098a
+  languageName: node
+  linkType: hard
+
+"vnpay@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "vnpay@npm:1.6.0"
+  dependencies:
+    moment-timezone: "npm:^0.5.43"
+  checksum: 10c0/a8c29e628d1d2c4544c321efa0f84b85eb2b3f146df8068ec981fee19f97aabb185659d68e2d23bf6c4f524ac263de17e25e45d32c35a948503fd26238ff71d9
   languageName: node
   linkType: hard
 
