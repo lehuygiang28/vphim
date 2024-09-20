@@ -6,7 +6,6 @@ import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { CronJob } from 'cron';
 import { stripHtml } from 'string-strip-html';
-import { parse } from 'node:url';
 
 import { EpisodeServerData, Movie, Episode } from './../movie.schema';
 import { MovieRepository } from './../movie.repository';
@@ -367,13 +366,17 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
     private processEpisodes(newEpisodes: any[], existingEpisodes: Episode[] = []): Episode[] {
         const processedEpisodes: Episode[] = [...existingEpisodes];
-        const existingServers = new Set(existingEpisodes.map((ep) => ep.serverName));
+        const existingServers = new Map(
+            existingEpisodes.map((ep) => [`${ep.serverName}-${ep.originSrc}`, ep]),
+        );
         let ncCounter = 1;
 
         (newEpisodes || []).forEach((episode) => {
             if (!episode || !episode.server_name) return;
 
-            let serverName = episode.server_name;
+            const serverName = episode.server_name || `NC #${ncCounter++}`;
+            const originSrc = 'nguonc'; // Assuming 'ophim' is the source for this crawler
+
             const serverData = (episode.items || [])
                 .filter((item: any) => item && (item.embed || item.m3u8))
                 .map((item: any, index): EpisodeServerData => {
@@ -389,44 +392,31 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
             if (serverData.length === 0) return;
 
-            // Check if the server name already exists
-            if (existingServers.has(serverName)) {
-                // Compare the host of m3u8 and embed links
-                const existingEpisode = existingEpisodes.find((ep) => ep.serverName === serverName);
-                if (existingEpisode) {
-                    const existingHost = this.getHost(
-                        existingEpisode.serverData[0]?.linkM3u8 ||
-                            existingEpisode.serverData[0]?.linkEmbed,
-                    );
-                    const newHost = this.getHost(
-                        serverData[0]?.linkM3u8 || serverData[0]?.linkEmbed,
-                    );
+            const serverKey = `${serverName}-${originSrc}`;
 
-                    if (existingHost !== newHost) {
-                        // If hosts are different, create a new server name
-                        serverName = `NC #${ncCounter++}`;
-                    }
-                }
+            if (existingServers.has(serverKey)) {
+                // Update existing server
+                const existingEpisode = existingServers.get(serverKey);
+                existingEpisode.serverData = [
+                    ...existingEpisode.serverData,
+                    ...serverData.filter(
+                        (newData) =>
+                            !existingEpisode.serverData.some(
+                                (existingData) => existingData.slug === newData.slug,
+                            ),
+                    ),
+                ];
+            } else {
+                // Add new server
+                processedEpisodes.push({
+                    originSrc: originSrc,
+                    serverName: serverName,
+                    serverData,
+                });
             }
-
-            processedEpisodes.push({
-                serverName: serverName || `NC #${ncCounter++}`,
-                serverData,
-            });
-
-            existingServers.add(serverName);
         });
 
         return processedEpisodes;
-    }
-
-    private getHost(url: string): string {
-        try {
-            const parsedUrl = parse(url);
-            return parsedUrl.hostname || '';
-        } catch {
-            return '';
-        }
     }
 
     private async addToFailedCrawls(slug: string) {

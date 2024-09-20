@@ -339,6 +339,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                     );
 
                     return {
+                        originSrc: 'ophim',
                         serverName: server?.server_name || `OP #${index + 1}`,
                         serverData,
                     };
@@ -355,7 +356,9 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                 const newEpisodes = movieData?.episode?.filter(
                     (newEp) =>
                         !existingMovie.episode.some(
-                            (existingEp) => existingEp.serverName === newEp.serverName,
+                            (existingEp) =>
+                                existingEp.serverName === newEp.serverName &&
+                                existingEp.originSrc === newEp.originSrc,
                         ),
                 );
                 const updateQuery: Partial<Movie> = {};

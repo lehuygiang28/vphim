@@ -33,6 +33,9 @@ export class EpisodeType implements Episode {
     serverData: EpisodeServerDataType[];
 
     @Field({ nullable: true })
+    originSrc: string;
+
+    @Field({ nullable: true })
     serverName: string;
 }
 

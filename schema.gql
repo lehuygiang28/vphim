@@ -65,6 +65,7 @@ type EpisodeServerData {
 
 type Episode {
   serverData: [EpisodeServerData!]
+  originSrc: String
   serverName: String
 }
 
@@ -217,6 +218,7 @@ input EpisodeServerDataInputType {
 
 input EpisodeInputType {
   serverData: [EpisodeServerDataInputType!]
+  originSrc: String
   serverName: String
 }
 

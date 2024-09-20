@@ -344,6 +344,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                     );
 
                     return {
+                        originSrc: 'kkphim',
                         serverName: server?.server_name || `KK #${index + 1}`,
                         serverData,
                     };
@@ -360,7 +361,9 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 const newEpisodes = movieData?.episode?.filter(
                     (newEp) =>
                         !existingMovie.episode.some(
-                            (existingEp) => existingEp.serverName === newEp.serverName,
+                            (existingEp) =>
+                                existingEp.serverName === newEp.serverName &&
+                                existingEp.originSrc === newEp.originSrc,
                         ),
                 );
                 const updateQuery: Partial<Movie> = {};
