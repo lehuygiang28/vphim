@@ -25,6 +25,7 @@ import { DirectorRepository } from '../../directors';
 import {
     convertToVietnameseTime,
     mapLanguage,
+    mappingNameSlugEpisode,
     mapQuality,
     mapStatus,
     MOVIE_TYPE_MAP,
@@ -376,11 +377,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             const serverData = (episode.items || [])
                 .filter((item: any) => item && (item.embed || item.m3u8))
                 .map((item: any, index): EpisodeServerData => {
-                    let name = item?.name;
-                    if (!name || !isNaN(Number(name))) {
-                        name = `Tập ${index + 1 < 10 ? '0' : ''}${index + 1}`;
-                    }
-                    const slug = slugifyVietnamese(item?.name, { lower: true });
+                    const { name, slug } = mappingNameSlugEpisode(item, index);
                     return {
                         name: name,
                         slug: slug,

@@ -13,6 +13,7 @@ import {
     mapLanguage,
     mapQuality,
     mapStatus,
+    mappingNameSlugEpisode,
 } from './mapping-data';
 
 import { EpisodeServerData, Movie } from './../movie.schema';
@@ -23,7 +24,6 @@ import {
     isTrue,
     resolveUrl,
     sleep,
-    slugifyVietnamese,
 } from '../../../libs/utils/common';
 import { ActorRepository } from '../../actors';
 import { RedisService } from '../../../libs/modules/redis';
@@ -332,11 +332,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 episode: movieDetail?.episodes?.map((server, index) => {
                     const serverData: EpisodeServerData[] = server?.server_data?.map(
                         (item, index) => {
-                            let name = item?.name;
-                            if (!name || !isNaN(Number(name))) {
-                                name = `Tập ${index + 1 < 10 ? '0' : ''}${index + 1}`;
-                            }
-                            const slug = slugifyVietnamese(item?.name, { lower: true });
+                            const { name, slug } = mappingNameSlugEpisode(item, index);
                             return {
                                 name: name,
                                 slug: slug,

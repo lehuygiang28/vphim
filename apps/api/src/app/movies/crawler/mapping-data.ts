@@ -1,4 +1,5 @@
 import { removeTone, removeDiacritics } from '@vn-utils/text';
+import { slugifyVietnamese } from 'apps/api/src/libs/utils/common';
 
 export const MOVIE_TYPE_MAP = {
     'phim lẻ': 'single',
@@ -215,4 +216,38 @@ function convertSingleTime(timePart: string): string {
     }
 
     return result.trim();
+}
+
+export function mappingNameSlugEpisode(item: { name: string; slug?: string }, index: number) {
+    let name = item?.name.trim();
+    let slug = item?.slug.trim();
+
+    // Not have name but have slug
+    if (!name && slug) {
+        // and slug is only number
+        if (!isNaN(Number(slug))) {
+            name = `Tập ${Number(slug) < 10 ? '0' : ''}${slug}`;
+        }
+    }
+
+    // Not have name
+    if (!name) {
+        name = `Tập ${index + 1 < 10 ? '0' : ''}${index + 1}`;
+    }
+
+    // Name is only number
+    if (!isNaN(Number(name))) {
+        name = `Tập ${Number(name) < 10 ? '0' : ''}${name}`;
+    }
+
+    // Name can multi episode: "124-125"
+    if (name?.includes('-')) {
+        const names = name
+            ?.split('-')
+            .map((a) => a.trim())
+            .filter((a) => a !== '');
+        name = `Tập ${names?.join('-')}`;
+    }
+    slug = slugifyVietnamese(name, { lower: true });
+    return { name, slug };
 }
