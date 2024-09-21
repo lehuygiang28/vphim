@@ -144,4 +144,8 @@ export class UpdateMovieInput {
     @Field(() => TmdbType, { nullable: true })
     @IsOptional()
     tmdb?: TmdbType;
+
+    @Field({ nullable: true })
+    @IsOptional()
+    deletedAt?: 'delete' | 'restore' | 'hard-delete';
 }

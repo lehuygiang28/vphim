@@ -105,3 +105,9 @@ export const MUTATION_UPDATE_MOVIE = gql`
         }
     }
 `;
+
+export const MUTATION_HARD_DELETE_MOVIE = gql`
+    mutation HardDeleteMovie($input: MutateHardDeleteMovieInput!) {
+        mutateHardDeleteMovie(input: $input)
+    }
+`;

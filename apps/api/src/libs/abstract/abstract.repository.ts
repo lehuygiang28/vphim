@@ -258,4 +258,8 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
         );
         return insertedDocuments.map((doc) => doc.toJSON()) as unknown as TDocument[];
     }
+
+    async deleteOne(filterQuery: FilterQuery<TDocument>, session?: ClientSession) {
+        return this.model.deleteOne(filterQuery, session ? { session } : null);
+    }
 }

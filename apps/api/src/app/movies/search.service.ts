@@ -59,7 +59,6 @@ export class SearchService {
         const body: Omit<Movie, '_id'> = {
             ...rest,
         };
-
         return this.elasticsearchService.index({
             index: 'movies',
             id: movie._id.toString(),
@@ -67,17 +66,20 @@ export class SearchService {
         });
     }
 
-    async deleteMovie(movieId: string) {
+    async deleteMovie(movie: Pick<Movie, '_id'>) {
         return this.elasticsearchService.delete({
             index: 'movies',
-            id: movieId,
+            id: movie?._id?.toString(),
         });
     }
 
     async bulkIndexMovies(movies: Movie[]) {
         const body = movies.flatMap((movie) => {
             const { _id, ...rest } = movie;
-            return [{ index: { _index: 'movies', _id: _id.toString() } }, rest];
+            return [
+                { index: { _index: 'movies', _id: _id.toString() } },
+                { deletedAt: null, ...rest },
+            ];
         });
 
         return this.elasticsearchService.bulk({ refresh: true, body });
@@ -117,7 +119,6 @@ export class SearchService {
                             justOne: false,
                         },
                     ],
-                    sort: { updatedAt: 1 },
                 },
             });
 
@@ -132,6 +133,7 @@ export class SearchService {
 
         this.logger.log('Finished indexing all movies');
         await this.setMaxResultWindow();
+        await this.updateMappings();
     }
 
     async setMaxResultWindow(indexName = 'movies', maxResultWindow = 350000) {
@@ -161,6 +163,33 @@ export class SearchService {
                 `Error setting index.max_result_window for index ${indexName}: ${error.message}`,
             );
             throw error;
+        }
+    }
+
+    async updateMappings(indexName = 'movies') {
+        try {
+            const res = await this.elasticsearchService.indices.putMapping({
+                index: 'movies',
+                body: {
+                    properties: {
+                        deletedAt: {
+                            type: 'date',
+                            null_value: null,
+                        },
+                    },
+                },
+            });
+            if (res.acknowledged) {
+                this.logger.log(`Successfully updated mappings for index ${indexName}`);
+            } else {
+                this.logger.warn(
+                    `Failed to update mappings for index ${indexName}. Response: ${JSON.stringify(
+                        res,
+                    )}`,
+                );
+            }
+        } catch (error) {
+            this.logger.error(`Error updating mappings for index ${indexName}: ${error.message}`);
         }
     }
 }

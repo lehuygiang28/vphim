@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useShow } from '@refinedev/core';
-import { Show, MarkdownField } from '@refinedev/antd';
+import { Show, MarkdownField, ListButton, EditButton, RefreshButton } from '@refinedev/antd';
 import { Typography, Row, Col, Tag, Divider, List, Card, Avatar, Image, Space, Button } from 'antd';
 import { PlayCircleOutlined, LinkOutlined } from '@ant-design/icons';
 import { MovieType, EpisodeType } from '~api/app/movies/movie.type';
 import { ActorType } from '~api/app/actors/actor.type';
 import { CategoryType } from '~api/app/categories/category.type';
 import { GET_FULL_MOVIE_DETAIL_QUERY } from '~mnt/queries/movie.query';
+import { DeleteMovieButton } from '~mnt/components/button/delete-movie-button';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -44,7 +45,33 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
     };
 
     return (
-        <Show isLoading={isLoading}>
+        <Show
+            isLoading={isLoading}
+            headerButtons={({
+                deleteButtonProps,
+                editButtonProps,
+                listButtonProps,
+                refreshButtonProps,
+            }) => (
+                <>
+                    {listButtonProps && <ListButton {...listButtonProps} />}
+                    {editButtonProps && <EditButton {...editButtonProps} />}{' '}
+                    <DeleteMovieButton
+                        id={params.id}
+                        type="soft-delete"
+                        deleteButtonProps={{
+                            ...deleteButtonProps,
+                            size: 'middle',
+                            hideText: false,
+                        }}
+                        redirect={{
+                            to: '/movies',
+                        }}
+                    />
+                    <RefreshButton {...refreshButtonProps} />
+                </>
+            )}
+        >
             <Row gutter={[16, 16]}>
                 <Col xs={24} lg={8}>
                     <Card>

@@ -114,6 +114,7 @@ type Movie {
   year: Float
   imdb: ImdbType
   tmdb: TmdbType
+  deletedAt: DateTime
 }
 
 type BlockActivityLogType {
@@ -166,6 +167,7 @@ type MovieFollowType {
   year: Float
   imdb: ImdbType
   tmdb: TmdbType
+  deletedAt: DateTime
 }
 
 type UserType {
@@ -197,17 +199,6 @@ type GetMoviesOutput {
   total: Float!
 }
 
-type RatingResultType {
-  id: String
-  voteAverage: Float
-  voteCount: Float
-}
-
-type GetRatingOutput {
-  imdb: RatingResultType
-  tmdb: RatingResultType
-}
-
 input EpisodeServerDataInputType {
   slug: String
   name: String
@@ -237,7 +228,6 @@ input ImdbInputType {
 type Query {
   getMe: UserType!
   movie(input: GetMovieInput!): Movie!
-  getRating(input: GetMovieInput!): GetRatingOutput!
   movies(input: GetMoviesInput!): GetMoviesOutput!
   actors(input: GetActorsInput!): GetActorsOutput!
   categories(input: GetCategoriesInput!): GetCategoriesOutput!
@@ -266,6 +256,8 @@ input GetMoviesInput {
   years: String
   resetCache: Boolean
   status: String
+  isDeleted: Boolean
+  bypassCache: Boolean
 }
 
 input GetActorsInput {
@@ -297,6 +289,7 @@ type Mutation {
   followMovie(input: MutationFollowMovieInput!): UserType!
   unfollowMovie(input: MutationUnfollowMovieInput!): UserType!
   updateMovie(input: UpdateMovieInput!): Movie!
+  mutateHardDeleteMovie(input: MutateHardDeleteMovieInput!): Int!
   updateRegion(slug: String!, input: UpdateRegionInput!): Region!
 }
 
@@ -346,6 +339,11 @@ input UpdateMovieInput {
   episode: [EpisodeInputType!]
   imdb: ImdbInputType
   tmdb: TmdbInputType
+  deletedAt: String
+}
+
+input MutateHardDeleteMovieInput {
+  _id: ID!
 }
 
 input UpdateRegionInput {

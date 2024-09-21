@@ -171,4 +171,7 @@ export class MovieType
 
     @Field(() => TmdbType, { nullable: true })
     tmdb?: TmdbType;
+
+    @Field({ nullable: true })
+    deletedAt?: Date;
 }

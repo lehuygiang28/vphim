@@ -2,12 +2,13 @@
 
 import { useCallback } from 'react';
 import { Spin } from 'antd';
-import { useForm } from '@refinedev/antd';
+import { useForm, SaveButton } from '@refinedev/antd';
 import { Edit } from '@refinedev/antd';
 
 import { GET_FULL_MOVIE_DETAIL_QUERY, MUTATION_UPDATE_MOVIE } from '~mnt/queries/movie.query';
 import { MovieForm } from '~mnt/components/form/movie';
 import { MovieType } from '~api/app/movies/movie.type';
+import { DeleteMovieButton } from '~mnt/components/button/delete-movie-button';
 
 export type EditMoviePageProps = {
     params: { id: string };
@@ -47,7 +48,26 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
     }
 
     return (
-        <Edit saveButtonProps={saveButtonProps}>
+        <Edit
+            saveButtonProps={saveButtonProps}
+            footerButtons={(button) => {
+                const { saveButtonProps, deleteButtonProps } = button;
+                return (
+                    <>
+                        <SaveButton {...saveButtonProps} />
+                        <DeleteMovieButton
+                            id={params.id}
+                            type="soft-delete"
+                            deleteButtonProps={{
+                                ...deleteButtonProps,
+                                size: 'middle',
+                                hideText: false,
+                            }}
+                        />
+                    </>
+                );
+            }}
+        >
             {query?.data?.data && (
                 <MovieForm
                     actors={query?.data?.data?.actors || []}

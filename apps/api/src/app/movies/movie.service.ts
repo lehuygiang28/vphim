@@ -11,14 +11,19 @@ import {
 import { MovieRepository } from './movie.repository';
 import { GetMoviesDto, MovieResponseDto } from './dtos';
 import { Movie } from './movie.schema';
-import { convertToObjectId, isNullOrUndefined, sortedStringify } from '../../libs/utils/common';
+import {
+    convertToObjectId,
+    isNullOrUndefined,
+    isTrue,
+    sortedStringify,
+} from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis/services';
-import { RatingResultType } from './rating-result.type';
-import { GetRatingOutput } from './outputs/get-rating.output';
 import { MovieType } from './movie.type';
 import { UpdateMovieInput } from './inputs/mutate-movie.input';
 import { GetMovieInput } from './inputs/get-movie.input';
 import { SearchService } from './search.service';
+import { GetMoviesInput } from './inputs/get-movies.input';
+import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.input';
 
 @Injectable()
 export class MovieService {
@@ -250,13 +255,13 @@ export class MovieService {
         return res;
     }
 
-    async getMoviesEs(dto: GetMoviesDto) {
-        const { resetCache } = dto;
-        const cacheKey = `CACHED:MOVIES:ES:${sortedStringify(dto)}`;
+    async getMoviesEs(dto: GetMoviesInput) {
+        const { resetCache = false, bypassCache = false, ...restDto } = dto;
+        const cacheKey = `CACHED:MOVIES:ES:${sortedStringify(restDto)}`;
 
-        if (resetCache) {
+        if (isTrue(resetCache)) {
             await this.redisService.del(cacheKey);
-        } else {
+        } else if (!isTrue(bypassCache)) {
             const fromCache = await this.redisService.get<{ data: MovieType[]; total: number }>(
                 cacheKey,
             );
@@ -284,9 +289,10 @@ export class MovieService {
             sortBy = 'year',
             sortOrder = 'asc',
             status,
+            isDeleted = false,
         } = dto;
 
-        const must: QueryDslQueryContainer[] = [];
+        const must: QueryDslQueryContainer['bool']['must'] = [];
         const filter: QueryDslQueryContainer[] = [];
         let keywordQuery: QueryDslQueryContainer | null = null;
 
@@ -410,10 +416,25 @@ export class MovieService {
             });
         }
 
+        // Add a filter to handle the `deletedAt` field
+        if (isDeleted) {
+            // Include items where `deletedAt` exists and is not null (i.e., deleted items)
+            filter.push({ exists: { field: 'deletedAt' } });
+        } else {
+            // Exclude items where `deletedAt` exists and is not null
+            must.push({
+                bool: {
+                    must_not: [
+                        { exists: { field: 'deletedAt' } }, // Exclude if `deletedAt` exists
+                    ],
+                },
+            });
+        }
+
         const query: QueryDslQueryContainer = {
             bool: {
                 must: [...must, ...(keywordQuery ? [keywordQuery] : [])],
-                filter,
+                filter: filter,
             },
         };
 
@@ -480,21 +501,29 @@ export class MovieService {
     }
 
     async updateMovie(input: UpdateMovieInput): Promise<MovieType> {
-        const { _id, ...updateData } = input;
-        const { actors, categories, countries, directors, ...restUpdateData } = updateData;
+        const { _id, actors, categories, countries, directors, deletedAt, ...restUpdateData } =
+            input;
         const movieToUpdate: Partial<Movie> = { ...restUpdateData };
 
         if (actors) {
-            movieToUpdate.actors = updateData.actors?.map((c) => convertToObjectId(c));
+            movieToUpdate.actors = actors?.map((c) => convertToObjectId(c));
         }
         if (categories) {
-            movieToUpdate.categories = updateData.categories?.map((c) => convertToObjectId(c));
+            movieToUpdate.categories = categories?.map((c) => convertToObjectId(c));
         }
         if (directors) {
-            movieToUpdate.directors = updateData.directors?.map((c) => convertToObjectId(c));
+            movieToUpdate.directors = directors?.map((c) => convertToObjectId(c));
         }
         if (countries) {
-            movieToUpdate.countries = updateData.countries?.map((c) => convertToObjectId(c));
+            movieToUpdate.countries = countries?.map((c) => convertToObjectId(c));
+        }
+
+        if (!isNullOrUndefined(deletedAt)) {
+            if (deletedAt === 'delete') {
+                movieToUpdate.deletedAt = new Date();
+            } else if (deletedAt === 'restore') {
+                movieToUpdate.deletedAt = null;
+            }
         }
 
         const updatedMovie = await this.movieRepo.findOneAndUpdateOrThrow({
@@ -511,80 +540,18 @@ export class MovieService {
             },
         });
 
-        // Clear cache for this movie
-        const cacheKey = `CACHED:MOVIES:${updatedMovie.slug}`;
-        await this.redisService.del(cacheKey);
-
         return new MovieType(updatedMovie as unknown as MovieType);
     }
 
-    async getRating(movieSlug: string): Promise<GetRatingOutput> {
-        const movie = await this.movieRepo.findOneOrThrow({ filterQuery: { slug: movieSlug } });
-        const result: GetRatingOutput = {
-            imdb: {},
-            tmdb: {},
-        };
-        const headers = {
-            accept: 'application/json',
-        };
+    async hardDeleteMovie(input: MutateHardDeleteMovieInput) {
+        const movie = await this.movieRepo.findOneOrThrow({
+            filterQuery: { _id: convertToObjectId(input._id) },
+        });
 
-        try {
-            if (movie?.imdb?.id) {
-                result.imdb = { id: movie?.imdb?.id };
-                const res = await this.httpService.axiosRef.get(
-                    `https://api.themoviedb.org/3/find/${movie?.imdb?.id}?external_source=imdb_id&api_key=${process?.env?.TMDB_API_KEY}`,
-                    {
-                        headers,
-                    },
-                );
-                const imdbResult = this.extractRatingFromImdbData(res?.data);
-                if (imdbResult) {
-                    result.imdb = { id: movie?.imdb?.id, ...imdbResult };
-                }
-            }
-
-            if (movie?.tmdb?.id) {
-                result.tmdb = { id: movie?.tmdb?.id };
-                const res = await this.httpService.axiosRef.get(
-                    `https://api.themoviedb.org/3/movie/${movie?.tmdb?.id}?language=en-US&api_key=${process?.env?.TMDB_API_KEY}`,
-                    {
-                        headers,
-                    },
-                );
-                result.tmdb = {
-                    id: movie?.tmdb?.id,
-                    voteAverage: res?.data?.vote_average || 0,
-                    voteCount: res?.data?.vote_count || 0,
-                };
-            }
-        } catch (error) {
-            this.logger.error(error);
-        }
-
-        return result;
-    }
-
-    private extractRatingFromImdbData(imdbData: unknown): RatingResultType | null {
-        const resultTypes = [
-            'movie_results',
-            'tv_results',
-            'person_results',
-            'tv_episode_results',
-            'tv_season_results',
-        ];
-
-        for (const type of resultTypes) {
-            if (imdbData[type] && imdbData[type].length > 0) {
-                const result = imdbData[type][0];
-                if (result?.vote_average !== undefined && result?.vote_count !== undefined) {
-                    return {
-                        voteAverage: result.vote_average,
-                        voteCount: result.vote_count,
-                    };
-                }
-            }
-        }
-
-        return null;
+        await Promise.all([
+            this.movieRepo.deleteOne({ _id: movie._id }),
+            this.searchService.deleteMovie(movie),
+        ]);
+        return 1;
     }
 }

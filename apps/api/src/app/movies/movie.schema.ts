@@ -188,6 +188,10 @@ export class Movie
     @ApiProperty()
     @Prop({ type: ImdbSchema, default: null, required: false })
     imdb?: ImdbSchema;
+
+    @ApiProperty()
+    @Prop({ type: Date, default: null })
+    deletedAt?: Date;
 }
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);
@@ -211,6 +215,13 @@ MovieSchema.post('save', async function (doc) {
     }
 });
 
+MovieSchema.post('updateOne', async function (doc) {
+    const searchService = global.searchService;
+    if (searchService && doc) {
+        await searchService.indexMovie(doc);
+    }
+});
+
 MovieSchema.post('findOneAndUpdate', async function (doc) {
     const searchService = global.searchService;
     if (searchService && doc) {
@@ -218,9 +229,17 @@ MovieSchema.post('findOneAndUpdate', async function (doc) {
     }
 });
 
-MovieSchema.post('findOneAndDelete', async function (doc) {
-    const searchService = global.searchService;
-    if (searchService && doc) {
-        await searchService.indexMovie(doc);
-    }
-});
+// MovieSchema.post('findOneAndDelete', async function (doc) {
+//     const searchService = global.searchService;
+//     if (searchService && doc) {
+//         await searchService.deleteMovie(doc);
+//     }
+// });
+
+// MovieSchema.post('deleteOne', async function (doc) {
+//     const searchService = global.searchService;
+//     if (searchService && doc) {
+//         console.log(JSON.stringify(doc, null, 2));
+//         await searchService.deleteMovie(doc);
+//     }
+// });

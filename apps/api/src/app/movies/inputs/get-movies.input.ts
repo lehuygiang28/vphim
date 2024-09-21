@@ -1,8 +1,7 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { GetMoviesDto } from '../dtos';
 
 @InputType()
-export class GetMoviesInput implements GetMoviesDto {
+export class GetMoviesInput {
     @Field({ nullable: true })
     name?: string;
 
@@ -47,4 +46,10 @@ export class GetMoviesInput implements GetMoviesDto {
 
     @Field({ nullable: true })
     status?: string;
+
+    @Field({ nullable: true })
+    isDeleted?: boolean;
+
+    @Field({ nullable: true })
+    bypassCache?: boolean;
 }

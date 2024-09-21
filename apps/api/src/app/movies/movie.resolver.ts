@@ -1,4 +1,4 @@
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation, Int } from '@nestjs/graphql';
 import { SkipThrottle } from '@nestjs/throttler';
 
 import { MovieType } from './movie.type';
@@ -6,8 +6,8 @@ import { MovieService } from './movie.service';
 import { GetMoviesInput } from './inputs/get-movies.input';
 import { GetMovieInput } from './inputs/get-movie.input';
 import { GetMoviesOutput } from './outputs/get-movies.output';
-import { GetRatingOutput } from './outputs/get-rating.output';
 import { UpdateMovieInput } from './inputs/mutate-movie.input';
+import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.input';
 
 @SkipThrottle()
 @Resolver(() => MovieType)
@@ -19,11 +19,6 @@ export class MovieResolver {
         return this.movieService.getMovie(input);
     }
 
-    @Query(() => GetRatingOutput, { name: 'getRating' })
-    getRating(@Args('input') { slug }: GetMovieInput) {
-        return this.movieService.getRating(slug);
-    }
-
     @Query(() => GetMoviesOutput, { name: 'movies' })
     getMovies(@Args('input') input: GetMoviesInput) {
         return this.movieService.getMoviesEs(input);
@@ -32,5 +27,10 @@ export class MovieResolver {
     @Mutation(() => MovieType, { name: 'updateMovie' })
     updateMovie(@Args('input') input: UpdateMovieInput) {
         return this.movieService.updateMovie(input);
+    }
+
+    @Mutation(() => Int, { name: 'mutateHardDeleteMovie' })
+    hardDeleteMovie(@Args('input') input: MutateHardDeleteMovieInput) {
+        return this.movieService.hardDeleteMovie(input);
     }
 }
