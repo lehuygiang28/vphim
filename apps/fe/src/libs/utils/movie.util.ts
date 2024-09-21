@@ -1,3 +1,4 @@
+import { baseApiUrl } from '@/config';
 import { canParseToNumber } from './common';
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
@@ -40,4 +41,12 @@ export function getEpisodeNameBySlug(movie: MovieType, slug: string): string {
     }
 
     return 'Trailer';
+}
+
+export function getOptimizedImageUrl(
+    url: string,
+    option: { width: number; height: number; quality?: number },
+) {
+    const { width, height, quality = 75 } = option;
+    return `${baseApiUrl}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`;
 }
