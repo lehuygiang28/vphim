@@ -287,7 +287,7 @@ export class MovieService {
             limit = 10,
             page = 1,
             sortBy = 'year',
-            sortOrder = 'asc',
+            sortOrder = 'desc',
             status,
             isDeleted = false,
         } = dto;
@@ -296,74 +296,66 @@ export class MovieService {
         const filter: QueryDslQueryContainer[] = [];
         let keywordQuery: QueryDslQueryContainer | null = null;
 
+        // Check if any search criteria or filters are provided
+        const hasFilters =
+            keywords ||
+            cinemaRelease !== undefined ||
+            isCopyright !== undefined ||
+            type ||
+            years ||
+            categories ||
+            countries ||
+            status !== undefined ||
+            isDeleted;
+
         if (keywords) {
             keywordQuery = {
-                function_score: {
-                    query: {
-                        bool: {
-                            should: [
-                                // Stage 1: Search in name and originName
-                                {
-                                    multi_match: {
-                                        query: keywords,
-                                        fields: ['name^3', 'originName^2'],
-                                        type: 'phrase',
-                                        slop: 2,
-                                        boost: 2,
-                                    },
-                                },
-                                // Stage 2: Search in slug and content
-                                {
-                                    multi_match: {
-                                        query: keywords,
-                                        fields: ['slug^1.5', 'content'],
-                                        type: 'best_fields',
-                                        slop: 3,
-                                        boost: 1.5,
-                                    },
-                                },
-                                // Stage 3: Search in related fields
-                                {
-                                    multi_match: {
-                                        query: keywords,
-                                        fields: [
-                                            'categories.name^0.8',
-                                            'countries.name^0.8',
-                                            'directors.name^0.9',
-                                            'actors.name^0.9',
-                                            'categories.slug^0.7',
-                                            'countries.slug^0.7',
-                                            'directors.slug^0.8',
-                                            'actors.slug^0.8',
-                                        ],
-                                        type: 'best_fields',
-                                        slop: 2,
-                                        boost: 1,
-                                    },
-                                },
-                            ],
-                            minimum_should_match: 1,
-                        },
-                    },
-                    functions: [
+                bool: {
+                    should: [
+                        // Stage 1: Exact phrase match in name and originName
                         {
-                            filter: { match_phrase: { name: { query: keywords, slop: 1 } } },
-                            weight: 3,
+                            multi_match: {
+                                query: keywords,
+                                fields: ['name', 'originName'],
+                                type: 'phrase',
+                            },
                         },
+                        // Stage 2: Partial phrase match in name and originName
                         {
-                            filter: { match_phrase: { originName: { query: keywords, slop: 1 } } },
-                            weight: 2,
+                            multi_match: {
+                                query: keywords,
+                                fields: ['name', 'originName'],
+                                type: 'phrase_prefix',
+                            },
                         },
+                        // Stage 3: Term match in slug and content
                         {
-                            filter: { match_phrase: { slug: { query: keywords, slop: 1 } } },
-                            weight: 1.5,
+                            multi_match: {
+                                query: keywords,
+                                fields: ['slug', 'content'],
+                                type: 'best_fields',
+                                operator: 'and',
+                            },
+                        },
+                        // Stage 4: Exact match in related fields
+                        {
+                            multi_match: {
+                                query: keywords,
+                                fields: [
+                                    'categories.name',
+                                    'countries.name',
+                                    'directors.name',
+                                    'actors.name',
+                                ],
+                                type: 'phrase',
+                            },
                         },
                     ],
-                    score_mode: 'sum',
-                    boost_mode: 'multiply',
+                    minimum_should_match: 1,
                 },
             };
         }
+
         if (!isNullOrUndefined(cinemaRelease)) filter.push({ term: { cinemaRelease } });
         if (!isNullOrUndefined(isCopyright)) filter.push({ term: { isCopyright } });
         if (!isNullOrUndefined(type)) filter.push({ term: { type } });
@@ -416,31 +408,34 @@ export class MovieService {
             });
         }
 
-        // Add a filter to handle the `deletedAt` field
         if (isDeleted) {
-            // Include items where `deletedAt` exists and is not null (i.e., deleted items)
             filter.push({ exists: { field: 'deletedAt' } });
         } else {
-            // Exclude items where `deletedAt` exists and is not null
             must.push({
                 bool: {
-                    must_not: [
-                        { exists: { field: 'deletedAt' } }, // Exclude if `deletedAt` exists
-                    ],
+                    must_not: [{ exists: { field: 'deletedAt' } }],
                 },
             });
         }
 
-        const query: QueryDslQueryContainer = {
-            bool: {
-                must: [...must, ...(keywordQuery ? [keywordQuery] : [])],
-                filter: filter,
-            },
-        };
+        const query: QueryDslQueryContainer = hasFilters
+            ? {
+                  bool: {
+                      must: [...must, ...(keywordQuery ? [keywordQuery] : [])],
+                      filter: filter,
+                  },
+              }
+            : { match_all: {} };
 
         const sortFields = sortBy.split(',');
         const sortOrders = sortOrder.split(',');
         const sort = [
+            {
+                default: {
+                    order: 'desc',
+                    unmapped_type: 'keyword',
+                },
+            },
             ...(sortFields || []).map((field, index) => {
                 const order = (
                     sortOrders[index] || sortOrders[sortOrders.length - 1]
@@ -461,6 +456,7 @@ export class MovieService {
                 : []),
         ] as SortCombinations[];
 
+        const minScore = keywords ? 0.5 : undefined;
         const body = await this.elasticsearchService.search({
             index: 'movies',
             body: {
@@ -469,6 +465,7 @@ export class MovieService {
                 from: (page - 1) * limit,
                 size: limit,
                 track_total_hits: true,
+                ...(minScore && { min_score: minScore }),
             },
         });
 

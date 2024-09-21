@@ -99,7 +99,7 @@ type Movie {
   lastSyncModified: DateTime!
   notify: String
   originName: String
-  posterUrl: String!
+  posterUrl: String
   quality: String
   showtimes: String
   slug: String!
@@ -152,7 +152,7 @@ type MovieFollowType {
   lastSyncModified: DateTime!
   notify: String
   originName: String
-  posterUrl: String!
+  posterUrl: String
   quality: String
   showtimes: String
   slug: String!

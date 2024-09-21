@@ -74,6 +74,7 @@ export class MovieType
         this.updatedAt = movie?.updatedAt ? new Date(movie?.updatedAt) : null;
         this.createdAt = movie?.createdAt ? new Date(movie?.createdAt) : null;
         this.lastSyncModified = new Date(movie?.lastSyncModified);
+        this.posterUrl = movie?.posterUrl || '';
     }
 
     @Field(() => ID)
@@ -127,7 +128,7 @@ export class MovieType
     @Field({ nullable: true })
     originName?: string;
 
-    @Field()
+    @Field({ nullable: true })
     posterUrl: string;
 
     @Field({ nullable: true })
