@@ -8,7 +8,8 @@ import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@refinedev/antd/dist/reset.css';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { PlaySquareOutlined } from '@ant-design/icons';
+import { PlaySquareOutlined, DeleteFilled } from '@ant-design/icons';
+import { DevtoolsProvider, DevtoolsPanel } from '@refinedev/devtools';
 
 import { ColorModeContextProvider } from '~fe/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
@@ -49,40 +50,52 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
             <RefineKbarProvider>
                 <AntdRegistry>
                     <ColorModeContextProvider defaultMode={defaultMode}>
-                        <Refine
-                            routerProvider={routerProvider}
-                            dataProvider={{
-                                default: { ...restfulDataProvider(axiosAuth) } as DataProvider,
-                                graphql: graphqlDataProvider(axiosAuth) as DataProvider,
-                            }}
-                            notificationProvider={useNotificationProvider}
-                            authProvider={authProvider(undefined, axiosAuth)}
-                            resources={[
-                                {
-                                    name: 'movies',
-                                    list: '/movies',
-                                    create: '/movies/create',
-                                    show: '/movies/show/:id',
-                                    edit: '/movies/edit/:id',
-                                    meta: {
-                                        icon: <PlaySquareOutlined />,
-                                        canDelete: true,
+                        <DevtoolsProvider url={'http://localhost:5001'}>
+                            <Refine
+                                routerProvider={routerProvider}
+                                dataProvider={{
+                                    default: { ...restfulDataProvider(axiosAuth) } as DataProvider,
+                                    graphql: graphqlDataProvider(axiosAuth) as DataProvider,
+                                }}
+                                notificationProvider={useNotificationProvider}
+                                authProvider={authProvider(undefined, axiosAuth)}
+                                resources={[
+                                    {
+                                        name: 'movies',
+                                        list: '/movies',
+                                        create: '/movies/create',
+                                        show: '/movies/show/:id',
+                                        edit: '/movies/edit/:id',
+                                        meta: {
+                                            icon: <PlaySquareOutlined />,
+                                            canDelete: true,
+                                        },
                                     },
-                                },
-                            ]}
-                            options={{
-                                syncWithLocation: true,
-                                warnWhenUnsavedChanges: true,
-                                useNewQueryKeys: true,
-                            }}
-                        >
-                            {props.children}
-                            <ReactQueryDevtools
-                                initialIsOpen={false}
-                                buttonPosition="bottom-right"
-                            />
-                            <RefineKbar />
-                        </Refine>
+                                    {
+                                        name: 'recycle-bin',
+                                        list: '/recycle-bin',
+                                        meta: {
+                                            canDelete: true,
+                                            icon: <DeleteFilled />,
+                                        },
+                                    },
+                                ]}
+                                options={{
+                                    syncWithLocation: true,
+                                    warnWhenUnsavedChanges: true,
+                                    useNewQueryKeys: true,
+                                    projectId: 'NJcdqz-Mcj2uR-iCRTib',
+                                }}
+                            >
+                                {props.children}
+                                <ReactQueryDevtools
+                                    initialIsOpen={false}
+                                    buttonPosition="bottom-right"
+                                />
+                                <RefineKbar />
+                                <DevtoolsPanel />
+                            </Refine>
+                        </DevtoolsProvider>
                     </ColorModeContextProvider>
                 </AntdRegistry>
             </RefineKbarProvider>
