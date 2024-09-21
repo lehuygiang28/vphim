@@ -6,7 +6,7 @@ import '@vidstack/react/player/styles/default/layouts/video.css';
 import { CSSProperties, useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Layout } from 'antd';
+import { Layout, Modal, Button } from 'antd';
 import {
     MediaPlayer,
     MediaPlayerInstance,
@@ -60,6 +60,26 @@ const playerStyle: CSSProperties = {
 
 const MIN_WATCH_TIME = 60; // Minimum watch time in seconds
 const MIN_WATCH_PERCENTAGE = 10; // Minimum watch percentage
+const SAVE_INTERVAL = 5000; // Save current time every 5 seconds
+
+function formatTime(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes
+        .toString()
+        .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+const getStorageKey = (host: string, searchParams: { movieSlug: string; ep?: string }) => {
+    const episodeUrl = [
+        removeLeadingTrailingSlashes(host),
+        removeLeadingTrailingSlashes(RouteNameEnum.MOVIE_PAGE),
+        encodeURIComponent(searchParams?.movieSlug),
+        encodeURIComponent(searchParams?.ep),
+    ].join('/');
+    return `vephim-lastTime-${episodeUrl}`;
+};
 
 export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const { host } = useCurrentUrl();
@@ -67,6 +87,8 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const [viewUpdated, setViewUpdated] = useState(false);
     const watchTimeRef = useRef(0);
     const lastTimeRef = useRef(0);
+    const [showResumeModal, setShowResumeModal] = useState(false);
+    const [savedTime, setSavedTime] = useState(0);
 
     const { mutate: updateView } = useUpdate({
         errorNotification: false,
@@ -77,6 +99,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         if (!player.current) return;
 
         let intervalId: NodeJS.Timeout;
+        let saveIntervalId: NodeJS.Timeout;
 
         const handleViewUpdate = () => {
             if (!viewUpdated && player?.current) {
@@ -111,20 +134,55 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
             }
         };
 
+        const saveCurrentTime = () => {
+            if (player.current) {
+                const { currentTime } = player.current.state;
+                localStorage.setItem(
+                    getStorageKey(host, { movieSlug: searchParams.movieSlug, ep: searchParams.ep }),
+                    currentTime.toString(),
+                );
+            }
+        };
+
         // Subscribe to state updates without triggering renders
         const unsubscribe = player.current.subscribe(({ paused, seeking }) => {
             if (!paused && !viewUpdated && !seeking) {
                 intervalId = setInterval(handleViewUpdate, 1000); // Check every second
+                saveIntervalId = setInterval(saveCurrentTime, SAVE_INTERVAL); // Save current time every 5 seconds
             } else {
                 clearInterval(intervalId);
+                clearInterval(saveIntervalId);
             }
         });
 
         return () => {
             unsubscribe();
             clearInterval(intervalId);
+            clearInterval(saveIntervalId);
         };
-    }, [updateView, viewUpdated, searchParams.movieSlug]);
+    }, [updateView, viewUpdated, searchParams.movieSlug, searchParams.ep, host]);
+
+    useEffect(() => {
+        const lastTime = localStorage.getItem(
+            getStorageKey(host, { movieSlug: searchParams.movieSlug, ep: searchParams.ep }),
+        );
+        if (lastTime) {
+            const parsedTime = parseFloat(lastTime);
+            setSavedTime(parsedTime);
+            setShowResumeModal(true);
+        }
+    }, [searchParams.movieSlug, searchParams.ep, host]);
+
+    const handlePlaybackModal = (event: 'begin' | 'resume') => {
+        if (!player.current) return;
+        if (event === 'begin') {
+            player.current.currentTime = 0;
+        } else {
+            player.current.currentTime = savedTime;
+        }
+        setShowResumeModal(false);
+        player.current.play();
+    };
 
     return (
         <Layout style={containerStyle}>
@@ -182,6 +240,30 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                         }}
                     />
                 </MediaPlayer>
+                <Modal
+                    title="Tiếp tục phát?"
+                    open={showResumeModal}
+                    onCancel={() => handlePlaybackModal('begin')}
+                    footer={null}
+                    closable={false}
+                    centered
+                >
+                    <p>
+                        Bạn đã xem tới {formatTime(savedTime)}. Bạn muốn xem tiếp hay quay lại từ
+                        đầu ?
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                        <Button
+                            onClick={() => handlePlaybackModal('begin')}
+                            style={{ marginRight: '10px' }}
+                        >
+                            Xem lại từ đầu
+                        </Button>
+                        <Button type="primary" onClick={() => handlePlaybackModal('resume')}>
+                            Xem tiếp
+                        </Button>
+                    </div>
+                </Modal>
             </Content>
         </Layout>
     );
