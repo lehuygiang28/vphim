@@ -51,7 +51,7 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
         <Edit
             saveButtonProps={saveButtonProps}
             footerButtons={(button) => {
-                const { saveButtonProps, deleteButtonProps } = button;
+                const { saveButtonProps } = button;
                 return (
                     <>
                         <SaveButton {...saveButtonProps} />
@@ -59,9 +59,12 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
                             id={params.id}
                             type="soft-delete"
                             deleteButtonProps={{
-                                ...deleteButtonProps,
                                 size: 'middle',
                                 hideText: false,
+                            }}
+                            redirect={{
+                                to: '/movies',
+                                type: 'back',
                             }}
                         />
                     </>

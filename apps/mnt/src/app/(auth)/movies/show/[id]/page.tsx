@@ -47,12 +47,7 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
     return (
         <Show
             isLoading={isLoading}
-            headerButtons={({
-                deleteButtonProps,
-                editButtonProps,
-                listButtonProps,
-                refreshButtonProps,
-            }) => (
+            headerButtons={({ editButtonProps, listButtonProps, refreshButtonProps }) => (
                 <>
                     {listButtonProps && <ListButton {...listButtonProps} />}
                     {editButtonProps && <EditButton {...editButtonProps} />}{' '}
@@ -60,12 +55,8 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
                         id={params.id}
                         type="soft-delete"
                         deleteButtonProps={{
-                            ...deleteButtonProps,
                             size: 'middle',
                             hideText: false,
-                        }}
-                        redirect={{
-                            to: '/movies',
                         }}
                     />
                     <RefreshButton {...refreshButtonProps} />

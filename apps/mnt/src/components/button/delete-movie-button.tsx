@@ -10,7 +10,7 @@ export type DeleteMovieButtonProps = {
     deleteButtonProps?: Omit<DeleteButtonProps, 'recordItemId'>;
     redirect?: {
         to: string;
-        type?: 'push' | 'replace';
+        type?: 'push' | 'replace' | 'back';
     };
 };
 
@@ -52,8 +52,10 @@ export function DeleteMovieButton({
                 if (redirect) {
                     if (redirect?.type === 'push') {
                         router.push(redirect.to);
-                    } else {
+                    } else if (redirect?.type === 'replace') {
                         router.replace(redirect.to);
+                    } else if (redirect?.type === 'back') {
+                        router.back();
                     }
                 }
             }}
