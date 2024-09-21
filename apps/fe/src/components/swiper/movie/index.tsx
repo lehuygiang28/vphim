@@ -48,6 +48,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
         left: 0,
         width: '100%',
         height: md ? '85vh' : '55vh',
+        maxHeight: md ? '85vh' : '55vh',
         zIndex: 0,
         transition: 'opacity 0.5s ease-in-out',
         minHeight: '15vh',
@@ -94,11 +95,13 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                         >
                             <ImageOptimized
                                 url={movie?.posterUrl}
-                                // url2={movie?.posterUrl}
+                                url2={movie?.posterUrl}
                                 alt={movie?.name}
                                 width={md ? 1900 : 750}
                                 height={md ? 750 : 380}
-                                // shouldShowHorizontalImage={true}
+                                style={{
+                                    maxHeight: md ? '85vh' : '35vh',
+                                }}
                             />
                         </div>
                     );

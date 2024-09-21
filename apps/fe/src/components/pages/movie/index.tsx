@@ -217,17 +217,20 @@ export function Movie({ slug }: MovieProps) {
                         left: 0,
                         width: '100%',
                         height: md ? '85vh' : '35vh',
+                        maxHeight: md ? '85vh' : '35vh',
                         zIndex: 0,
                         transition: 'opacity 0.5s ease-in-out',
                     }}
                 >
                     <ImageOptimized
                         url={movie?.posterUrl}
-                        // url2={movie?.thumbUrl}
+                        url2={movie?.thumbUrl}
                         alt={movie?.name || ''}
                         width={md ? 1900 : 750}
                         height={md ? 750 : 380}
-                        // shouldShowHorizontalImage={true}
+                        style={{
+                            maxHeight: md ? '85vh' : '35vh',
+                        }}
                     />
                 </div>
             )}
