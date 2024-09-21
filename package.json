@@ -6,6 +6,7 @@
     "scripts": {
         "api": "yarn nx serve api --configuration=development",
         "fe": "yarn nx run fe:dev",
+        "fe:dt": "npx @refinedev/devtools-server start",
         "mnt": "yarn nx run mnt:dev -- -p 4000"
     },
     "dependencies": {
