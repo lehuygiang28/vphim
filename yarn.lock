@@ -5660,6 +5660,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/eslint-config-prettier@npm:~6.11.3":
+  version: 6.11.3
+  resolution: "@types/eslint-config-prettier@npm:6.11.3"
+  checksum: 10c0/e49ef5b2cf9bfa173d678f50b392511e5567743a864552257978fcf98a876adcd41bb2fa074505ab4aae94862fb349eda2cf41aec698a4a1db77a2731b1fa1c6
+  languageName: node
+  linkType: hard
+
+"@types/eslint-plugin-jsx-a11y@npm:~6.9.0":
+  version: 6.9.0
+  resolution: "@types/eslint-plugin-jsx-a11y@npm:6.9.0"
+  dependencies:
+    "@types/eslint": "npm:*"
+  checksum: 10c0/50e5f9a70e50218abae57cf9b8dc60a55e3fe1721a5912f96b26c6030b8c198694342d897a5425691601b27506589558f6ebcc93b80f602d5851936e95c8d84c
+  languageName: node
+  linkType: hard
+
+"@types/eslint@npm:*, @types/eslint@npm:~9.6.1":
+  version: 9.6.1
+  resolution: "@types/eslint@npm:9.6.1"
+  dependencies:
+    "@types/estree": "npm:*"
+    "@types/json-schema": "npm:*"
+  checksum: 10c0/69ba24fee600d1e4c5abe0df086c1a4d798abf13792d8cfab912d76817fe1a894359a1518557d21237fbaf6eda93c5ab9309143dee4c59ef54336d1b3570420e
+  languageName: node
+  linkType: hard
+
+"@types/estree@npm:*":
+  version: 1.0.6
+  resolution: "@types/estree@npm:1.0.6"
+  checksum: 10c0/cdfd751f6f9065442cd40957c07fd80361c962869aa853c1c2fd03e101af8b9389d8ff4955a43a6fcfa223dd387a089937f95be0f3eec21ca527039fd2d9859a
+  languageName: node
+  linkType: hard
+
 "@types/estree@npm:^1.0.5":
   version: 1.0.5
   resolution: "@types/estree@npm:1.0.5"
@@ -5778,7 +5811,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/json-schema@npm:^7.0.8, @types/json-schema@npm:^7.0.9":
+"@types/json-schema@npm:*, @types/json-schema@npm:^7.0.8, @types/json-schema@npm:^7.0.9":
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
   checksum: 10c0/a996a745e6c5d60292f36731dd41341339d4eeed8180bb09226e5c8d23759067692b1d88e5d91d72ee83dfc00d3aca8e7bd43ea120516c17922cbcb7c3e252db
@@ -5807,6 +5840,15 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10c0/c582b8420586f3b9550f7e34992cb32be300bc953636f3b087ed9c180ce7ea5c2e4b35090be2d57f0d3168cc3ca1074932907caa2afe09f4e9c84cf5c0daefa8
+  languageName: node
+  linkType: hard
+
+"@types/jsonwebtoken@npm:~9.0.7":
+  version: 9.0.7
+  resolution: "@types/jsonwebtoken@npm:9.0.7"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/e1cd0e48fcae21b1d4378887a23453bd7212b480a131b11bcda2cdeb0687d03c9646ee5ba592e04cfaf76f7cc80f179950e627cdb3ebc90a5923bce49a35631a
   languageName: node
   linkType: hard
 
@@ -5904,6 +5946,15 @@ __metadata:
   version: 18.16.9
   resolution: "@types/node@npm:18.16.9"
   checksum: 10c0/bb3e7192d868297cf0fe89fdc52dfcb3934b5ac398ee09d6b0f8762605e8f71aa344fde91234eea9c7d1500dc895fe60743d972b1605dde4b064edeb8e2f0592
+  languageName: node
+  linkType: hard
+
+"@types/nodemailer@npm:~6.4.16":
+  version: 6.4.16
+  resolution: "@types/nodemailer@npm:6.4.16"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/63a9e9ad8916675aeb0828dd969e6def6e24344c1bd2b93674ad1933160d532c6d9c2a56ec3f2efc1a866cacaa468a2969be33447304fb94af507d6cd3b94e83
   languageName: node
   linkType: hard
 
@@ -6413,11 +6464,16 @@ __metadata:
     "@testing-library/react": "npm:15.0.6"
     "@types/bcryptjs": "npm:^2.4.6"
     "@types/cors": "npm:^2.8.17"
+    "@types/eslint": "npm:~9.6.1"
+    "@types/eslint-config-prettier": "npm:~6.11.3"
+    "@types/eslint-plugin-jsx-a11y": "npm:~6.9.0"
     "@types/jest": "npm:^29.5.12"
     "@types/js-cookie": "npm:^3.0.6"
+    "@types/jsonwebtoken": "npm:~9.0.7"
     "@types/ms": "npm:^0.7.34"
     "@types/multer": "npm:^1.4.12"
     "@types/node": "npm:18.16.9"
+    "@types/nodemailer": "npm:~6.4.16"
     "@types/passport": "npm:^1.0.16"
     "@types/passport-jwt": "npm:^4.0.1"
     "@types/pluralize": "npm:^0.0.33"
