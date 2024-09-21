@@ -7,7 +7,13 @@ import { CSSProperties, useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Layout } from 'antd';
-import { MediaPlayer, MediaPlayerInstance, MediaProvider, ChapterTitle } from '@vidstack/react';
+import {
+    MediaPlayer,
+    MediaPlayerInstance,
+    MediaProvider,
+    ChapterTitle,
+    Track,
+} from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { useUpdate } from '@refinedev/core';
 import { vietnameseLayoutTranslations } from './translate';
@@ -131,7 +137,15 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                     aspectRatio="16/9"
                     storage={'vephim-player-storage'}
                 >
-                    <MediaProvider></MediaProvider>
+                    <MediaProvider>
+                        <Track
+                            kind="subtitles"
+                            src="/data/mttq.json"
+                            type={'json'}
+                            default={true}
+                            label="MTTQ"
+                        />
+                    </MediaProvider>
                     <DefaultVideoLayout
                         icons={defaultLayoutIcons}
                         translations={
