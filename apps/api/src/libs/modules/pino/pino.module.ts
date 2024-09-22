@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LoggerModule as PinoLogger } from 'nestjs-pino';
 import { Request } from 'express';
@@ -24,6 +24,9 @@ import { isTrue } from '../../utils/common';
                 }
 
                 return {
+                    exclude: isProduction
+                        ? []
+                        : [{ method: RequestMethod.GET, path: '/images/optimize' }],
                     pinoHttp: {
                         level: isProduction ? 'info' : 'debug',
                         transport: isProduction ? undefined : { target: 'pino-pretty' },
