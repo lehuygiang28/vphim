@@ -241,6 +241,14 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 // nguonc not provide view
                 // view: Math.max(view, existingMovie?.view || 0, 0),
 
+                lastSyncModified: new Date(
+                    Math.max(
+                        modified ? new Date(modified).getTime() : 0,
+                        new Date(existingMovie.lastSyncModified).getTime(),
+                        0,
+                    ),
+                ),
+
                 _id: correctId,
                 slug: existingMovie?.slug
                     ? existingMovie.slug
@@ -266,7 +274,6 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 episodeTotal: existingMovie?.episodeTotal || total_episodes?.toString() || '',
                 episodeCurrent: existingMovie?.episodeCurrent || current_episode || '',
                 year: existingMovie?.year || year || null,
-                lastSyncModified: new Date(modified || Date.now()),
                 episode:
                     processedEpisodes.length > 0 ? processedEpisodes : existingMovie?.episode || [],
             };

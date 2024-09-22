@@ -311,7 +311,14 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                 status: mapStatus(movieDetail?.status || existingMovie?.status),
                 view: Math.max(view, existingMovie?.view || 0, 0),
 
-                lastSyncModified: new Date(modified?.time),
+                lastSyncModified: new Date(
+                    Math.max(
+                        modified?.time ? new Date(modified?.time).getTime() : 0,
+                        new Date(existingMovie.lastSyncModified).getTime(),
+                        0,
+                    ),
+                ),
+
                 _id: correctId,
                 name: movieDetail?.name,
                 slug: movieDetail?.slug || slugify(movieDetail?.name, { lower: true }),
