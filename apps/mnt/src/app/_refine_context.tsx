@@ -8,7 +8,7 @@ import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import '@refinedev/antd/dist/reset.css';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { PlaySquareOutlined, DeleteFilled } from '@ant-design/icons';
+import { PlaySquareOutlined, DeleteFilled, UserOutlined } from '@ant-design/icons';
 import { DevtoolsProvider, DevtoolsPanel } from '@refinedev/devtools';
 
 import { ColorModeContextProvider } from '~fe/contexts/color-mode';
@@ -77,6 +77,15 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                         meta: {
                                             canDelete: true,
                                             icon: <DeleteFilled />,
+                                        },
+                                    },
+                                    {
+                                        name: 'users',
+                                        list: '/users',
+                                        edit: '/users/edit/:id',
+                                        show: '/users/show/:id',
+                                        meta: {
+                                            icon: <UserOutlined />,
                                         },
                                     },
                                 ]}

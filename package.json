@@ -55,6 +55,7 @@
         "class-validator": "^0.14.1",
         "cloudinary": "^2.4.0",
         "cron": "^3.1.7",
+        "dayjs": "^1.11.13",
         "google-auth-library": "^9.14.0",
         "graphql": "^16.9.0",
         "graphql-tag": "^2.12.6",

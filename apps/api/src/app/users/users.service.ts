@@ -68,7 +68,7 @@ export class UsersService {
         const userCreated = await this.usersRepository.create({
             document: {
                 ...clonedPayload,
-                role: UserRoleEnum.Customer,
+                role: UserRoleEnum.Member,
                 password: clonedPayload?.password ?? null,
                 avatar: {
                     url: clonedPayload?.avatar?.url ?? getGravatarUrl(clonedPayload.email),

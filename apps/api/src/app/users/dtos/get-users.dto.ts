@@ -13,7 +13,7 @@ export class GetUsersDto extends IntersectionType(
         type: [UserRoleEnum],
         enum: UserRoleEnum,
         description: 'Filter by user roles',
-        example: [UserRoleEnum.Admin, UserRoleEnum.Customer],
+        example: [UserRoleEnum.Admin, UserRoleEnum.Member],
     })
     @IsOptional()
     @IsEnum(UserRoleEnum, { each: true })

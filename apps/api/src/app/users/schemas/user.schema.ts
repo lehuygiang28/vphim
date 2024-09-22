@@ -56,7 +56,7 @@ export class User extends AbstractDocument {
 
     @Expose({ groups: ['me', 'admin'] })
     @ApiProperty({
-        example: UserRoleEnum.Customer,
+        example: UserRoleEnum.Member,
         enum: UserRoleEnum,
         type: String,
     })

@@ -5,7 +5,7 @@ import { UserRoleEnum } from '../users.enum';
 
 export class UpdateUserDto {
     @ApiPropertyOptional({
-        example: UserRoleEnum.Customer,
+        example: UserRoleEnum.Member,
         enum: UserRoleEnum,
         type: String,
     })

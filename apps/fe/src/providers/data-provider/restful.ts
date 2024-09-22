@@ -10,7 +10,6 @@ import { baseApiUrl } from '@/config';
 
 export const restfulDataProvider = (axios: AxiosInstance) => {
     const apiUrl = `${baseApiUrl}/api`;
-    axios.defaults.baseURL = apiUrl;
 
     return {
         ...dataProviderSimpleRest(apiUrl, axios),
@@ -41,8 +40,6 @@ export const restfulDataProvider = (axios: AxiosInstance) => {
             sorters,
             meta,
         }: GetListParams): Promise<GetListResponse<BaseRecord & Movie>> => {
-            const url = `${resource}`;
-
             let searchParams = new URLSearchParams();
             searchParams = handlePagination(searchParams, pagination);
             searchParams = handleFilter(searchParams, filters as any);
@@ -50,7 +47,7 @@ export const restfulDataProvider = (axios: AxiosInstance) => {
 
             const {
                 data: { data: tasks, total },
-            } = await axios.get<any>(`${url}?${searchParams}`);
+            } = await axios.get<any>(`${apiUrl}/${resource}?${searchParams}`);
 
             return {
                 data: tasks.map((task: any) => ({ ...task, id: task._id.toString() })),

@@ -6529,6 +6529,7 @@ __metadata:
     cloudinary: "npm:^2.4.0"
     copy-webpack-plugin: "npm:^12.0.2"
     cron: "npm:^3.1.7"
+    dayjs: "npm:^1.11.13"
     eslint: "npm:~8.57.0"
     eslint-config-next: "npm:14.2.3"
     eslint-config-prettier: "npm:^9.0.0"
@@ -9174,7 +9175,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.10.7, dayjs@npm:^1.11.10, dayjs@npm:^1.11.11":
+"dayjs@npm:^1.10.7, dayjs@npm:^1.11.10, dayjs@npm:^1.11.11, dayjs@npm:^1.11.13":
   version: 1.11.13
   resolution: "dayjs@npm:1.11.13"
   checksum: 10c0/a3caf6ac8363c7dade9d1ee797848ddcf25c1ace68d9fe8678ecf8ba0675825430de5d793672ec87b24a69bf04a1544b176547b2539982275d5542a7955f35b7

@@ -4,6 +4,6 @@ export enum UserBlockActionEnum {
 }
 
 export enum UserRoleEnum {
-    Customer = 'customer',
+    Member = 'member',
     Admin = 'admin',
 }
