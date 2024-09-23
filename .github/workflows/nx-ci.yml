@@ -5,10 +5,7 @@ name: NX-CI
 on:
     push:
         branches:
-            - disable_nx_ci
-    pull_request:
-        branches:
-            - disable_nx_ci
+            - main
 
 permissions:
     actions: read
