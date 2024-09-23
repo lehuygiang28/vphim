@@ -4,6 +4,7 @@
         "outDir": "../../dist/out-tsc",
         "module": "commonjs",
         "types": ["node", "multer"],
+        "isolatedModules": false,
         "emitDecoratorMetadata": true,
         "target": "es2021",
         "paths": {

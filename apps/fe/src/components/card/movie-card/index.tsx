@@ -7,7 +7,7 @@ import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos/movie-response.dto';
 
 const { Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;

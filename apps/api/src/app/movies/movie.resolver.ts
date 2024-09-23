@@ -10,7 +10,7 @@ import { UpdateMovieInput } from './inputs/mutate-movie.input';
 import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.input';
 import { CreateMovieInput } from './inputs/create-movie.input';
 import { UserRoleEnum } from '../users';
-import { CurrentUser, UserJwt, RequiredRoles } from '../auth';
+import { RequiredRoles } from '../auth';
 import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
 
 @SkipThrottle()
@@ -41,16 +41,13 @@ export class MovieResolver {
 
     @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
     @Mutation(() => MovieType, { name: 'updateMovie' })
-    updateMovie(@Args('input') input: UpdateMovieInput, @CurrentUser() { userId }: UserJwt) {
+    updateMovie(@Args('input') input: UpdateMovieInput) {
         return this.movieService.updateMovie(input);
     }
 
     @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
     @Mutation(() => Int, { name: 'mutateHardDeleteMovie' })
-    hardDeleteMovie(
-        @Args('input') input: MutateHardDeleteMovieInput,
-        @CurrentUser() { userId }: UserJwt,
-    ) {
+    hardDeleteMovie(@Args('input') input: MutateHardDeleteMovieInput) {
         return this.movieService.hardDeleteMovie(input);
     }
 }

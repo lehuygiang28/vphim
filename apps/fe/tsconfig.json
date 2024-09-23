@@ -9,7 +9,7 @@
         "forceConsistentCasingInFileNames": true,
         "noEmit": true,
         "resolveJsonModule": true,
-        "isolatedModules": false,
+        "isolatedModules": true,
         "incremental": true,
         "strictPropertyInitialization": false,
         "plugins": [
