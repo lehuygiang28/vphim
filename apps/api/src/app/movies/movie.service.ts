@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { FilterQuery, PipelineStage } from 'mongoose';
+import { FilterQuery, PipelineStage, Types } from 'mongoose';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import {
     QueryDslQueryContainer,
@@ -24,6 +24,8 @@ import { GetMovieInput } from './inputs/get-movie.input';
 import { SearchService } from './search.service';
 import { GetMoviesInput } from './inputs/get-movies.input';
 import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.input';
+import { CreateMovieInput } from './inputs/create-movie.input';
+import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
 
 @Injectable()
 export class MovieService {
@@ -39,11 +41,34 @@ export class MovieService {
         this.logger = new Logger(MovieService.name);
     }
 
-    async getMovie({ id, slug }: GetMovieInput, { populate = true }: { populate?: boolean } = {}) {
-        if (isNullOrUndefined(id) && isNullOrUndefined(slug)) {
+    async createMovie(input: CreateMovieInput): Promise<MovieType> {
+        const newMovie: Movie = {
+            _id: new Types.ObjectId(),
+            deletedAt: null,
+
+            ...input,
+            actors: input.actors?.map((c) => convertToObjectId(c)),
+            categories: input.categories?.map((c) => convertToObjectId(c)),
+            countries: input.countries?.map((c) => convertToObjectId(c)),
+            directors: input.directors?.map((c) => convertToObjectId(c)),
+            lastSyncModified: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+
+        const createdMovie = await this.movieRepo.create({
+            document: newMovie,
+        });
+        await this.searchService.indexMovie(createdMovie);
+
+        return new MovieResponseDto(createdMovie);
+    }
+
+    async getMovie({ _id, slug }: GetMovieInput, { populate = true }: { populate?: boolean } = {}) {
+        if (isNullOrUndefined(_id) && isNullOrUndefined(slug)) {
             return null;
         }
-        const filter = !isNullOrUndefined(id) ? { _id: convertToObjectId(id) } : { slug };
+        const filter = !isNullOrUndefined(_id) ? { _id: convertToObjectId(_id) } : { slug };
         const movie = await this.movieRepo.findOneOrThrow({
             filterQuery: filter,
             queryOptions: {
@@ -255,8 +280,12 @@ export class MovieService {
         return res;
     }
 
-    async getMoviesEs(dto: GetMoviesInput) {
-        const { resetCache = false, bypassCache = false, ...restDto } = dto;
+    async getMoviesEs(dto: GetMoviesAdminInput | GetMoviesInput) {
+        const {
+            resetCache = false,
+            bypassCache = false,
+            ...restDto
+        } = { resetCache: false, bypassCache: false, isDeleted: false, ...dto };
         const cacheKey = `CACHED:MOVIES:ES:${sortedStringify(restDto)}`;
 
         if (isTrue(resetCache)) {
@@ -290,7 +319,7 @@ export class MovieService {
             sortOrder = 'desc',
             status,
             isDeleted = false,
-        } = dto;
+        } = { isDeleted: false, ...dto };
 
         const must: QueryDslQueryContainer['bool']['must'] = [];
         const filter: QueryDslQueryContainer[] = [];
@@ -523,6 +552,7 @@ export class MovieService {
             }
         }
 
+        this.logger.log(movieToUpdate);
         const updatedMovie = await this.movieRepo.findOneAndUpdateOrThrow({
             filterQuery: { _id: convertToObjectId(_id) },
             updateQuery: { $set: movieToUpdate },
@@ -541,13 +571,9 @@ export class MovieService {
     }
 
     async hardDeleteMovie(input: MutateHardDeleteMovieInput) {
-        const movie = await this.movieRepo.findOneOrThrow({
-            filterQuery: { _id: convertToObjectId(input._id) },
-        });
-
-        await Promise.all([
-            this.movieRepo.deleteOne({ _id: movie._id }),
-            this.searchService.deleteMovie(movie),
+        await Promise.allSettled([
+            this.movieRepo.deleteOne({ _id: convertToObjectId(input._id) }),
+            this.searchService.deleteMovie({ _id: convertToObjectId(input._id) }),
         ]);
         return 1;
     }

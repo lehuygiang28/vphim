@@ -38,22 +38,22 @@ export const graphqlDataProvider = (axios: AxiosInstance) => {
         const camelResource = camelCase(singularResource);
         const operation = meta?.operation ?? camelResource;
 
-        const variablesClone = {
-            ...meta?.variables, // date to query here
-            ...variables, // data to update here
-        };
+        const input = { ...variables, ...meta?.variables?.input };
+        console.log(input);
 
         const {
             data: { data: res },
         } = await (axios as AxiosInstance).post<any>(baseUrl, {
             query: print((meta?.gqlMutation || meta?.gqlQuery) as any),
-            variables: variablesClone,
+            variables: { input },
         });
         return { data: res?.[operation] };
     };
 
     return {
         ...dataProvider(client),
+        create: ({ resource, variables, meta }) =>
+            updateFn({ resource, variables: variables, meta, id: '' }),
         getList: async ({
             resource,
             pagination,

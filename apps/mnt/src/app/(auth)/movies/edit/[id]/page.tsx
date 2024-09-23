@@ -6,7 +6,7 @@ import { useForm, SaveButton } from '@refinedev/antd';
 import { Edit } from '@refinedev/antd';
 
 import { GET_FULL_MOVIE_DETAIL_QUERY, MUTATION_UPDATE_MOVIE } from '~mnt/queries/movie.query';
-import { MovieForm } from '~mnt/components/form/movie';
+import { MovieForm } from '~mnt/components/form/new-movie';
 import { MovieType } from '~api/app/movies/movie.type';
 import { DeleteMovieButton } from '~mnt/components/button/delete-movie-button';
 
@@ -15,7 +15,7 @@ export type EditMoviePageProps = {
 };
 
 export default function MovieEditPage({ params }: EditMoviePageProps) {
-    const { formProps, saveButtonProps, query, onFinish } = useForm<MovieType>({
+    const { formProps, saveButtonProps, query } = useForm<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
         id: params.id,
@@ -26,22 +26,12 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
             operation: 'movie',
             variables: {
                 input: {
-                    id: params.id,
+                    _id: params.id,
                 },
             },
         },
         redirect: 'show',
     });
-
-    const handleOnfinish = useCallback(
-        (values: MovieType) => {
-            console.log(values);
-
-            // Call onFinish with the prepared updateInput
-            return onFinish({ input: { ...values, _id: query?.data?.data?._id } });
-        },
-        [onFinish],
-    );
 
     if (query?.isLoading) {
         return <Spin fullscreen />;
@@ -71,16 +61,7 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
                 );
             }}
         >
-            {query?.data?.data && (
-                <MovieForm
-                    actors={query?.data?.data?.actors || []}
-                    categories={query?.data?.data?.categories || []}
-                    countries={query?.data?.data?.countries || []}
-                    directors={query?.data?.data?.directors || []}
-                    formProps={formProps}
-                    onFinish={handleOnfinish}
-                />
-            )}
+            {query?.data?.data && <MovieForm query={query} formProps={formProps} />}
         </Edit>
     );
 }

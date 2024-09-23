@@ -13,25 +13,17 @@ import {
     Col,
     Button,
     FormProps,
-    ButtonProps,
     Image,
     Space,
     Tooltip,
     Divider,
     Typography,
-    Popconfirm,
 } from 'antd';
-import {
-    UploadOutlined,
-    PlusCircleOutlined,
-    MinusCircleOutlined,
-    UndoOutlined,
-    LinkOutlined,
-    QuestionCircleOutlined,
-} from '@ant-design/icons';
-import { useApiUrl } from '@refinedev/core';
+import { UploadOutlined, PlusCircleOutlined, UndoOutlined, LinkOutlined } from '@ant-design/icons';
+import { GetOneResponse, HttpError, useApiUrl } from '@refinedev/core';
 import slugify from 'slugify';
 import { removeTone, removeDiacritics } from '@vn-utils/text';
+import type { QueryObserverResult } from '@tanstack/react-query';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 
 import { ActorType } from '~api/app/actors';
@@ -43,6 +35,9 @@ import { GET_ACTOR_LIST_QUERY } from '~mnt/queries/actor.query';
 import { MNT_REGIONS_LIST_QUERY } from '~mnt/queries/region.query';
 import { GET_DIRECTOR_LIST_QUERY } from '~mnt/queries/director.query';
 import { MovieQualityEnum, MovieStatusEnum, MovieTypeEnum } from '~api/app/movies/movie.constant';
+import { MovieType } from '~api/app/movies/movie.type';
+
+import { ServerEpisodeSection } from './server-episode-section';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -52,13 +47,11 @@ const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif',
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export type MovieFormProps = {
+    query?: QueryObserverResult<GetOneResponse<MovieType>, HttpError>;
     formProps: FormProps;
-    saveButtonProps: ButtonProps & {
-        onClick: () => void;
-    };
 };
 
-export const MovieForm: React.FC<MovieFormProps> = ({ formProps, saveButtonProps }) => {
+export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
     const apiUrl = useApiUrl();
     const axios = useAxiosAuth();
 
@@ -75,7 +68,6 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, saveButtonProps
             pageSize: 20,
         },
         debounce: 500,
-        defaultValue: formProps.form?.getFieldValue('actors') || [],
         onSearch: (value) => [
             {
                 field: 'keywords',
@@ -98,7 +90,6 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, saveButtonProps
             pageSize: 20,
         },
         debounce: 500,
-        defaultValue: formProps.form?.getFieldValue('categories') || [],
         onSearch: (value) => [
             {
                 field: 'keywords',
@@ -121,7 +112,6 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, saveButtonProps
             pageSize: 20,
         },
         debounce: 500,
-        defaultValue: formProps.form?.getFieldValue('countries') || [],
         onSearch: (value) => [
             {
                 field: 'keywords',
@@ -144,7 +134,6 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, saveButtonProps
             pageSize: 20,
         },
         debounce: 500,
-        defaultValue: formProps.form?.getFieldValue('directors') || [],
         onSearch: (value) => [
             {
                 field: 'keywords',
@@ -172,6 +161,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, saveButtonProps
         setDefaultThumbUrl(initialThumbUrl);
     }, [formProps.form]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customUpload = async (options: any, type: 'poster' | 'thumb') => {
         const { onSuccess, onError, file } = options;
         setIsPostLoading(type === 'poster');
@@ -249,7 +239,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, saveButtonProps
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const name = e.target.value;
         formProps.form?.setFieldsValue({ name });
-        if (autoGenerateSlug) {
+        if (autoGenerateSlug && name) {
             const slug = slugify(removeTone(removeDiacritics(name)), { lower: true, strict: true });
             formProps.form?.setFieldsValue({ slug });
         }
@@ -267,485 +257,569 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, saveButtonProps
         }
     };
 
+    useEffect(() => {
+        const formData = {
+            actors: query?.data?.data?.actors?.map((actor: ActorType) => actor._id?.toString()),
+            categories: query?.data?.data?.categories?.map((category: CategoryType) =>
+                category._id?.toString(),
+            ),
+            countries: query?.data?.data?.countries?.map((country: RegionType) =>
+                country._id?.toString(),
+            ),
+            directors: query?.data?.data?.directors?.map((director: DirectorType) =>
+                director._id?.toString(),
+            ),
+        };
+
+        Object.entries(formData).forEach(([key, value]) => {
+            if (value) {
+                formProps?.form.setFieldsValue({ [key]: value });
+            }
+        });
+    }, [query?.data?.data, formProps?.form]);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleFormSubmit = (values: any) => {
+        const updatedValues = {
+            ...values,
+            actors: values.actors?.map((actor: ActorType) => actor._id),
+            categories: values.categories?.map((category: CategoryType) => category._id),
+            countries: values.countries?.map((country: RegionType) => country._id),
+            directors: values.directors?.map((director: DirectorType) => director._id),
+        };
+        return formProps.onFinish?.(updatedValues);
+    };
+
     return (
-        <Form {...formProps} layout="vertical">
-            <Card title={<Title level={4}>Basic Information</Title>} style={{ marginBottom: 16 }}>
-                <Row align="middle">
-                    <Col span={11}>
-                        <Form.Item
-                            name="name"
-                            label="Movie Name"
-                            rules={[{ required: true, message: 'Please enter the movie name' }]}
-                        >
-                            <Input onChange={handleNameChange} autoComplete="off" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={2} style={{ textAlign: 'center' }}>
-                        <Tooltip
-                            title={
-                                autoGenerateSlug
-                                    ? 'Disable auto-generate slug'
-                                    : 'Enable auto-generate slug'
-                            }
-                        >
-                            <Button
-                                icon={<LinkOutlined />}
-                                onClick={toggleAutoGenerateSlug}
-                                type={autoGenerateSlug ? 'primary' : 'default'}
-                            />
-                        </Tooltip>
-                    </Col>
-                    <Col span={11}>
-                        <Form.Item
-                            name="slug"
-                            label="Slug"
-                            rules={[{ required: true, message: 'Please enter the slug' }]}
-                        >
-                            <Input disabled={autoGenerateSlug} autoComplete="off" />
-                        </Form.Item>
-                    </Col>
-                </Row>
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Form.Item name="originName" label="Original Name">
-                            <Input autoComplete="off" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="year" label="Year">
-                            <InputNumber style={{ width: '100%' }} />
-                        </Form.Item>
-                    </Col>
-                </Row>
-                <Form.Item name="content" label="Content">
-                    <TextArea rows={4} />
-                </Form.Item>
-            </Card>
-
-            <Card title={<Title level={4}>Media</Title>} style={{ marginBottom: 16 }}>
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Form.Item label="Poster">
-                            <Input
-                                value={posterUrl}
-                                onChange={(e) => handleUrlChange(e, 'poster')}
-                                autoComplete="off"
-                                addonAfter={
-                                    <Upload
-                                        customRequest={(options) => customUpload(options, 'poster')}
-                                        showUploadList={false}
-                                        beforeUpload={beforeUpload}
-                                        accept="image/*"
-                                    >
-                                        <Button icon={<UploadOutlined />} loading={isPostLoading}>
-                                            Upload
-                                        </Button>
-                                    </Upload>
-                                }
-                            />
-                        </Form.Item>
-                        {posterUrl && (
-                            <Image
-                                src={posterUrl}
-                                alt="Movie Poster"
-                                style={{ maxWidth: '100%', marginBottom: 16 }}
-                            />
-                        )}
-                        {posterUrl !== defaultPosterUrl && (
-                            <Button
-                                icon={<UndoOutlined />}
-                                onClick={() => restoreDefaultImage('poster')}
-                            >
-                                Restore Default
-                            </Button>
-                        )}
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item label="Thumbnail">
-                            <Input
-                                value={thumbUrl}
-                                onChange={(e) => handleUrlChange(e, 'thumb')}
-                                autoComplete="off"
-                                addonAfter={
-                                    <Upload
-                                        customRequest={(options) => customUpload(options, 'thumb')}
-                                        showUploadList={false}
-                                        beforeUpload={beforeUpload}
-                                        accept="image/*"
-                                    >
-                                        <Button icon={<UploadOutlined />} loading={isThumbLoading}>
-                                            Upload
-                                        </Button>
-                                    </Upload>
-                                }
-                            />
-                        </Form.Item>
-                        {thumbUrl && (
-                            <Image
-                                src={thumbUrl}
-                                alt="Movie Thumbnail"
-                                style={{ maxWidth: '100%', marginBottom: 16 }}
-                            />
-                        )}
-                        {thumbUrl !== defaultThumbUrl && (
-                            <Button
-                                icon={<UndoOutlined />}
-                                onClick={() => restoreDefaultImage('thumb')}
-                            >
-                                Restore Default
-                            </Button>
-                        )}
-                    </Col>
-                </Row>
-                <Form.Item name="trailerUrl" label="Trailer URL">
-                    <Input />
-                </Form.Item>
-            </Card>
-
-            <Card title={<Title level={4}>Classification</Title>} style={{ marginBottom: 16 }}>
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Form.Item name="actors" label="Actors">
-                            <Select {...actorSelectProps} mode="multiple" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="directors" label="Directors">
-                            <Select {...directorSelectProps} mode="multiple" />
-                        </Form.Item>
-                    </Col>
-                </Row>
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Form.Item name="categories" label="Categories">
-                            <Select {...categorySelectProps} mode="multiple" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="countries" label="Countries">
-                            <Select {...countrySelectProps} mode="multiple" />
-                        </Form.Item>
-                    </Col>
-                </Row>
-            </Card>
-
-            <Card
-                title={<Title level={4}>Additional Information</Title>}
-                style={{ marginBottom: 16 }}
-            >
-                <Row gutter={16}>
-                    <Col span={4}>
-                        <Form.Item name="type" label="Type">
-                            <Select>
-                                {Object.entries(MovieTypeEnum).map(([key, value]) => (
-                                    <Option key={key} value={value}>
-                                        {key.toUpperCase()}
-                                    </Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-                    </Col>
-                    <Col span={4}>
-                        <Form.Item name="status" label="Status">
-                            <Select>
-                                {Object.entries(MovieStatusEnum).map(([key, value]) => (
-                                    <Option key={key} value={value}>
-                                        {key.toUpperCase()}
-                                    </Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-                    </Col>
-                    <Col span={4}>
-                        <Form.Item name="quality" label="Quality">
-                            <Select
-                                dropdownRender={(menu) => (
-                                    <>
-                                        {menu}
-                                        <Divider style={{ margin: '8px 0' }} />
-                                        <Space style={{ padding: '0 8px 4px' }}>
-                                            <Input
-                                                placeholder="Custom quality"
-                                                value={customQuality}
-                                                onChange={(e) => setCustomQuality(e.target.value)}
-                                            />
-                                            <Button
-                                                type="text"
-                                                icon={<PlusCircleOutlined />}
-                                                onClick={() => {
-                                                    if (customQuality) {
-                                                        formProps.form?.setFieldsValue({
-                                                            quality: customQuality,
-                                                        });
-                                                        setCustomQuality('');
-                                                    }
-                                                }}
-                                            >
-                                                Add
-                                            </Button>
-                                        </Space>
-                                    </>
-                                )}
-                            >
-                                {Object.entries(MovieQualityEnum).map(([key, value]) => (
-                                    <Option key={key} value={value}>
-                                        {value.toUpperCase()}
-                                    </Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-                    </Col>
-                    <Col span={4}>
-                        <Form.Item name="isCopyright" valuePropName="checked" label="Is Copyright">
-                            <Switch />
-                        </Form.Item>
-                    </Col>
-                    <Col span={4}>
-                        <Form.Item
-                            name="cinemaRelease"
-                            valuePropName="checked"
-                            label="Cinema Release"
-                        >
-                            <Switch />
-                        </Form.Item>
-                    </Col>
-                    <Col span={4}>
-                        <Form.Item name="subDocquyen" valuePropName="checked" label="Sub Docquyen">
-                            <Switch />
-                        </Form.Item>
-                    </Col>
-                </Row>
-                <Row gutter={16}>
-                    <Col span={6}>
-                        <Form.Item name="lang" label="Language">
-                            <Input autoComplete="off" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={6}>
-                        <Form.Item name="time" label="Duration">
-                            <Input autoComplete="off" />
-                        </Form.Item>
-                    </Col>
-                    <Col span={6}>
-                        <Form.Item name="episodeCurrent" label="Current Episode">
-                            <Input />
-                        </Form.Item>
-                    </Col>
-                    <Col span={6}>
-                        <Form.Item name="episodeTotal" label="Total Episodes">
-                            <Input />
-                        </Form.Item>
-                    </Col>
-                </Row>
-            </Card>
-
-            <Card title={<Title level={4}>Episodes</Title>} style={{ marginBottom: 16 }}>
-                <Form.List name="episode">
-                    {(fields, { add, remove }) => (
-                        <>
-                            {fields.map((field, index) => (
-                                <Card
-                                    key={field.key}
-                                    style={{ marginBottom: 16 }}
-                                    type="inner"
-                                    title={`Server ${index + 1}`}
-                                    extra={
-                                        <Popconfirm
-                                            title="Are you sure you want to delete this server?"
-                                            onConfirm={() => remove(field.name)}
-                                            okText="Yes"
-                                            cancelText="No"
-                                            icon={
-                                                <QuestionCircleOutlined style={{ color: 'red' }} />
-                                            }
-                                        >
-                                            <Button icon={<MinusCircleOutlined />} danger>
-                                                Remove Server
-                                            </Button>
-                                        </Popconfirm>
+        <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
+            <Row gutter={16}>
+                <Col span={18}>
+                    <Card
+                        title={<Title level={4}>Basic Information</Title>}
+                        style={{ marginBottom: 16 }}
+                    >
+                        <Row align="middle">
+                            <Col span={11}>
+                                <Form.Item
+                                    name="name"
+                                    label="Movie Name"
+                                    rules={[
+                                        { required: true, message: 'Name can not be empty' },
+                                        { type: 'string', message: 'Name must be a string' },
+                                    ]}
+                                >
+                                    <Input onChange={handleNameChange} autoComplete="off" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={2} style={{ textAlign: 'center' }}>
+                                <Tooltip
+                                    title={
+                                        autoGenerateSlug
+                                            ? 'Disable auto-generate slug'
+                                            : 'Enable auto-generate slug'
                                     }
                                 >
-                                    <Form.Item
-                                        {...field}
-                                        label="Server Name"
-                                        name={[field.name, 'serverName']}
-                                        rules={[
-                                            {
-                                                required: true,
-                                                message: 'Server name is required',
-                                            },
+                                    <Button
+                                        icon={<LinkOutlined />}
+                                        onClick={toggleAutoGenerateSlug}
+                                        type={autoGenerateSlug ? 'primary' : 'default'}
+                                    />
+                                </Tooltip>
+                            </Col>
+                            <Col span={11}>
+                                <Form.Item
+                                    name="slug"
+                                    label="Slug"
+                                    rules={[
+                                        { required: true, message: 'Slug can not be empty' },
+                                        { type: 'string', message: 'Slug must be a string' },
+                                        {
+                                            pattern: /^[a-zA-Z0-9-_]+$/,
+                                            message:
+                                                'Slug can only contain alphanumeric characters, hyphens, and underscores',
+                                        },
+                                    ]}
+                                >
+                                    <Input disabled={autoGenerateSlug} autoComplete="off" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="originName"
+                                    label="Original Name"
+                                    rules={[
+                                        {
+                                            type: 'string',
+                                            message: 'Original name must be a string',
+                                        },
+                                    ]}
+                                >
+                                    <Input autoComplete="off" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="year"
+                                    label="Year"
+                                    rules={[{ type: 'number', message: 'Year must be a number' }]}
+                                >
+                                    <InputNumber style={{ width: '100%' }} />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Form.Item
+                            name="content"
+                            label="Content"
+                            rules={[{ type: 'string', message: 'Content must be a string' }]}
+                        >
+                            <TextArea rows={4} />
+                        </Form.Item>
+                    </Card>
+                    <Card
+                        title={<Title level={4}>Classification</Title>}
+                        style={{ marginBottom: 16 }}
+                    >
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="actors"
+                                    label="Actors"
+                                    rules={[{ type: 'array', message: 'Actors must be an array' }]}
+                                >
+                                    <Select
+                                        {...actorSelectProps}
+                                        options={[
+                                            ...(query?.data?.data?.actors?.map(({ name, _id }) => ({
+                                                label: name,
+                                                value: _id?.toString(),
+                                            })) || []),
+                                            ...(actorSelectProps?.options || []),
                                         ]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-                                    <Form.List name={[field.name, 'serverData']}>
-                                        {(
-                                            subFields,
-                                            { add: addEpisode, remove: removeEpisode },
-                                        ) => (
+                                        mode="multiple"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="directors"
+                                    label="Directors"
+                                    rules={[
+                                        { type: 'array', message: 'Directors must be an array' },
+                                    ]}
+                                >
+                                    <Select
+                                        {...directorSelectProps}
+                                        options={[
+                                            ...(query?.data?.data?.directors?.map(
+                                                ({ name, _id }) => ({
+                                                    label: name,
+                                                    value: _id?.toString(),
+                                                }),
+                                            ) || []),
+                                            ...(directorSelectProps?.options || []),
+                                        ]}
+                                        mode="multiple"
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="categories"
+                                    label="Categories"
+                                    rules={[
+                                        { type: 'array', message: 'Categories must be an array' },
+                                    ]}
+                                >
+                                    <Select
+                                        {...categorySelectProps}
+                                        options={[
+                                            ...(query?.data?.data?.categories?.map(
+                                                ({ name, _id }) => ({
+                                                    label: name,
+                                                    value: _id?.toString(),
+                                                }),
+                                            ) || []),
+                                            ...(categorySelectProps?.options || []),
+                                        ]}
+                                        mode="multiple"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="countries"
+                                    label="Countries"
+                                    rules={[
+                                        { type: 'array', message: 'Countries must be an array' },
+                                    ]}
+                                >
+                                    <Select
+                                        {...countrySelectProps}
+                                        options={[
+                                            ...(query?.data?.data?.actors?.map(({ name, _id }) => ({
+                                                label: name,
+                                                value: _id?.toString(),
+                                            })) || []),
+                                            ...(countrySelectProps?.options || []),
+                                        ]}
+                                        mode="multiple"
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </Card>
+                    <Card
+                        title={<Title level={4}>Additional Information</Title>}
+                        style={{ marginBottom: 16 }}
+                    >
+                        <Row gutter={16}>
+                            <Col span={8}>
+                                <Form.Item
+                                    name="type"
+                                    label="Type"
+                                    rules={[
+                                        { required: true, message: 'Type can not be empty' },
+                                        { type: 'enum', enum: Object.values(MovieTypeEnum) },
+                                    ]}
+                                >
+                                    <Select>
+                                        {Object.entries(MovieTypeEnum).map(([key, value]) => (
+                                            <Option key={key} value={value}>
+                                                {key.toUpperCase()}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item
+                                    name="status"
+                                    label="Status"
+                                    rules={[
+                                        { required: true, message: 'Status can not be empty' },
+                                        {
+                                            type: 'enum',
+                                            enum: Object.values(MovieStatusEnum),
+                                            message: 'Invalid movie status',
+                                        },
+                                    ]}
+                                >
+                                    <Select>
+                                        {Object.entries(MovieStatusEnum).map(([key, value]) => (
+                                            <Option key={key} value={value}>
+                                                {key.toUpperCase()}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item
+                                    name="quality"
+                                    label="Quality"
+                                    rules={[
+                                        { type: 'string', message: 'Quality must be a string' },
+                                    ]}
+                                >
+                                    <Select
+                                        dropdownRender={(menu) => (
                                             <>
-                                                {subFields.map((subField, subIndex) => (
-                                                    <Card
-                                                        key={subField.key}
-                                                        style={{ marginBottom: 16 }}
-                                                        type="inner"
-                                                        title={`Episode ${subIndex + 1}`}
-                                                        extra={
-                                                            <Popconfirm
-                                                                title="Are you sure you want to delete this episode?"
-                                                                onConfirm={() =>
-                                                                    removeEpisode(subField.name)
-                                                                }
-                                                                okText="Yes"
-                                                                cancelText="No"
-                                                                icon={
-                                                                    <QuestionCircleOutlined
-                                                                        style={{ color: 'red' }}
-                                                                    />
-                                                                }
-                                                            >
-                                                                <Button
-                                                                    icon={<MinusCircleOutlined />}
-                                                                    danger
-                                                                >
-                                                                    Remove Episode
-                                                                </Button>
-                                                            </Popconfirm>
+                                                {menu}
+                                                <Divider style={{ margin: '8px 0' }} />
+                                                <Space style={{ padding: '0 8px 4px' }}>
+                                                    <Input
+                                                        placeholder="Custom quality"
+                                                        value={customQuality}
+                                                        onChange={(e) =>
+                                                            setCustomQuality(e.target.value)
                                                         }
-                                                    >
-                                                        <Row gutter={16}>
-                                                            <Col span={12}>
-                                                                <Form.Item
-                                                                    {...subField}
-                                                                    label="Name"
-                                                                    name={[subField.name, 'name']}
-                                                                    rules={[
-                                                                        {
-                                                                            required: true,
-                                                                            message:
-                                                                                'Episode name is required',
-                                                                        },
-                                                                    ]}
-                                                                >
-                                                                    <Input />
-                                                                </Form.Item>
-                                                            </Col>
-                                                            <Col span={12}>
-                                                                <Form.Item
-                                                                    {...subField}
-                                                                    label="Slug"
-                                                                    name={[subField.name, 'slug']}
-                                                                    rules={[
-                                                                        {
-                                                                            required: true,
-                                                                            message:
-                                                                                'Episode slug is required',
-                                                                        },
-                                                                    ]}
-                                                                >
-                                                                    <Input />
-                                                                </Form.Item>
-                                                            </Col>
-                                                        </Row>
-                                                        <Form.Item
-                                                            {...subField}
-                                                            label="Filename"
-                                                            name={[subField.name, 'filename']}
-                                                        >
-                                                            <Input />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            {...subField}
-                                                            label="M3U8 Link"
-                                                            name={[subField.name, 'linkM3u8']}
-                                                        >
-                                                            <Input />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            {...subField}
-                                                            label="Embed Link"
-                                                            name={[subField.name, 'linkEmbed']}
-                                                        >
-                                                            <Input />
-                                                        </Form.Item>
-                                                    </Card>
-                                                ))}
-                                                <Form.Item>
+                                                    />
                                                     <Button
-                                                        type="dashed"
-                                                        onClick={() => addEpisode()}
-                                                        block
+                                                        type="text"
                                                         icon={<PlusCircleOutlined />}
-                                                        style={{
-                                                            color: 'green',
+                                                        onClick={() => {
+                                                            if (customQuality) {
+                                                                formProps.form?.setFieldsValue({
+                                                                    quality: customQuality,
+                                                                });
+                                                                setCustomQuality('');
+                                                            }
                                                         }}
                                                     >
-                                                        Add Episode
+                                                        Add
                                                     </Button>
-                                                </Form.Item>
+                                                </Space>
                                             </>
                                         )}
-                                    </Form.List>
-                                </Card>
-                            ))}
-                            <Form.Item>
-                                <Button
-                                    type="dashed"
-                                    onClick={() => add()}
-                                    block
-                                    icon={<PlusCircleOutlined />}
-                                    style={{
-                                        color: 'green',
-                                    }}
+                                    >
+                                        {Object.entries(MovieQualityEnum).map(([key, value]) => (
+                                            <Option key={key} value={value}>
+                                                {value.toUpperCase()}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={8}>
+                                <Form.Item
+                                    name="isCopyright"
+                                    valuePropName="checked"
+                                    label="Is Copyright"
+                                    rules={[
+                                        {
+                                            type: 'boolean',
+                                            message: 'Is Copyright must be a boolean',
+                                        },
+                                    ]}
                                 >
-                                    Add Server
-                                </Button>
+                                    <Switch />
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item
+                                    name="cinemaRelease"
+                                    valuePropName="checked"
+                                    label="Cinema Release"
+                                    rules={[
+                                        {
+                                            type: 'boolean',
+                                            message: 'Cinema Release must be a boolean',
+                                        },
+                                    ]}
+                                >
+                                    <Switch />
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item
+                                    name="subDocquyen"
+                                    valuePropName="checked"
+                                    label="Sub Docquyen"
+                                    rules={[
+                                        {
+                                            type: 'boolean',
+                                            message: 'Sub Docquyen must be a boolean',
+                                        },
+                                    ]}
+                                >
+                                    <Switch />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={6}>
+                                <Form.Item
+                                    name="lang"
+                                    label="Language"
+                                    rules={[
+                                        { type: 'string', message: 'Language must be a string' },
+                                    ]}
+                                >
+                                    <Input autoComplete="off" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={6}>
+                                <Form.Item
+                                    name="time"
+                                    label="Duration"
+                                    rules={[
+                                        { type: 'string', message: 'Duration must be a string' },
+                                    ]}
+                                >
+                                    <Input autoComplete="off" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={6}>
+                                <Form.Item
+                                    name="episodeCurrent"
+                                    label="Current Episode"
+                                    rules={[
+                                        {
+                                            type: 'string',
+                                            message: 'Current Episode must be a string',
+                                        },
+                                    ]}
+                                >
+                                    <Input />
+                                </Form.Item>
+                            </Col>
+                            <Col span={6}>
+                                <Form.Item
+                                    name="episodeTotal"
+                                    label="Total Episodes"
+                                    rules={[
+                                        {
+                                            type: 'string',
+                                            message: 'Total Episodes must be a string',
+                                        },
+                                    ]}
+                                >
+                                    <Input />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </Card>
+                    <Card title="Episodes" style={{ marginBottom: 16 }}>
+                        <ServerEpisodeSection form={formProps.form} />
+                    </Card>
+                    <Card
+                        title={<Title level={4}>External IDs</Title>}
+                        style={{ marginBottom: 16 }}
+                    >
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item label="IMDB ID" name={['imdb', 'id']}>
+                                    <Input />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item label="TMDB ID" name={['tmdb', 'id']}>
+                                    <Input />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={8}>
+                                <Form.Item label="TMDB Type" name={['tmdb', 'type']}>
+                                    <Select>
+                                        <Option value="movie">Movie</Option>
+                                        <Option value="tv">TV</Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item label="TMDB Season" name={['tmdb', 'season']}>
+                                    <InputNumber style={{ width: '100%' }} />
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item label="TMDB Vote Average" name={['tmdb', 'voteAverage']}>
+                                    <InputNumber
+                                        style={{ width: '100%' }}
+                                        min={0}
+                                        max={10}
+                                        step={0.1}
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </Card>
+                </Col>
+                <Col span={6}>
+                    <Card title={<Title level={4}>Media</Title>} style={{ marginBottom: 16 }}>
+                        <Space direction="vertical">
+                            <Form.Item
+                                name="posterUrl"
+                                label="Poster"
+                                rules={[{ type: 'url', message: 'Poster URL must be a valid URL' }]}
+                            >
+                                <Space direction="vertical" style={{ width: '100%' }}>
+                                    <Input
+                                        value={posterUrl}
+                                        onChange={(e) => handleUrlChange(e, 'poster')}
+                                        autoComplete="off"
+                                    />
+                                    <Space>
+                                        <Upload
+                                            customRequest={(options) =>
+                                                customUpload(options, 'poster')
+                                            }
+                                            showUploadList={false}
+                                            beforeUpload={beforeUpload}
+                                            accept="image/*"
+                                        >
+                                            <Button
+                                                icon={<UploadOutlined />}
+                                                loading={isPostLoading}
+                                            >
+                                                Upload
+                                            </Button>
+                                        </Upload>
+                                        {posterUrl !== defaultPosterUrl && (
+                                            <Button
+                                                icon={<UndoOutlined />}
+                                                onClick={() => restoreDefaultImage('poster')}
+                                            >
+                                                Restore Default
+                                            </Button>
+                                        )}
+                                    </Space>
+                                </Space>
                             </Form.Item>
-                        </>
-                    )}
-                </Form.List>
-            </Card>
-
-            <Card title={<Title level={4}>External IDs</Title>} style={{ marginBottom: 16 }}>
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Form.Item label="IMDB ID" name={['imdb', 'id']}>
-                            <Input />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item label="TMDB ID" name={['tmdb', 'id']}>
-                            <Input />
-                        </Form.Item>
-                    </Col>
-                </Row>
-                <Row gutter={16}>
-                    <Col span={8}>
-                        <Form.Item label="TMDB Type" name={['tmdb', 'type']}>
-                            <Select>
-                                <Option value="movie">Movie</Option>
-                                <Option value="tv">TV</Option>
-                            </Select>
-                        </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                        <Form.Item label="TMDB Season" name={['tmdb', 'season']}>
-                            <InputNumber style={{ width: '100%' }} />
-                        </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                        <Form.Item label="TMDB Vote Average" name={['tmdb', 'voteAverage']}>
-                            <InputNumber style={{ width: '100%' }} min={0} max={10} step={0.1} />
-                        </Form.Item>
-                    </Col>
-                </Row>
-            </Card>
-
-            <Form.Item>
-                <Button type="primary" htmlType="submit" {...saveButtonProps}>
-                    Save
-                </Button>
-            </Form.Item>
+                            {posterUrl && (
+                                <Image
+                                    src={posterUrl}
+                                    alt="Movie Poster"
+                                    style={{ width: '100%', marginBottom: 16 }}
+                                />
+                            )}
+                            <Form.Item
+                                name="thumbUrl"
+                                label="Thumbnail"
+                                rules={[
+                                    { required: true, message: 'Thumb can not be empty' },
+                                    { type: 'url', message: 'Thumb URL must be a valid URL' },
+                                ]}
+                            >
+                                <Space direction="vertical" style={{ width: '100%' }}>
+                                    <Input
+                                        value={thumbUrl}
+                                        onChange={(e) => handleUrlChange(e, 'thumb')}
+                                        autoComplete="off"
+                                    />
+                                    <Space>
+                                        <Upload
+                                            customRequest={(options) =>
+                                                customUpload(options, 'thumb')
+                                            }
+                                            showUploadList={false}
+                                            beforeUpload={beforeUpload}
+                                            accept="image/*"
+                                        >
+                                            <Button
+                                                icon={<UploadOutlined />}
+                                                loading={isThumbLoading}
+                                            >
+                                                Upload
+                                            </Button>
+                                        </Upload>
+                                        {thumbUrl !== defaultThumbUrl && (
+                                            <Button
+                                                icon={<UndoOutlined />}
+                                                onClick={() => restoreDefaultImage('thumb')}
+                                            >
+                                                Restore Default
+                                            </Button>
+                                        )}
+                                    </Space>
+                                </Space>
+                            </Form.Item>
+                            {thumbUrl && (
+                                <Image
+                                    src={thumbUrl}
+                                    alt="Movie Thumbnail"
+                                    style={{ width: '100%', marginBottom: 16 }}
+                                />
+                            )}
+                            <Form.Item
+                                name="trailerUrl"
+                                label="Trailer URL"
+                                rules={[
+                                    { type: 'url', message: 'Trailer URL must be a valid URL' },
+                                ]}
+                            >
+                                <Input />
+                            </Form.Item>
+                        </Space>
+                    </Card>
+                </Col>
+            </Row>
         </Form>
     );
 };

@@ -8,11 +8,21 @@ import { GetMovieInput } from './inputs/get-movie.input';
 import { GetMoviesOutput } from './outputs/get-movies.output';
 import { UpdateMovieInput } from './inputs/mutate-movie.input';
 import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.input';
+import { CreateMovieInput } from './inputs/create-movie.input';
+import { UserRoleEnum } from '../users';
+import { CurrentUser, UserJwt, RequiredRoles } from '../auth';
+import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
 
 @SkipThrottle()
 @Resolver(() => MovieType)
 export class MovieResolver {
     constructor(private readonly movieService: MovieService) {}
+
+    @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
+    @Mutation(() => MovieType, { name: 'createMovie' })
+    async createMovie(@Args('input') input: CreateMovieInput): Promise<MovieType> {
+        return this.movieService.createMovie(input);
+    }
 
     @Query(() => MovieType, { name: 'movie' })
     getMovie(@Args('input') input: GetMovieInput) {
@@ -24,13 +34,23 @@ export class MovieResolver {
         return this.movieService.getMoviesEs(input);
     }
 
+    @Query(() => GetMoviesOutput, { name: 'moviesForAdmin' })
+    getMoviesAdmin(@Args('input') input: GetMoviesAdminInput) {
+        return this.movieService.getMoviesEs(input);
+    }
+
+    @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
     @Mutation(() => MovieType, { name: 'updateMovie' })
-    updateMovie(@Args('input') input: UpdateMovieInput) {
+    updateMovie(@Args('input') input: UpdateMovieInput, @CurrentUser() { userId }: UserJwt) {
         return this.movieService.updateMovie(input);
     }
 
+    @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
     @Mutation(() => Int, { name: 'mutateHardDeleteMovie' })
-    hardDeleteMovie(@Args('input') input: MutateHardDeleteMovieInput) {
+    hardDeleteMovie(
+        @Args('input') input: MutateHardDeleteMovieInput,
+        @CurrentUser() { userId }: UserJwt,
+    ) {
         return this.movieService.hardDeleteMovie(input);
     }
 }

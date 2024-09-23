@@ -28,6 +28,7 @@ export class CrawlController {
         schema: {
             properties: {
                 pw: { type: 'string' },
+                clear: { type: 'string' },
             },
         },
     })

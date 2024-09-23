@@ -1,5 +1,6 @@
 import { removeTone, removeDiacritics } from '@vn-utils/text';
 import { slugifyVietnamese } from 'apps/api/src/libs/utils/common';
+import { MovieQualityEnum } from '../movie.constant';
 
 export const MOVIE_TYPE_MAP = {
     'phim lẻ': 'single',
@@ -12,22 +13,22 @@ export const MOVIE_TYPE_MAP = {
     hoathinh: 'hoathinh',
 };
 
-export const mapQuality = (quality: string) => {
+export const mapQuality = (quality: string): MovieQualityEnum | string => {
     switch (quality.toLowerCase()) {
         case '4k':
-            return '4k';
+            return MovieQualityEnum._4K;
         case 'hd':
         case 'fhd':
         case 'full hd':
         case 'fullhd':
         case 'hd 720p':
         case '^hd':
-            return 'hd';
+            return MovieQualityEnum.HD;
         case 'sd':
         case '360p':
-            return 'sd';
+            return MovieQualityEnum.SD;
         case 'cam':
-            return 'cam';
+            return MovieQualityEnum.CAM;
         default:
             return quality.toLowerCase();
     }

@@ -6,5 +6,5 @@ export class GetMovieInput {
     slug?: string;
 
     @Field({ nullable: true })
-    id?: string;
+    _id?: string;
 }

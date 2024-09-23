@@ -92,20 +92,20 @@ type Movie {
   createdAt: DateTime
   directors: [Director!]
   episode: [Episode!]
-  episodeCurrent: String!
-  episodeTotal: String!
-  isCopyright: Boolean!
+  episodeCurrent: String
+  episodeTotal: String
+  isCopyright: Boolean
   lang: String
   lastSyncModified: DateTime!
   notify: String
   originName: String
-  posterUrl: String
   quality: String
   showtimes: String
   slug: String!
-  status: String!
+  status: String
   subDocquyen: Boolean
   thumbUrl: String!
+  posterUrl: String
   time: String
   trailerUrl: String
   type: String!
@@ -145,20 +145,20 @@ type MovieFollowType {
   createdAt: DateTime
   directors: [Director!]
   episode: [Episode!]
-  episodeCurrent: String!
-  episodeTotal: String!
-  isCopyright: Boolean!
+  episodeCurrent: String
+  episodeTotal: String
+  isCopyright: Boolean
   lang: String
   lastSyncModified: DateTime!
   notify: String
   originName: String
-  posterUrl: String
   quality: String
   showtimes: String
   slug: String!
-  status: String!
+  status: String
   subDocquyen: Boolean
   thumbUrl: String!
+  posterUrl: String
   time: String
   trailerUrl: String
   type: String!
@@ -229,6 +229,7 @@ type Query {
   getMe: UserType!
   movie(input: GetMovieInput!): Movie!
   movies(input: GetMoviesInput!): GetMoviesOutput!
+  moviesForAdmin(input: GetMoviesAdminInput!): GetMoviesOutput!
   actors(input: GetActorsInput!): GetActorsOutput!
   categories(input: GetCategoriesInput!): GetCategoriesOutput!
   directors(input: GetDirectorsInput!): GetDirectorsOutput!
@@ -237,7 +238,7 @@ type Query {
 
 input GetMovieInput {
   slug: String
-  id: String
+  _id: String
 }
 
 input GetMoviesInput {
@@ -254,8 +255,25 @@ input GetMoviesInput {
   sortOrder: String
   type: String
   years: String
-  resetCache: Boolean
   status: String
+}
+
+input GetMoviesAdminInput {
+  name: String
+  categories: String
+  countries: String
+  cinemaRelease: Boolean
+  isCopyright: Boolean
+  keywords: String
+  limit: Float = 10
+  page: Float = 1
+  slug: String
+  sortBy: String
+  sortOrder: String
+  type: String
+  years: String
+  status: String
+  resetCache: Boolean
   isDeleted: Boolean
   bypassCache: Boolean
 }
@@ -288,6 +306,7 @@ type Mutation {
   mutationMe(input: MutationMeInput!): UserType!
   followMovie(input: MutationFollowMovieInput!): UserType!
   unfollowMovie(input: MutationUnfollowMovieInput!): UserType!
+  createMovie(input: CreateMovieInput!): Movie!
   updateMovie(input: UpdateMovieInput!): Movie!
   mutateHardDeleteMovie(input: MutateHardDeleteMovieInput!): Int!
   updateRegion(slug: String!, input: UpdateRegionInput!): Region!
@@ -308,6 +327,35 @@ input MutationFollowMovieInput {
 
 input MutationUnfollowMovieInput {
   movieSlug: String!
+}
+
+input CreateMovieInput {
+  name: String!
+  slug: String!
+  originName: String
+  content: String
+  type: String!
+  lang: String
+  quality: String
+  showtimes: String
+  status: String!
+  time: String
+  thumbUrl: String!
+  posterUrl: String
+  trailerUrl: String
+  isCopyright: Boolean
+  episodeCurrent: String
+  episodeTotal: String
+  subDocquyen: Boolean
+  cinemaRelease: Boolean
+  year: Float
+  actors: [ID!]
+  directors: [ID!]
+  categories: [ID!]
+  countries: [ID!]
+  episode: [EpisodeInputType!]
+  tmdb: TmdbInputType
+  imdb: ImdbInputType
 }
 
 input UpdateMovieInput {

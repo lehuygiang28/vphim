@@ -138,11 +138,11 @@ export class Movie
     isCopyright: boolean;
 
     @ApiProperty()
-    @Prop({ type: String, default: null })
+    @Prop({ type: String, default: '' })
     episodeCurrent: string;
 
     @ApiProperty()
-    @Prop({ type: String, default: null })
+    @Prop({ type: String, default: '' })
     episodeTotal: string;
 
     @ApiProperty()
@@ -154,7 +154,7 @@ export class Movie
     cinemaRelease?: boolean;
 
     @ApiProperty()
-    @Prop({ type: Number, default: null })
+    @Prop({ type: Number, default: '' })
     year?: number;
 
     @ApiProperty()
@@ -228,18 +228,3 @@ MovieSchema.post('findOneAndUpdate', async function (doc) {
         await searchService.indexMovie(doc);
     }
 });
-
-// MovieSchema.post('findOneAndDelete', async function (doc) {
-//     const searchService = global.searchService;
-//     if (searchService && doc) {
-//         await searchService.deleteMovie(doc);
-//     }
-// });
-
-// MovieSchema.post('deleteOne', async function (doc) {
-//     const searchService = global.searchService;
-//     if (searchService && doc) {
-//         console.log(JSON.stringify(doc, null, 2));
-//         await searchService.deleteMovie(doc);
-//     }
-// });

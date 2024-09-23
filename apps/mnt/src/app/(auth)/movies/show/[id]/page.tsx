@@ -29,7 +29,7 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
             operation: 'movie',
             variables: {
                 input: {
-                    id: params.id,
+                    _id: params.id,
                 },
             },
         },
@@ -58,6 +58,10 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
                             size: 'middle',
                             hideText: false,
                         }}
+                        redirect={{
+                            type: 'replace',
+                            to: '/movies',
+                        }}
                     />
                     <RefreshButton {...refreshButtonProps} />
                 </>
@@ -67,16 +71,8 @@ export default function MovieShowPage({ params }: MovieShowPageProps) {
                 <Col xs={24} lg={8}>
                     <Card>
                         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                            <Image
-                                alt={record?.name}
-                                src={record?.posterUrl || '/placeholder.svg?height=300&width=200'}
-                                fallback="/placeholder.svg?height=300&width=200"
-                            />
-                            <Image
-                                alt={`${record?.name} thumbnail`}
-                                src={record?.thumbUrl || '/placeholder.svg?height=150&width=200'}
-                                fallback="/placeholder.svg?height=150&width=200"
-                            />
+                            <Image alt={record?.name} src={record?.posterUrl} />
+                            <Image alt={`${record?.name} thumbnail`} src={record?.thumbUrl} />
                             <Title level={4}>{record?.name}</Title>
                             <Paragraph type="secondary">{record?.originName}</Paragraph>
                             <Space>

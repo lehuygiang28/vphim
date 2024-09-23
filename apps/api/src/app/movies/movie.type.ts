@@ -107,13 +107,13 @@ export class MovieType
     @Field(() => [EpisodeType], { nullable: true })
     episode?: EpisodeType[];
 
-    @Field()
+    @Field({ nullable: true })
     episodeCurrent: string;
 
-    @Field()
+    @Field({ nullable: true })
     episodeTotal: string;
 
-    @Field()
+    @Field({ nullable: true })
     isCopyright: boolean;
 
     @Field({ nullable: true })
@@ -129,9 +129,6 @@ export class MovieType
     originName?: string;
 
     @Field({ nullable: true })
-    posterUrl: string;
-
-    @Field({ nullable: true })
     quality?: string;
 
     @Field({ nullable: true })
@@ -140,7 +137,7 @@ export class MovieType
     @Field()
     slug: string;
 
-    @Field()
+    @Field({ nullable: true })
     status: string;
 
     @Field({ nullable: true })
@@ -148,6 +145,9 @@ export class MovieType
 
     @Field()
     thumbUrl: string;
+
+    @Field({ nullable: true })
+    posterUrl: string;
 
     @Field({ nullable: true })
     time?: string;

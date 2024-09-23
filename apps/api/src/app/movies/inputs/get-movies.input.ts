@@ -42,14 +42,5 @@ export class GetMoviesInput {
     years: string;
 
     @Field({ nullable: true })
-    resetCache?: boolean;
-
-    @Field({ nullable: true })
     status?: string;
-
-    @Field({ nullable: true })
-    isDeleted?: boolean;
-
-    @Field({ nullable: true })
-    bypassCache?: boolean;
 }
