@@ -4,7 +4,7 @@ import { UserType } from './user.type';
 import { UsersService } from './users.service';
 import { MutationMeInput } from './inputs/mutation-me.input';
 import { RequiredRoles } from '../auth/guards/auth.guard';
-import { CurrentUser, UserJwt } from '../auth';
+import { CurrentUser, type UserJwt } from '../auth';
 import {
     MutationFollowMovieInput,
     MutationUnfollowMovieInput,
