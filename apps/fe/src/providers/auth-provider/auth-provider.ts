@@ -16,14 +16,13 @@ import {
     RequestRegisterAction,
 } from './types/register.type';
 import { RouteNameEnum } from '@/constants/route.constant';
-import { baseApiUrl } from '@/config';
 import { GET_ME_QUERY } from '@/queries/users';
 
 export const authProvider = (
     _axios: AxiosInstance = axiosInstance,
     authAxios: AxiosInstance = axiosInstance,
 ): AuthProvider => {
-    const baseUrl = `${baseApiUrl}/api`;
+    const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
     return {
         login: async ({ type, ...data }: LoginActionPayload) => {
@@ -252,7 +251,7 @@ export const authProvider = (
                 const { refreshToken, accessToken, ...user } = auth.user as LoginResponseDto;
                 const {
                     data: { data: res },
-                } = await authAxios.post<any>(`${baseApiUrl}/graphql`, {
+                } = await authAxios.post<any>(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
                     query: print(GET_ME_QUERY),
                     headers: {
                         Authorization: `Bearer ${accessToken}`,

@@ -5,7 +5,6 @@ import { AxiosInstance } from 'axios';
 import camelCase from 'camelcase';
 import pluralize from 'pluralize';
 import { BaseRecord, GetListParams, GetListResponse, MetaQuery } from '@refinedev/core';
-import { baseApiUrl } from '@/config';
 import {
     handleFilterQuery,
     handlePaginationQuery,
@@ -27,7 +26,7 @@ const handleResetCache = (meta: MetaQuery): { [key: string]: boolean } | object 
 };
 
 export const graphqlDataProvider = (axios: AxiosInstance) => {
-    const baseUrl = `${baseApiUrl}/graphql`;
+    const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/graphql`;
 
     const client = new GraphQLClient(baseUrl, {
         fetch: axios,

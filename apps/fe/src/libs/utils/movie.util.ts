@@ -1,4 +1,3 @@
-import { baseApiUrl } from '@/config';
 import { canParseToNumber } from './common';
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
@@ -48,5 +47,5 @@ export function getOptimizedImageUrl(
     option: { width: number; height: number; quality?: number },
 ) {
     const { width, height, quality = 75 } = option;
-    return `${baseApiUrl}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`;
+    return `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`;
 }

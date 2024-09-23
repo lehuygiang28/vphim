@@ -5,7 +5,6 @@ import { useRefreshButton, useInvalidate, useResource } from '@refinedev/core';
 import { RefineButtonClassNames, RefineButtonTestIds } from '@refinedev/ui-types';
 import { RefreshButtonProps } from '@refinedev/antd';
 import { useAxios } from '@/hooks/useAxios';
-import { baseApiUrl } from '@/config';
 
 export const RefreshMovieButton: React.FC<RefreshButtonProps> = ({
     resource: resourceNameFromProps,
@@ -18,7 +17,7 @@ export const RefreshMovieButton: React.FC<RefreshButtonProps> = ({
     metaData: _metaData,
     ...rest
 }) => {
-    const axios = useAxios({ baseURL: `${baseApiUrl}/api` });
+    const axios = useAxios({ baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api` });
     const invalidate = useInvalidate();
     const { resource } = useResource();
 

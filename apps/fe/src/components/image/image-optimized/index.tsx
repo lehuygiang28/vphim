@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, CSSProperties, forwardRef } from 'react';
 import { Skeleton, Image as AntImage, ImageProps } from 'antd';
-import { baseApiUrl } from '@/config';
 
 export type ImageOptimizedProps = {
     url: string;
@@ -64,11 +63,11 @@ export function ImageOptimized({
 }: ImageOptimizedProps) {
     const [showImage1, setShowImage1] = useState(true);
     const [currentUrl1, setCurrentUrl1] = useState(
-        `${baseApiUrl}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`,
     );
     const [currentUrl2, setCurrentUrl2] = useState(
         url2
-            ? `${baseApiUrl}/api/images/optimize?url=${url2}&width=${width}&height=${height}&quality=${quality}`
+            ? `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url2}&width=${width}&height=${height}&quality=${quality}`
             : '',
     );
     const [isLoading, setIsLoading] = useState(true);
@@ -116,11 +115,11 @@ export function ImageOptimized({
 
     useEffect(() => {
         setCurrentUrl1(
-            `${baseApiUrl}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`,
         );
         if (url2) {
             setCurrentUrl2(
-                `${baseApiUrl}/api/images/optimize?url=${url2}&width=${width}&height=${height}&quality=${quality}`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url2}&width=${width}&height=${height}&quality=${quality}`,
             );
         }
         setIsLoading(true);

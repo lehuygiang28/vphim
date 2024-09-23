@@ -6,10 +6,9 @@ import { AxiosInstance } from 'axios';
 import { handleFilter, handlePagination, handleSort } from '@/libs/utils/data-provider.util';
 
 import type { Movie } from 'apps/api/src/app/movies/movie.schema';
-import { baseApiUrl } from '@/config';
 
 export const restfulDataProvider = (axios: AxiosInstance) => {
-    const apiUrl = `${baseApiUrl}/api`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
     return {
         ...dataProviderSimpleRest(apiUrl, axios),

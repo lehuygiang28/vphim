@@ -14,7 +14,6 @@ import { DevtoolsProvider, DevtoolsPanel } from '@refinedev/devtools';
 import { ColorModeContextProvider } from '~fe/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
 import { useAxiosAuth } from '~fe/hooks/useAxiosAuth';
-import { baseApiUrl } from '~fe/config';
 import { authProvider } from '~fe/providers/auth-provider';
 
 import Loading from './loading';
@@ -36,7 +35,7 @@ type AppProps = {
 };
 
 const App = (props: React.PropsWithChildren<AppProps>) => {
-    const axiosAuth = useAxiosAuth({ baseURL: baseApiUrl });
+    const axiosAuth = useAxiosAuth({ baseURL: process.env.NEXT_PUBLIC_API_URL });
     const { status } = useSession();
 
     if (status === 'loading') {

@@ -13,7 +13,6 @@ import { ColorModeContextProvider } from '@/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '@/providers/data-provider';
 import '@refinedev/antd/dist/reset.css';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
-import { baseApiUrl } from '@/config';
 import Loading from './loading';
 import { authProvider } from '@/providers/auth-provider';
 
@@ -34,7 +33,7 @@ type AppProps = {
 };
 
 const App = (props: React.PropsWithChildren<AppProps>) => {
-    const axiosAuth = useAxiosAuth({ baseURL: baseApiUrl });
+    const axiosAuth = useAxiosAuth({ baseURL: process.env.NEXT_PUBLIC_API_URL });
     const { status } = useSession();
 
     if (status === 'loading') {
