@@ -12,6 +12,10 @@ const nextConfig = {
         // See: https://github.com/gregberge/svgr
         svgr: false,
     },
+    transpilePackages: ['@refinedev/antd'],
+    publicRuntimeConfig: {
+        apiUrl: process.env.NEXT_PUBLIC_API_URL,
+    },
     images: {
         remotePatterns: [
             {
