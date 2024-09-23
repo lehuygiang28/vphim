@@ -8,7 +8,6 @@ import { signOut } from 'next-auth/react';
 import { UserRoleEnum } from '~api/app/users/users.enum';
 import { type UserType } from '~api/app/users/user.type';
 
-import LoadingPage from '../loading';
 import { ThemedLayout } from '~mnt/components/themed-layout';
 
 export default function AdminLayout({ children }: PropsWithChildren) {
@@ -17,7 +16,7 @@ export default function AdminLayout({ children }: PropsWithChildren) {
     const { data: user, isLoading: isIdentityLoading } = useGetIdentity<UserType>();
 
     if (isLoading || isIdentityLoading) {
-        return <LoadingPage />;
+        return <></>;
     }
 
     if (!data?.authenticated) {

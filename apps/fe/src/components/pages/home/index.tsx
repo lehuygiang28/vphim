@@ -1,3 +1,5 @@
+'use client';
+
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -9,8 +11,8 @@ import { Grid } from 'antd';
 import MovieList from '@/components/swiper/movie-list';
 import { MovieSwiper } from '@/components/swiper/movie';
 import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
-import Loading from '@/app/loading';
 import { RouteNameEnum } from '@/constants/route.constant';
+import { LoadingSpinner } from '@/components/loading';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
@@ -106,7 +108,7 @@ export function Home() {
     });
 
     if (mostViewedLoading) {
-        return <Loading />;
+        return <LoadingSpinner fullScreen />;
     }
 
     return (

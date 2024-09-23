@@ -4,7 +4,7 @@ import { useGetIdentity } from '@refinedev/core';
 import { Modal } from 'antd';
 import { useRouter } from 'next/navigation';
 import Login from '@/components/pages/auth/login';
-import Loading from '@/app/loading';
+import { LoadingSpinner } from '@/components/loading';
 import type { UserType } from 'apps/api/src/app/users/user.type';
 
 export default function LoginParallelPage() {
@@ -14,10 +14,6 @@ export default function LoginParallelPage() {
     const handleClose = () => {
         router.back();
     };
-
-    if (isLoadingAuth) {
-        return <Loading />;
-    }
 
     if (isAuthData?.role) {
         router.push('/');
@@ -32,7 +28,7 @@ export default function LoginParallelPage() {
             okButtonProps={{ hidden: true }}
             centered
         >
-            <Login onBack={handleClose} />
+            {isLoadingAuth ? <LoadingSpinner /> : <Login onBack={handleClose} />}
         </Modal>
     );
 }

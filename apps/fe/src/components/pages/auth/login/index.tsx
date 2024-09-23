@@ -10,7 +10,7 @@ import { LoginPwdless } from '@/validators';
 import LoadingBtn from '@/components/button/loading-btn';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import Loading from '@/app/loading';
+import { LoadingSpinner } from '@/components/loading';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
@@ -68,7 +68,7 @@ export default function Login({ onBack }: LoginProps) {
     }, [params, open]);
 
     if (params.get('hash')) {
-        return <Loading />;
+        return <LoadingSpinner fullScreen />;
     }
 
     return (

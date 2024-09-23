@@ -39,7 +39,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
     const { status } = useSession();
 
     if (status === 'loading') {
-        return <Loading />;
+        return <></>;
     }
 
     const defaultMode = props?.defaultMode;
@@ -66,6 +66,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                         show: '/movies/show/:id',
                                         edit: '/movies/edit/:id',
                                         meta: {
+                                            dataProviderName: 'graphql',
                                             icon: <PlaySquareOutlined />,
                                             canDelete: true,
                                         },

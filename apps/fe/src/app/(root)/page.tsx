@@ -1,13 +1,10 @@
-'use client';
-
-import { Suspense } from 'react';
-
+import { LoadingSpinner } from '@/components/loading';
 import { Home } from '@/components/pages/home';
-import Loading from '../loading';
+import { Suspense } from 'react';
 
 export default function IndexPage() {
     return (
-        <Suspense fallback={<Loading />}>
+        <Suspense fallback={<LoadingSpinner fullScreen/>}>
             <Home />
         </Suspense>
     );
