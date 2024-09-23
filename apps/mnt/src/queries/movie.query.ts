@@ -1,8 +1,8 @@
 import gql from 'graphql-tag';
 
 export const MNT_MOVIE_LIST_QUERY = gql`
-    query GetMovies($input: GetMoviesInput!) {
-        movies(input: $input) {
+    query GetMovies($input: GetMoviesAdminInput!) {
+        moviesForAdmin(input: $input) {
             data {
                 _id
                 name
@@ -109,5 +109,14 @@ export const MUTATION_UPDATE_MOVIE = gql`
 export const MUTATION_HARD_DELETE_MOVIE = gql`
     mutation HardDeleteMovie($input: MutateHardDeleteMovieInput!) {
         mutateHardDeleteMovie(input: $input)
+    }
+`;
+
+export const CREATE_MOVIE = gql`
+    mutation CreateMovie($input: CreateMovieInput!) {
+        createMovie(input: $input) {
+            _id
+            slug
+        }
     }
 `;

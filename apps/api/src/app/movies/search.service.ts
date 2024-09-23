@@ -31,46 +31,83 @@ export class SearchService {
     }
 
     async indexMovie(movie: Movie) {
-        const movieData = await this.movieRepo.findOne({
-            filterQuery: { _id: convertToObjectId(movie?._id) },
-            queryOptions: {
-                populate: [
-                    {
-                        path: 'actors',
-                        justOne: false,
-                    },
-                    {
-                        path: 'categories',
-                        justOne: false,
-                    },
-                    {
-                        path: 'countries',
-                        justOne: false,
-                    },
-                    {
-                        path: 'directors',
-                        justOne: false,
-                    },
-                ],
-            },
-        });
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { _id, ...rest } = movieData;
-        const body: Omit<Movie, '_id'> = {
-            ...rest,
-        };
-        return this.elasticsearchService.index({
-            index: 'movies',
-            id: movie._id.toString(),
-            body: body,
-        });
+        try {
+            const movieData = await this.movieRepo.findOne({
+                filterQuery: { _id: convertToObjectId(movie._id) },
+                queryOptions: {
+                    populate: [
+                        { path: 'actors', justOne: false },
+                        { path: 'categories', justOne: false },
+                        { path: 'countries', justOne: false },
+                        { path: 'directors', justOne: false },
+                    ],
+                },
+            });
+
+            if (!movieData) {
+                this.logger.warn(`Movie with ID ${movie._id} not found in the database`);
+                return false;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { _id, ...rest } = movieData;
+            const body: Omit<Movie, '_id'> = { ...rest };
+
+            const updateResponse = await this.elasticsearchService.update({
+                index: 'movies',
+                id: movie._id.toString(),
+                body: {
+                    doc: body,
+                    doc_as_upsert: true,
+                },
+                refresh: 'wait_for', // Wait for the change to be reflected
+            });
+
+            if (updateResponse.result === 'updated' || updateResponse.result === 'created') {
+                // Perform an immediate refresh of the index
+                await this.elasticsearchService.indices.refresh({ index: 'movies' });
+
+                this.logger.log(
+                    `Movie with ID ${movie._id} ${updateResponse.result} successfully in Elasticsearch`,
+                );
+                return true;
+            } else {
+                this.logger.warn(`Failed to update movie with ID ${movie._id} in Elasticsearch`);
+                return false;
+            }
+        } catch (error) {
+            this.logger.error(
+                `Error updating movie with ID ${movie._id} in Elasticsearch: ${error.message}`,
+            );
+            return false;
+        }
     }
 
     async deleteMovie(movie: Pick<Movie, '_id'>) {
-        return this.elasticsearchService.delete({
-            index: 'movies',
-            id: movie?._id?.toString(),
-        });
+        try {
+            const deleteResponse = await this.elasticsearchService.delete({
+                index: 'movies',
+                id: movie?._id?.toString(),
+                refresh: 'wait_for', // Wait for the change to be reflected
+            });
+
+            if (deleteResponse.result === 'deleted') {
+                // Perform an immediate refresh of the index
+                await this.elasticsearchService.indices.refresh({ index: 'movies' });
+
+                this.logger.log(
+                    `Movie with ID ${movie._id} deleted successfully from Elasticsearch`,
+                );
+                return true;
+            } else {
+                this.logger.warn(`Failed to delete movie with ID ${movie._id} from Elasticsearch`);
+                return false;
+            }
+        } catch (error) {
+            this.logger.error(
+                `Error deleting movie with ID ${movie._id} from Elasticsearch: ${error.message}`,
+            );
+        }
     }
 
     async bulkIndexMovies(movies: Movie[]) {
@@ -102,22 +139,10 @@ export class SearchService {
                     skip,
                     limit: batchSize,
                     populate: [
-                        {
-                            path: 'actors',
-                            justOne: false,
-                        },
-                        {
-                            path: 'categories',
-                            justOne: false,
-                        },
-                        {
-                            path: 'countries',
-                            justOne: false,
-                        },
-                        {
-                            path: 'directors',
-                            justOne: false,
-                        },
+                        { path: 'actors', justOne: false },
+                        { path: 'categories', justOne: false },
+                        { path: 'countries', justOne: false },
+                        { path: 'directors', justOne: false },
                     ],
                 },
             });
@@ -191,5 +216,25 @@ export class SearchService {
         } catch (error) {
             this.logger.error(`Error updating mappings for index ${indexName}: ${error.message}`);
         }
+    }
+
+    async softRefresh() {
+        const deletedMovies = await this.movieRepo.find({
+            filterQuery: { deletedAt: { $ne: null } },
+            queryOptions: {
+                populate: [
+                    { path: 'actors', justOne: false },
+                    { path: 'categories', justOne: false },
+                    { path: 'countries', justOne: false },
+                    { path: 'directors', justOne: false },
+                ],
+            },
+        });
+        if (deletedMovies && deletedMovies?.length > 0) {
+            this.logger.log(`Soft refreshing ${deletedMovies?.length} movies`);
+            await this.bulkIndexMovies(deletedMovies);
+            await this.elasticsearchService.indices.refresh({ index: 'movies' });
+        }
+        return '1';
     }
 }

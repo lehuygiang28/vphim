@@ -19,6 +19,7 @@ import { MNT_MOVIE_LIST_QUERY, MUTATION_UPDATE_MOVIE } from '~mnt/queries/movie.
 import Link from 'next/link';
 import { RestoreButton } from '../button/restore-button';
 import { DeleteMovieButton } from '../button/delete-movie-button';
+import { RefreshMovieButton } from '../button/refresh-movie-button';
 
 const { Option } = Select;
 
@@ -34,6 +35,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
         dataProviderName: 'graphql',
         meta: {
             gqlQuery: MNT_MOVIE_LIST_QUERY,
+            operation: 'moviesForAdmin',
             resetCache: true,
             bypassCache: true,
         },
@@ -172,7 +174,11 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
     const yearOptions = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i);
 
     return (
-        <List>
+        <List
+            headerButtons={({ defaultButtons }) => {
+                return <RefreshMovieButton resource="movies" dataProviderName="graphql" />;
+            }}
+        >
             <Form {...searchFormProps} layout="vertical" onFinish={handleFinishSearchForm}>
                 <Space wrap>
                     <Form.Item name="keywords">
