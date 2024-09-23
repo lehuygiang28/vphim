@@ -28,6 +28,19 @@ services:
             - vphim_net
         restart: unless-stopped
 
+    elasticsearch:
+        container_name: elasticsearch
+        hostname: elasticsearch
+        image: docker.io/bitnami/elasticsearch:8.15.1
+        env_file:
+            - .env
+        ports:
+            - '${ELASTICSEARCH_PORT:-9200}:${ELASTICSEARCH_PORT:-9200}'
+        volumes:
+            - 'elasticsearch_data:/bitnami/elasticsearch/data'
+        networks:
+            - vphim_net
+
 networks:
     vphim_net:
         driver: bridge
@@ -37,5 +50,5 @@ volumes:
         driver: local
     redis_data:
         driver: local
-    rabbitmq_data:
+    elasticsearch_data:
         driver: local
