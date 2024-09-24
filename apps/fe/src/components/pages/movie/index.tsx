@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb } from 'antd';
-import { useOne, useUpdate } from '@refinedev/core';
+import { useGetIdentity, useOne, useUpdate } from '@refinedev/core';
 import { MovieType } from 'apps/api/src/app/movies/movie.type';
 import {
     CalendarOutlined,
@@ -31,6 +31,7 @@ import {
 import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
 import { IMDBRating } from '@/components/card/imdb-rating';
 import { TMDBRating } from '@/components/card/tmdb-rating';
+import { usePathname, useRouter } from 'next/navigation';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -66,6 +67,8 @@ export type MovieProps = {
 };
 
 export function Movie({ slug }: MovieProps) {
+    const router = useRouter();
+    const pathname = usePathname();
     const { md } = useBreakpoint();
     const [isFollowing, setIsFollowing] = useState(false);
 
@@ -83,6 +86,8 @@ export function Movie({ slug }: MovieProps) {
             },
         },
     });
+
+    const { data: user } = useGetIdentity<UserType>();
     const { data: { data: followMovies } = {} } = useOne<Pick<UserType, 'followMovies'>>({
         dataProviderName: 'graphql',
         resource: 'users',
@@ -91,7 +96,10 @@ export function Movie({ slug }: MovieProps) {
             gqlQuery: GET_OWN_FOLLOWING_MOVIES,
             operation: 'getMe',
         },
+        successNotification: false,
+        errorNotification: false,
     });
+
     const { mutate: updateUser } = useUpdate({
         dataProviderName: 'graphql',
         resource: 'users',
@@ -109,6 +117,11 @@ export function Movie({ slug }: MovieProps) {
     }, [followMovies, slug]);
 
     const handleFollowMovie = (movie: MovieType, follow: boolean) => {
+        if (!user) {
+            router.push(`/dang-nhap?title=follow&to=${encodeURIComponent(pathname)}`);
+            return;
+        }
+
         if (follow) {
             updateUser({
                 id: 'me',

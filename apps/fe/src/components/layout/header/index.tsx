@@ -3,11 +3,11 @@
 import './header.css';
 
 import React, { useState, ReactNode, useEffect, useRef } from 'react';
-import { Layout, Menu, Input, Button, Drawer, Grid, Dropdown, Avatar } from 'antd';
+import { Layout, Menu, Input, Button, Drawer, Grid, Dropdown, Avatar, Tooltip } from 'antd';
 import { SearchOutlined, UserOutlined, MenuOutlined, DownOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { stringifyTableParams, useGetIdentity } from '@refinedev/core';
 import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
 import { signOut } from 'next-auth/react';
@@ -123,6 +123,7 @@ export type HeaderProps = {
 };
 
 export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: HeaderProps) {
+    const pathname = usePathname();
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [searchVisible, setSearchVisible] = useState(false);
     const [searchFocused, setSearchFocused] = useState(false);
@@ -328,8 +329,10 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                         </Button>
                     </Dropdown>
                 ) : (
-                    <Link href={RouteNameEnum.LOGIN_PAGE}>
-                        <Button type="default" icon={<UserOutlined />}></Button>
+                    <Link href={`${RouteNameEnum.LOGIN_PAGE}?to=${encodeURIComponent(pathname)}`}>
+                        <Tooltip title="Đăng nhập/Đăng kí">
+                            <Button type="default" icon={<UserOutlined />}></Button>
+                        </Tooltip>
                     </Link>
                 )}
             </div>

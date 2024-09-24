@@ -14,6 +14,7 @@ import { graphqlDataProvider, restfulDataProvider } from '@/providers/data-provi
 import '@refinedev/antd/dist/reset.css';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 import { authProvider } from '@/providers/auth-provider';
+import { useAxios } from '@/hooks/useAxios';
 
 type RefineContextProps = {
     defaultMode?: string;
@@ -32,6 +33,7 @@ type AppProps = {
 };
 
 const App = (props: React.PropsWithChildren<AppProps>) => {
+    const { instance: axios } = useAxios({ baseURL: process.env.NEXT_PUBLIC_API_URL });
     const axiosAuth = useAxiosAuth({ baseURL: process.env.NEXT_PUBLIC_API_URL });
     const { status } = useSession();
 
@@ -50,7 +52,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             graphql: graphqlDataProvider(axiosAuth) as DataProvider,
                         }}
                         notificationProvider={useNotificationProvider}
-                        authProvider={authProvider(undefined, axiosAuth)}
+                        authProvider={authProvider(axios, axiosAuth)}
                         resources={[]}
                         options={{
                             syncWithLocation: true,

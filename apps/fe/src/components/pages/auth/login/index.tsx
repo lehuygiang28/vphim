@@ -18,6 +18,11 @@ import { signIn } from 'next-auth/react';
 const { Title, Text } = Typography;
 const SEEM_SAFE_HASH_LENGTH = 30;
 
+export enum LoginTitle {
+    'follow' = 'Bạn cần đăng nhập để theo dõi phim',
+    'default' = 'Tiếp tục vào VePhim',
+}
+
 export type LoginProps = {
     onBack?: () => void;
 };
@@ -28,6 +33,10 @@ export default function Login({ onBack }: LoginProps) {
     const { open } = useNotification();
     const { mutate: login } = useLogin();
 
+    const title = LoginTitle[params.get('title') as keyof typeof LoginTitle] || LoginTitle.default;
+    const redirectBackTo = params.get('to') || '/';
+    const hash = params.get('hash');
+
     const {
         control,
         handleSubmit,
@@ -37,37 +46,59 @@ export default function Login({ onBack }: LoginProps) {
         defaultValues: { email: '' },
     });
 
-    const onSubmit: SubmitHandler<LoginPwdless> = (values) => {
+    const onSubmit: SubmitHandler<LoginPwdless> = async (values) => {
+        const returnUrl = new URL(window?.location?.href);
+        returnUrl.searchParams.set('to', redirectBackTo);
+
         const data: LoginActionPayload = {
             type: 'request-login',
             email: values.email,
-            returnUrl: window?.location?.href,
+            returnUrl: returnUrl.toString(),
         };
+
         return login(data);
     };
 
     useEffect(() => {
-        const hash = params.get('hash');
         if (hash && hash.length >= SEEM_SAFE_HASH_LENGTH) {
-            login({ type: 'login', hash, redirect: true, to: '/' });
+            login({ type: 'login', hash, redirect: true, to: redirectBackTo });
         } else if (hash) {
             const cloneParams = new URLSearchParams(params);
             cloneParams.delete('hash');
             return router.replace(`/dang-nhap?${cloneParams.toString()}`);
         }
-    }, [params, router, login, open]);
+    }, [params, hash, redirectBackTo, router, login, open]);
 
     useEffect(() => {
         if (params.get('error') === 'failed_to_login') {
             open({
                 type: 'error',
-                message: 'Failed to login, please try again.',
+                message: 'Đăng nhập thất bại, kiểm tra thông tin của bạn và thử lại sau',
                 key: 'failed_to_login',
             });
         }
     }, [params, open]);
 
-    if (params.get('hash')) {
+    const handleSocialLogin = async (provider: string) => {
+        const result = await signIn(provider, {
+            callbackUrl: redirectBackTo,
+            redirect: false,
+        });
+
+        if (result?.error) {
+            open({
+                type: 'error',
+                message: 'Đăng nhập thất bại, kiểm tra thông tin của bạn và thử lại sau',
+                key: 'login_error',
+            });
+        }
+
+        if (result?.url) {
+            router.replace(result.url);
+        }
+    };
+
+    if (hash) {
         return <LoadingSpinner fullScreen />;
     }
 
@@ -82,7 +113,7 @@ export default function Login({ onBack }: LoginProps) {
             </Space>
             <Space direction="vertical" align="center" size="small" style={{ width: '100%' }}>
                 <Title level={3} style={{ marginBottom: '4px' }}>
-                    Tiếp tục vào VePhim
+                    {title}
                 </Title>
                 <Text>Sử dụng email của bạn</Text>
 
@@ -122,12 +153,7 @@ export default function Login({ onBack }: LoginProps) {
                         style={{ width: '100px' }}
                         size="middle"
                         isValid={isValid}
-                        onClick={() =>
-                            signIn('google', {
-                                callbackUrl: window?.location?.href ?? '',
-                                redirect: false,
-                            })
-                        }
+                        onClick={() => handleSocialLogin('google')}
                     >
                         <GoogleOutlined /> Google
                     </LoadingBtn>
@@ -136,12 +162,7 @@ export default function Login({ onBack }: LoginProps) {
                         style={{ width: '100px' }}
                         size="middle"
                         isValid={isValid}
-                        onClick={() =>
-                            signIn('github', {
-                                callbackUrl: window?.location?.href ?? '',
-                                redirect: false,
-                            })
-                        }
+                        onClick={() => handleSocialLogin('github')}
                     >
                         <GithubOutlined /> Github
                     </LoadingBtn>

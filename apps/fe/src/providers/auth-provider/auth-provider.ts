@@ -36,9 +36,10 @@ export const authProvider = (
                         return {
                             success: true,
                             redirectTo: RouteNameEnum.LOGIN_PAGE,
+                            redirect: true,
                             successNotification: {
                                 description: 'Thành công',
-                                message: `Kiểm tra email của bạn, bấm vào đường link để tiếp tục đăng ký`,
+                                message: `Kiểm tra email của bạn, bấm vào đường link để tiếp tục đăng nhập`,
                             },
                         };
                     })
@@ -76,26 +77,25 @@ export const authProvider = (
             } else {
                 const loginData = data as LoginAction;
                 const { hash, provider = null, to = '/' } = loginData;
-
+                console.log(loginData);
                 if (provider === 'google') {
                     signIn('google', {
-                        callbackUrl: to ? to.toString() : '/',
+                        callbackUrl: to,
                         redirect: true,
                     });
 
                     return {
                         success: true,
-                        redirectTo: to ? to.toString() : '/',
+                        redirectTo: to,
                     };
                 }
 
                 try {
-                    await signIn('credentials', {
-                        hash,
-                    });
+                    await signIn('credentials', { hash, redirect: true, callbackUrl: to, ...data });
                     return {
                         success: true,
-                        redirectTo: to ? to.toString() : '/',
+                        redirect: data?.['redirect'] || true,
+                        redirectTo: data?.['to'] || to,
                     };
                 } catch (error) {
                     return {
