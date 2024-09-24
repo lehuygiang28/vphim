@@ -49,5 +49,5 @@
         "zremrangebyscore",
         "zscore"
     ],
-    "conventionalCommits.scopes": ["be/i18n", "api", "fe", "mnt"]
+    "conventionalCommits.scopes": ["be/i18n", "api", "fe", "mnt", "mobile"]
 }

@@ -16,9 +16,9 @@
         "skipDefaultLibCheck": true,
         "baseUrl": ".",
         "paths": {
+            "@/*": ["apps/fe/src/*"],
             "~api/app/*": ["apps/api/src/app/*"],
             "~api/libs/*": ["apps/api/src/libs/*"],
-            "@/*": ["apps/fe/src/*"],
             "~fe/*": ["apps/fe/src/*"],
             "~mnt/*": ["apps/mnt/src/*"]
         }
