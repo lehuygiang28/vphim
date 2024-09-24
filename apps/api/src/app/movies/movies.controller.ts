@@ -20,7 +20,7 @@ export class MovieController {
     @CacheTTL(60 * 60 * 3 * 1000)
     @Get('/')
     getMovies(@Query() dto: GetMoviesDto) {
-        return this.movieService.getMovies(dto);
+        return this.movieService.getMoviesEs(dto);
     }
 
     @Throttle({ default: { limit: 1, ttl: 1000 * 60 * 5 } })

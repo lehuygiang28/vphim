@@ -20,7 +20,8 @@
             "~api/app/*": ["apps/api/src/app/*"],
             "~api/libs/*": ["apps/api/src/libs/*"],
             "~fe/*": ["apps/fe/src/*"],
-            "~mnt/*": ["apps/mnt/src/*"]
+            "~mnt/*": ["apps/mnt/src/*"],
+            "~mb/*": ["apps/mobile/src/*"]
         }
     },
     "exclude": ["node_modules", "tmp"]
