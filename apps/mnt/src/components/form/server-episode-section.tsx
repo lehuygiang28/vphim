@@ -7,10 +7,13 @@ import {
     MinusCircleOutlined,
     QuestionCircleOutlined,
     SearchOutlined,
+    ArrowUpOutlined,
+    ArrowDownOutlined,
 } from '@ant-design/icons';
 import { ColumnType } from 'antd/es/table';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { EpisodeModal } from './episode-modal';
+import { ServerOriginSrcTag } from '../tag/server-origin-src-tag';
 
 const { Title } = Typography;
 
@@ -18,7 +21,6 @@ export const ServerEpisodeSection = ({ form }) => {
     const [isEpisodeModalVisible, setIsEpisodeModalVisible] = useState(false);
     const [currentServerIndex, setCurrentServerIndex] = useState<number | null>(null);
     const [currentServerName, setCurrentServerName] = useState<string>('');
-    const [searchText, setSearchText] = useState('');
     const [serverPaginations, setServerPaginations] = useState<{
         [key: number]: { current: number; pageSize: number };
     }>({});
@@ -38,16 +40,6 @@ export const ServerEpisodeSection = ({ form }) => {
         setCurrentServerName('');
     };
 
-    const handleSearch = (selectedKeys: React.Key[], confirm: () => void) => {
-        confirm();
-        setSearchText(selectedKeys[0] as string);
-    };
-
-    const handleReset = (clearFilters: () => void) => {
-        clearFilters();
-        setSearchText('');
-    };
-
     const getColumnSearchProps = (dataIndex: string): ColumnType<any> => ({
         filterDropdown: ({
             setSelectedKeys,
@@ -60,13 +52,13 @@ export const ServerEpisodeSection = ({ form }) => {
                     placeholder={`Search ${dataIndex}`}
                     value={selectedKeys[0]}
                     onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-                    onPressEnter={() => handleSearch(selectedKeys as React.Key[], confirm)}
+                    onPressEnter={() => confirm()}
                     style={{ width: 188, marginBottom: 8, display: 'block' }}
                 />
                 <Space>
                     <Button
                         type="primary"
-                        onClick={() => handleSearch(selectedKeys as React.Key[], confirm)}
+                        onClick={() => confirm()}
                         icon={<SearchOutlined />}
                         size="small"
                         style={{ width: 90 }}
@@ -74,7 +66,7 @@ export const ServerEpisodeSection = ({ form }) => {
                         Search
                     </Button>
                     <Button
-                        onClick={() => clearFilters && handleReset(clearFilters)}
+                        onClick={() => clearFilters && clearFilters()}
                         size="small"
                         style={{ width: 90 }}
                     >
@@ -106,17 +98,33 @@ export const ServerEpisodeSection = ({ form }) => {
         }));
     };
 
+    const moveEpisode = (serverIndex: number, fromIndex: number, toIndex: number) => {
+        const episodes = form.getFieldValue(['episode', serverIndex, 'serverData']) || [];
+        const newEpisodes = [...episodes];
+        const [movedEpisode] = newEpisodes.splice(fromIndex, 1);
+        newEpisodes.splice(toIndex, 0, movedEpisode);
+        form.setFieldValue(['episode', serverIndex, 'serverData'], newEpisodes);
+    };
+
+    const moveServer = (fromIndex: number, toIndex: number) => {
+        const servers = form.getFieldValue('episode') || [];
+        const newServers = [...servers];
+        const [movedServer] = newServers.splice(fromIndex, 1);
+        newServers.splice(toIndex, 0, movedServer);
+        form.setFieldValue('episode', newServers);
+    };
+
     return (
         <>
             <Form.List name="episode">
-                {(fields, { add, remove }) => (
+                {(fields, { add, remove, move }) => (
                     <>
                         {fields.map((field, index) => (
                             <Card
                                 key={field.key}
                                 title={
                                     <Space>
-                                        <Title level={5}>Server {index + 1}</Title>
+                                        <Title level={5}>No. {index + 1}</Title>
                                         <Form.Item
                                             {...field}
                                             name={[field.name, 'serverName']}
@@ -130,10 +138,38 @@ export const ServerEpisodeSection = ({ form }) => {
                                         >
                                             <Input placeholder="Server Name" />
                                         </Form.Item>
+                                        <Form.Item
+                                            noStyle
+                                            shouldUpdate={(prevValues, currentValues) =>
+                                                prevValues.episode?.[index]?.serverName !==
+                                                currentValues.episode?.[index]?.serverName
+                                            }
+                                        >
+                                            {({ getFieldValue }) => {
+                                                const originSrc = getFieldValue([
+                                                    'episode',
+                                                    index,
+                                                    'originSrc',
+                                                ]);
+                                                return <ServerOriginSrcTag originSrc={originSrc} />;
+                                            }}
+                                        </Form.Item>
                                     </Space>
                                 }
                                 extra={
                                     <Space>
+                                        <Button
+                                            icon={<ArrowUpOutlined />}
+                                            onClick={() =>
+                                                moveServer(index, Math.max(0, index - 1))
+                                            }
+                                            disabled={index === 0}
+                                        />
+                                        <Button
+                                            icon={<ArrowDownOutlined />}
+                                            onClick={() => moveServer(index, index + 1)}
+                                            disabled={index === fields.length - 1}
+                                        />
                                         <Button
                                             onClick={() => showEpisodeModal(index)}
                                             icon={<PlusOutlined />}
@@ -175,16 +211,17 @@ export const ServerEpisodeSection = ({ form }) => {
                                         const end = start + pageSize;
                                         const paginatedData = episodeData
                                             .slice(start, end)
-                                            .map((item) => ({
+                                            .map((item, i) => ({
                                                 ...item,
                                                 serverIndex: index,
+                                                episodeIndex: start + i,
                                             }));
 
                                         return (
                                             <Table
                                                 dataSource={paginatedData}
-                                                rowKey={(record, index) =>
-                                                    `${field.name}-${start + index}`
+                                                rowKey={(record) =>
+                                                    `${field.name}-${record.episodeIndex}`
                                                 }
                                                 columns={[
                                                     {
@@ -192,9 +229,9 @@ export const ServerEpisodeSection = ({ form }) => {
                                                         dataIndex: 'name',
                                                         key: 'name',
                                                         ...getColumnSearchProps('name'),
-                                                        render: (_, __, index) => (
+                                                        render: (_, record) => (
                                                             <Form.Item
-                                                                name={[start + index, 'name']}
+                                                                name={[record.episodeIndex, 'name']}
                                                                 rules={[
                                                                     {
                                                                         required: true,
@@ -213,9 +250,9 @@ export const ServerEpisodeSection = ({ form }) => {
                                                         dataIndex: 'slug',
                                                         key: 'slug',
                                                         ...getColumnSearchProps('slug'),
-                                                        render: (_, __, index) => (
+                                                        render: (_, record) => (
                                                             <Form.Item
-                                                                name={[start + index, 'slug']}
+                                                                name={[record.episodeIndex, 'slug']}
                                                                 rules={[
                                                                     {
                                                                         required: true,
@@ -234,9 +271,12 @@ export const ServerEpisodeSection = ({ form }) => {
                                                         dataIndex: 'linkM3u8',
                                                         key: 'linkM3u8',
                                                         ...getColumnSearchProps('linkM3u8'),
-                                                        render: (_, __, index) => (
+                                                        render: (_, record) => (
                                                             <Form.Item
-                                                                name={[start + index, 'linkM3u8']}
+                                                                name={[
+                                                                    record.episodeIndex,
+                                                                    'linkM3u8',
+                                                                ]}
                                                                 style={{ margin: 0 }}
                                                             >
                                                                 <Input />
@@ -248,9 +288,12 @@ export const ServerEpisodeSection = ({ form }) => {
                                                         dataIndex: 'linkEmbed',
                                                         key: 'linkEmbed',
                                                         ...getColumnSearchProps('linkEmbed'),
-                                                        render: (_, __, index) => (
+                                                        render: (_, record) => (
                                                             <Form.Item
-                                                                name={[start + index, 'linkEmbed']}
+                                                                name={[
+                                                                    record.episodeIndex,
+                                                                    'linkEmbed',
+                                                                ]}
                                                                 style={{ margin: 0 }}
                                                             >
                                                                 <Input />
@@ -260,27 +303,65 @@ export const ServerEpisodeSection = ({ form }) => {
                                                     {
                                                         title: 'Action',
                                                         key: 'action',
-                                                        render: (_, __, index) => (
-                                                            <Popconfirm
-                                                                title="Are you sure you want to delete this episode?"
-                                                                onConfirm={() =>
-                                                                    removeEpisode(start + index)
-                                                                }
-                                                                okText="Yes"
-                                                                cancelText="No"
-                                                                icon={
-                                                                    <QuestionCircleOutlined
-                                                                        style={{ color: 'red' }}
-                                                                    />
-                                                                }
-                                                            >
+                                                        render: (_, record) => (
+                                                            <Space>
                                                                 <Button
-                                                                    danger
-                                                                    icon={<MinusCircleOutlined />}
+                                                                    icon={<ArrowUpOutlined />}
+                                                                    size="small"
+                                                                    onClick={() =>
+                                                                        moveEpisode(
+                                                                            record.serverIndex,
+                                                                            record.episodeIndex,
+                                                                            Math.max(
+                                                                                0,
+                                                                                record.episodeIndex -
+                                                                                    1,
+                                                                            ),
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        record.episodeIndex === 0
+                                                                    }
+                                                                />
+                                                                <Button
+                                                                    icon={<ArrowDownOutlined />}
+                                                                    size="small"
+                                                                    onClick={() =>
+                                                                        moveEpisode(
+                                                                            record.serverIndex,
+                                                                            record.episodeIndex,
+                                                                            record.episodeIndex + 1,
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        record.episodeIndex ===
+                                                                        episodeData.length - 1
+                                                                    }
+                                                                />
+                                                                <Popconfirm
+                                                                    title="Are you sure you want to delete this episode?"
+                                                                    onConfirm={() =>
+                                                                        removeEpisode(
+                                                                            record.episodeIndex,
+                                                                        )
+                                                                    }
+                                                                    okText="Yes"
+                                                                    cancelText="No"
+                                                                    icon={
+                                                                        <QuestionCircleOutlined
+                                                                            style={{ color: 'red' }}
+                                                                        />
+                                                                    }
                                                                 >
-                                                                    Delete
-                                                                </Button>
-                                                            </Popconfirm>
+                                                                    <Button
+                                                                        danger
+                                                                        icon={
+                                                                            <MinusCircleOutlined />
+                                                                        }
+                                                                        size="small"
+                                                                    />
+                                                                </Popconfirm>
+                                                            </Space>
                                                         ),
                                                     },
                                                 ]}
