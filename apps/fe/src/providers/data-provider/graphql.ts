@@ -38,7 +38,6 @@ export const graphqlDataProvider = (axios: AxiosInstance) => {
         const operation = meta?.operation ?? camelResource;
 
         const input = { ...variables, ...meta?.variables?.input };
-        console.log(input);
 
         const {
             data: { data: res },

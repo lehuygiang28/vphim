@@ -78,7 +78,6 @@ export function useAxiosAuth(payload?: UseAxiosAuthPayload) {
             undefined,
             async (error) => {
                 const prevRequest = error?.config;
-                console.log({ code: error?.code, sent: prevRequest?.sent });
                 if (
                     (error?.response?.status === 401 || error?.code === 'GRAPHQL_UNAUTHORIZED') &&
                     prevRequest?.sent !== true

@@ -77,7 +77,6 @@ export const authProvider = (
             } else {
                 const loginData = data as LoginAction;
                 const { hash, provider = null, to = '/' } = loginData;
-                console.log(loginData);
                 if (provider === 'google') {
                     signIn('google', {
                         callbackUrl: to,

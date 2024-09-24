@@ -64,7 +64,6 @@ export class UsersController {
         @Param() { id: userId }: IdParamDto,
         @Body() data: UpdateUserDto,
     ) {
-        console.log(data);
         return this.usersService.updateUser({ actor, userId, data });
     }
 

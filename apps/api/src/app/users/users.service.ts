@@ -417,7 +417,6 @@ export class UsersService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-        console.log(actor);
 
         const follows = Array.from(
             new Set(
