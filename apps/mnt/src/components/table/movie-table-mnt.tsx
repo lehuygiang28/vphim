@@ -10,7 +10,17 @@ import {
     DateField,
 } from '@refinedev/antd';
 import { CrudFilters, LogicalFilter } from '@refinedev/core';
-import { Table, Space, Tag, Input, Select, Form, Image as AntImage, Button } from 'antd';
+import {
+    Table,
+    Space,
+    Tag,
+    Input,
+    Select,
+    Form,
+    Image as AntImage,
+    Button,
+    Typography,
+} from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 
 import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
@@ -20,7 +30,9 @@ import Link from 'next/link';
 import { RestoreButton } from '../button/restore-button';
 import { DeleteMovieButton } from '../button/delete-movie-button';
 import { RefreshMovieButton } from '../button/refresh-movie-button';
+import { useRouter } from 'next/navigation';
 
+const { Text } = Typography;
 const { Option } = Select;
 
 export type MovieTableMntProps = {
@@ -28,6 +40,7 @@ export type MovieTableMntProps = {
 };
 
 export default function MovieTableMnt({ type }: MovieTableMntProps) {
+    const router = useRouter();
     const [yearPickerType, setYearPickerType] = useState<'multiple' | 'range'>('multiple');
 
     const { tableProps, searchFormProps, sorters, filters, setFilters } = useTable<MovieType>({
@@ -297,10 +310,9 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                                     alt={originName || 'thumb image'}
                                     width={40}
                                     height={60}
-                                    preview={{
-                                        src: thumbUrl,
-                                        mask: 'Preview',
-                                    }}
+                                    preview={false}
+                                    onClick={() => router.push(`/movies/show/${movie?._id}`)}
+                                    style={{ cursor: 'pointer' }}
                                 />
                             );
                         },
@@ -308,6 +320,14 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                     {
                         title: 'Name',
                         dataIndex: 'name',
+                        render: (name: string, record: MovieType) => (
+                            <Space direction="vertical" size={0}>
+                                {name}
+                                {record.originName && (
+                                    <Text type="secondary">{record.originName}</Text>
+                                )}
+                            </Space>
+                        ),
                     },
                     {
                         title: 'Type',
