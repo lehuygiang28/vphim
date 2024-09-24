@@ -600,11 +600,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
                                 <Form.Item
                                     name="subDocquyen"
                                     valuePropName="checked"
-                                    label="Sub Docquyen"
+                                    label="Sub Copyright"
                                     rules={[
                                         {
                                             type: 'boolean',
-                                            message: 'Sub Docquyen must be a boolean',
+                                            message: 'Sub Copyright must be a boolean',
                                         },
                                     ]}
                                 >

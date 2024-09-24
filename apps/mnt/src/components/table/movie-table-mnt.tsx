@@ -347,45 +347,9 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         ),
                     },
                     {
-                        title: 'Imdb',
-                        dataIndex: ['imdb', 'id'],
-                        render: (id?: number) => (
-                            <>
-                                {id ? (
-                                    <Link
-                                        href={`https://www.imdb.com/title/${id}`}
-                                        target="_blank"
-                                        referrerPolicy="no-referrer"
-                                    >
-                                        {id}
-                                    </Link>
-                                ) : (
-                                    'N/A'
-                                )}
-                            </>
-                        ),
-                    },
-                    {
-                        title: 'Tmdb',
-                        dataIndex: ['tmdb'],
-                        render: (tmdb?: { id: string; type: string }) => {
-                            const { id = null, type = null } = tmdb || {};
-                            return (
-                                <>
-                                    {id && type ? (
-                                        <Link
-                                            href={`https://www.themoviedb.org/${type}/${id}`}
-                                            target="_blank"
-                                            referrerPolicy="no-referrer"
-                                        >
-                                            {id}
-                                        </Link>
-                                    ) : (
-                                        'N/A'
-                                    )}
-                                </>
-                            );
-                        },
+                        title: 'Current',
+                        dataIndex: ['episodeCurrent'],
+                        render: (episodeCurrent: string) => <>{episodeCurrent.toLowerCase()}</>,
                     },
                     {
                         title: 'Views',
