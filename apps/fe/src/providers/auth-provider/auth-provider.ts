@@ -35,7 +35,7 @@ export const authProvider = (
                     .then(() => {
                         return {
                             success: true,
-                            redirectTo: RouteNameEnum.LOGIN_PAGE,
+                            redirectTo: data?.['redirectTo'] || RouteNameEnum.LOGIN_PAGE,
                             redirect: true,
                             successNotification: {
                                 description: 'Thành công',

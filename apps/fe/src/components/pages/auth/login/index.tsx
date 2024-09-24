@@ -25,9 +25,10 @@ export enum LoginTitle {
 
 export type LoginProps = {
     onBack?: () => void;
+    redirectTo?: string;
 };
 
-export default function Login({ onBack }: LoginProps) {
+export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
     const router = useRouter();
     const params = useSearchParams();
     const { open } = useNotification();
@@ -56,7 +57,7 @@ export default function Login({ onBack }: LoginProps) {
             returnUrl: returnUrl.toString(),
         };
 
-        return login(data);
+        return login({ ...data, redirectTo });
     };
 
     useEffect(() => {
