@@ -66,7 +66,6 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                         show: '/movies/show/:id',
                                         edit: '/movies/edit/:id',
                                         meta: {
-                                            dataProviderName: 'graphql',
                                             icon: <PlaySquareOutlined />,
                                             canDelete: true,
                                         },
