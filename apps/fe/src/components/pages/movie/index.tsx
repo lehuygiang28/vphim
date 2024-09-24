@@ -310,8 +310,8 @@ export function Movie({ slug }: MovieProps) {
                                         url={movie?.thumbUrl || ''}
                                         url2={movie?.posterUrl || ''}
                                         alt={movie?.name || ''}
-                                        width={md ? 500 : 150}
-                                        height={md ? 750 : 225}
+                                        width={750}
+                                        height={1000}
                                         style={{
                                             borderRadius: '0.5rem',
                                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',

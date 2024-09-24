@@ -54,8 +54,8 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                     alt={movie.name}
                     url={movie.thumbUrl}
                     // url2={movie.posterUrl}
-                    width={md ? 500 : 150}
-                    height={md ? 750 : 225}
+                    width={750}
+                    height={1000}
                     style={{ maxHeight: '100%', maxWidth: '100%' }}
                 />
                 <Tag
