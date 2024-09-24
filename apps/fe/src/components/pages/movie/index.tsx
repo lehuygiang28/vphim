@@ -40,13 +40,15 @@ const InfoItem = ({
     title,
     content,
     md = false,
+    ellipsis = true,
 }: {
     title: string;
     content: React.ReactNode;
     md?: boolean;
+    ellipsis?: boolean;
 }) => (
     <Paragraph
-        ellipsis={{ rows: 5, expandable: false }}
+        ellipsis={ellipsis ? { rows: 5, expandable: false } : false}
         style={{ maxWidth: md ? '50vw' : '100vw', marginBottom: '0.1rem' }}
     >
         <Title
@@ -214,7 +216,7 @@ export function Movie({ slug }: MovieProps) {
                     />
                 )}
                 <InfoItem md={md} title="Thời lượng" content={movie?.time} />
-                <InfoItem md={md} title="Tóm tắt" content={movie?.content} />
+                <InfoItem md={md} title="Tóm tắt" content={movie?.content} ellipsis={false} />
             </Space>
         );
     };
@@ -309,7 +311,7 @@ export function Movie({ slug }: MovieProps) {
                                         url2={movie?.posterUrl || ''}
                                         alt={movie?.name || ''}
                                         width={md ? 500 : 150}
-                                        height={md ? 745 : 200}
+                                        height={md ? 750 : 225}
                                         style={{
                                             borderRadius: '0.5rem',
                                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
