@@ -6,16 +6,28 @@ import { CategoryRepository } from './category.repository';
 import { UpdateCategoryDto } from './dtos';
 import { GetCategoriesInput } from './inputs/get-categories.input';
 import { Category } from './category.schema';
+import { sortedStringify } from '../../libs/utils/common';
+import { RedisService } from '../../libs/modules/redis';
 
 @Injectable()
 export class CategoryService {
     private readonly logger: Logger;
 
-    constructor(private readonly categoryRepo: CategoryRepository) {
+    constructor(
+        private readonly categoryRepo: CategoryRepository,
+        private readonly redisService: RedisService,
+    ) {
         this.logger = new Logger(CategoryService.name);
     }
 
     async getCategories(query?: GetCategoriesInput) {
+        const cacheKey = `CACHED:CATEGORIES:${sortedStringify(query)}`;
+
+        const fromCache = await this.redisService.get(cacheKey);
+        if (fromCache) {
+            return fromCache;
+        }
+
         const { keywords } = query;
         const filterQuery: FilterQuery<Category> = {};
 
@@ -28,8 +40,10 @@ export class CategoryService {
             this.categoryRepo.find({ filterQuery, query }),
             this.categoryRepo.count(filterQuery),
         ]);
+        const result = { data, total };
 
-        return { data, total };
+        await this.redisService.set(cacheKey, result, 1000 * 10);
+        return result;
     }
 
     async updateCategory({ slug, body }: { slug: string; body: UpdateCategoryDto }) {

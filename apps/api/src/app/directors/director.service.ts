@@ -6,12 +6,17 @@ import { Director } from './director.schema';
 import { GetDirectorsInput } from './inputs/get-directors.input';
 import { FilterQuery } from 'mongoose';
 import { createRegex } from '@vn-utils/text';
+import { RedisService } from '../../libs/modules/redis/services';
+import { sortedStringify } from '../../libs/utils/common';
 
 @Injectable()
 export class DirectorService {
     private readonly logger: Logger;
 
-    constructor(private readonly directorRepo: DirectorRepository) {
+    constructor(
+        private readonly directorRepo: DirectorRepository,
+        private readonly redisService: RedisService,
+    ) {
         this.logger = new Logger(DirectorService.name);
     }
 
@@ -20,6 +25,13 @@ export class DirectorService {
     }
 
     async getDirectors(query?: GetDirectorsInput) {
+        const cacheKey = `CACHED:DIRECTORS:${sortedStringify(query)}`;
+
+        const fromCache = await this.redisService.get(cacheKey);
+        if (fromCache) {
+            return fromCache;
+        }
+
         const { keywords } = query;
         const filters: FilterQuery<Director> = {};
 
@@ -28,15 +40,14 @@ export class DirectorService {
             filters.$or = [{ name: regex }, { slug: regex }, { content: regex }];
         }
 
-        const [regions, total] = await Promise.all([
+        const [directors, total] = await Promise.all([
             this.directorRepo.find({ filterQuery: filters, query }),
             this.directorRepo.count(filters),
         ]);
+        const result = { data: directors, total };
 
-        return {
-            data: regions,
-            total,
-        };
+        await this.redisService.set(cacheKey, result, 1000 * 10);
+        return result;
     }
 
     async updateDirector({ slug, body }: { slug: string; body: UpdateDirectorDto }) {

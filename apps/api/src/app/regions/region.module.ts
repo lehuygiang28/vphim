@@ -9,12 +9,14 @@ import { RegionsService } from './region.service';
 import { RegionController } from './region.controller';
 import { RegionCrawler } from './region.crawler';
 import { RegionResolver } from './region.resolver';
+import { RedisModule } from '../../libs/modules/redis';
 
 @Module({
     imports: [
         ConfigModule.forRoot(),
         MongooseModule.forFeature([{ name: Region.name, schema: RegionSchema }]),
         ScheduleModule.forRoot(),
+        RedisModule,
     ],
     controllers: [RegionController],
     providers: [RegionResolver, RegionRepository, RegionsService, RegionCrawler],

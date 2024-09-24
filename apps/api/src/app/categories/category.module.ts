@@ -9,12 +9,14 @@ import { CategoryCrawler } from './category.crawler';
 import { CategoryService } from './category.service';
 import { CategoryController } from './category.controller';
 import { CategoryResolver } from './category.resolver';
+import { RedisModule } from '../../libs/modules/redis';
 
 @Module({
     imports: [
         ConfigModule.forRoot(),
         MongooseModule.forFeature([{ name: Category.name, schema: CategorySchema }]),
         ScheduleModule.forRoot(),
+        RedisModule,
     ],
     controllers: [CategoryController],
     providers: [CategoryResolver, CategoryService, CategoryRepository, CategoryCrawler],
