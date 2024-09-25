@@ -37,7 +37,7 @@ jobs:
               run: yarn install --immutable
 
             - name: Build Android app
-              run: yarn nx build mobile -- --platform android --non-interactive --no-wait --profile preview --local --output ${{ github.workspace }}/app-release.apk
+              run: yarn nx build mobile -- --platform android --non-interactive --no-wait --output ${{ github.workspace }}/vephim.apk
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
               with:
