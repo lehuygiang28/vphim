@@ -25,8 +25,11 @@ const handleResetCache = (meta: MetaQuery): { [key: string]: boolean } | object 
     return {};
 };
 
-export const graphqlDataProvider = (axios: AxiosInstance) => {
-    const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/graphql`;
+export const graphqlDataProvider = (
+    axios: AxiosInstance,
+    { publicApiUrl = '' }: { publicApiUrl?: string } = {},
+) => {
+    const baseUrl = `${publicApiUrl ?? process.env.NEXT_PUBLIC_API_URL}/graphql`;
 
     const client = new GraphQLClient(baseUrl, {
         fetch: axios,

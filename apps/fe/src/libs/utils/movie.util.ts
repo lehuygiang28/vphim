@@ -44,8 +44,10 @@ export function getEpisodeNameBySlug(movie: MovieType, slug: string): string {
 
 export function getOptimizedImageUrl(
     url: string,
-    option: { width: number; height: number; quality?: number },
+    option: { width: number; height: number; quality?: number; baseUrl?: string },
 ) {
     const { width, height, quality = 75 } = option;
-    return `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`;
+    return `${
+        option?.baseUrl || process.env.NEXT_PUBLIC_API_URL
+    }/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`;
 }
