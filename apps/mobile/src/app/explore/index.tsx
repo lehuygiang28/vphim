@@ -73,7 +73,7 @@ const ExploreScreen = () => {
                 movie={item}
                 onPress={() =>
                     navigation.navigate(
-                        ...(['MovieDetails', { id: item._id?.toString() }] as never),
+                        ...(['MovieDetails', { slug: item.slug?.toString() }] as never),
                     )
                 }
             />

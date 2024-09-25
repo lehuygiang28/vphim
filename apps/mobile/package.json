@@ -126,7 +126,13 @@
     "lucide-react-native": "*",
     "lodash": "*",
     "lodash.debounce": "*",
-    "@types/lodash.debounce": "*"
+    "@types/lodash.debounce": "*",
+    "@refinedev/kbar": "*",
+    "@refinedev/devtools": "*",
+    "@refinedev/ui-types": "*",
+    "use-debounce": "*",
+    "react-native-webview": "*",
+    "expo-blur": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",

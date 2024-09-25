@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Platform, StatusBar, Image } from 'react-native';
 import { NavigationContainer, useRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DataProvider, Refine } from '@refinedev/core';
 import { Provider as PaperProvider, Appbar, Searchbar } from 'react-native-paper';
 import { ReactNavigationThemeProvider } from '@refinenative/react-native-paper';
@@ -14,8 +15,21 @@ import { useAxiosAuth } from '../hooks/useAxiosAuth';
 import HomeScreen from './home';
 import ExploreScreen from './explore';
 import AccountScreen from './account';
+import MovieDetailsScreen from './movie';
 
-const Tab = createBottomTabNavigator();
+type RootStackParamList = {
+    MainTabs: undefined;
+    MovieDetails: { slug: string };
+};
+
+type TabParamList = {
+    Home: undefined;
+    Explore: { searchQuery?: string };
+    Account: undefined;
+};
+
+const Tab = createBottomTabNavigator<TabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const Logo = () => (
     <Image
@@ -57,6 +71,38 @@ const AppHeader = ({ navigation }: { navigation: any }) => {
     );
 };
 
+function TabNavigator() {
+    return (
+        <Tab.Navigator
+            screenOptions={({ route, navigation }) => ({
+                tabBarIcon: ({ focused, color, size }) => {
+                    let iconName;
+
+                    if (route.name === 'Home') {
+                        iconName = focused ? 'home' : 'home-outline';
+                    } else if (route.name === 'Explore') {
+                        iconName = focused ? 'compass' : 'compass-outline';
+                    } else if (route.name === 'Account') {
+                        iconName = focused ? 'person' : 'person-outline';
+                    }
+
+                    return <Ionicons name={iconName as never} size={size} color={color} />;
+                },
+                tabBarActiveTintColor: CustomDarkTheme.colors.primary,
+                tabBarInactiveTintColor: CustomDarkTheme.colors.onSurfaceVariant,
+                tabBarStyle: {
+                    backgroundColor: CustomDarkTheme.colors.surface,
+                },
+                header: () => <AppHeader navigation={navigation} />,
+            })}
+        >
+            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Explore" component={ExploreScreen} />
+            <Tab.Screen name="Account" component={AccountScreen} />
+        </Tab.Navigator>
+    );
+}
+
 export default function App() {
     const axiosAuth = useAxiosAuth({ baseURL: process.env.EXPO_PUBLIC_BASE_API_URL });
 
@@ -84,39 +130,18 @@ export default function App() {
             <ReactNavigationThemeProvider theme={CustomDarkTheme}>
                 <PaperProvider theme={CustomDarkTheme}>
                     <NavigationContainer>
-                        <Tab.Navigator
-                            screenOptions={({ route, navigation }) => ({
-                                tabBarIcon: ({ focused, color, size }) => {
-                                    let iconName;
-
-                                    if (route.name === 'Home') {
-                                        iconName = focused ? 'home' : 'home-outline';
-                                    } else if (route.name === 'Explore') {
-                                        iconName = focused ? 'compass' : 'compass-outline';
-                                    } else if (route.name === 'Account') {
-                                        iconName = focused ? 'person' : 'person-outline';
-                                    }
-
-                                    return (
-                                        <Ionicons
-                                            name={iconName as never}
-                                            size={size}
-                                            color={color}
-                                        />
-                                    );
-                                },
-                                tabBarActiveTintColor: CustomDarkTheme.colors.primary,
-                                tabBarInactiveTintColor: CustomDarkTheme.colors.onSurfaceVariant,
-                                tabBarStyle: {
-                                    backgroundColor: CustomDarkTheme.colors.surface,
-                                },
-                                header: () => <AppHeader navigation={navigation} />,
-                            })}
-                        >
-                            <Tab.Screen name="Home" component={HomeScreen} />
-                            <Tab.Screen name="Explore" component={ExploreScreen} />
-                            <Tab.Screen name="Account" component={AccountScreen} />
-                        </Tab.Navigator>
+                        <Stack.Navigator>
+                            <Stack.Screen
+                                name="MainTabs"
+                                component={TabNavigator}
+                                options={{ headerShown: false }}
+                            />
+                            <Stack.Screen
+                                name="MovieDetails"
+                                component={MovieDetailsScreen}
+                                options={{ headerShown: false }}
+                            />
+                        </Stack.Navigator>
                     </NavigationContainer>
                     <StatusBar barStyle="light-content" />
                 </PaperProvider>
