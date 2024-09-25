@@ -6114,6 +6114,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-navigation/bottom-tabs@npm:^6.6.1":
+  version: 6.6.1
+  resolution: "@react-navigation/bottom-tabs@npm:6.6.1"
+  dependencies:
+    "@react-navigation/elements": "npm:^1.3.31"
+    color: "npm:^4.2.3"
+    warn-once: "npm:^0.1.0"
+  peerDependencies:
+    "@react-navigation/native": ^6.0.0
+    react: "*"
+    react-native: "*"
+    react-native-safe-area-context: ">= 3.0.0"
+    react-native-screens: ">= 3.0.0"
+  checksum: 10c0/871bd824f8aa210718d8bfdc875cc840dbaeec86da67846cd34de8bbccfff837c7d825e257d2b0b5762b38f01ea785f95c54001e08e086fe7ea9234fefaec21f
+  languageName: node
+  linkType: hard
+
 "@react-navigation/bottom-tabs@npm:~6.5.7":
   version: 6.5.20
   resolution: "@react-navigation/bottom-tabs@npm:6.5.20"
@@ -7537,6 +7554,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash.debounce@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "@types/lodash.debounce@npm:4.0.9"
+  dependencies:
+    "@types/lodash": "npm:*"
+  checksum: 10c0/9fbb24e5e52616faf60ba5c82d8c6517f4b86fc6e9ab353b4c56c0760f63d9bf53af3f2d8f6c37efa48090359fb96dba1087d497758511f6c40677002191d042
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:*":
+  version: 4.17.9
+  resolution: "@types/lodash@npm:4.17.9"
+  checksum: 10c0/54de935e835508b5f835a5dfaedd2b9a299685a21d11e9c5cd2dde57331d03bc2f98b71d2424ca8460f447ecd55a673e45ccdb70e58f9f72745710f6b91abc60
+  languageName: node
+  linkType: hard
+
 "@types/long@npm:^4.0.0":
   version: 4.0.2
   resolution: "@types/long@npm:4.0.2"
@@ -8155,6 +8188,7 @@ __metadata:
     "@expo/cli": "npm:~0.18.13"
     "@expo/metro-config": "npm:~0.18.1"
     "@expo/metro-runtime": "npm:~3.2.1"
+    "@expo/vector-icons": "npm:^14.0.3"
     "@hookform/resolvers": "npm:^3.9.0"
     "@nest-lab/throttler-storage-redis": "npm:^1.0.0"
     "@nestjs-modules/mailer": "npm:^2.0.2"
@@ -8192,6 +8226,7 @@ __metadata:
     "@octokit/rest": "npm:^20.1.1"
     "@playwright/test": "npm:^1.36.0"
     "@react-native-async-storage/async-storage": "npm:1.23.1"
+    "@react-navigation/bottom-tabs": "npm:^6.6.1"
     "@react-navigation/drawer": "npm:^6.7.2"
     "@refinedev/antd": "npm:^5.43.0"
     "@refinedev/core": "npm:^4.54.0"
@@ -8218,6 +8253,7 @@ __metadata:
     "@types/jest": "npm:^29.5.12"
     "@types/js-cookie": "npm:^3.0.6"
     "@types/jsonwebtoken": "npm:~9.0.7"
+    "@types/lodash.debounce": "npm:^4.0.9"
     "@types/ms": "npm:^0.7.34"
     "@types/multer": "npm:^1.4.12"
     "@types/node": "npm:18.16.9"
@@ -8255,6 +8291,8 @@ __metadata:
     eslint-plugin-react: "npm:7.32.2"
     eslint-plugin-react-hooks: "npm:4.6.0"
     expo: "npm:~51.0.8"
+    expo-image: "npm:~1.13.0"
+    expo-linear-gradient: "npm:~13.0.2"
     expo-linking: "npm:~6.3.1"
     expo-router: "npm:~3.5.23"
     expo-splash-screen: "npm:~0.27.4"
@@ -8270,6 +8308,8 @@ __metadata:
     jest-expo: "npm:~51.0.2"
     js-cookie: "npm:^3.0.5"
     jsonwebtoken: "npm:^9.0.2"
+    lodash.debounce: "npm:^4.0.8"
+    lucide-react-native: "npm:^0.446.0"
     mongoose: "npm:^8.5.4"
     ms: "npm:^2.1.3"
     multer: "npm:^1.4.5-lts.1"
@@ -8298,6 +8338,7 @@ __metadata:
     react-native-screens: "npm:3.31.1"
     react-native-svg: "npm:15.2.0"
     react-native-svg-transformer: "npm:1.3.0"
+    react-native-swiper: "npm:^1.6.0"
     react-native-web: "npm:~0.19.11"
     react-test-renderer: "npm:18.2.0"
     reflect-metadata: "npm:^0.1.13"
@@ -12986,12 +13027,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-image@npm:~1.13.0":
+  version: 1.13.0
+  resolution: "expo-image@npm:1.13.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/cc892cb15ad23766d7f13b3cd4c564b6b57d358d7a46063daf38f3fc752c0af8307b27a8206a9d25ef7e858df1f9839efc690b136956a167fe2befbe60d18585
+  languageName: node
+  linkType: hard
+
 "expo-keep-awake@npm:~13.0.2":
   version: 13.0.2
   resolution: "expo-keep-awake@npm:13.0.2"
   peerDependencies:
     expo: "*"
   checksum: 10c0/8548e46991739f42456428141b574c9d83ef77f2a79f371b5c6c1b77364759d4a993af8d40c027a904b5870d41165c99e3e4a8fea93316853819ba16fac0d692
+  languageName: node
+  linkType: hard
+
+"expo-linear-gradient@npm:~13.0.2":
+  version: 13.0.2
+  resolution: "expo-linear-gradient@npm:13.0.2"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/1643ff61092e13efb573880defe04e28f4f91cdbf4ba1c762d6694a504dadfa4365ce786dae312f5baeacc22aa3fd048f32cd2d4471a922ac4c42b1dd3a0129b
   languageName: node
   linkType: hard
 
@@ -17541,6 +17600,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react-native@npm:^0.446.0":
+  version: 0.446.0
+  resolution: "lucide-react-native@npm:0.446.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0
+    react-native: "*"
+    react-native-svg: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0
+  checksum: 10c0/035d246cd3736793a94fe822fc27e8ccf817cfed1743d2b57edce85250aa58c03da89629fb66478079f3870b87f42cc7d2ce1ed9a10aced4f443a661766f4f9e
+  languageName: node
+  linkType: hard
+
 "luxon@npm:^3.2.1":
   version: 3.5.0
   resolution: "luxon@npm:3.5.0"
@@ -21280,7 +21350,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:^15.5.10, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -22367,6 +22437,15 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/9b979dbf101ee3131c606c7960f1bc8c49b3f0acb42b394e9b89f33b853e20765d93844178ad545747e73b2ffd5654d6e486daf86987865983913c46d31bb2c8
+  languageName: node
+  linkType: hard
+
+"react-native-swiper@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "react-native-swiper@npm:1.6.0"
+  dependencies:
+    prop-types: "npm:^15.5.10"
+  checksum: 10c0/5cddf220f8a910b82220aafd1b17a51dd6d2cc2cab14304c133409b2198f88ff8de9cde016f2d1ca1e0f2c742500bc2db98db4b44317ad49feea9d68747b596e
   languageName: node
   linkType: hard
 
