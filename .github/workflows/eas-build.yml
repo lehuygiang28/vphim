@@ -39,12 +39,15 @@ jobs:
             - name: Install dependencies in root
               run: yarn install
 
-            - name: Prepare mobile app directory
+            - name: Run eas-build-pre-install script
               run: |
-                  mkdir -p apps/mobile/.yarn
-                  cp -r .yarn/releases apps/mobile/.yarn/
-                  cp yarn.lock apps/mobile/
-                  cp .yarnrc.yml apps/mobile/
+                  cd apps/mobile
+                  yarn run eas-build-pre-install
+
+            - name: Remove eas-build-pre-install script
+              run: |
+                  cd apps/mobile
+                  jq 'del(.scripts["eas-build-pre-install"])' package.json > temp.json && mv temp.json package.json
 
             - name: Install dependencies in mobile app
               run: |
@@ -54,7 +57,7 @@ jobs:
             - name: Build Android app
               run: |
                   cd apps/mobile
-                  eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
+                  npx eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
