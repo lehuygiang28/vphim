@@ -37,8 +37,10 @@ RUN apk update && \
 
 WORKDIR /usr/src/app
 
+RUN chown node:node /usr/src/app
 # Create log directory
-RUN mkdir -p ./log && chown node:node ./log
+RUN mkdir -p ./log
+RUN chown node:node ./log
 
 # Copy necessary files
 COPY --chown=node:node ./containers/be-with-redis/supervisord.conf ./supervisord.conf
