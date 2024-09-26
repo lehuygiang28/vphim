@@ -38,7 +38,8 @@ jobs:
 
             - name: Switch to Yarn Classic
               run: |
-                  npm install -g yarn@1.22.19
+                  npm uninstall -g yarn
+                  npm install -g yarn@1.22.22
                   yarn set version classic
 
             - name: Reinstall dependencies with Yarn Classic
