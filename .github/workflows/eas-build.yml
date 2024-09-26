@@ -54,7 +54,7 @@ jobs:
             - name: Build Android app
               run: |
                   cd apps/mobile
-                  npx eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
+                  yarn eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
