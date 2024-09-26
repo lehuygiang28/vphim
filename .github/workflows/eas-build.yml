@@ -42,7 +42,7 @@ jobs:
             - name: Run eas-build-pre-install script
               run: |
                   cd apps/mobile
-                  yarn run eas-build-pre-install
+                  npm run eas-build-pre-install
 
             - name: Remove eas-build-pre-install script
               run: |
