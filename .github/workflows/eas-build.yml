@@ -41,6 +41,10 @@ jobs:
 
             - name: Build Android app
               run: |
+                  cd apps/mobile
+                  yarn set version stable
+                  yarn install
+                  cd ../../
                   yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
