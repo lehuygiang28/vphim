@@ -54,16 +54,10 @@ jobs:
               run: yarn install
 
             - name: Trigger EAS Build
-              env:
-                  EXPO_PUBLIC_BASE_API_URL: https://vphim-api.giaang.id.vn
-                  EXPO_PUBLIC_BASE_PLAYER_URL: https://vephim.vercel.app
               run: |
                   yarn nx build mobile -- --platform android --non-interactive --no-wait
 
             - name: Build Android app
-              env:
-                  EXPO_PUBLIC_BASE_API_URL: https://vphim-api.giaang.id.vn
-                  EXPO_PUBLIC_BASE_PLAYER_URL: https://vephim.vercel.app
               run: |
                   yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
