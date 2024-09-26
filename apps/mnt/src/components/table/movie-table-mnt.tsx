@@ -1,14 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-    useTable,
-    List,
-    EditButton,
-    ShowButton,
-    getDefaultSortOrder,
-    DateField,
-} from '@refinedev/antd';
+import { useRouter } from 'next/navigation';
+import { useTable, List, ShowButton, getDefaultSortOrder, DateField } from '@refinedev/antd';
 import { CrudFilters, LogicalFilter } from '@refinedev/core';
 import {
     Table,
@@ -26,11 +20,10 @@ import { SearchOutlined } from '@ant-design/icons';
 import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
 import { MovieType } from '~api/app/movies/movie.type';
 import { MNT_MOVIE_LIST_QUERY, MUTATION_UPDATE_MOVIE } from '~mnt/queries/movie.query';
-import Link from 'next/link';
 import { RestoreButton } from '../button/restore-button';
 import { DeleteMovieButton } from '../button/delete-movie-button';
 import { RefreshMovieButton } from '../button/refresh-movie-button';
-import { useRouter } from 'next/navigation';
+import { EditMovieButton } from '../button/edit-movie-button';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -311,7 +304,9 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                                     width={40}
                                     height={60}
                                     preview={false}
-                                    onClick={() => router.push(`/movies/show/${movie?._id}`)}
+                                    onClick={() =>
+                                        router.push(`/movies/show/${movie?._id?.toString()}`)
+                                    }
                                     style={{ cursor: 'pointer' }}
                                 />
                             );
@@ -373,10 +368,10 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                             if (type === 'show') {
                                 return (
                                     <Space>
-                                        <EditButton
+                                        <EditMovieButton
+                                            id={record._id?.toString()}
                                             hideText
                                             size="small"
-                                            recordItemId={record._id?.toString()}
                                         />
                                         <ShowButton
                                             hideText

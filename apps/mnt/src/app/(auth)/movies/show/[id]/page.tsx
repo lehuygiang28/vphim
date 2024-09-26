@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useShow } from '@refinedev/core';
-import { Show, DeleteButton, EditButton, RefreshButton } from '@refinedev/antd';
+import { Show, DeleteButton, RefreshButton } from '@refinedev/antd';
 import {
     Typography,
     Row,
@@ -33,6 +33,7 @@ import { MovieType, EpisodeType, EpisodeServerDataType } from '~api/app/movies/m
 import { ActorType } from '~api/app/actors/actor.type';
 import { CategoryType } from '~api/app/categories/category.type';
 import { GET_FULL_MOVIE_DETAIL_QUERY } from '~mnt/queries/movie.query';
+import { EditMovieButton } from '~mnt/components/button/edit-movie-button';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -184,9 +185,18 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
             isLoading={isLoading}
             headerButtons={({ refreshButtonProps }) => (
                 <>
-                    <EditButton recordItemId={params.id} />
-                    <DeleteButton recordItemId={params.id} />
-                    <RefreshButton {...refreshButtonProps} />
+                    {params?.id && (
+                        <>
+                            <EditMovieButton id={params.id?.toString()} />
+                            <DeleteButton recordItemId={params.id?.toString()} />
+                            <RefreshButton
+                                {...refreshButtonProps}
+                                id={params.id?.toString()}
+                                resource="movies"
+                                dataProviderName="graphql"
+                            />
+                        </>
+                    )}
                 </>
             )}
         >

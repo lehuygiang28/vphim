@@ -1,4 +1,7 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useSelect } from '@refinedev/antd';
 import {
     Form,
@@ -54,6 +57,7 @@ export type MovieFormProps = {
 export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
     const apiUrl = useApiUrl();
     const axios = useAxiosAuth();
+    const pathname = usePathname();
 
     const { selectProps: actorSelectProps } = useSelect<ActorType>({
         dataProviderName: 'graphql',
@@ -276,16 +280,18 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
                 formProps?.form.setFieldsValue({ [key]: value });
             }
         });
-    }, [query?.data?.data, formProps?.form]);
+    }, [query?.data?.data, formProps?.form, pathname]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleFormSubmit = (values: any) => {
         const updatedValues = {
             ...values,
-            actors: values.actors?.map((actor: ActorType) => actor._id),
-            categories: values.categories?.map((category: CategoryType) => category._id),
-            countries: values.countries?.map((country: RegionType) => country._id),
-            directors: values.directors?.map((director: DirectorType) => director._id),
+            actors: values.actors?.map((actor: ActorType) => actor._id?.toString()),
+            categories: values.categories?.map((category: CategoryType) =>
+                category._id?.toString(),
+            ),
+            countries: values.countries?.map((country: RegionType) => country._id?.toString()),
+            directors: values.directors?.map((director: DirectorType) => director._id?.toString()),
         };
         return formProps.onFinish?.(updatedValues);
     };
@@ -396,7 +402,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
                                                 value: _id?.toString(),
                                             })) || []),
                                             ...(actorSelectProps?.options || []),
-                                        ]}
+                                        ].filter(
+                                            (actor, index, self) =>
+                                                index ===
+                                                self.findIndex((t) => t.value === actor.value),
+                                        )}
                                         mode="multiple"
                                     />
                                 </Form.Item>
@@ -419,7 +429,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
                                                 }),
                                             ) || []),
                                             ...(directorSelectProps?.options || []),
-                                        ]}
+                                        ].filter(
+                                            (director, index, self) =>
+                                                index ===
+                                                self.findIndex((t) => t.value === director.value),
+                                        )}
                                         mode="multiple"
                                     />
                                 </Form.Item>
@@ -444,7 +458,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
                                                 }),
                                             ) || []),
                                             ...(categorySelectProps?.options || []),
-                                        ]}
+                                        ].filter(
+                                            (category, index, self) =>
+                                                index ===
+                                                self.findIndex((t) => t.value === category.value),
+                                        )}
                                         mode="multiple"
                                     />
                                 </Form.Item>
@@ -460,12 +478,18 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
                                     <Select
                                         {...countrySelectProps}
                                         options={[
-                                            ...(query?.data?.data?.actors?.map(({ name, _id }) => ({
-                                                label: name,
-                                                value: _id?.toString(),
-                                            })) || []),
+                                            ...(query?.data?.data?.countries?.map(
+                                                ({ name, _id }) => ({
+                                                    label: name,
+                                                    value: _id?.toString(),
+                                                }),
+                                            ) || []),
                                             ...(countrySelectProps?.options || []),
-                                        ]}
+                                        ].filter(
+                                            (country, index, self) =>
+                                                index ===
+                                                self.findIndex((t) => t.value === country.value),
+                                        )}
                                         mode="multiple"
                                     />
                                 </Form.Item>

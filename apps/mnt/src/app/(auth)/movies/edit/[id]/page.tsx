@@ -1,6 +1,5 @@
 'use client';
 
-import { useCallback } from 'react';
 import { Spin } from 'antd';
 import { useForm, SaveButton } from '@refinedev/antd';
 import { Edit } from '@refinedev/antd';
@@ -31,6 +30,7 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
             },
         },
         redirect: 'show',
+        invalidates: ['list', 'detail'],
     });
 
     if (query?.isLoading) {
