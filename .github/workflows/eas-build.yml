@@ -45,6 +45,14 @@ jobs:
               run: |
                   yarn config set cacheFolder .yarn-cache
 
+            - name: Prepare mobile app directory
+              run: |
+                  cp yarn.lock apps/mobile/
+                  cp .yarnrc.yml apps/mobile/
+                  mkdir -p apps/mobile/.yarn
+                  cp -r .yarn/releases apps/mobile/.yarn/
+                  cp -r .yarn/plugins apps/mobile/.yarn/
+
             - name: Run pre-install script
               run: |
                   node tools/scripts/eas-build-pre-install.mjs . apps/mobile
