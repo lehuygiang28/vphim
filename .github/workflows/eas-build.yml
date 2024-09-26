@@ -6,7 +6,24 @@ on:
             - feat/eas
 
 jobs:
+    check_commit_message:
+        runs-on: ubuntu-latest
+        outputs:
+            run_workflow: ${{ steps.check_message.outputs.run_workflow }}
+        steps:
+            - name: Check commit message
+              id: check_message
+              run: |
+                  message=$(git log -1 --pretty=%B)
+                  if [[ $message == *"[apk]"* ]]; then
+                    echo "run_workflow=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "run_workflow=false" >> $GITHUB_OUTPUT
+                  fi
+
     build:
+        needs: check_commit_message
+        if: needs.check_commit_message.outputs.run_workflow == 'true'
         runs-on: ubuntu-latest
         steps:
             - name: Setup repo
@@ -69,5 +86,6 @@ jobs:
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
               with:
+                  compression-level: 0
                   name: app-release
                   path: ${{ github.workspace }}/vephim.apk
