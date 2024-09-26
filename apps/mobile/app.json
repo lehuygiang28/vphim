@@ -1,7 +1,7 @@
 {
     "expo": {
         "name": "VePhim",
-        "slug": "mobile",
+        "slug": "vephim",
         "version": "1.0.0",
         "orientation": "portrait",
         "icon": "./assets/icon.png",
@@ -28,6 +28,12 @@
             "favicon": "./assets/favicon.png",
             "bundler": "metro"
         },
+        "extra": {
+            "eas": {
+                "projectId": "f36cda1c-8598-47b7-932e-9961be11128b"
+            }
+        },
+        "owner": "lehuygiang28",
         "plugins": []
     }
 }

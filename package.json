@@ -53,7 +53,7 @@
         "@refinenative/react-native-paper": "^0.1.12",
         "@types/cors": "^2.8.17",
         "@vidstack/react": "^1.12.9",
-        "@vn-utils/text": "0.0.1-rc.2",
+        "@vn-utils/text": "^0.0.1",
         "antd": "^5.20.3",
         "axios": "^1.7.7",
         "bcryptjs": "^2.4.3",
