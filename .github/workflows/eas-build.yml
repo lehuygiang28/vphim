@@ -1,51 +1,52 @@
-name: Android App APK Build
-
+name: Deploy PR to Expo
 on:
     push:
         branches:
             - feat/eas
-
 jobs:
-    build:
+    deploy:
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+
         steps:
-            - name: Setup repo
+            - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Setup node
+            - name: Setup node.js
               uses: actions/setup-node@v4
               with:
                   node-version: 20.x
 
-            - name: Enable Corepack for Yarn v4
-              run: corepack enable
-
-            - name: Set up JDK 17
-              uses: actions/setup-java@v4
+            - name: Setup expo
+              uses: expo/expo-github-action@v6
               with:
-                  java-version: '17'
-                  distribution: 'temurin'
-
-            - name: Setup Android SDK
-              uses: android-actions/setup-android@v3
-
-            - name: Setup Expo
-              uses: expo/expo-github-action@v8
-              with:
-                  expo-version: latest
+                  expo-version: 4.x
+                  expo-cache: true
                   eas-version: latest
                   token: ${{ secrets.EXPO_TOKEN }}
 
-            - name: Install dependencies in root
-              run: yarn install --immutable
+            - name: Install dependencies
+              run: yarn install
 
-            - name: Build Android app
+            - name: EAS build
+              run: echo "$(NODE_ENV=dev npx nx build mobile --profile preview --interactive false --platform android)" | tee my-output.txt
+
+            - name: Get expo build url
               run: |
-                  cd apps/mobile
-                  npx eas-cli@latest build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
+                  expoBuildUrl="$(grep -o -E 'https?://expo.dev/accounts/(\w+)/projects/(\w|[-]\w)+/builds[^" ]+' my-output.txt | head -1)"
+                  echo 'EXPO_BUILD_URL='$expoBuildUrl >> $GITHUB_ENV'
 
-            - name: Upload APK artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: app-release
-                  path: ${{ github.workspace }}/vephim.apk
+            - name: Generate qr code
+              run: |
+                  expoQr="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=$EXPO_BUILD_URL"
+                  echo 'EXPO_QR='$expoQr >> $GITHUB_ENV
+
+            - name: Add comment
+              run: gh pr comment $PR --body "**Your build is ready!** <br><br> ![Expo QR]($EXPO_QR) <br> **Explore your build on expo.dev:** <br> [$EXPO_BUILD_URL]($EXPO_BUILD_URL)"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  OWNER: ${{ github.repository_owner }}
+                  REPO: ${{ github.event.repository.name }}
+                  PR: ${{ github.event.number }}
