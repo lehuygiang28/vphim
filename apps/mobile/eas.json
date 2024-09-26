@@ -6,6 +6,10 @@
         "production": {
             "android": {
                 "buildType": "apk"
+            },
+            "env": {
+                "EXPO_PUBLIC_BASE_API_URL": "https://vphim-api.giaang.id.vn",
+                "EXPO_PUBLIC_BASE_PLAYER_URL": "https://vephim.vercel.app"
             }
         },
         "development": {
@@ -19,6 +23,10 @@
             },
             "android": {
                 "buildType": "apk"
+            },
+            "env": {
+                "EXPO_PUBLIC_BASE_API_URL": "https://vphim-api.giaang.id.vn",
+                "EXPO_PUBLIC_BASE_PLAYER_URL": "https://vephim.vercel.app"
             }
         }
     },

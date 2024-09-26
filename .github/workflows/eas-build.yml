@@ -55,14 +55,14 @@ jobs:
 
             - name: Trigger EAS Build
               env:
-                  EXPO_PUBLIC_BASE_API_URL: https://vphim-api.giaang.id.vn/
+                  EXPO_PUBLIC_BASE_API_URL: https://vphim-api.giaang.id.vn
                   EXPO_PUBLIC_BASE_PLAYER_URL: https://vephim.vercel.app
               run: |
                   yarn nx build mobile -- --platform android --non-interactive --no-wait
 
             - name: Build Android app
               env:
-                  EXPO_PUBLIC_BASE_API_URL: https://vphim-api.giaang.id.vn/
+                  EXPO_PUBLIC_BASE_API_URL: https://vphim-api.giaang.id.vn
                   EXPO_PUBLIC_BASE_PLAYER_URL: https://vephim.vercel.app
               run: |
                   yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
@@ -72,19 +72,3 @@ jobs:
               with:
                   name: app-release
                   path: ${{ github.workspace }}/vephim.apk
-
-            - name: Create Release and Upload APK
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  # Create a new release
-                  release_url=$(gh release create v${{ github.run_number }} \
-                    --title "Release APK ${{ github.run_number }}" \
-                    --notes "Automated release for build ${{ github.run_number }}" \
-                    --repo ${{ github.repository }})
-
-                  # Upload the APK file to the release
-                  gh release upload v${{ github.run_number }} ${{ github.workspace }}/vephim.apk \
-                    --repo ${{ github.repository }}
-
-                  echo "Release created and APK uploaded: $release_url"
