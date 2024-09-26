@@ -41,9 +41,8 @@ jobs:
 
             - name: Build Android app
               run: |
-                  mkdir -p apps/mobile/.yarn
-                  cp -r .yarn/releases apps/mobile/.yarn/
-                  yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
+                  cd apps/mobile
+                  npx eas-cli@latest build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
