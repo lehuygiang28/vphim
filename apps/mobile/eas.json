@@ -24,5 +24,6 @@
     },
     "submit": {
         "production": {}
-    }
+    },
+    "yarn": "4.4.1"
 }
