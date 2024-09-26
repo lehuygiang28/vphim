@@ -8170,10 +8170,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vn-utils/text@npm:0.0.1-rc.2":
-  version: 0.0.1-rc.2
-  resolution: "@vn-utils/text@npm:0.0.1-rc.2"
-  checksum: 10c0/0c33350dade259d424ab41dfed9c8530c3cf877ff7147b0b1fa1a5fb1269c31aa9c51797b6325ab6afe53c2b057defff46ebcb223aa4b6f325ab35a844c34e3f
+"@vn-utils/text@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "@vn-utils/text@npm:0.0.1"
+  checksum: 10c0/0f31a70225712afce39d0a70bfe37ac04325b4c45ab5cdd1102ec231a6724a6979eee5721df361936f64886759635661d8ca9a343686b971b08cb7ff697316df
   languageName: node
   linkType: hard
 
@@ -8267,7 +8267,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^7.16.0"
     "@typescript-eslint/parser": "npm:^7.16.0"
     "@vidstack/react": "npm:^1.12.9"
-    "@vn-utils/text": "npm:0.0.1-rc.2"
+    "@vn-utils/text": "npm:^0.0.1"
     antd: "npm:^5.20.3"
     axios: "npm:^1.7.7"
     babel-jest: "npm:^29.7.0"
