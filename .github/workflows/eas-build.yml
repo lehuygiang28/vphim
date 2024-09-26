@@ -69,7 +69,22 @@ jobs:
 
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
-              with:
-                  compression-level: 0
+              with: 
                   name: app-release
                   path: ${{ github.workspace }}/vephim.apk
+
+            - name: Create Release and Upload APK
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  # Create a new release
+                  release_url=$(gh release create v${{ github.run_number }} \
+                    --title "Release APK ${{ github.run_number }}" \
+                    --notes "Automated release for build ${{ github.run_number }}" \
+                    --repo ${{ github.repository }})
+
+                  # Upload the APK file to the release
+                  gh release upload v${{ github.run_number }} ${{ github.workspace }}/vephim.apk \
+                    --repo ${{ github.repository }}
+
+                  echo "Release created and APK uploaded: $release_url"
