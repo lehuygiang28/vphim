@@ -40,6 +40,7 @@ export const ServerEpisodeSection = ({ form }) => {
         setCurrentServerName('');
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const getColumnSearchProps = (dataIndex: string): ColumnType<any> => ({
         filterDropdown: ({
             setSelectedKeys,

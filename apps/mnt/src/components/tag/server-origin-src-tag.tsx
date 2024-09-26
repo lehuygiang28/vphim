@@ -7,8 +7,8 @@ enum ServerOriginSrc {
     Vephim = 'vephim',
 }
 
-export const ServerOriginSrcTag = ({ originSrc }: { originSrc: string }) => {
-    switch (originSrc.toLowerCase()) {
+export const ServerOriginSrcTag = ({ originSrc = '' }: { originSrc?: string }) => {
+    switch (originSrc?.toLowerCase()) {
         case ServerOriginSrc.Ophim:
             return <Tag color="green">{originSrc}</Tag>;
         case ServerOriginSrc.Kkphim:
@@ -16,7 +16,8 @@ export const ServerOriginSrcTag = ({ originSrc }: { originSrc: string }) => {
         case ServerOriginSrc.Nguonc:
             return <Tag color="orange">{originSrc}</Tag>;
         case ServerOriginSrc.Vephim:
-        default:
             return <Tag color="purple">{originSrc}</Tag>;
+        default:
+            return null;
     }
 };

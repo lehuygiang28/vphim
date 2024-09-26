@@ -24,6 +24,7 @@
         "noauth",
         "ophim",
         "otplib",
+        "Paginations",
         "Passwordless",
         "Plyr",
         "popconfirm",

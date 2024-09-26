@@ -182,7 +182,12 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
     return (
         <List
             headerButtons={({ defaultButtons }) => {
-                return <RefreshMovieButton resource="movies" dataProviderName="graphql" />;
+                return (
+                    <>
+                        {type === 'show' && defaultButtons}
+                        <RefreshMovieButton resource="movies" dataProviderName="graphql" />
+                    </>
+                );
             }}
         >
             <Form {...searchFormProps} layout="vertical" onFinish={handleFinishSearchForm}>

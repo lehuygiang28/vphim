@@ -7,20 +7,18 @@ import { CREATE_MOVIE } from '~mnt/queries/movie.query';
 import { MovieType } from '~api/app/movies/movie.type';
 import { MovieForm } from '~mnt/components/form/new-movie';
 
-export type EditMoviePageProps = {
-    params: { slug: string };
-};
-
-export default function Component({ params }: EditMoviePageProps) {
+export default function MovieCreatePage() {
     const { formProps, saveButtonProps } = useForm<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
-        id: params.slug,
+        id: '',
         action: 'create',
         meta: {
             gqlQuery: CREATE_MOVIE,
             operation: 'createMovie',
         },
+        redirect: 'show',
+        invalidates: ['list', 'detail'],
     });
 
     return (
