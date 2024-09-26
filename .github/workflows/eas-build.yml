@@ -37,10 +37,12 @@ jobs:
               run: yarn install --immutable
 
             - name: Build Android app
-              run: npx nx build mobile -- --platform android --profile preview --non-interactive --no-wait
+              run: |
+                  cp -r .yarn apps/mobile
+                  npx eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
-            # - name: Upload APK artifact --output ${{ github.workspace }}/vephim.apk
-            #   uses: actions/upload-artifact@v4
-            #   with:
-            #       name: app-release
-            #       path: ${{ github.workspace }}/vephim.apk
+            - name: Upload APK artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: app-release
+                  path: ${{ github.workspace }}/vephim.apk
