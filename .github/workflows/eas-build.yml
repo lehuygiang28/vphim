@@ -36,28 +36,19 @@ jobs:
                   eas-version: latest
                   token: ${{ secrets.EXPO_TOKEN }}
 
-            - name: Install dependencies in root
-              run: yarn install
-
-            - name: Run eas-build-pre-install script
+            - name: Switch to Yarn Classic
               run: |
-                  cd apps/mobile
-                  npm run eas-build-pre-install
+                  npm install -g yarn@1.22.19
+                  yarn set version classic
 
-            - name: Remove eas-build-pre-install script
+            - name: Reinstall dependencies with Yarn Classic
               run: |
-                  cd apps/mobile
-                  jq 'del(.scripts["eas-build-pre-install"])' package.json > temp.json && mv temp.json package.json
-
-            - name: Install dependencies in mobile app
-              run: |
-                  cd apps/mobile
-                  yarn install --no-immutable --inline-builds
+                  yarn install --force
 
             - name: Build Android app
               run: |
                   cd apps/mobile
-                  npx eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
+                  yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
