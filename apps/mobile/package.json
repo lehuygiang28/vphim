@@ -141,5 +141,5 @@
         "ios": "expo run:ios"
     },
     "devDependencies": {},
-    "packageManager": "yarn@4.4.1"
+    "packageManager": "npm@10.8.1"
 }
