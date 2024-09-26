@@ -6,13 +6,11 @@
         "production": {
             "android": {
                 "buildType": "app-bundle"
-            },
-            "yarn": "4.4.1"
+            }
         },
         "development": {
             "developmentClient": true,
-            "distribution": "internal",
-            "yarn": "4.4.1"
+            "distribution": "internal"
         },
         "preview": {
             "distribution": "internal",
@@ -21,8 +19,7 @@
             },
             "android": {
                 "buildType": "apk"
-            },
-            "yarn": "4.4.1"
+            }
         }
     },
     "submit": {

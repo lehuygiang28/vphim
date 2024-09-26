@@ -26,7 +26,6 @@ jobs:
             - name: Remove Yarn 2+ configurations
               run: |
                   rm -f .yarnrc.yml
-                  rm -f yarn.lock
                   rm -rf .yarn
                   jq 'del(.packageManager)' package.json > temp.json && mv temp.json package.json
 
@@ -51,9 +50,6 @@ jobs:
 
             - name: Install dependencies in root
               run: yarn install
-
-            - name: Install EAS CLI
-              run: npm install -g eas-cli
 
             - name: Build Android app
               run: |
