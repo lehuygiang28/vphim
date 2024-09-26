@@ -56,7 +56,7 @@ jobs:
               run: |
                   mkdir -p ${{ github.workspace }}/apps/mobile/.yarn
                   cp -r ${{ github.workspace }}/.yarn/releases ${{ github.workspace }}/apps/mobile/.yarn/
-                  cp -r ${{ github.workspace }}/yarnrc.yml ${{ github.workspace }}/apps/mobile
+                  cp -r ${{ github.workspace }}/.yarnrc.yml ${{ github.workspace }}/apps/mobile
                   yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
