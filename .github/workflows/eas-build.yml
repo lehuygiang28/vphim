@@ -36,10 +36,14 @@ jobs:
             - name: Install dependencies
               run: yarn install --immutable
 
+            - name: Copy .yarn folder to apps/mobile
+              run: cp -r .yarn apps/mobile
+
             - name: Build Android app
               run: npx nx build mobile -- --platform android --profile preview --local --non-interactive --no-wait --output ${{ github.workspace }}/vephim.apk
+
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
               with:
                   name: app-release
-                  path: ${{ github.workspace }}/app-release.apk
+                  path: ${{ github.workspace }}/vephim.apk
