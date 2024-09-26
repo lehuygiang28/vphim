@@ -36,10 +36,12 @@ jobs:
             - name: Install dependencies
               run: yarn install --immutable
 
+            - name: Install eas
+              run: npm install -g eas-cli@6.1.0
+
             - name: Build Android app
               run: |
-                  cd apps/mobile
-                  npx eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
+                  yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
