@@ -41,7 +41,6 @@ jobs:
 
             - name: Build Android app
               run: |
-                  npm install -g eas-cli@6.1.0
                   yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
