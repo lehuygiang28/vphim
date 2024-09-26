@@ -43,7 +43,6 @@ jobs:
               run: |
                   cd apps/mobile
                   yarn set version stable
-                  yarn install
                   yarn eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
