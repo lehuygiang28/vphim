@@ -37,21 +37,10 @@ jobs:
                   token: ${{ secrets.EXPO_TOKEN }}
 
             - name: Install dependencies in root
-              run: yarn install
-
-            - name: Switch to Yarn Classic
-              run: |
-                  npm uninstall yarn
-                  npm install -g yarn@1.22.22
-                  yarn set version classic
-
-            - name: Reinstall dependencies with Yarn Classic
-              run: |
-                  yarn install --force
+              run: yarn install --immutable
 
             - name: Build Android app
               run: |
-                  cd apps/mobile
                   yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
