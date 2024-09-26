@@ -36,35 +36,25 @@ jobs:
                   eas-version: latest
                   token: ${{ secrets.EXPO_TOKEN }}
 
-            - name: Install dependencies
-              run: |
-                  yarn install --immutable
-                  npm i -g eas-cli
-
-            - name: Setup Yarn cache
-              run: |
-                  yarn config set cacheFolder .yarn-cache
+            - name: Install dependencies in root
+              run: yarn install
 
             - name: Prepare mobile app directory
               run: |
-                  cp yarn.lock apps/mobile/
-                  cp .yarnrc.yml apps/mobile/
                   mkdir -p apps/mobile/.yarn
                   cp -r .yarn/releases apps/mobile/.yarn/
-
-            - name: Run pre-install script
-              run: |
-                  node tools/scripts/eas-build-pre-install.mjs . apps/mobile
                   cp yarn.lock apps/mobile/
+                  cp .yarnrc.yml apps/mobile/
+
+            - name: Install dependencies in mobile app
+              run: |
+                  cd apps/mobile
+                  yarn install --no-immutable --inline-builds
 
             - name: Build Android app
               run: |
                   cd apps/mobile
                   npx eas build --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
-
-            - name: Run post-install script
-              run: |
-                  node tools/scripts/eas-build-post-install.mjs . apps/mobile
 
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4
