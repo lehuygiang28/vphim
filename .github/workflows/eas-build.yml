@@ -18,7 +18,7 @@ jobs:
                   cache: 'npm'
 
             - name: Set up JDK 17
-              uses: actions/setup-java@v3
+              uses: actions/setup-java@v4
               with:
                   java-version: '17'
                   distribution: 'temurin'
@@ -48,3 +48,5 @@ jobs:
               with:
                   name: app-release
                   path: ${{ github.workspace }}/vephim.apk
+# "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",
+# "eas-build-post-install": "cd ../../ && node tools/scripts/eas-build-post-install.mjs . apps/mobile",
