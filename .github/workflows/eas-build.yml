@@ -51,7 +51,6 @@ jobs:
                   cp .yarnrc.yml apps/mobile/
                   mkdir -p apps/mobile/.yarn
                   cp -r .yarn/releases apps/mobile/.yarn/
-                  cp -r .yarn/plugins apps/mobile/.yarn/
 
             - name: Run pre-install script
               run: |
