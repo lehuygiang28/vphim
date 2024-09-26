@@ -3,7 +3,7 @@ name: Android App APK Build
 on:
     push:
         branches:
-            - feat/eas
+            - main
 
 jobs:
     build:
