@@ -140,5 +140,6 @@
         "android": "expo run:android",
         "ios": "expo run:ios"
     },
-    "devDependencies": {}
+    "devDependencies": {},
+    "packageManager": "yarn@4.4.1"
 }
