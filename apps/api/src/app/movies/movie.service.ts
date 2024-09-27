@@ -139,20 +139,9 @@ export class MovieService {
         } = { isDeleted: false, ...dto };
 
         const must: QueryDslQueryContainer['bool']['must'] = [];
+        const mustNot: QueryDslQueryContainer['bool']['must_not'] = [];
         const filter: QueryDslQueryContainer[] = [];
         let keywordQuery: QueryDslQueryContainer | null = null;
-
-        // Check if any search criteria or filters are provided
-        const hasFilters =
-            keywords ||
-            cinemaRelease !== undefined ||
-            isCopyright !== undefined ||
-            type ||
-            years ||
-            categories ||
-            countries ||
-            status !== undefined ||
-            isDeleted;
 
         if (keywords) {
             keywordQuery = {
@@ -233,12 +222,30 @@ export class MovieService {
         }
 
         if (!isNullOrUndefined(categories)) {
+            const categorySlugs = categories
+                .split(',')
+                .filter((c) => !isNullOrUndefined(c))
+                .map((c) => c.trim());
+
             must.push({
                 terms: {
-                    'categories.slug.keyword': categories
-                        .split(',')
-                        .filter((c) => !isNullOrUndefined(c))
-                        .map((c) => c.trim()),
+                    'categories.slug.keyword': categorySlugs,
+                },
+            });
+
+            // Exclude sensitive content by default
+            if (!categorySlugs.includes('phim-18')) {
+                mustNot.push({
+                    term: {
+                        'categories.slug.keyword': 'phim-18',
+                    },
+                });
+            }
+        } else {
+            // Exclude sensitive content by default
+            mustNot.push({
+                term: {
+                    'categories.slug.keyword': 'phim-18',
                 },
             });
         }
@@ -264,14 +271,18 @@ export class MovieService {
             });
         }
 
-        const query: QueryDslQueryContainer = hasFilters
-            ? {
-                  bool: {
-                      must: [...must, ...(keywordQuery ? [keywordQuery] : [])],
-                      filter: filter,
-                  },
-              }
-            : { match_all: {} };
+        const query: QueryDslQueryContainer = {
+            bool: {
+                must: [...must, ...(keywordQuery ? [keywordQuery] : [])],
+                must_not: mustNot,
+                filter: filter,
+            },
+        };
+        if (must?.length === 0 && filter?.length === 0 && !keywordQuery) {
+            (query.bool.must as QueryDslQueryContainer[]).push({
+                match_all: {},
+            });
+        }
 
         const sortFields = sortBy.split(',');
         const sortOrders = sortOrder.split(',');
