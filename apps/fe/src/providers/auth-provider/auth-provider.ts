@@ -262,7 +262,7 @@ export const authProvider = (
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
-            });y
+            });
             const getMe = res?.['getMe'];
             if (!getMe) {
                 return null;
