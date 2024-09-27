@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import {
@@ -34,7 +33,6 @@ export class MovieService {
     constructor(
         private readonly movieRepo: MovieRepository,
         private readonly redisService: RedisService,
-        private readonly httpService: HttpService,
         private readonly searchService: SearchService,
         private readonly elasticsearchService: ElasticsearchService,
     ) {
