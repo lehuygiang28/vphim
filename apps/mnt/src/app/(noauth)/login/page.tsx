@@ -12,7 +12,7 @@ export default function LoginPage() {
                 alignItems: 'center',
             }}
         >
-            <Login redirectTo="/login" />
+            <Login redirectTo="/login" lang="en" />
         </Layout>
     );
 }

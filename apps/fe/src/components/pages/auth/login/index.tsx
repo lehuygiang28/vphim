@@ -1,7 +1,7 @@
 'use client';
 
 import { useLogin, useNotification } from '@refinedev/core';
-import { Space, Form, Input, Typography, Divider, Button } from 'antd';
+import { Space, Form, Input, Typography, Divider, Button, Modal } from 'antd';
 import { MailOutlined, GithubOutlined, GoogleOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import type { LoginActionPayload } from '@/providers/auth-provider/types';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
@@ -9,7 +9,7 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { LoginPwdless } from '@/validators';
 import LoadingBtn from '@/components/button/loading-btn';
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/loading';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -23,20 +23,58 @@ export enum LoginTitle {
     'default' = 'Tiếp tục vào VePhim',
 }
 
+export enum LoginErrorType {
+    'block' = 'Your account is blocked, contact the administrator for more information',
+    'not-admin' = 'You do not have permission.',
+}
+
 export type LoginProps = {
     onBack?: () => void;
     redirectTo?: string;
+    lang?: 'vi' | 'en';
 };
 
-export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
+const translations = {
+    vi: {
+        followTitle: 'Bạn cần đăng nhập để theo dõi phim',
+        defaultTitle: 'Tiếp tục vào VePhim',
+        useEmail: 'Sử dụng email của bạn',
+        continue: 'Tiếp tục',
+        or: 'hoặc với',
+        termsAgreement: 'Bằng cách bấm tiếp tục, bạn đồng ý với',
+        terms: 'Điều Khoản',
+        ofUs: 'của chúng tôi',
+        loginFailed: 'Đăng nhập thất bại, kiểm tra thông tin của bạn và thử lại sau',
+        errorTitle: 'Lỗi',
+    },
+    en: {
+        followTitle: 'You need to log in to follow the movie',
+        defaultTitle: 'Continue to VePhim',
+        useEmail: 'Use your email',
+        continue: 'Continue',
+        or: 'or with',
+        termsAgreement: 'By clicking continue, you agree to our',
+        terms: 'Terms',
+        ofUs: '',
+        loginFailed: 'Login failed, check your information and try again later',
+        errorTitle: 'Error',
+    },
+};
+
+export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginProps) {
     const router = useRouter();
     const params = useSearchParams();
     const { open } = useNotification();
     const { mutate: login } = useLogin();
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
 
-    const title = LoginTitle[params.get('title') as keyof typeof LoginTitle] || LoginTitle.default;
+    const t = translations[lang];
+
+    const title = params.get('title') === 'follow' ? t.followTitle : t.defaultTitle;
     const redirectBackTo = params.get('to') || '/';
     const hash = params.get('hash');
+    const errorParam = params.get('e');
 
     const {
         control,
@@ -60,6 +98,13 @@ export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
         return login({ ...data, redirectTo });
     };
 
+    const showErrorModal = (errorType: string) => {
+        const message =
+            LoginErrorType[errorType as keyof typeof LoginErrorType] || 'An unknown error occurred';
+        setModalMessage(message);
+        setIsModalVisible(true);
+    };
+
     useEffect(() => {
         if (hash && hash.length >= SEEM_SAFE_HASH_LENGTH) {
             login({ type: 'login', hash, redirect: true, to: redirectBackTo });
@@ -74,11 +119,15 @@ export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
         if (params.get('error') === 'failed_to_login') {
             open({
                 type: 'error',
-                message: 'Đăng nhập thất bại, kiểm tra thông tin của bạn và thử lại sau',
+                message: t.loginFailed,
                 key: 'failed_to_login',
             });
         }
-    }, [params, open]);
+
+        if (errorParam) {
+            showErrorModal(errorParam);
+        }
+    }, [params, open, errorParam, t]);
 
     const handleSocialLogin = async (provider: string) => {
         const result = await signIn(provider, {
@@ -89,7 +138,7 @@ export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
         if (result?.error) {
             open({
                 type: 'error',
-                message: 'Đăng nhập thất bại, kiểm tra thông tin của bạn và thử lại sau',
+                message: t.loginFailed,
                 key: 'login_error',
             });
         }
@@ -116,7 +165,7 @@ export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
                 <Title level={3} style={{ marginBottom: '4px' }}>
                     {title}
                 </Title>
-                <Text>Sử dụng email của bạn</Text>
+                <Text>{t.useEmail}</Text>
 
                 <form autoComplete="off" onSubmit={handleSubmit(onSubmit)}>
                     <Controller<LoginPwdless>
@@ -139,7 +188,7 @@ export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
                     />
 
                     <LoadingBtn
-                        content="Tiếp tục"
+                        content={t.continue}
                         type="primary"
                         style={{ width: '240px' }}
                         size="middle"
@@ -147,7 +196,7 @@ export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
                         isValid={isValid}
                     />
                 </form>
-                <Divider plain>hoặc với</Divider>
+                <Divider plain>{t.or}</Divider>
                 <Space direction="horizontal" align="center">
                     <LoadingBtn
                         type="primary"
@@ -170,10 +219,18 @@ export default function Login({ onBack, redirectTo = '/' }: LoginProps) {
                 </Space>
                 <Divider plain></Divider>
                 <Text type="secondary">
-                    Bằng cách bấm tiếp tục, bạn đồng ý với <Link href="#">Điều Khoản</Link> của
-                    chúng tôi
+                    {t.termsAgreement} <Link href="#">{t.terms}</Link> {t.ofUs}
                 </Text>
             </Space>
+
+            <Modal
+                title={t.errorTitle}
+                open={isModalVisible}
+                onOk={() => setIsModalVisible(false)}
+                onCancel={() => setIsModalVisible(false)}
+            >
+                <p>{modalMessage}</p>
+            </Modal>
         </div>
     );
 }
