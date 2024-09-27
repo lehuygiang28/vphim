@@ -1,20 +1,6 @@
-'use client';
-
 import { PropsWithChildren } from 'react';
-import { useIsAuthenticated } from '@refinedev/core';
-import { useRouter } from 'next/navigation';
+import { AuthWrapper } from '~mnt/components/auth-layout/wrapper';
 
 export default function NoAuthLayout({ children }: PropsWithChildren) {
-    const router = useRouter();
-    const { data, isLoading } = useIsAuthenticated();
-
-    if (isLoading) {
-        return <></>;
-    }
-
-    if (!isLoading && data?.authenticated) {
-        return router.replace('/movies');
-    }
-
-    return <>{children}</>;
+    return <AuthWrapper accessType="not-authenticated">{children}</AuthWrapper>;
 }
