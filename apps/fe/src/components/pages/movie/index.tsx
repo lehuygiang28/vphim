@@ -253,7 +253,6 @@ export function Movie({ slug }: MovieProps) {
                 direction="vertical"
                 style={{
                     position: 'relative',
-                    overflow: 'hidden',
                     textAlign: 'left',
                     zIndex: 1,
                     width: '100%',
