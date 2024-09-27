@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 import { useAxios } from './useAxios';
+import { AxiosError } from 'axios';
 
 export function useRefreshToken() {
     const { instance: axiosInstance } = useAxios();
@@ -30,8 +31,18 @@ export function useRefreshToken() {
                 )?.user,
             };
         } catch (error) {
+            if (error instanceof AxiosError) {
+                if (error.response?.status === 401 || error.response?.status === 403) {
+                    console.error('Refresh token invalid or expired:', error);
+                    await signOut();
+                    throw new Error('Session expired. Please log in again.');
+                } else if (error.code === 'ERR_NETWORK') {
+                    console.error('Network error during token refresh:', error);
+                    throw error; // Reject with the original error for network issues
+                }
+            }
             console.error('Failed to refresh tokens:', error);
-            return signOut();
+            throw error; // Reject with the original error for other cases
         } finally {
             setIsRefreshing(false);
         }

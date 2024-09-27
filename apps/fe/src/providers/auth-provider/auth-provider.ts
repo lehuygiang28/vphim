@@ -246,23 +246,28 @@ export const authProvider = (
         },
         getIdentity: async () => {
             const auth = await getSession();
-            if (auth?.user) {
-                const { refreshToken, accessToken, ...user } = auth.user as LoginResponseDto;
-                const {
-                    data: { data: res },
-                } = await authAxios.post<any>(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
-                    query: print(GET_ME_QUERY),
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                });
-                const getMe = res?.['getMe'];
-                if (getMe) {
-                    return { ...user, ...getMe };
-                }
-                return user;
+            if (!auth?.user) {
+                return null;
             }
-            return null;
+
+            const { refreshToken, accessToken, ...user } = auth.user as LoginResponseDto;
+            if (!accessToken) {
+                return null;
+            }
+
+            const {
+                data: { data: res },
+            } = await authAxios.post<any>(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
+                query: print(GET_ME_QUERY),
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });y
+            const getMe = res?.['getMe'];
+            if (!getMe) {
+                return null;
+            }
+            return { ...user, ...getMe };
         },
         onError: async (error) => {
             if (error.response?.status === 401) {
