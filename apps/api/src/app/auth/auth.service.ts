@@ -226,15 +226,20 @@ export class AuthService implements OnModuleInit {
     }
 
     async requestLoginPwdless({ email, returnUrl }: AuthLoginPasswordlessDto): Promise<'OK'> {
-        const user = await this.usersService.findByEmail(email);
+        let user = await this.usersService.findByEmail(email);
 
         if (!user) {
-            throw new UnprocessableEntityException({
-                errors: {
-                    email: 'notFound',
+            const fullName = email.split('@')[0] || 'New User'; // Extract full name from email before @
+            user = await this.usersService.create({
+                email: email,
+                emailVerified: false,
+                fullName: fullName,
+                avatar: {
+                    url: getGravatarUrl(email),
                 },
-                message: `User with email '${email}' doesn't exist`,
+                password: '',
             });
+            this.logger.info(`Created new user with email: ${email}`);
         }
 
         if (user?.block?.isBlocked) {
