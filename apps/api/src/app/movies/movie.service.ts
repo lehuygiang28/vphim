@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { FilterQuery, PipelineStage, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import {
     QueryDslQueryContainer,
@@ -9,7 +9,7 @@ import {
 } from '@elastic/elasticsearch/lib/api/types';
 
 import { MovieRepository } from './movie.repository';
-import { GetMoviesDto, MovieResponseDto } from './dtos';
+import { MovieResponseDto } from './dtos';
 import { Movie } from './movie.schema';
 import {
     convertToObjectId,
@@ -95,189 +95,6 @@ export class MovieService {
             },
         });
         return new MovieResponseDto(movie);
-    }
-
-    async getMovies(dto: GetMoviesDto, { deepSearch = false }: { deepSearch?: boolean } = {}) {
-        const { resetCache } = dto;
-        const cacheKey = `CACHED:MOVIES:${sortedStringify(dto)}`;
-
-        if (resetCache) {
-            await this.redisService.del(cacheKey);
-        } else {
-            const fromCache = await this.redisService.get<MovieType>(cacheKey);
-            if (fromCache) {
-                this.logger.debug(`CACHE: ${cacheKey}`);
-                return new MovieType(fromCache);
-            }
-        }
-
-        this.logger.debug(`DB: ${cacheKey}`);
-
-        const {
-            keywords,
-            cinemaRelease,
-            isCopyright,
-            type,
-            years,
-            categories,
-            countries,
-            limit = 10,
-            page = 1,
-            sortBy = 'year',
-            sortOrder = 'asc',
-            status,
-        } = dto;
-
-        const pipeline: PipelineStage[] = [];
-        const match: FilterQuery<Movie> = {};
-
-        const lookupStage = [
-            {
-                $lookup: {
-                    from: 'categories',
-                    localField: 'categories',
-                    foreignField: '_id',
-                    as: 'categories',
-                    pipeline: [
-                        {
-                            $project: { _id: 1, name: 1, slug: 1 },
-                        },
-                    ],
-                },
-            },
-            {
-                $lookup: {
-                    from: 'regions',
-                    localField: 'countries',
-                    foreignField: '_id',
-                    as: 'countries',
-                    pipeline: [
-                        {
-                            $project: { _id: 1, name: 1, slug: 1 },
-                        },
-                    ],
-                },
-            },
-            {
-                $lookup: {
-                    from: 'actors',
-                    localField: 'actors',
-                    foreignField: '_id',
-                    as: 'actors',
-                    pipeline: [
-                        {
-                            $project: { _id: 1, name: 1, slug: 1 },
-                        },
-                    ],
-                },
-            },
-            {
-                $lookup: {
-                    from: 'directors',
-                    localField: 'directors',
-                    foreignField: '_id',
-                    as: 'directors',
-                    pipeline: [
-                        {
-                            $project: { _id: 1, name: 1, slug: 1 },
-                        },
-                    ],
-                },
-            },
-        ];
-
-        if (keywords) {
-            const searchResults = await this.searchService.search(keywords);
-            const total = searchResults.length;
-            const movies = searchResults
-                .slice((page - 1) * limit, page * limit)
-                .map((result) => new MovieResponseDto(result));
-
-            return {
-                data: movies,
-                total,
-            };
-        }
-
-        if (!isNullOrUndefined(cinemaRelease)) match.cinemaRelease = cinemaRelease;
-        if (!isNullOrUndefined(isCopyright)) match.isCopyright = isCopyright;
-        if (!isNullOrUndefined(type)) match.type = type;
-        if (!isNullOrUndefined(status)) match.status = status;
-        if (!isNullOrUndefined(years)) {
-            match.year = {
-                $in: years
-                    .split(',')
-                    .map((year) => Number(year.trim()))
-                    .filter(Boolean),
-            };
-        }
-
-        if (!isNullOrUndefined(categories)) {
-            match['categories.slug'] = {
-                $in: categories
-                    .split(',')
-                    .filter((c) => !isNullOrUndefined(c))
-                    .map((c) => c.trim()),
-            };
-        }
-
-        if (!isNullOrUndefined(countries)) {
-            match['countries.slug'] = {
-                $in: countries
-                    .split(',')
-                    .filter((c) => !isNullOrUndefined(c))
-                    .map((c) => c.trim()),
-            };
-        }
-
-        if (deepSearch) {
-            // If is keyword search with deep search, then need to lookup earlier match stage
-            pipeline.push(...lookupStage);
-            pipeline.push({ $match: match });
-        } else {
-            pipeline.push({ $match: match });
-            pipeline.push(...lookupStage);
-        }
-
-        // Handle multi-field sorting
-        const sortFields = sortBy.split(',');
-        const sortOrders = sortOrder.split(',');
-        const sortStage: Record<string, 1 | -1> = {};
-        sortFields.forEach((field, index) => {
-            const order = sortOrders[index] || sortOrders[sortOrders.length - 1];
-            sortStage[field.trim()] = order.toLowerCase() === 'asc' ? 1 : -1;
-        });
-
-        pipeline.push(
-            {
-                $facet: {
-                    movies: [
-                        { $sort: sortStage },
-                        { $skip: (page - 1) * limit },
-                        { $limit: Number(limit) },
-                        { $project: { __v: 0, episode: 0 } },
-                    ],
-                    total: [{ $count: 'count' }],
-                },
-            },
-            { $project: { movies: 1, total: { $arrayElemAt: ['$total.count', 0] } } },
-        );
-
-        const result = (await this.movieRepo.aggregate<
-            {
-                movies: Movie[];
-                total: number;
-            }[]
-        >(pipeline)) as { movies: Movie[]; total: number }[];
-        const movies = result?.[0]?.movies?.map((movie) => new MovieResponseDto(movie));
-        const total = result?.[0]?.total || 0;
-
-        const res = {
-            data: movies,
-            total,
-        };
-        await this.redisService.set(cacheKey, res, 1000 * 60 * 10);
-        return res;
     }
 
     async getMoviesEs(dto: GetMoviesAdminInput | GetMoviesInput) {
