@@ -43,7 +43,7 @@ export default function MovieList({
     viewMoreHref,
     clearVisibleContentCard,
     style,
-    disableNavigation,
+    disableNavigation = true,
 }: MovieListProps) {
     const { md, lg, xl, xxl } = useBreakpoint();
     const swiperRef = useRef<SwiperType>();
