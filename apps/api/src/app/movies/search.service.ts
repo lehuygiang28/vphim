@@ -67,7 +67,7 @@ export class SearchService {
                 // Perform an immediate refresh of the index
                 await this.elasticsearchService.indices.refresh({ index: 'movies' });
 
-                this.logger.log(
+                this.logger.debug(
                     `Movie with ID ${movie._id} ${updateResponse.result} successfully in Elasticsearch`,
                 );
                 return true;
@@ -95,7 +95,7 @@ export class SearchService {
                 // Perform an immediate refresh of the index
                 await this.elasticsearchService.indices.refresh({ index: 'movies' });
 
-                this.logger.log(
+                this.logger.debug(
                     `Movie with ID ${movie._id} deleted successfully from Elasticsearch`,
                 );
                 return true;
