@@ -74,7 +74,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
         }
 
         this.logger.log({
-            kkphim_cron: this.OPHIM_CRON,
+            ophim_cron: this.OPHIM_CRON,
             tz: process.env.TZ,
             tzOffset: new Date().getTimezoneOffset(),
         });

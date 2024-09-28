@@ -61,7 +61,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         }
 
         this.logger.log({
-            kkphim_cron: this.NGUONC_CRON,
+            nguonc_cron: this.NGUONC_CRON,
             tz: process.env.TZ,
             tzOffset: new Date().getTimezoneOffset(),
         });
