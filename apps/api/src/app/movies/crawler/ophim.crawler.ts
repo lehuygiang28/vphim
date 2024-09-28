@@ -7,6 +7,7 @@ import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js'
 import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
+import { removeDiacritics, removeTone } from '@vn-utils/text';
 
 import { EpisodeServerData, Movie } from '../movie.schema';
 import { MovieRepository } from '../movie.repository';
@@ -135,7 +136,9 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
         try {
             const latestMovies = await this.ophim.getNewestMovies({ page });
             for (const movie of latestMovies.items) {
-                await this.fetchAndSaveMovieDetail(movie.slug);
+                if (movie?.slug) {
+                    await this.fetchAndSaveMovieDetail(removeTone(removeDiacritics(movie.slug)));
+                }
             }
         } catch (error) {
             this.logger.error(`Error crawling page ${page}: ${error}`);
@@ -166,10 +169,11 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
         >,
     ) {
         const { data: { item: movieDetail } = {} } = input;
+        const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
 
         try {
             const existingMovie = await this.movieRepo.findOne({
-                filterQuery: { slug: movieDetail.slug },
+                filterQuery: { slug: movieSlug },
             });
 
             const lastModified = new Date(movieDetail.modified.time);
@@ -383,18 +387,18 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                 updateQuery.episode = [...newEpisodes, ...(existingMovie?.episode ?? [])];
 
                 await this.movieRepo.findOneAndUpdate({
-                    filterQuery: { slug: movieDetail.slug },
+                    filterQuery: { slug: movieSlug },
                     updateQuery,
                 });
-                this.logger.log(`Updated movie: "${movieDetail.slug}"`);
+                this.logger.log(`Updated movie: "${movieSlug}"`);
             } else {
                 await this.movieRepo.create({
                     document: movieData,
                 });
-                this.logger.log(`Saved movie: "${movieDetail.slug}"`);
+                this.logger.log(`Saved movie: "${movieSlug}"`);
             }
         } catch (error) {
-            this.logger.error(`Error saving movie detail for ${movieDetail.slug}: ${error}`);
+            this.logger.error(`Error saving movie detail for ${movieSlug}: ${error}`);
         }
     }
 

@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { CronJob } from 'cron';
 import { stripHtml } from 'string-strip-html';
+import { removeDiacritics, removeTone } from '@vn-utils/text';
 
 import { EpisodeServerData, Movie, Episode } from './../movie.schema';
 import { MovieRepository } from './../movie.repository';
@@ -113,7 +114,9 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         try {
             const latestMovies = await this.getNewestMovies(page);
             for (const movie of latestMovies.items) {
-                await this.fetchAndSaveMovieDetail(movie.slug);
+                if (movie?.slug) {
+                    await this.fetchAndSaveMovieDetail(removeTone(removeDiacritics(movie?.slug)));
+                }
             }
         } catch (error) {
             this.logger.error(`Error crawling page ${page}: ${error}`);
@@ -171,9 +174,10 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     }
 
     private async saveMovieDetail(movieDetail: any) {
+        const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
         try {
             const existingMovie = await this.movieRepo.findOne({
-                filterQuery: { slug: movieDetail.slug },
+                filterQuery: { slug: movieSlug },
             });
 
             const lastModified = new Date(movieDetail?.modified || Date.now());
@@ -287,18 +291,18 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 }
 
                 await this.movieRepo.findOneAndUpdate({
-                    filterQuery: { slug: movieDetail.slug },
+                    filterQuery: { slug: movieSlug },
                     updateQuery,
                 });
-                this.logger.log(`Updated movie: "${movieDetail.slug}"`);
+                this.logger.log(`Updated movie: "${movieSlug}"`);
             } else {
                 await this.movieRepo.create({
                     document: movieData as Movie,
                 });
-                this.logger.log(`Saved movie: "${movieDetail.slug}"`);
+                this.logger.log(`Saved movie: "${movieSlug}"`);
             }
         } catch (error) {
-            this.logger.error(`Error saving movie detail for ${movieDetail?.slug}: ${error}`);
+            this.logger.error(`Error saving movie detail for ${movieSlug}: ${error}`);
         }
     }
 
