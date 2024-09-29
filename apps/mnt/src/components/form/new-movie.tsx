@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSelect } from '@refinedev/antd';
 import {
@@ -23,10 +23,11 @@ import {
     Typography,
 } from 'antd';
 import { UploadOutlined, PlusCircleOutlined, UndoOutlined, LinkOutlined } from '@ant-design/icons';
-import { GetOneResponse, HttpError, useApiUrl } from '@refinedev/core';
+import { GetOneResponse, HttpError, useApiUrl, useOne } from '@refinedev/core';
 import slugify from 'slugify';
 import { removeTone, removeDiacritics } from '@vn-utils/text';
 import type { QueryObserverResult } from '@tanstack/react-query';
+import { useDebounce } from 'use-debounce';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 
 import { ActorType } from '~api/app/actors';
@@ -41,10 +42,11 @@ import { MovieQualityEnum, MovieStatusEnum, MovieTypeEnum } from '~api/app/movie
 import { MovieType } from '~api/app/movies/movie.type';
 
 import { ServerEpisodeSection } from './server-episode-section';
+import { CHECK_MOVIE_EXIST_SLUG } from '~mnt/queries/movie.query';
 
 const { Option } = Select;
 const { TextArea } = Input;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -52,9 +54,10 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export type MovieFormProps = {
     query?: QueryObserverResult<GetOneResponse<MovieType>, HttpError>;
     formProps: FormProps;
+    mode: 'create' | 'edit';
 };
 
-export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
+export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) => {
     const apiUrl = useApiUrl();
     const axios = useAxiosAuth();
     const pathname = usePathname();
@@ -91,7 +94,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
             operation: 'categories',
         },
         pagination: {
-            pageSize: 20,
+            pageSize: 200,
         },
         debounce: 500,
         onSearch: (value) => [
@@ -113,7 +116,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
             operation: 'regions',
         },
         pagination: {
-            pageSize: 20,
+            pageSize: 200,
         },
         debounce: 500,
         onSearch: (value) => [
@@ -153,7 +156,6 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
     const [thumbUrl, setThumbUrl] = useState('');
     const [defaultPosterUrl, setDefaultPosterUrl] = useState('');
     const [defaultThumbUrl, setDefaultThumbUrl] = useState('');
-    const [autoGenerateSlug, setAutoGenerateSlug] = useState(true);
     const [customQuality, setCustomQuality] = useState('');
 
     useEffect(() => {
@@ -240,24 +242,91 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
         });
     };
 
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const name = e.target.value;
-        formProps.form?.setFieldsValue({ name });
-        if (autoGenerateSlug && name) {
-            const slug = slugify(removeTone(removeDiacritics(name)), { lower: true, strict: true });
-            formProps.form?.setFieldsValue({ slug });
+    const [autoGenerateSlug, setAutoGenerateSlug] = useState(mode === 'create');
+    const [slug, setSlug] = useState('');
+    const [debouncedSlug] = useDebounce(slug, 800);
+    const {
+        data: slugData,
+        refetch: checkSlug,
+        isRefetching: isCheckingSlug,
+    } = useOne<MovieType>({
+        dataProviderName: 'graphql',
+        resource: 'movies',
+        id: '',
+        queryOptions: {
+            enabled: false,
+        },
+        meta: {
+            gqlQuery: CHECK_MOVIE_EXIST_SLUG,
+            variables: {
+                input: {
+                    slug: debouncedSlug,
+                },
+            },
+        },
+        errorNotification: false,
+        successNotification: false,
+    });
+    const generateSlug = useCallback((name: string) => {
+        if (!name) {
+            return '';
+        }
+        return slugify(removeTone(removeDiacritics(name)), {
+            lower: true,
+            strict: true,
+        });
+    }, []);
+
+    useEffect(() => {
+        if (autoGenerateSlug && mode === 'create') {
+            const name = formProps.form?.getFieldValue('name');
+            if (name) {
+                const slugged = generateSlug(name);
+                setSlug(slugged);
+                formProps.form?.setFieldsValue({
+                    slug: slugged,
+                });
+            } else {
+                setSlug('');
+                formProps.form?.setFieldsValue({
+                    slug: '',
+                });
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formProps.form?.getFieldValue('name'), autoGenerateSlug, generateSlug, mode]);
+
+    useEffect(() => {
+        if (debouncedSlug && mode === 'create') {
+            checkSlug();
+        }
+    }, [debouncedSlug, checkSlug, mode]);
+
+    const toggleAutoGenerateSlug = () => {
+        if (mode === 'create') {
+            setAutoGenerateSlug(!autoGenerateSlug);
         }
     };
 
-    const toggleAutoGenerateSlug = () => {
-        setAutoGenerateSlug(!autoGenerateSlug);
-        if (!autoGenerateSlug) {
-            const name = formProps.form?.getFieldValue('name');
-            if (!name) {
-                return;
-            }
-            const slug = slugify(removeTone(removeDiacritics(name)), { lower: true, strict: true });
-            formProps.form?.setFieldsValue({ slug });
+    const slugExists = !!slugData?.data;
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const name = e.target.value;
+        formProps.form?.setFieldsValue({ name });
+        if (autoGenerateSlug && mode === 'create' && name) {
+            const slugged = generateSlug(name);
+            setSlug(slugged);
+            formProps.form?.setFieldsValue({ slug: slugged });
+        }
+    };
+
+    const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (mode === 'create') {
+            const newSlug = e.target.value;
+            setSlug(newSlug);
+            formProps.form?.setFieldsValue({
+                slug: newSlug,
+            });
         }
     };
 
@@ -329,6 +398,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
                                         icon={<LinkOutlined />}
                                         onClick={toggleAutoGenerateSlug}
                                         type={autoGenerateSlug ? 'primary' : 'default'}
+                                        disabled={mode === 'edit'}
                                     />
                                 </Tooltip>
                             </Col>
@@ -344,9 +414,40 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query }) => {
                                             message:
                                                 'Slug can only contain alphanumeric characters, hyphens, and underscores',
                                         },
+                                        {
+                                            validator: (_, value) => {
+                                                if (mode === 'create' && slugExists) {
+                                                    return Promise.reject(
+                                                        'This slug already exists',
+                                                    );
+                                                }
+                                                return Promise.resolve();
+                                            },
+                                        },
                                     ]}
+                                    help={
+                                        mode === 'create' ? (
+                                            isCheckingSlug ? (
+                                                <Text type="secondary">
+                                                    Checking slug availability...
+                                                </Text>
+                                            ) : debouncedSlug && slugExists ? (
+                                                <Text type="danger">This slug already exists</Text>
+                                            ) : debouncedSlug ? (
+                                                <Text type="success">Slug is available</Text>
+                                            ) : null
+                                        ) : (
+                                            <Text type="secondary">
+                                                Slug cannot be changed in edit mode
+                                            </Text>
+                                        )
+                                    }
                                 >
-                                    <Input disabled={autoGenerateSlug} autoComplete="off" />
+                                    <Input
+                                        disabled={mode === 'edit' || autoGenerateSlug}
+                                        onChange={handleSlugChange}
+                                        readOnly={mode === 'edit'}
+                                    />
                                 </Form.Item>
                             </Col>
                         </Row>

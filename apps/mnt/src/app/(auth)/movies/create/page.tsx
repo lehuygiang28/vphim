@@ -17,13 +17,13 @@ export default function MovieCreatePage() {
             gqlQuery: CREATE_MOVIE,
             operation: 'createMovie',
         },
-        redirect: 'show',
+        redirect: 'list',
         invalidates: ['list', 'detail'],
     });
 
     return (
         <Create saveButtonProps={saveButtonProps}>
-            <MovieForm formProps={formProps} />
+            <MovieForm formProps={formProps} mode="create" />
         </Create>
     );
 }

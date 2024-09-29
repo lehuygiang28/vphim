@@ -61,7 +61,7 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
                 );
             }}
         >
-            {query?.data?.data && <MovieForm query={query} formProps={formProps} />}
+            {query?.data?.data && <MovieForm query={query} formProps={formProps} mode="edit" />}
         </Edit>
     );
 }

@@ -99,6 +99,15 @@ export const GET_FULL_MOVIE_DETAIL_QUERY = gql`
     }
 `;
 
+export const CHECK_MOVIE_EXIST_SLUG = gql`
+    query GetMovie($input: GetMovieInput!) {
+        movie(input: $input) {
+            _id
+            slug
+        }
+    }
+`;
+
 export const MUTATION_UPDATE_MOVIE = gql`
     mutation UpdateMovie($input: UpdateMovieInput!) {
         updateMovie(input: $input) {
