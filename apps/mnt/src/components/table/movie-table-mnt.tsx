@@ -284,6 +284,13 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                 pagination={{
                     ...tableProps.pagination,
                     showSizeChanger: true,
+                    pageSizeOptions: [10, 24, 50, 100, 200, 500],
+                    showTotal: (total, range) =>
+                        `Showing ${range[0]} to ${range[1]} of ${total} results`,
+                    position: ['topRight', 'bottomRight'],
+                    size: 'small',
+                    simple: true,
+                    responsive: true,
                 }}
                 size="small"
                 columns={[
