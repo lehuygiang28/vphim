@@ -1,6 +1,7 @@
 import React, { useRef, CSSProperties, useState, useEffect } from 'react';
 import { Typography, Grid, Skeleton } from 'antd';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
@@ -45,6 +46,7 @@ export default function MovieList({
     style,
     disableNavigation = true,
 }: MovieListProps) {
+    const router = useRouter();
     const { md, lg, xl, xxl } = useBreakpoint();
     const swiperRef = useRef<SwiperType>();
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -155,7 +157,13 @@ export default function MovieList({
                                   height: md ? '20rem' : '15rem',
                                   zIndex: index === selectedIndex ? '100' : '1',
                               }}
-                              onClick={() => handleVisibleContentCard(index)}
+                              onClick={() => {
+                                  if (md) {
+                                      router.push(`/phim/${movie.slug}`);
+                                  } else {
+                                      handleVisibleContentCard(index);
+                                  }
+                              }}
                               onMouseEnter={() => handleVisibleContentCard(index)}
                               onMouseLeave={() => handleVisibleContentCard(null)}
                           >

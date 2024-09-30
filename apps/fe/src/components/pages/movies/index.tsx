@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Divider, Space, Typography, Breadcrumb, List, Grid, Empty } from 'antd';
 import { CrudFilter, useTable, LogicalFilter, CrudSort } from '@refinedev/core';
 import { parseTableParams } from '@refinedev/nextjs-router';
@@ -20,6 +20,7 @@ export type MoviePageProps = {
 };
 
 export default function MoviePage({ breadcrumbs }: MoviePageProps) {
+    const router = useRouter();
     const { md } = useBreakpoint();
     const search = useSearchParams();
 
@@ -169,7 +170,13 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                                     height: md ? '19rem' : '17rem',
                                     zIndex: index === selectedIndex ? '100' : '1',
                                 }}
-                                onClick={() => handleVisibleContentCard(index)}
+                                onClick={() => {
+                                    if (md) {
+                                        router.push(`/phim/${item.slug}`);
+                                    } else {
+                                        handleVisibleContentCard(index);
+                                    }
+                                }}
                                 onMouseEnter={() => handleVisibleContentCard(index)}
                                 onMouseLeave={() => handleVisibleContentCard(null)}
                             >
