@@ -396,6 +396,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                                             deleteButtonProps={{
                                                 hideText: true,
                                                 size: 'small',
+                                                mutationMode: 'undoable',
                                             }}
                                         />
                                     </Space>
@@ -427,6 +428,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                                             deleteButtonProps={{
                                                 hideText: true,
                                                 size: 'small',
+                                                mutationMode: 'undoable',
                                             }}
                                         />
                                     </Space>
