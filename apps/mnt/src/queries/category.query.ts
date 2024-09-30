@@ -7,6 +7,7 @@ export const MNT_CATEGORIES_LIST_QUERY = gql`
                 _id
                 name
                 slug
+                updatedAt
             }
             total
         }
