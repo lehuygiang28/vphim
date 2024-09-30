@@ -235,6 +235,7 @@ type Query {
   category(input: GetCategoryInput!): Category!
   directors(input: GetDirectorsInput!): GetDirectorsOutput!
   regions(input: GetRegionsInput!): GetRegionsOutput!
+  region(input: GetRegionInput!): Region!
 }
 
 input GetMovieInput {
@@ -310,6 +311,11 @@ input GetRegionsInput {
   keywords: String
 }
 
+input GetRegionInput {
+  _id: String
+  slug: String
+}
+
 type Mutation {
   mutationMe(input: MutationMeInput!): UserType!
   followMovie(input: MutationFollowMovieInput!): UserType!
@@ -320,7 +326,9 @@ type Mutation {
   updateCategory(input: UpdateCategoryInput!): Category!
   createCategory(input: CreateCategoryInput!): Category!
   deleteCategory(input: DeleteCategoryInput!): Int!
-  updateRegion(slug: String!, input: UpdateRegionInput!): Region!
+  updateRegion(input: UpdateRegionInput!): Region!
+  createRegion(input: CreateRegionInput!): Region!
+  deleteRegion(input: DeleteRegionInput!): Int!
 }
 
 input MutationMeInput {
@@ -421,5 +429,16 @@ input DeleteCategoryInput {
 }
 
 input UpdateRegionInput {
-  name: String
+  _id: String!
+  name: String!
+  slug: String
+}
+
+input CreateRegionInput {
+  name: String!
+  slug: String!
+}
+
+input DeleteRegionInput {
+  _id: ID!
 }
