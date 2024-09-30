@@ -15,6 +15,7 @@ import {
     UserOutlined,
     UnorderedListOutlined,
     TagOutlined,
+    GlobalOutlined,
 } from '@ant-design/icons';
 import { DevtoolsProvider, DevtoolsPanel } from '@refinedev/devtools';
 
@@ -99,6 +100,15 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                         show: '/categories/show/:id',
                                         meta: {
                                             icon: <TagOutlined />,
+                                        },
+                                    },
+                                    {
+                                        name: 'countries',
+                                        list: '/countries',
+                                        edit: '/countries/edit/:id',
+                                        show: '/countries/show/:id',
+                                        meta: {
+                                            icon: <GlobalOutlined />,
                                         },
                                     },
                                     {
