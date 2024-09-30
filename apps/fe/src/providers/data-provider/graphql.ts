@@ -85,7 +85,7 @@ export const graphqlDataProvider = (
                 }),
             );
 
-            const { data = [], total = 0 } = res[operation] || {};
+            const { data = [], total = 0 } = res?.[operation] || {};
 
             return {
                 data: data.map((d: any) => ({ ...d, id: d?._id?.toString() })),
@@ -117,9 +117,37 @@ export const graphqlDataProvider = (
                 variables,
             });
 
-            return { data: res[operation] };
+            return { data: res?.[operation] };
         },
         update: updateFn,
         deleteOne: updateFn,
+        getMany: async ({ resource, ids, meta }) => {
+            const camelResource = camelCase(resource);
+            const operation = meta?.operation ?? camelResource;
+
+            const variablesInput = {
+                ...meta?.variables,
+                ids,
+            };
+
+            const {
+                data: { data: res },
+            } = await axios.post<any>(
+                baseUrl,
+                JSON.stringify({
+                    query: print(meta?.gqlQuery as any),
+                    variables: {
+                        input: variablesInput,
+                    },
+                }),
+            );
+
+            const { data = [], total = 0 } = res?.[operation] || {};
+
+            return {
+                data: data.map((d: any) => ({ ...d, id: d?._id?.toString() })),
+                total: total,
+            };
+        },
     };
 };

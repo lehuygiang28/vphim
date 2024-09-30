@@ -1,22 +1,27 @@
 'use client';
 
+import '@refinedev/antd/dist/reset.css';
+import React from 'react';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { useNotificationProvider } from '@refinedev/antd';
 import { DataProvider, Refine } from '@refinedev/core';
 import routerProvider from '@refinedev/nextjs-router';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import '@refinedev/antd/dist/reset.css';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { PlaySquareOutlined, DeleteFilled, UserOutlined } from '@ant-design/icons';
+import {
+    PlaySquareOutlined,
+    DeleteFilled,
+    UserOutlined,
+    UnorderedListOutlined,
+    TagOutlined,
+} from '@ant-design/icons';
 import { DevtoolsProvider, DevtoolsPanel } from '@refinedev/devtools';
 
 import { ColorModeContextProvider } from '~fe/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
 import { useAxiosAuth } from '~fe/hooks/useAxiosAuth';
 import { authProvider } from '~fe/providers/auth-provider';
-
-import Loading from './loading';
 
 type RefineContextProps = {
     defaultMode?: string;
@@ -61,13 +66,21 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                 resources={[
                                     {
                                         name: 'movies',
+                                        meta: {
+                                            icon: <PlaySquareOutlined />,
+                                            canDelete: true,
+                                        },
+                                    },
+                                    {
+                                        name: 'movie list',
                                         list: '/movies',
                                         create: '/movies/create',
                                         show: '/movies/show/:id',
                                         edit: '/movies/edit/:id',
                                         meta: {
-                                            icon: <PlaySquareOutlined />,
+                                            icon: <UnorderedListOutlined />,
                                             canDelete: true,
+                                            parent: 'movies',
                                         },
                                     },
                                     {
@@ -76,6 +89,16 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                         meta: {
                                             canDelete: true,
                                             icon: <DeleteFilled />,
+                                            parent: 'movies',
+                                        },
+                                    },
+                                    {
+                                        name: 'categories',
+                                        list: '/categories',
+                                        edit: '/categories/edit/:id',
+                                        show: '/categories/show/:id',
+                                        meta: {
+                                            icon: <TagOutlined />,
                                         },
                                     },
                                     {
@@ -93,6 +116,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     warnWhenUnsavedChanges: true,
                                     useNewQueryKeys: true,
                                     projectId: 'NJcdqz-Mcj2uR-iCRTib',
+                                    disableTelemetry: true,
                                 }}
                             >
                                 {props.children}
