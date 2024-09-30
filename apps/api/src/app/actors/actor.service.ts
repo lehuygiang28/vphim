@@ -1,13 +1,16 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 
 import { ActorRepository } from './actor.repository';
-import { UpdateActorDto } from './dtos';
 import { GetActorsInput } from './inputs/get-actors.input';
-import { createRegex } from '@vn-utils/text';
+import { createRegex, removeDiacritics, removeTone } from '@vn-utils/text';
 import { FilterQuery } from 'mongoose';
 import { Actor } from './actor.schema';
-import { sortedStringify } from '../../libs/utils/common';
+import { convertToObjectId, sortedStringify } from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis/services';
+import { UpdateActorInput } from './inputs/update-actor.input';
+import { CreateActorInput } from './inputs/create-actor.input';
+import { GetActorInput } from './inputs/get-actor.input';
+import { DeleteActorInput } from './inputs/delete-actor.input';
 
 @Injectable()
 export class ActorService {
@@ -46,19 +49,55 @@ export class ActorService {
         return result;
     }
 
-    async updateActor({ slug, body }: { slug: string; body: UpdateActorDto }) {
-        if (Object.keys(body)?.length === 0) {
+    async updateActor({ _id, name }: UpdateActorInput) {
+        return this.actorRepo.findOneAndUpdateOrThrow({
+            filterQuery: { _id: convertToObjectId(_id) },
+            updateQuery: { name: name },
+        });
+    }
+
+    async createActor({ name, slug }: CreateActorInput) {
+        const exists = await this.actorRepo.findOne({ filterQuery: { slug } });
+        if (exists) {
             throw new BadRequestException({
                 errors: {
-                    body: 'No data to update',
+                    slug: 'alreadyExists',
                 },
-                message: 'No data to update',
+                message: 'Slug already exists',
             });
         }
 
-        return this.actorRepo.findOneAndUpdateOrThrow({
-            filterQuery: { slug },
-            updateQuery: { name: body?.name },
+        return this.actorRepo.create({
+            document: { name, slug: removeDiacritics(removeTone(slug)) },
         });
+    }
+
+    async getActor({ _id, slug }: GetActorInput) {
+        if (_id) {
+            return this.actorRepo.findOneOrThrow({
+                filterQuery: { _id: convertToObjectId(_id) },
+            });
+        }
+
+        if (slug) {
+            return this.actorRepo.findOneOrThrow({
+                filterQuery: { slug },
+            });
+        }
+
+        throw new HttpException(
+            {
+                status: HttpStatus.UNPROCESSABLE_ENTITY,
+                errors: {
+                    _id: 'required',
+                },
+            },
+            HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+    }
+
+    async deleteActor({ _id }: DeleteActorInput) {
+        await this.actorRepo.deleteOne({ _id: convertToObjectId(_id) });
+        return 1;
     }
 }

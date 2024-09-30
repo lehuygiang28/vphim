@@ -231,6 +231,7 @@ type Query {
   movies(input: GetMoviesInput!): GetMoviesOutput!
   moviesForAdmin(input: GetMoviesAdminInput!): GetMoviesOutput!
   actors(input: GetActorsInput!): GetActorsOutput!
+  actor(input: GetActorInput!): Actor!
   categories(input: GetCategoriesInput!): GetCategoriesOutput!
   category(input: GetCategoryInput!): Category!
   directors(input: GetDirectorsInput!): GetDirectorsOutput!
@@ -287,6 +288,11 @@ input GetActorsInput {
   keywords: String
 }
 
+input GetActorInput {
+  _id: String
+  slug: String
+}
+
 input GetCategoriesInput {
   limit: Float = 10
   page: Float = 1
@@ -329,6 +335,9 @@ type Mutation {
   createMovie(input: CreateMovieInput!): Movie!
   updateMovie(input: UpdateMovieInput!): Movie!
   mutateHardDeleteMovie(input: MutateHardDeleteMovieInput!): Int!
+  updateActor(input: UpdateActorInput!): Actor!
+  createActor(input: CreateActorInput!): Actor!
+  deleteActor(input: DeleteActorInput!): Int!
   updateCategory(input: UpdateCategoryInput!): Category!
   createCategory(input: CreateCategoryInput!): Category!
   deleteCategory(input: DeleteCategoryInput!): Int!
@@ -419,6 +428,21 @@ input UpdateMovieInput {
 }
 
 input MutateHardDeleteMovieInput {
+  _id: ID!
+}
+
+input UpdateActorInput {
+  _id: String!
+  name: String!
+  slug: String
+}
+
+input CreateActorInput {
+  name: String!
+  slug: String!
+}
+
+input DeleteActorInput {
   _id: ID!
 }
 
