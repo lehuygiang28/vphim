@@ -13,7 +13,7 @@ import {
 import { ColumnType } from 'antd/es/table';
 import { FilterDropdownProps } from 'antd/es/table/interface';
 import { EpisodeModal } from './episode-modal';
-import { ServerOriginSrcTag } from '../tag/server-origin-src-tag';
+import { ServerOriginSrcTag } from '../../tag/server-origin-src-tag';
 
 const { Title } = Typography;
 

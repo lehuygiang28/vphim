@@ -5,7 +5,7 @@ import { Create } from '@refinedev/antd';
 
 import { CREATE_MOVIE } from '~mnt/queries/movie.query';
 import { MovieType } from '~api/app/movies/movie.type';
-import { MovieForm } from '~mnt/components/form/new-movie';
+import { MovieForm } from '~mnt/components/form/movie';
 
 export default function MovieCreatePage() {
     const { formProps, saveButtonProps } = useForm<MovieType>({

@@ -1,11 +1,12 @@
 'use client';
 
+import React from 'react';
 import { Spin } from 'antd';
 import { useForm, SaveButton } from '@refinedev/antd';
 import { Edit } from '@refinedev/antd';
 
 import { GET_FULL_MOVIE_DETAIL_QUERY, MUTATION_UPDATE_MOVIE } from '~mnt/queries/movie.query';
-import { MovieForm } from '~mnt/components/form/new-movie';
+import { MovieForm } from '~mnt/components/form/movie';
 import { MovieType } from '~api/app/movies/movie.type';
 import { DeleteMovieButton } from '~mnt/components/button/delete-movie-button';
 
