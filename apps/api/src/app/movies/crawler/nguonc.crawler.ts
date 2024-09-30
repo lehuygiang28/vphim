@@ -248,7 +248,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 lastSyncModified: new Date(
                     Math.max(
                         modified ? new Date(modified).getTime() : 0,
-                        new Date(existingMovie.lastSyncModified).getTime(),
+                        new Date(existingMovie?.lastSyncModified).getTime(),
                         0,
                     ),
                 ),
