@@ -1,13 +1,16 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 
 import { DirectorRepository } from './director.repository';
-import { UpdateDirectorDto } from './dtos';
 import { Director } from './director.schema';
 import { GetDirectorsInput } from './inputs/get-directors.input';
 import { FilterQuery } from 'mongoose';
-import { createRegex } from '@vn-utils/text';
+import { createRegex, removeDiacritics, removeTone } from '@vn-utils/text';
 import { RedisService } from '../../libs/modules/redis/services';
-import { sortedStringify } from '../../libs/utils/common';
+import { convertToObjectId, sortedStringify } from '../../libs/utils/common';
+import { UpdateDirectorInput } from './inputs/update-director.input';
+import { CreateDirectorInput } from './inputs/create-director.input';
+import { GetDirectorInput } from './inputs/get-director.input';
+import { DeleteDirectorInput } from './inputs/delete-director.input';
 
 @Injectable()
 export class DirectorService {
@@ -18,10 +21,6 @@ export class DirectorService {
         private readonly redisService: RedisService,
     ) {
         this.logger = new Logger(DirectorService.name);
-    }
-
-    async getDirector() {
-        return this.directorRepo.find({ filterQuery: {} });
     }
 
     async getDirectors(query?: GetDirectorsInput) {
@@ -50,19 +49,55 @@ export class DirectorService {
         return result;
     }
 
-    async updateDirector({ slug, body }: { slug: string; body: UpdateDirectorDto }) {
-        if (Object.keys(body)?.length === 0) {
+    async updateDirector({ _id, name }: UpdateDirectorInput) {
+        return this.directorRepo.findOneAndUpdateOrThrow({
+            filterQuery: { _id: convertToObjectId(_id) },
+            updateQuery: { name: name },
+        });
+    }
+
+    async createDirector({ name, slug }: CreateDirectorInput) {
+        const exists = await this.directorRepo.findOne({ filterQuery: { slug } });
+        if (exists) {
             throw new BadRequestException({
                 errors: {
-                    body: 'No data to update',
+                    slug: 'alreadyExists',
                 },
-                message: 'No data to update',
+                message: 'Slug already exists',
             });
         }
 
-        return this.directorRepo.findOneAndUpdateOrThrow({
-            filterQuery: { slug },
-            updateQuery: { name: body?.name },
+        return this.directorRepo.create({
+            document: { name, slug: removeDiacritics(removeTone(slug)) },
         });
+    }
+
+    async getDirector({ _id, slug }: GetDirectorInput) {
+        if (_id) {
+            return this.directorRepo.findOneOrThrow({
+                filterQuery: { _id: convertToObjectId(_id) },
+            });
+        }
+
+        if (slug) {
+            return this.directorRepo.findOneOrThrow({
+                filterQuery: { slug },
+            });
+        }
+
+        throw new HttpException(
+            {
+                status: HttpStatus.UNPROCESSABLE_ENTITY,
+                errors: {
+                    _id: 'required',
+                },
+            },
+            HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+    }
+
+    async deleteDirector({ _id }: DeleteDirectorInput) {
+        await this.directorRepo.deleteOne({ _id: convertToObjectId(_id) });
+        return 1;
     }
 }

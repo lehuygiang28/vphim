@@ -234,6 +234,7 @@ type Query {
   categories(input: GetCategoriesInput!): GetCategoriesOutput!
   category(input: GetCategoryInput!): Category!
   directors(input: GetDirectorsInput!): GetDirectorsOutput!
+  director(input: GetDirectorInput!): Director!
   regions(input: GetRegionsInput!): GetRegionsOutput!
   region(input: GetRegionInput!): Region!
 }
@@ -305,6 +306,11 @@ input GetDirectorsInput {
   keywords: String
 }
 
+input GetDirectorInput {
+  _id: String
+  slug: String
+}
+
 input GetRegionsInput {
   limit: Float = 10
   page: Float = 1
@@ -326,6 +332,9 @@ type Mutation {
   updateCategory(input: UpdateCategoryInput!): Category!
   createCategory(input: CreateCategoryInput!): Category!
   deleteCategory(input: DeleteCategoryInput!): Int!
+  updateDirector(input: UpdateDirectorInput!): Director!
+  createDirector(input: CreateDirectorInput!): Director!
+  deleteDirector(input: DeleteDirectorInput!): Int!
   updateRegion(input: UpdateRegionInput!): Region!
   createRegion(input: CreateRegionInput!): Region!
   deleteRegion(input: DeleteRegionInput!): Int!
@@ -425,6 +434,21 @@ input CreateCategoryInput {
 }
 
 input DeleteCategoryInput {
+  _id: ID!
+}
+
+input UpdateDirectorInput {
+  _id: String!
+  name: String!
+  slug: String
+}
+
+input CreateDirectorInput {
+  name: String!
+  slug: String!
+}
+
+input DeleteDirectorInput {
   _id: ID!
 }
 
