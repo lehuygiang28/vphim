@@ -1,13 +1,16 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
-import { createRegex } from '@vn-utils/text';
+import { createRegex, removeDiacritics, removeTone } from '@vn-utils/text';
 
 import { CategoryRepository } from './category.repository';
-import { UpdateCategoryDto } from './dtos';
 import { GetCategoriesInput } from './inputs/get-categories.input';
 import { Category } from './category.schema';
-import { sortedStringify } from '../../libs/utils/common';
+import { convertToObjectId, sortedStringify } from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis';
+import { UpdateCategoryInput } from './inputs/update-category.input';
+import { CreateCategoryInput } from './inputs/create-category.input';
+import { GetCategoryInput } from './inputs/get-category.input';
+import { DeleteCategoryInput } from './inputs/delete-category.input';
 
 @Injectable()
 export class CategoryService {
@@ -36,6 +39,14 @@ export class CategoryService {
             filterQuery.$or = [{ name: regex }, { slug: regex }, { content: regex }];
         }
 
+        if (query?.ids?.length) {
+            filterQuery._id = { $in: query?.ids?.map((id) => convertToObjectId(id)) };
+        }
+
+        if (query?.slugs?.length) {
+            filterQuery.slug = { $in: query.slugs };
+        }
+
         const [data, total] = await Promise.all([
             this.categoryRepo.find({ filterQuery, query }),
             this.categoryRepo.count(filterQuery),
@@ -46,19 +57,59 @@ export class CategoryService {
         return result;
     }
 
-    async updateCategory({ slug, body }: { slug: string; body: UpdateCategoryDto }) {
-        if (Object.keys(body)?.length === 0) {
-            throw new BadRequestException({
-                errors: {
-                    body: 'No data to update',
-                },
-                message: 'No data to update',
+    async updateCategory({ _id, name }: UpdateCategoryInput) {
+        return this.categoryRepo.findOneAndUpdateOrThrow({
+            filterQuery: { _id: convertToObjectId(_id) },
+            updateQuery: { name: name },
+        });
+    }
+
+    async getCategory({ _id, slug }: GetCategoryInput) {
+        if (_id) {
+            return this.categoryRepo.findOneOrThrow({
+                filterQuery: { _id: convertToObjectId(_id) },
             });
         }
 
-        return this.categoryRepo.findOneAndUpdateOrThrow({
-            filterQuery: { slug },
-            updateQuery: { name: body?.name },
+        if (slug) {
+            return this.categoryRepo.findOneOrThrow({
+                filterQuery: { slug },
+            });
+        }
+
+        throw new HttpException(
+            {
+                status: HttpStatus.UNPROCESSABLE_ENTITY,
+                errors: {
+                    _id: 'required',
+                },
+            },
+            HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+    }
+
+    async createCategory({ name, slug }: CreateCategoryInput): Promise<Category> {
+        const exists = await this.categoryRepo.findOne({ filterQuery: { slug } });
+
+        if (exists) {
+            throw new HttpException(
+                {
+                    status: HttpStatus.UNPROCESSABLE_ENTITY,
+                    errors: {
+                        slug: 'alreadyExists',
+                    },
+                },
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
+
+        return this.categoryRepo.create({
+            document: { name, slug: removeDiacritics(removeTone(slug)) },
         });
+    }
+
+    async deleteCategory({ _id }: DeleteCategoryInput) {
+        await this.categoryRepo.deleteOne({ _id: convertToObjectId(_id) });
+        return 1;
     }
 }
