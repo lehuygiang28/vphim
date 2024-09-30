@@ -124,14 +124,23 @@ export function Movie({ slug }: MovieProps) {
             return;
         }
 
-        if (follow) {
-            updateUser({
+        // Optimistically update the UI
+        setIsFollowing(follow);
+
+        const operation = follow ? 'followMovie' : 'unfollowMovie';
+        const mutation = follow ? FOLLOW_MOVIE_MUTATION : UNFOLLOW_MOVIE_MUTATION;
+        const successMessage = follow
+            ? 'Đã thêm phim vào tủ thành công'
+            : 'Xóa phim khỏi tủ thành công';
+
+        updateUser(
+            {
                 id: 'me',
                 values: {},
                 mutationMode: 'optimistic',
                 meta: {
-                    gqlMutation: FOLLOW_MOVIE_MUTATION,
-                    operation: 'followMovie',
+                    gqlMutation: mutation,
+                    operation: operation,
                     variables: {
                         input: {
                             movieSlug: movie.slug,
@@ -139,32 +148,18 @@ export function Movie({ slug }: MovieProps) {
                     },
                 },
                 successNotification: {
-                    message: 'Đã thêm phim vào tủ thành công',
+                    message: successMessage,
                     type: 'success',
-                    key: 'followMovie',
+                    key: operation,
                 },
-            });
-        } else {
-            updateUser({
-                id: 'me',
-                values: {},
-                mutationMode: 'optimistic',
-                meta: {
-                    gqlMutation: UNFOLLOW_MOVIE_MUTATION,
-                    operation: 'unfollowMovie',
-                    variables: {
-                        input: {
-                            movieSlug: movie.slug,
-                        },
-                    },
+            },
+            {
+                onError: () => {
+                    // Revert the optimistic update if there's an error
+                    setIsFollowing(!follow);
                 },
-                successNotification: {
-                    message: 'Xóa phim khỏi tủ thành công',
-                    type: 'success',
-                    key: 'unfollowMovie',
-                },
-            });
-        }
+            },
+        );
     };
 
     const renderMovieInfoSection = () => {
@@ -445,8 +440,8 @@ export function Movie({ slug }: MovieProps) {
                                     <Col span={6}>
                                         <Tooltip
                                             title={`${
-                                                isFollowing ? 'Bỏ theo dõi' : 'Theo dõi'
-                                            } phim`}
+                                                isFollowing ? 'Xóa khỏi' : 'Thêm vào'
+                                            } tủ phim`}
                                             trigger={'hover'}
                                         >
                                             <Button

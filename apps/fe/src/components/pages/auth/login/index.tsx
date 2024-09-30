@@ -36,7 +36,7 @@ export type LoginProps = {
 
 const translations = {
     vi: {
-        followTitle: 'Bạn cần đăng nhập để theo dõi phim',
+        followTitle: 'Bạn cần đăng nhập để thêm phim vào tủ',
         defaultTitle: 'Tiếp tục vào VePhim',
         useEmail: 'Sử dụng email của bạn',
         continue: 'Tiếp tục',
