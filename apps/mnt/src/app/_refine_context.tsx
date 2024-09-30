@@ -17,6 +17,7 @@ import {
     TagOutlined,
     GlobalOutlined,
     VideoCameraOutlined,
+    TeamOutlined,
 } from '@ant-design/icons';
 import { DevtoolsProvider, DevtoolsPanel } from '@refinedev/devtools';
 
@@ -119,6 +120,15 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                         show: '/directors/show/:id',
                                         meta: {
                                             icon: <VideoCameraOutlined />,
+                                        },
+                                    },
+                                    {
+                                        name: 'actors',
+                                        list: '/actors',
+                                        edit: '/actors/edit/:id',
+                                        show: '/actors/show/:id',
+                                        meta: {
+                                            icon: <TeamOutlined />,
                                         },
                                     },
                                     {
