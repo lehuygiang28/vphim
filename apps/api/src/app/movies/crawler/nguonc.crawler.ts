@@ -350,7 +350,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     private async processActors(casts: string) {
         const actorNames = (casts || '')
             .split(',')
-            .map((name) => name.trim())
+            ?.map((name) => name.trim())
             .filter(Boolean);
         return this.processEntities(actorNames, this.actorRepo);
     }
@@ -358,14 +358,14 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     private async processDirectors(directors: string) {
         const directorNames = (directors || '')
             .split(',')
-            .map((name) => name.trim())
+            ?.map((name) => name.trim())
             .filter(Boolean);
         return this.processEntities(directorNames, this.directorRepo);
     }
 
     private async processEntities(names: any[], repo: any) {
         const entities = await Promise.all(
-            names.map(async (name) => {
+            names?.map(async (name) => {
                 // Ensure name is a string and not empty
                 if (typeof name !== 'string' || name.trim() === '') {
                     return null;
@@ -386,7 +386,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     private processEpisodes(newEpisodes: any[], existingEpisodes: Episode[] = []): Episode[] {
         const processedEpisodes: Episode[] = [...existingEpisodes];
         const existingServers = new Map(
-            existingEpisodes.map((ep) => [`${ep.serverName}-${ep.originSrc}`, ep]),
+            existingEpisodes?.map((ep) => [`${ep.serverName}-${ep.originSrc}`, ep]),
         );
         let ncCounter = 1;
 
@@ -398,7 +398,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
             const serverData = (episode.items || [])
                 .filter((item: any) => item && (item.embed || item.m3u8))
-                .map((item: any, index): EpisodeServerData => {
+                ?.map((item: any, index): EpisodeServerData => {
                     const { name, slug } = mappingNameSlugEpisode(item, index);
                     return {
                         name: name,
