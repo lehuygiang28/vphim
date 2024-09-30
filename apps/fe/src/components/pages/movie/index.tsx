@@ -139,7 +139,7 @@ export function Movie({ slug }: MovieProps) {
                     },
                 },
                 successNotification: {
-                    message: 'Đã theo dõi phim thành công',
+                    message: 'Đã thêm phim vào tủ thành công',
                     type: 'success',
                     key: 'followMovie',
                 },
@@ -159,7 +159,7 @@ export function Movie({ slug }: MovieProps) {
                     },
                 },
                 successNotification: {
-                    message: 'Bỏ theo dõi phim thành công',
+                    message: 'Xóa phim khỏi tủ thành công',
                     type: 'success',
                     key: 'unfollowMovie',
                 },
@@ -340,7 +340,15 @@ export function Movie({ slug }: MovieProps) {
                             }}
                             className="textContent"
                         >
-                            <Space direction="vertical" size={md ? 'middle' : 'small'}>
+                            <Space
+                                direction="vertical"
+                                size={md ? 'middle' : 'small'}
+                                styles={{
+                                    item: {
+                                        minWidth: '30vw',
+                                    },
+                                }}
+                            >
                                 <div>
                                     <Title level={md ? 1 : 4} style={{ marginBottom: '0' }}>
                                         {movie?.name}
