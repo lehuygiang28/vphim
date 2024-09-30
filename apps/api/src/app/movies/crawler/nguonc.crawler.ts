@@ -184,6 +184,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             if (
                 !this.NGUONC_FORCE_UPDATE &&
                 existingMovie &&
+                existingMovie.lastSyncModified &&
                 lastModified <= existingMovie?.lastSyncModified
             ) {
                 this.logger.log(`Movie "${movieDetail?.slug}" is up to date. Skipping...`);
@@ -248,7 +249,9 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 lastSyncModified: new Date(
                     Math.max(
                         modified ? new Date(modified).getTime() : 0,
-                        new Date(existingMovie?.lastSyncModified).getTime(),
+                        existingMovie?.lastSyncModified
+                            ? new Date(existingMovie.lastSyncModified).getTime()
+                            : 0,
                         0,
                     ),
                 ),
