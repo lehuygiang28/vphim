@@ -317,8 +317,8 @@ export class MovieService {
             body: {
                 query,
                 sort,
-                from: (page - 1) * limit,
-                size: limit,
+                from: (page - 1) * Math.min(limit, 500),
+                size: Math.min(limit, 500),
                 track_total_hits: true,
                 ...(minScore && { min_score: minScore }),
             },
