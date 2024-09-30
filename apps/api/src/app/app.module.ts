@@ -4,9 +4,6 @@ import { BullModule } from '@nestjs/bullmq';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-
 import appConfig from './config/app-config';
 import { RedisModule, RedisService } from '../libs/modules/redis';
 import { MongodbModule } from '../libs/modules/mongodb';
@@ -61,7 +58,7 @@ import { ImagesModule } from './images';
         ActorModule,
         DirectorModule,
     ],
-    controllers: [AppController],
-    providers: [AppService],
+    controllers: [],
+    providers: [],
 })
 export class AppModule {}
