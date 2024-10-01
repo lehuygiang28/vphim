@@ -88,14 +88,11 @@
         "expo-router": "*",
         "react-native-safe-area-context": "*",
         "react-native-screens": "*",
-        "@react-navigation/drawer": "*",
         "expo-linking": "*",
         "react-native-reanimated": "*",
         "react-native-gesture-handler": "*",
         "@refinenative/react-native-paper": "*",
         "react-native-paper": "*",
-        "@react-navigation/native": "*",
-        "@react-navigation/bottom-tabs": "*",
         "@expo/vector-icons": "*",
         "@nx/next": "*",
         "next": "*",
@@ -119,7 +116,6 @@
         "pluralize": "*",
         "@refinedev/simple-rest": "*",
         "graphql-tag": "*",
-        "@react-navigation/native-stack": "*",
         "react-native-swiper": "*",
         "expo-image": "*",
         "expo-linear-gradient": "*",
@@ -140,5 +136,6 @@
         "android": "expo run:android",
         "ios": "expo run:ios"
     },
-    "devDependencies": {}
+    "devDependencies": {},
+    "main": "index.js"
 }
