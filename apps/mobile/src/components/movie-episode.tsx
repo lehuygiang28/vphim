@@ -1,23 +1,22 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useTheme, Text, Title, Chip, Portal, Modal, IconButton } from 'react-native-paper';
 import { ChevronRight, Server } from 'lucide-react-native';
 import { EpisodeServerDataType, EpisodeType } from '~api/app/movies/movie.type';
 import { randomString } from '@/libs/utils/common';
-import { CustomDarkTheme } from '~mb/config/theme';
+import { AppTheme } from '~mb/config/theme';
 
 type MovieEpisodeProps = {
     movie: {
         episode?: EpisodeType[];
         trailerUrl?: string;
     };
-    activeEpisodeSlug?: string;
-    activeServerIndex?: number;
-    onEpisodePress: (episode: EpisodeServerDataType) => void;
-    onServerChange?: (index: number) => void;
+    onEpisodeSelect: (episode: EpisodeServerDataType, serverIndex: number) => void;
+    activeEpisodeSlug: string | null;
+    activeServerIndex: number;
 };
 
-const EpisodeItem = React.memo(
+const EpisodeItem = memo(
     ({
         item,
         isActive,
@@ -27,7 +26,7 @@ const EpisodeItem = React.memo(
         item: EpisodeServerDataType;
         isActive: boolean;
         onPress: () => void;
-        theme: typeof CustomDarkTheme;
+        theme: AppTheme;
     }) => (
         <Chip
             mode={isActive ? 'flat' : 'outlined'}
@@ -48,19 +47,16 @@ const EpisodeItem = React.memo(
 
 export default function MovieEpisode({
     movie,
+    onEpisodeSelect,
     activeEpisodeSlug,
-    activeServerIndex = 0,
-    onEpisodePress,
-    onServerChange,
+    activeServerIndex,
 }: MovieEpisodeProps) {
     const theme = useTheme();
     const [modalVisible, setModalVisible] = useState(false);
     const [serverModalVisible, setServerModalVisible] = useState(false);
-    const episodeListRef = useRef<FlatList>(null);
-    const [selectedServer, setSelectedServer] = useState(activeServerIndex);
 
     const allEpisodes = useMemo(() => {
-        const episodes = movie.episode?.[selectedServer]?.serverData || [];
+        const episodes = movie.episode?.[activeServerIndex]?.serverData || [];
         return movie.trailerUrl
             ? [
                   {
@@ -73,47 +69,54 @@ export default function MovieEpisode({
                   ...episodes,
               ]
             : episodes;
-    }, [movie.episode, movie.trailerUrl, selectedServer]);
+    }, [movie.episode, movie.trailerUrl, activeServerIndex]);
 
     const visibleEpisodes = useMemo(() => {
         const activeEpisodeIndex = allEpisodes.findIndex((ep) => ep.slug === activeEpisodeSlug);
         if (activeEpisodeIndex === -1 || activeEpisodeIndex === 0) {
             return allEpisodes.slice(0, 5);
         }
-
         const start = Math.max(0, Math.min(activeEpisodeIndex - 2, allEpisodes.length - 5));
         return allEpisodes.slice(start, start + 5);
     }, [allEpisodes, activeEpisodeSlug]);
+
+    const handleEpisodeSelect = useCallback(
+        (episode: EpisodeServerDataType) => {
+            onEpisodeSelect(episode, activeServerIndex);
+            setModalVisible(false);
+        },
+        [onEpisodeSelect, activeServerIndex],
+    );
+
+    const handleServerChange = useCallback(
+        (index: number) => {
+            const newServerEpisodes = movie.episode?.[index]?.serverData || [];
+            const correspondingEpisode =
+                newServerEpisodes.find((ep) => ep.name === activeEpisodeSlug) ||
+                newServerEpisodes[0];
+            if (correspondingEpisode) {
+                onEpisodeSelect(correspondingEpisode, index);
+            }
+            setServerModalVisible(false);
+        },
+        [movie.episode, activeEpisodeSlug, onEpisodeSelect],
+    );
 
     const renderEpisodeItem = useCallback(
         ({ item }: { item: EpisodeServerDataType }) => (
             <EpisodeItem
                 item={item}
                 isActive={activeEpisodeSlug === item.slug}
-                onPress={() => {
-                    onEpisodePress(item);
-                    setModalVisible(false);
-                }}
+                onPress={() => handleEpisodeSelect(item)}
                 theme={theme}
             />
         ),
-        [activeEpisodeSlug, onEpisodePress, theme],
+        [activeEpisodeSlug, handleEpisodeSelect, theme],
     );
 
     const keyExtractor = useCallback(
         (item: EpisodeServerDataType) => `${item.slug}-${randomString(6)}`,
         [],
-    );
-
-    const handleServerChange = useCallback(
-        (index: number) => {
-            setSelectedServer(index);
-            if (onServerChange) {
-                onServerChange(index);
-            }
-            setServerModalVisible(false);
-        },
-        [onServerChange],
     );
 
     return (
@@ -143,9 +146,6 @@ export default function MovieEpisode({
                 ListEmptyComponent={() => (
                     <Text style={{ color: theme.colors.error }}>Phim đang cập nhật...</Text>
                 )}
-                initialNumToRender={5}
-                maxToRenderPerBatch={5}
-                windowSize={5}
             />
             <Portal>
                 <Modal
@@ -160,17 +160,12 @@ export default function MovieEpisode({
                         Danh sách tập phim
                     </Title>
                     <FlatList
-                        ref={episodeListRef}
                         data={allEpisodes}
                         renderItem={renderEpisodeItem}
                         keyExtractor={keyExtractor}
                         numColumns={3}
                         contentContainerStyle={styles.modalEpisodeList}
                         columnWrapperStyle={styles.columnWrapper}
-                        initialNumToRender={15}
-                        maxToRenderPerBatch={15}
-                        windowSize={5}
-                        removeClippedSubviews={true}
                     />
                 </Modal>
                 <Modal
@@ -191,13 +186,13 @@ export default function MovieEpisode({
                                 <View
                                     style={[
                                         styles.serverItem,
-                                        index === selectedServer && styles.selectedServerItem,
+                                        index === activeServerIndex && styles.selectedServerItem,
                                     ]}
                                 >
                                     <Text style={{ color: theme.colors.onBackground }}>
                                         {item.serverName}
                                     </Text>
-                                    {index === selectedServer && (
+                                    {index === activeServerIndex && (
                                         <Text style={{ color: theme.colors.primary }}>✓</Text>
                                     )}
                                 </View>

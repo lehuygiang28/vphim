@@ -9,8 +9,7 @@ import {
     TouchableRipple,
     Chip,
 } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRouter } from 'expo-router';
 import Swiper from 'react-native-swiper';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,14 +20,6 @@ import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
 import { MovieCard } from '~mb/components/card/movie-card';
-
-type RootStackParamList = {
-    Home: undefined;
-    Explore: { searchQuery: string };
-    MovieDetails: { slug: string };
-};
-
-type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 const { width } = Dimensions.get('window');
 
@@ -61,7 +52,7 @@ const MovieSection = ({
 
 const MovieSwiper = ({ movies }: { movies: MovieResponseDto[] }) => {
     const theme = useTheme();
-    const navigation = useNavigation<HomeScreenNavigationProp>();
+    const router = useRouter();
 
     if (!movies || movies.length === 0) {
         return null;
@@ -73,7 +64,7 @@ const MovieSwiper = ({ movies }: { movies: MovieResponseDto[] }) => {
                 {movies.map((movie) => (
                     <TouchableRipple
                         key={movie._id.toString()}
-                        onPress={() => navigation.navigate('MovieDetails', { slug: movie.slug })}
+                        onPress={() => router.push(`/movie/${movie.slug}`)}
                         style={styles.swiperSlide}
                     >
                         <View>
@@ -129,7 +120,7 @@ const MovieSwiper = ({ movies }: { movies: MovieResponseDto[] }) => {
 
 export default function HomeScreen() {
     const theme = useTheme();
-    const navigation = useNavigation<HomeScreenNavigationProp>();
+    const router = useRouter();
 
     const { data: mostViewed, isLoading: mostViewedLoading } = useList<MovieResponseDto>({
         dataProviderName: 'graphql',
@@ -155,7 +146,7 @@ export default function HomeScreen() {
     });
 
     const onMoviePress = (movie: MovieResponseDto) => {
-        navigation.navigate('MovieDetails', { slug: movie.slug });
+        router.push(`/movie/${movie.slug}`);
     };
 
     if (mostViewedLoading) {

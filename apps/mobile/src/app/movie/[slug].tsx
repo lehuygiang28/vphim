@@ -15,13 +15,11 @@ import {
     Paragraph,
     Chip,
     ActivityIndicator,
-    IconButton,
     Surface,
     Button,
 } from 'react-native-paper';
 import { Image } from 'expo-image';
-import { Calendar, Eye, Clock, Play, X, ChevronUp, ChevronDown } from 'lucide-react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Calendar, Eye, Clock, Play, ChevronUp, ChevronDown } from 'lucide-react-native';
 import WebView from 'react-native-webview';
 import { BlurView } from 'expo-blur';
 
@@ -29,30 +27,23 @@ import { GET_MOVIE_QUERY } from '@/queries/movies';
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import type { EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
-import MovieEpisode from './movie-episode';
-
-type RootStackParamList = {
-    Home: undefined;
-    Explore: { searchQuery: string };
-    Account: undefined;
-    MovieDetails: { slug: string; episodeSlug?: string };
-};
-
-type MovieDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 'MovieDetails'>;
+import MovieEpisode from '../../components/movie-episode';
+import { useLocalSearchParams } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
 
-export default function MovieDetailsScreen({ route, navigation }: MovieDetailsScreenProps) {
-    const { slug, episodeSlug } = route.params;
+export default function MovieDetailsScreen() {
+    const { slug, episodeSlug } = useLocalSearchParams<{ slug: string; episodeSlug?: string }>();
     const theme = useTheme();
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [selectedServerIndex, setSelectedServerIndex] = useState(0);
     const [selectedEpisode, setSelectedEpisode] = useState<EpisodeServerDataType | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [useEmbedLink, setUseEmbedLink] = useState(false);
     const [isM3u8Available, setIsM3u8Available] = useState(true);
     const episodeScrollViewRef = useRef<ScrollView>(null);
+    const [activeEpisodeSlug, setActiveEpisodeSlug] = useState<string | null>(null);
+    const [activeServerIndex, setActiveServerIndex] = useState(0);
 
     const { data, isLoading } = useOne<MovieResponseDto>({
         dataProviderName: 'graphql',
@@ -66,7 +57,7 @@ export default function MovieDetailsScreen({ route, navigation }: MovieDetailsSc
                 },
             },
         },
-        id: slug,
+        id: Array.isArray(slug) ? slug?.[0] : slug,
     });
 
     const toggleDescription = useCallback(() => {
@@ -81,76 +72,15 @@ export default function MovieDetailsScreen({ route, navigation }: MovieDetailsSc
             }
             setIsM3u8Available(true);
         } catch (error) {
-            console.error('Error pre-fetching M3U8:', error);
             setIsM3u8Available(false);
         }
     }, []);
 
-    useEffect(() => {
-        if (data?.data) {
-            const movie = data.data;
-            if (
-                movie?.trailerUrl &&
-                (episodeSlug === 'trailer' ||
-                    !movie.episode ||
-                    movie.episode.length === 0 ||
-                    (!movie.episode[0].serverData[0].linkM3u8 &&
-                        !movie.episode[0].serverData[0].linkEmbed))
-            ) {
-                setSelectedEpisode({
-                    slug: 'trailer',
-                    name: 'Trailer',
-                    filename: 'trailer',
-                    linkM3u8: movie.trailerUrl,
-                    linkEmbed: movie.trailerUrl,
-                });
-            } else if (movie?.episode && movie.episode.length > 0) {
-                const episode = movie.episode.find((ep) =>
-                    ep.serverData.some((server) => server.slug === episodeSlug),
-                );
-                if (episode) {
-                    const serverIndex = movie.episode.findIndex(
-                        (ep) => ep.serverName === episode.serverName,
-                    );
-                    setSelectedServerIndex(serverIndex !== -1 ? serverIndex : 0);
-                    const currentEpisode =
-                        episode.serverData.find((server) => server.slug === episodeSlug) || null;
-                    setSelectedEpisode(currentEpisode);
-
-                    if (currentEpisode) {
-                        if (currentEpisode.linkM3u8) {
-                            preFetchM3u8(currentEpisode.linkM3u8);
-                        } else if (currentEpisode.linkEmbed) {
-                            setUseEmbedLink(true);
-                            setIsM3u8Available(false);
-                        } else {
-                            setError('Video is being updated. Please try again later.');
-                        }
-                    }
-                } else {
-                    // If no episode is selected, default to the first episode
-                    const firstEpisode = movie.episode[0].serverData[0];
-                    setSelectedEpisode(firstEpisode);
-                    if (firstEpisode.linkM3u8) {
-                        preFetchM3u8(firstEpisode.linkM3u8);
-                    } else if (firstEpisode.linkEmbed) {
-                        setUseEmbedLink(true);
-                        setIsM3u8Available(false);
-                    }
-                }
-            } else {
-                setError('Video is being updated. Please try again later.');
-            }
-        }
-    }, [data, episodeSlug, preFetchM3u8]);
-
-    const handlePlayPress = useCallback(() => {
-        setIsPlaying(true);
-    }, []);
-
-    const handleEpisodePress = useCallback(
-        (episode: EpisodeServerDataType) => {
+    const selectAndPlayEpisode = useCallback(
+        (episode: EpisodeServerDataType, serverIndex: number) => {
             setSelectedEpisode(episode);
+            setActiveEpisodeSlug(episode.slug);
+            setActiveServerIndex(serverIndex);
             setIsPlaying(true);
             setUseEmbedLink(false);
             setIsM3u8Available(true);
@@ -160,10 +90,51 @@ export default function MovieDetailsScreen({ route, navigation }: MovieDetailsSc
                 setUseEmbedLink(true);
                 setIsM3u8Available(false);
             }
-            navigation.setParams({ episodeSlug: episode.slug });
         },
-        [navigation, preFetchM3u8],
+        [preFetchM3u8],
     );
+
+    useEffect(() => {
+        if (data?.data) {
+            const movie = data.data;
+            let episodeToPlay: EpisodeServerDataType | null = null;
+            let serverIndexToUse = 0;
+
+            if (movie?.trailerUrl && (!movie.episode || movie.episode.length === 0)) {
+                episodeToPlay = {
+                    slug: 'trailer',
+                    name: 'Trailer',
+                    filename: 'trailer',
+                    linkM3u8: movie.trailerUrl,
+                    linkEmbed: movie.trailerUrl,
+                };
+            } else if (movie?.episode && movie.episode.length > 0) {
+                if (episodeSlug) {
+                    for (let i = 0; i < movie.episode.length; i++) {
+                        const episode = movie.episode[i];
+                        const foundEpisode = episode.serverData.find(
+                            (server) => server.slug === episodeSlug,
+                        );
+                        if (foundEpisode) {
+                            episodeToPlay = foundEpisode;
+                            serverIndexToUse = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (!episodeToPlay) {
+                    episodeToPlay = movie.episode[0].serverData[0];
+                }
+            }
+
+            if (episodeToPlay) {
+                selectAndPlayEpisode(episodeToPlay, serverIndexToUse);
+            } else {
+                setError('Video is being updated. Please try again later.');
+            }
+        }
+    }, [data, episodeSlug, selectAndPlayEpisode]);
 
     const handleVideoError = useCallback(() => {
         if (isM3u8Available && !useEmbedLink && selectedEpisode?.linkEmbed) {
@@ -173,19 +144,11 @@ export default function MovieDetailsScreen({ route, navigation }: MovieDetailsSc
         }
     }, [isM3u8Available, useEmbedLink, selectedEpisode]);
 
-    const handleCloseVideo = useCallback(() => {
-        setIsPlaying(false);
-    }, []);
-
-    const handleServerChange = useCallback(
-        (index: number) => {
-            setSelectedServerIndex(index);
-            const newEpisode = data?.data?.episode?.[index]?.serverData[0];
-            if (newEpisode) {
-                handleEpisodePress(newEpisode);
-            }
+    const handleEpisodeSelect = useCallback(
+        (episode: EpisodeServerDataType, serverIndex: number) => {
+            selectAndPlayEpisode(episode, serverIndex);
         },
-        [data?.data?.episode, handleEpisodePress],
+        [selectAndPlayEpisode],
     );
 
     useEffect(() => {
@@ -271,7 +234,7 @@ export default function MovieDetailsScreen({ route, navigation }: MovieDetailsSc
                     />
                     <BlurView intensity={80} style={styles.blurOverlay}>
                         <TouchableOpacity
-                            onPress={handlePlayPress}
+                            onPress={() => setIsPlaying(true)}
                             style={[styles.playButton, { backgroundColor: theme.colors.primary }]}
                         >
                             <Play size={32} color={theme.colors.onPrimary} />
@@ -300,11 +263,6 @@ export default function MovieDetailsScreen({ route, navigation }: MovieDetailsSc
                     javaScriptEnabled
                     domStorageEnabled
                     onError={handleVideoError}
-                />
-                <IconButton
-                    icon={() => <X size={24} color={theme.colors.onSurface} />}
-                    onPress={handleCloseVideo}
-                    style={styles.closeButton}
                 />
             </View>
         );
@@ -369,9 +327,9 @@ export default function MovieDetailsScreen({ route, navigation }: MovieDetailsSc
 
                 <MovieEpisode
                     movie={movie}
-                    activeEpisodeSlug={selectedEpisode?.slug}
-                    activeServerIndex={selectedServerIndex}
-                    onEpisodePress={handleEpisodePress}
+                    onEpisodeSelect={handleEpisodeSelect}
+                    activeEpisodeSlug={activeEpisodeSlug}
+                    activeServerIndex={activeServerIndex}
                 />
             </Surface>
         </ScrollView>
@@ -411,12 +369,6 @@ const styles = StyleSheet.create({
     video: {
         width: '100%',
         height: '100%',
-    },
-    closeButton: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     playButton: {
         width: 64,
@@ -462,41 +414,6 @@ const styles = StyleSheet.create({
     expandButton: {
         alignSelf: 'flex-start',
         marginBottom: 16,
-    },
-    episodeTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginBottom: 12,
-    },
-    serverList: {
-        marginBottom: 16,
-    },
-    serverButton: {
-        marginRight: 8,
-    },
-    episodeList: {
-        marginBottom: 16,
-    },
-    episodeListContent: {
-        paddingRight: 16,
-    },
-    episodeButton: {
-        padding: 12,
-        marginRight: 8,
-        borderRadius: 8,
-        minWidth: 80,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    selectedEpisodeButton: {
-        backgroundColor: '#007AFF',
-    },
-    episodeButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    selectedEpisodeButtonText: {
-        color: 'white',
     },
     errorContainer: {
         padding: 16,

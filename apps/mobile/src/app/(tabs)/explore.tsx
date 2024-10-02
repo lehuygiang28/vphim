@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { FlatList, View, StyleSheet } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Searchbar, Chip, Button, Text, useTheme, ActivityIndicator } from 'react-native-paper';
-import { useInfiniteList, CrudFilters, CrudSort, LogicalFilter, useSelect } from '@refinedev/core';
+import { useInfiniteList, CrudFilters, CrudSort, LogicalFilter } from '@refinedev/core';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieCard } from '~mb/components/card/movie-card';
 import { MovieType } from '~api/app/movies/movie.type';
 import debounce from 'lodash.debounce';
-import FilterModal from './filter-modal';
+import FilterModal from '../../components/modal/movie-filter';
 
 const ExploreScreen = () => {
     const theme = useTheme();
-    const navigation = useNavigation();
-    const route = useRoute();
-    const [searchQuery, setSearchQuery] = useState('');
+    const router = useRouter();
+    const { searchQuery: initialSearchQuery } = useLocalSearchParams();
+    const [searchQuery, setSearchQuery] = useState((initialSearchQuery as string) || '');
     const [isFilterModalVisible, setFilterModalVisible] = useState(false);
     const [appliedFilters, setAppliedFilters] = useState<CrudFilters>([]);
     const [appliedSorter, setAppliedSorter] = useState<CrudSort | null>(null);
@@ -35,14 +35,6 @@ const ExploreScreen = () => {
             errorNotification: false,
             successNotification: false,
         });
-
-    useEffect(() => {
-        const params = route.params as Record<string, string>;
-        if (params?.searchQuery) {
-            setSearchQuery(params.searchQuery);
-            handleSearch(params.searchQuery);
-        }
-    }, [route.params]);
 
     const handleSearch = useCallback(
         debounce((query: string) => {
@@ -69,16 +61,9 @@ const ExploreScreen = () => {
 
     const renderMovieItem = useCallback(
         ({ item }: { item: MovieType }) => (
-            <MovieCard
-                movie={item}
-                onPress={() =>
-                    navigation.navigate(
-                        ...(['MovieDetails', { slug: item.slug?.toString() }] as never),
-                    )
-                }
-            />
+            <MovieCard movie={item} onPress={() => router.push(`/movie/${item.slug}`)} />
         ),
-        [navigation],
+        [router],
     );
 
     const keyExtractor = useCallback((item: MovieType) => `${item?._id?.toString()}`, []);
