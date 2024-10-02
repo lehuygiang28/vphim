@@ -72,7 +72,6 @@ export default function MovieDetailsScreen() {
             }
             setIsM3u8Available(true);
         } catch (error) {
-            console.error('Error pre-fetching M3U8:', error);
             setIsM3u8Available(false);
         }
     }, []);

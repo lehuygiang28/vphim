@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useTheme, Text, Title, Chip, Portal, Modal, IconButton } from 'react-native-paper';
 import { ChevronRight, Server } from 'lucide-react-native';
@@ -16,7 +16,7 @@ type MovieEpisodeProps = {
     activeServerIndex: number;
 };
 
-const EpisodeItem = React.memo(
+const EpisodeItem = memo(
     ({
         item,
         isActive,
