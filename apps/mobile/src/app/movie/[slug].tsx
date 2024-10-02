@@ -33,7 +33,7 @@ import { useLocalSearchParams } from 'expo-router';
 const { width, height } = Dimensions.get('window');
 
 export default function MovieDetailsScreen() {
-    const { slug, episodeSlug } = useLocalSearchParams();
+    const { slug, episodeSlug } = useLocalSearchParams<{ slug: string; episodeSlug?: string }>();
     const theme = useTheme();
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
