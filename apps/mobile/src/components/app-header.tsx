@@ -21,7 +21,11 @@ const AppHeader = () => {
 
     return (
         <Appbar.Header style={{ backgroundColor: CustomDarkTheme.colors.surface }}>
-            <Appbar.Content title={<Logo />} titleStyle={{ alignSelf: 'center' } as any} />
+            <Appbar.Content
+                title={<Logo />}
+                titleStyle={{ alignSelf: 'center' } as any}
+                accessibilityLabel="VePhim"
+            />
             {!isExploreScreen && (
                 <Searchbar
                     placeholder="Search movies"
