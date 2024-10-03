@@ -12,7 +12,6 @@ import {
     UploadedFiles,
     Query,
     Res,
-    Req,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
@@ -28,8 +27,8 @@ import {
     ApiTags,
     ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
-import { Request, Response } from 'express';
-import cors from 'cors';
+import { SkipThrottle } from '@nestjs/throttler';
+import { Response } from 'express';
 
 import { ImageUploadedResponseDTO, PublicIdDTO } from './dtos';
 import { ImagesService } from './images.service';
@@ -42,7 +41,6 @@ import {
 import { RequiredRoles } from 'apps/api/src/app/auth/guards';
 import { MulterFile } from './multer.type';
 import { OptimizeImageDTO } from './dtos/optimize-image.dto';
-import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiBadRequestResponse({
     description: 'Invalid request, please check your request data!',
@@ -68,10 +66,9 @@ export class ImagesController {
     async optimizeImage(
         @Query()
         data: OptimizeImageDTO,
-        @Req() req: Request,
         @Res() res: Response,
     ) {
-        return cors()(req, res, async () => this.imagesService.optimizeImage(data, res));
+        return this.imagesService.optimizeImage(data, res);
     }
 
     @ApiOperation({

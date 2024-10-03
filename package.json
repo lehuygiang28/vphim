@@ -49,7 +49,6 @@
         "@refinedev/simple-rest": "^5.0.8",
         "@refinenative/expo-router": "^0.1.12",
         "@refinenative/react-native-paper": "^0.1.12",
-        "@types/cors": "^2.8.17",
         "@vidstack/react": "^1.12.9",
         "@vn-utils/text": "^0.0.1",
         "antd": "^5.20.3",
