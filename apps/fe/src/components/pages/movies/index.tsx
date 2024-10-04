@@ -44,7 +44,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     const {
-        tableQuery: { data, isLoading, isRefetching, refetch },
+        tableQuery: { data, isLoading, isRefetching },
         sorters,
         setSorters,
         filters,
