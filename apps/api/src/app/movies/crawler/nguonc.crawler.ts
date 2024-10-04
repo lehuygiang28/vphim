@@ -30,6 +30,8 @@ import {
     mapStatus,
     MOVIE_TYPE_MAP,
 } from './mapping-data';
+import { AbstractRepository } from 'apps/api/src/libs/abstract/abstract.repository';
+import { MovieTypeEnum } from '../movie.constant';
 
 @Injectable()
 export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
@@ -198,7 +200,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             ]);
 
             const yearCategory = (Object.values(movieDetail.category || {}) as any[]).find(
-                (group: any) => group?.group?.name === 'Năm',
+                (group: any) => group?.group?.name?.toLowerCase() === 'năm',
             );
             const year = yearCategory?.list?.[0]?.name ? parseInt(yearCategory.list[0].name) : null;
 
@@ -249,7 +251,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 lastSyncModified: new Date(
                     Math.max(
                         modified ? new Date(modified).getTime() : 0,
-                        existingMovie?.lastSyncModified
+                        !isNullOrUndefined(existingMovie?.lastSyncModified)
                             ? new Date(existingMovie.lastSyncModified).getTime()
                             : 0,
                         0,
@@ -311,39 +313,53 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
     private processMovieStatus(movieDetail: any) {
         const currentEpisode: string = movieDetail?.current_episode;
-        if (currentEpisode?.includes('Hoàn tất')) {
+        if (
+            currentEpisode?.includes('Hoàn tất') ||
+            currentEpisode?.toLowerCase()?.includes('full')
+        ) {
             return 'completed';
         }
-        if (currentEpisode?.includes('Tập')) {
+        if (currentEpisode?.toLowerCase()?.includes('tập')) {
             return 'ongoing';
         }
-        if (currentEpisode?.includes('Đang cập nhật')) {
+        if (currentEpisode?.toLowerCase()?.includes('đang cập nhật')) {
             return 'updating';
         }
         return null;
     }
 
-    private processMovieType(movieDetail: any) {
+    private processMovieType(movieDetail: any): MovieTypeEnum {
         const movieTypeCate = (Object.values(movieDetail.category || {}) as any[]).find(
             (group: any) => group?.group?.name?.toLowerCase() === 'định dạng',
         );
-        const movieType = movieTypeCate?.list?.[0]?.name
+        let movieType = movieTypeCate?.list?.[0]?.name
             ? MOVIE_TYPE_MAP[movieTypeCate?.list?.[0]?.name?.toLowerCase()]
             : null;
+
+        if (!movieType) {
+            if (
+                movieDetail?.total_episodes === 1 ||
+                movieDetail?.total_episodes === '1' ||
+                movieDetail?.current_episode?.toLowerCase() === 'full'
+            ) {
+                movieType = MovieTypeEnum.SINGLE;
+            } else {
+                movieType = MovieTypeEnum.SERIES;
+            }
+        }
 
         return movieType;
     }
 
     private async processCategoriesAndCountries(category: any) {
-        const categories = [];
+        let categories = [];
         let countries = [];
 
         for (const group of Object.values<any>(category || {})) {
-            if (group.group?.name === 'Quốc gia') {
+            if (group.group?.name?.toLowerCase() === 'quốc gia') {
                 countries = await this.processEntities(group.list, this.regionRepo);
-            } else {
-                const groupCategories = await this.processEntities(group.list, this.categoryRepo);
-                categories.push(...groupCategories);
+            } else if (group.group?.name?.toLowerCase() === 'thể loại') {
+                categories = await this.processEntities(group.list, this.categoryRepo);
             }
         }
 
@@ -354,7 +370,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         const actorNames = (casts || '')
             .split(',')
             ?.map((name) => name.trim())
-            .filter(Boolean);
+            .filter((val) => !isNullOrUndefined(val));
         return this.processEntities(actorNames, this.actorRepo);
     }
 
@@ -362,15 +378,18 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         const directorNames = (directors || '')
             .split(',')
             ?.map((name) => name.trim())
-            .filter(Boolean);
+            .filter((val) => !isNullOrUndefined(val));
         return this.processEntities(directorNames, this.directorRepo);
     }
 
-    private async processEntities(names: any[], repo: any) {
+    private async processEntities(names: string[], repo: AbstractRepository<any>) {
+        if (!names?.length) {
+            return [];
+        }
         const entities = await Promise.all(
             names?.map(async (name) => {
                 // Ensure name is a string and not empty
-                if (typeof name !== 'string' || name.trim() === '') {
+                if (isNullOrUndefined(name) || typeof name !== 'string' || name.trim() === '') {
                     return null;
                 }
                 const slug = slugifyVietnamese(name.trim(), { lower: true });
@@ -383,7 +402,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 return entity._id;
             }),
         );
-        return entities.filter(Boolean);
+        return entities.filter((val) => !isNullOrUndefined(val));
     }
 
     private processEpisodes(newEpisodes: any[], existingEpisodes: Episode[] = []): Episode[] {

@@ -188,8 +188,8 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
 
             // Save categories
             const categoryIds = await Promise.all(
-                movieDetail.category.map(async (category) => {
-                    if (!category) {
+                movieDetail?.category?.map(async (category) => {
+                    if (isNullOrUndefined(category)) {
                         return null;
                     }
                     const existingCategory = await this.categoryRepo.findOne({
@@ -211,8 +211,8 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
 
             // Save countries
             const countryIds = await Promise.all(
-                movieDetail.country.map(async (country) => {
-                    if (!country) {
+                movieDetail?.country?.map(async (country) => {
+                    if (isNullOrUndefined(country)) {
                         return null;
                     }
                     const existingCountry = await this.regionRepo.findOne({
@@ -235,8 +235,8 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
             );
 
             const actorIds = await Promise.all(
-                movieDetail.actor.map(async (actor) => {
-                    if (!actor) {
+                movieDetail?.actor?.map(async (actor) => {
+                    if (isNullOrUndefined(actor)) {
                         return null;
                     }
                     const existingActor = await this.actorRepo.findOne({
@@ -257,8 +257,8 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
             );
 
             const directorIds = await Promise.all(
-                movieDetail.director.map(async (director) => {
-                    if (!director) {
+                movieDetail?.director?.map(async (director) => {
+                    if (isNullOrUndefined(director)) {
                         return null;
                     }
                     const existingDirector = await this.directorRepo.findOne({
@@ -318,7 +318,9 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                 lastSyncModified: new Date(
                     Math.max(
                         modified?.time ? new Date(modified?.time).getTime() : 0,
-                        new Date(existingMovie.lastSyncModified).getTime(),
+                        !isNullOrUndefined(existingMovie?.lastSyncModified)
+                            ? new Date(existingMovie.lastSyncModified).getTime()
+                            : 0,
                         0,
                     ),
                 ),

@@ -318,7 +318,9 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
                 lastSyncModified: new Date(
                     Math.max(
                         modified?.time ? new Date(modified?.time).getTime() : 0,
-                        new Date(existingMovie.lastSyncModified).getTime(),
+                        !isNullOrUndefined(existingMovie?.lastSyncModified)
+                            ? new Date(existingMovie.lastSyncModified).getTime()
+                            : 0,
                         0,
                     ),
                 ),
