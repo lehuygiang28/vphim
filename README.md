@@ -1,82 +1,38 @@
-# VePhim
+## VePhim: Watch Movies Online, Free and Fast
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+**What is VePhim?**
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
-
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Finish your CI setup
-
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/3JhGLbGR1s)
+VePhim is a website where you can watch movies online for free. It's like a giant library of movies that you can access anytime, anywhere with an internet connection. 
 
 
-## Run tasks
+**How does it work?**
 
-To run the dev server for your app, use:
+VePhim doesn't store the movies on its own servers. Instead, it finds movies from other places on the internet and streams them to you. This way, you get to watch a huge variety of movies without any buffering or waiting.
 
-```sh
-npx nx dev vphim
-```
+**What's so special about VePhim?**
 
-To create a production bundle:
+* **It's free!** You don't need to pay anything to watch movies on VePhim.
+* **It's fast!** VePhim uses special technology (HLS) to make sure the movies play smoothly without any interruptions.
+* **It's easy to use!** You can easily find the movies you want to watch by browsing through different categories or searching for them.
+* **You can save your favorites!** Create a free account to save the movies you love and watch them later.
 
-```sh
-npx nx build vphim
-```
+**What technologies does VePhim use?**
 
-To see all available targets to run for a project, run:
+VePhim is built using a combination of powerful technologies:
 
-```sh
-npx nx show project vphim
-```
-        
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+**Backend (the behind-the-scenes stuff):**
+* **NestJS:** This is like the brain of the website, handling things like user accounts, finding movies, and making sure everything runs smoothly.
+* **Redis:** This is like a super-fast memory for the website, storing information that is frequently accessed to make the website load faster.
+* **MongoDB:** This is like a giant filing cabinet, storing all the information about the movies, users, and everything else related to the website.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+**Frontend (what you see and interact with):**
+* **Next.js:** This is what makes the website look good and work smoothly on your browser.
+* **Ant Design:** This provides all the buttons, menus, and other elements that you see and interact with on the website.
 
-## Add new projects
+**Mobile App (watch movies on your phone):**
+* **Expo:** This allows VePhim to create apps for both Android and iOS phones.
+* **React Native Paper:** This makes the mobile app look beautiful and easy to use.
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+**Want to learn more?**
 
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/next:app demo
-```
-
-To generate a new library, use:
-
-```sh
-npx nx g @nx/react:lib mylib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+This is just a basic overview of VePhim. If you're interested in learning more about the technical details, you can check out the full codebase on [GitHub](https://github.com/lehuygiang28/vphim)
