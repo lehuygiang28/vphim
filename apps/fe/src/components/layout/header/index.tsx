@@ -13,6 +13,7 @@ import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
 import { signOut } from 'next-auth/react';
 
 import { RouteNameEnum } from '@/constants/route.constant';
+import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 
 import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
 import { UserDto } from 'apps/api/src/app/users/dtos/user.dto';
@@ -318,7 +319,15 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                             style={{ display: 'flex', alignItems: 'center' }}
                         >
                             <Avatar
-                                src={user.avatar?.url}
+                                src={
+                                    user.avatar?.url
+                                        ? getOptimizedImageUrl(user.avatar?.url, {
+                                              width: 32,
+                                              height: 32,
+                                              quality: 30,
+                                          })
+                                        : null
+                                }
                                 icon={<UserOutlined />}
                                 style={{ marginRight: '0.3rem' }}
                             />

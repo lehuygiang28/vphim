@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef, CSSProperties, forwardRef } from 'react';
 import { Skeleton, Image as AntImage, ImageProps } from 'antd';
 
+import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
+
 export type ImageOptimizedProps = {
     url: string;
     url2?: string;
@@ -14,7 +16,6 @@ export type ImageOptimizedProps = {
     className?: string;
     shouldShowHorizontalImage?: boolean;
     quality?: number;
-    environmentNames?: string[];
     disableSkeleton?: boolean;
 };
 
@@ -57,18 +58,15 @@ export function ImageOptimized({
     shouldShowHorizontalImage: reverse = false,
     style,
     wrapperStyle,
-    quality = 75,
-    environmentNames = ['giang04', 'techcell', 'gcp-1408'],
+    quality = 60,
     disableSkeleton = false,
 }: ImageOptimizedProps) {
     const [showImage1, setShowImage1] = useState(true);
     const [currentUrl1, setCurrentUrl1] = useState(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`,
+        getOptimizedImageUrl(url, { width, height, quality }),
     );
     const [currentUrl2, setCurrentUrl2] = useState(
-        url2
-            ? `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url2}&width=${width}&height=${height}&quality=${quality}`
-            : '',
+        getOptimizedImageUrl(url2, { width, height, quality }),
     );
     const [isLoading, setIsLoading] = useState(true);
     const [image1Loaded, setImage1Loaded] = useState(false);
@@ -76,51 +74,18 @@ export function ImageOptimized({
     const image1Ref = useRef<HTMLImageElement>(null);
     const image2Ref = useRef<HTMLImageElement>(null);
 
-    const getCloudinaryUrl = (url: string, envName: string) =>
-        `https://res.cloudinary.com/${envName}/image/fetch/${url}`;
-
     const handleImageError = (imageNumber: 1 | 2) => {
-        const updateUrl = (
-            originalUrl: string,
-            currentUrl: string,
-            setUrl: React.Dispatch<React.SetStateAction<string>>,
-        ) => {
-            if (isBase64Image(originalUrl)) {
-                console.error(`Failed to load base64 image`);
-                return;
-            }
-
-            if (currentUrl === originalUrl) {
-                if (environmentNames.length > 0) {
-                    setUrl(getCloudinaryUrl(originalUrl, environmentNames[0]));
-                }
-            } else {
-                const currentEnvIndex = environmentNames.findIndex((env) =>
-                    currentUrl.includes(`res.cloudinary.com/${env}`),
-                );
-                if (currentEnvIndex < environmentNames.length - 1) {
-                    setUrl(getCloudinaryUrl(originalUrl, environmentNames[currentEnvIndex + 1]));
-                } else {
-                    console.error(`Failed to load image after trying all environment names`);
-                }
-            }
-        };
-
         if (imageNumber === 1) {
-            updateUrl(url, currentUrl1, setCurrentUrl1);
+            setCurrentUrl1(url);
         } else if (url2) {
-            updateUrl(url2, currentUrl2, setCurrentUrl2);
+            setCurrentUrl2(url2);
         }
     };
 
     useEffect(() => {
-        setCurrentUrl1(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url}&width=${width}&height=${height}&quality=${quality}`,
-        );
+        setCurrentUrl1(getOptimizedImageUrl(url, { width, height, quality }));
         if (url2) {
-            setCurrentUrl2(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/images/optimize?url=${url2}&width=${width}&height=${height}&quality=${quality}`,
-            );
+            setCurrentUrl2(getOptimizedImageUrl(url2, { width, height, quality }));
         }
         setIsLoading(true);
         setImage1Loaded(false);

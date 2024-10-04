@@ -95,13 +95,13 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                         >
                             <ImageOptimized
                                 url={movie?.posterUrl}
-                                url2={movie?.posterUrl}
                                 alt={movie?.name}
                                 width={md ? 1920 : 720}
                                 height={md ? 1080 : 405}
                                 style={{
                                     maxHeight: md ? '85vh' : '35vh',
                                 }}
+                                quality={20}
                             />
                         </div>
                     );
@@ -159,172 +159,169 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
             >
                 {movies?.map((movie) => (
                     <SwiperSlide key={movie.slug}>
-                        <Link href={`/phim/${movie.slug}`}>
-                            <div style={heroStyle}>
-                                <div style={contentStyle}>
-                                    <Row
-                                        justify="center"
-                                        align="middle"
-                                        style={{ height: '100%', width: '100%' }}
-                                    >
-                                        <Col xs={{ span: 14 }} md={{ span: 18 }}>
-                                            <div style={textContentStyle} className="textContent">
-                                                <Space
-                                                    direction="vertical"
-                                                    size={md ? 'middle' : 'small'}
-                                                >
-                                                    <div>
+                        <div style={heroStyle}>
+                            <div style={contentStyle}>
+                                <Row
+                                    justify="center"
+                                    align="middle"
+                                    style={{ height: '100%', width: '100%' }}
+                                >
+                                    <Col xs={{ span: 14 }} md={{ span: 18 }}>
+                                        <div style={textContentStyle} className="textContent">
+                                            <Space
+                                                direction="vertical"
+                                                size={md ? 'middle' : 'small'}
+                                            >
+                                                <div>
+                                                    <Link href={`/phim/${movie.slug}`}>
                                                         <Title
                                                             level={md ? 1 : 4}
                                                             style={{ marginBottom: '0' }}
                                                         >
                                                             {movie.name}
                                                         </Title>
+
                                                         <Text type="secondary">
                                                             {movie.originName}
                                                         </Text>
-                                                        <div style={{ marginTop: '0.5rem' }}>
-                                                            <Space wrap size={[8, 8]}>
-                                                                <MovieQualityTag
-                                                                    quality={
-                                                                        movie?.quality || 'N/A'
-                                                                    }
+                                                    </Link>
+                                                    <div style={{ marginTop: '0.5rem' }}>
+                                                        <Space wrap size={[8, 8]}>
+                                                            <MovieQualityTag
+                                                                quality={movie?.quality || 'N/A'}
+                                                            />
+                                                            <Text
+                                                                type="secondary"
+                                                                style={{ fontSize: 12 }}
+                                                            >
+                                                                |
+                                                            </Text>
+                                                            <Space size={2}>
+                                                                <CalendarOutlined
+                                                                    style={{ fontSize: 12 }}
                                                                 />
-                                                                <Text
-                                                                    type="secondary"
-                                                                    style={{ fontSize: 12 }}
-                                                                >
-                                                                    |
+                                                                <Text style={{ fontSize: 12 }}>
+                                                                    {movie?.year || 'N/A'}
                                                                 </Text>
-                                                                <Space size={2}>
-                                                                    <CalendarOutlined
-                                                                        style={{ fontSize: 12 }}
-                                                                    />
-                                                                    <Text style={{ fontSize: 12 }}>
-                                                                        {movie?.year || 'N/A'}
-                                                                    </Text>
-                                                                </Space>
-                                                                <Text
-                                                                    type="secondary"
-                                                                    style={{ fontSize: 12 }}
-                                                                >
-                                                                    |
-                                                                </Text>
-                                                                <Space
-                                                                    size={2}
-                                                                    style={{
-                                                                        maxWidth: '100%',
-                                                                        display: 'inline-flex',
-                                                                    }}
-                                                                >
-                                                                    <EyeOutlined
-                                                                        style={{ fontSize: 12 }}
-                                                                    />{' '}
-                                                                    <Text
-                                                                        style={{
-                                                                            fontSize: 12,
-                                                                            wordBreak: 'break-word',
-                                                                            whiteSpace: 'normal',
-                                                                        }}
-                                                                    >
-                                                                        {movie?.view?.toLocaleString() ||
-                                                                            '0'}
-                                                                    </Text>
-                                                                </Space>
                                                             </Space>
-                                                        </div>
-                                                        {(movie?.tmdb?.id || movie?.imdb?.id) && (
-                                                            <div style={{ marginTop: '0.5rem' }}>
-                                                                {movie?.imdb?.id && (
-                                                                    <IMDBRating
-                                                                        id={movie?.imdb?.id}
-                                                                        size={
-                                                                            md ? 'middle' : 'small'
-                                                                        }
-                                                                    />
-                                                                )}
-                                                                {movie?.tmdb?.id && (
-                                                                    <TMDBRating
-                                                                        id={movie?.tmdb?.id}
-                                                                        type={movie?.tmdb?.type}
-                                                                        size={
-                                                                            md ? 'middle' : 'small'
-                                                                        }
-                                                                    />
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                        <div style={{ marginTop: '0.5rem' }}>
-                                                            {movie?.categories?.map((category) => (
-                                                                <Tag
-                                                                    key={category?._id?.toString()}
+                                                            <Text
+                                                                type="secondary"
+                                                                style={{ fontSize: 12 }}
+                                                            >
+                                                                |
+                                                            </Text>
+                                                            <Space
+                                                                size={2}
+                                                                style={{
+                                                                    maxWidth: '100%',
+                                                                    display: 'inline-flex',
+                                                                }}
+                                                            >
+                                                                <EyeOutlined
+                                                                    style={{ fontSize: 12 }}
+                                                                />{' '}
+                                                                <Text
                                                                     style={{
-                                                                        fontSize: md
-                                                                            ? '0.7rem'
-                                                                            : '0.5rem',
-                                                                        background:
-                                                                            'rgba(0 0 0 / 0.4)',
-                                                                        border: 'none',
+                                                                        fontSize: 12,
+                                                                        wordBreak: 'break-word',
+                                                                        whiteSpace: 'normal',
                                                                     }}
                                                                 >
-                                                                    {category?.name}
-                                                                </Tag>
-                                                            ))}
-                                                        </div>
+                                                                    {movie?.view?.toLocaleString() ||
+                                                                        '0'}
+                                                                </Text>
+                                                            </Space>
+                                                        </Space>
                                                     </div>
-                                                    {md && (
-                                                        <Paragraph
-                                                            ellipsis={{
-                                                                rows: md ? 5 : 3,
-                                                                expandable: false,
-                                                            }}
-                                                            style={{ maxWidth: '45vw' }}
-                                                        >
-                                                            {movie.content}
-                                                        </Paragraph>
+                                                    {(movie?.tmdb?.id || movie?.imdb?.id) && (
+                                                        <div style={{ marginTop: '0.5rem' }}>
+                                                            {movie?.imdb?.id && (
+                                                                <IMDBRating
+                                                                    id={movie?.imdb?.id}
+                                                                    size={md ? 'middle' : 'small'}
+                                                                />
+                                                            )}
+                                                            {movie?.tmdb?.id && (
+                                                                <TMDBRating
+                                                                    id={movie?.tmdb?.id}
+                                                                    type={movie?.tmdb?.type}
+                                                                    size={md ? 'middle' : 'small'}
+                                                                />
+                                                            )}
+                                                        </div>
                                                     )}
-                                                </Space>
-                                            </div>
-                                            {md ? (
-                                                <div
-                                                    style={{
-                                                        background: '#bd1010',
-                                                        borderRadius: '9999px',
-                                                        maxWidth: '4rem',
-                                                        maxHeight: '4rem',
-                                                    }}
-                                                >
+                                                    <div style={{ marginTop: '0.5rem' }}>
+                                                        {movie?.categories?.map((category) => (
+                                                            <Tag
+                                                                key={category?._id?.toString()}
+                                                                style={{
+                                                                    fontSize: md
+                                                                        ? '0.7rem'
+                                                                        : '0.5rem',
+                                                                    background: 'rgba(0 0 0 / 0.4)',
+                                                                    border: 'none',
+                                                                }}
+                                                            >
+                                                                {category?.name}
+                                                            </Tag>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                {md && (
+                                                    <Paragraph
+                                                        ellipsis={{
+                                                            rows: md ? 5 : 3,
+                                                            expandable: false,
+                                                        }}
+                                                        style={{ maxWidth: '45vw' }}
+                                                    >
+                                                        {movie.content}
+                                                    </Paragraph>
+                                                )}
+                                            </Space>
+                                        </div>
+                                        {md ? (
+                                            <div
+                                                style={{
+                                                    background: '#bd1010',
+                                                    borderRadius: '9999px',
+                                                    maxWidth: '4rem',
+                                                    maxHeight: '4rem',
+                                                }}
+                                            >
+                                                <Link href={`/phim/${movie.slug}`}>
                                                     <Image
                                                         alt="play button"
                                                         src="/assets/play.svg"
                                                         width={64}
                                                         height={64}
                                                     />
-                                                </div>
-                                            ) : (
-                                                <></>
-                                            )}
-                                        </Col>
-                                        <Col
-                                            xs={{ span: 10 }}
-                                            md={{ span: 6 }}
-                                            style={{ width: '100%', height: '100%' }}
+                                                </Link>
+                                            </div>
+                                        ) : (
+                                            <></>
+                                        )}
+                                    </Col>
+                                    <Col
+                                        xs={{ span: 10 }}
+                                        md={{ span: 6 }}
+                                        style={{ width: '100%', height: '100%' }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                position: 'relative',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                width: '100%',
+                                                height: '100%',
+                                                textAlign: 'center',
+                                                background: 'transparent',
+                                            }}
                                         >
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    position: 'relative',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    textAlign: 'center',
-                                                    background: 'transparent',
-                                                }}
-                                            >
+                                            <Link href={`/phim/${movie.slug}`}>
                                                 <ImageOptimized
                                                     url={movie?.thumbUrl}
-                                                    // url2={movie?.posterUrl}
                                                     alt={movie?.name}
                                                     width={750}
                                                     height={1000}
@@ -332,12 +329,12 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                     className="posterImage"
                                                     disableSkeleton
                                                 />
-                                            </div>
-                                        </Col>
-                                    </Row>
-                                </div>
+                                            </Link>
+                                        </div>
+                                    </Col>
+                                </Row>
                             </div>
-                        </Link>
+                        </div>
                     </SwiperSlide>
                 ))}
             </Swiper>

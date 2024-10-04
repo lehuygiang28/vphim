@@ -5,14 +5,16 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { CrudFilter, CrudSort, stringifyTableParams, useList } from '@refinedev/core';
 import { Grid } from 'antd';
 
-import MovieList from '@/components/swiper/movie-list';
 import { MovieSwiper } from '@/components/swiper/movie';
 import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { LoadingSpinner } from '@/components/loading';
+
+const MovieList = dynamic(() => import('@/components/swiper/movie-list'));
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
