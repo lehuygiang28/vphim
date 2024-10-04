@@ -1,3 +1,4 @@
+import React from 'react';
 import MoviePage from '@/components/pages/movies';
 import { HomeOutlined } from '@ant-design/icons';
 

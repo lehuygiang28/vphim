@@ -83,7 +83,7 @@ export default function LazyMovieList({
         <div
             ref={ref}
             style={{
-                marginTop: '1rem',
+                marginBottom: md ? '4rem' : '3.5rem',
                 marginLeft: md ? '3rem' : '0.7rem',
                 marginRight: md ? '3rem' : '0.7rem',
                 minHeight: '200px', // Prevent layout shift

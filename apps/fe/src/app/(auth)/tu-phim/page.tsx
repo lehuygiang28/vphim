@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useOne, useList, stringifyTableParams } from '@refinedev/core';
-import { Empty, List, Grid, Typography, Breadcrumb, Divider } from 'antd';
+import { Empty, List, Grid, Breadcrumb, Divider } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { GET_OWN_FOLLOWING_MOVIES_WITH_DETAILS } from '@/queries/users';
 import { MovieCard } from '@/components/card/movie-card';
@@ -13,7 +13,6 @@ import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import MovieList from '@/components/swiper/movie-list';
 import { RouteNameEnum } from '@/constants/route.constant';
 
-const { Title } = Typography;
 const { useBreakpoint } = Grid;
 
 const PER_PAGE = 24;
@@ -121,11 +120,6 @@ export default function MovieFollowingsPage() {
                                 visibleContent={selectedIndex === index}
                                 scale={md ? undefined : 1.1}
                             />
-                            <Title level={5} style={{ lineHeight: '1rem' }}>
-                                {item.name && item.name?.length > 50
-                                    ? item.name?.slice(0, 50) + '...'
-                                    : item.name}
-                            </Title>
                         </div>
                     </List.Item>
                 )}

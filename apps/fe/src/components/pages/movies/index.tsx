@@ -3,7 +3,7 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Divider, Space, Typography, Breadcrumb, List, Grid, Empty } from 'antd';
+import { Divider, Space, Breadcrumb, List, Grid, Empty } from 'antd';
 import { CrudFilter, useTable, LogicalFilter, CrudSort } from '@refinedev/core';
 import { parseTableParams } from '@refinedev/nextjs-router';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
@@ -12,7 +12,6 @@ import { MovieFilters } from './movie-filter';
 
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
-const { Title } = Typography;
 const { useBreakpoint } = Grid;
 
 export type MoviePageProps = {
@@ -45,7 +44,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     const {
-        tableQuery: { data, isLoading, isRefetching },
+        tableQuery: { data, isLoading, isRefetching, refetch },
         sorters,
         setSorters,
         filters,
@@ -56,6 +55,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     } = useTable<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
+        syncWithLocation: true,
         meta: {
             gqlQuery: MOVIES_LIST_QUERY,
         },
@@ -185,11 +185,6 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                                     visibleContent={selectedIndex === index}
                                     scale={md ? undefined : 1.1}
                                 />
-                                <Title level={5} style={{ lineHeight: '1rem' }}>
-                                    {item.name && item.name?.length > 50
-                                        ? item.name?.slice(0, 50) + '...'
-                                        : item.name}
-                                </Title>
                             </div>
                         </List.Item>
                     )}
