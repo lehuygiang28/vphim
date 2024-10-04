@@ -312,7 +312,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                                         width: 40,
                                         height: 60,
                                     })}
-                                    alt={originName || 'thumb image'}
+                                    alt={originName?.slice(0, 15).concat('...') || 'thumb image'}
                                     width={40}
                                     height={60}
                                     preview={false}
