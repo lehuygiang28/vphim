@@ -59,6 +59,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             warnWhenUnsavedChanges: true,
                             useNewQueryKeys: true,
                             projectId: 'NJcdqz-Mcj2uR-iCRTib',
+                            disableTelemetry: true,
                         }}
                     >
                         {props.children}
