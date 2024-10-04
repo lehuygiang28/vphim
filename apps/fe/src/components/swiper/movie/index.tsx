@@ -96,8 +96,8 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                             <ImageOptimized
                                 url={movie?.posterUrl}
                                 alt={movie?.name}
-                                width={md ? 1920 : 720}
-                                height={md ? 1080 : 405}
+                                width={md ? 960 : 640}
+                                height={md ? 540 : 360}
                                 style={{
                                     maxHeight: md ? '85vh' : '35vh',
                                 }}
@@ -323,8 +323,8 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                 <ImageOptimized
                                                     url={movie?.thumbUrl}
                                                     alt={movie?.name}
-                                                    width={750}
-                                                    height={1000}
+                                                    width={480}
+                                                    height={854}
                                                     style={posterStyle}
                                                     className="posterImage"
                                                     disableSkeleton
