@@ -6,74 +6,18 @@ import 'swiper/css/pagination';
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { CrudFilter, CrudSort, stringifyTableParams, useList } from '@refinedev/core';
-import { Grid } from 'antd';
+import { useList } from '@refinedev/core';
 
 import { MovieSwiper } from '@/components/swiper/movie';
-import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
-import { RouteNameEnum } from '@/constants/route.constant';
+import { MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
 import { LoadingSpinner } from '@/components/loading';
 
-const MovieList = dynamic(() => import('@/components/swiper/movie-list'));
+const LazyMovieList = dynamic(() => import('@/components/list/movie-lazy-list'));
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
-
-const { useBreakpoint } = Grid;
-type MovieAsset = {
-    filters: CrudFilter[];
-    sorters: CrudSort[];
-};
-
-const newMovieAsset: MovieAsset = {
-    filters: [
-        {
-            field: 'years',
-            value: `${new Date().getFullYear()}`,
-            operator: 'eq',
-        },
-    ],
-    sorters: [
-        {
-            field: 'year',
-            order: 'asc',
-        },
-    ],
-};
-
-const actionMovieAsset: MovieAsset = {
-    filters: [
-        {
-            field: 'categories',
-            value: 'hanh-dong',
-            operator: 'eq',
-        },
-    ],
-    sorters: [
-        {
-            field: 'year',
-            order: 'desc',
-        },
-    ],
-};
-
-const cartoonMovieAsset: MovieAsset = {
-    filters: [
-        {
-            field: 'categories',
-            value: 'hoat-hinh,',
-            operator: 'eq',
-        },
-    ],
-    sorters: [
-        {
-            field: 'year',
-            order: 'desc',
-        },
-    ],
-};
+import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
 
 export function Home() {
-    const { md } = useBreakpoint();
     const [activeList, setActiveList] = useState<string | null>(null);
 
     const { data: mostViewed, isLoading: mostViewedLoading } = useList<MovieResponseDto>({
@@ -88,27 +32,6 @@ export function Home() {
         ],
     });
 
-    const { data: newMovies } = useList<MovieResponseDto>({
-        dataProviderName: 'graphql',
-        meta: { gqlQuery: MOVIES_LIST_QUERY },
-        resource: 'movies',
-        ...newMovieAsset,
-    });
-
-    const { data: actionMovies } = useList<MovieResponseDto>({
-        dataProviderName: 'graphql',
-        meta: { gqlQuery: MOVIES_LIST_QUERY },
-        resource: 'movies',
-        ...actionMovieAsset,
-    });
-
-    const { data: cartoonMovies } = useList<MovieResponseDto>({
-        dataProviderName: 'graphql',
-        meta: { gqlQuery: MOVIES_LIST_QUERY },
-        resource: 'movies',
-        ...cartoonMovieAsset,
-    });
-
     if (mostViewedLoading) {
         return <LoadingSpinner fullScreen />;
     }
@@ -118,59 +41,242 @@ export function Home() {
             <div style={{ minHeight: '15vh' }}>
                 <MovieSwiper movies={mostViewed?.data} />
             </div>
-            <div
-                onClick={() => setActiveList('newMovies')}
-                style={{
-                    marginTop: '1rem',
-                    marginLeft: md ? '3rem' : '0.7rem',
-                    marginRight: md ? '3rem' : '0.7rem',
-                }}
-            >
-                <MovieList
-                    clearVisibleContentCard={activeList !== 'newMovies'}
-                    title="PHIM MỚI"
-                    movies={newMovies?.data}
-                    viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
-                        actionMovieAsset,
-                    )}`}
-                />
-            </div>
 
-            <div
-                onClick={() => setActiveList('actionMovies')}
-                style={{
-                    marginTop: '1rem',
-                    marginLeft: md ? '3rem' : '0.7rem',
-                    marginRight: md ? '3rem' : '0.7rem',
+            <LazyMovieList
+                title="PHIM MỚI"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'years',
+                            value: `${new Date().getFullYear()}`,
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'year',
+                            order: 'asc',
+                        },
+                    ],
                 }}
-            >
-                <MovieList
-                    clearVisibleContentCard={activeList !== 'actionMovies'}
-                    title="PHIM HÀNH ĐỘNG"
-                    movies={actionMovies?.data}
-                    viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
-                        actionMovieAsset,
-                    )}`}
-                />
-            </div>
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
 
-            <div
-                onClick={() => setActiveList('cartoonMovies')}
-                style={{
-                    marginTop: '1rem',
-                    marginLeft: md ? '3rem' : '0.7rem',
-                    marginRight: md ? '3rem' : '0.7rem',
+            <LazyMovieList
+                title="PHIM VIỆT CHIẾU RẠP"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'cinemaRelease',
+                            value: true,
+                            operator: 'eq',
+                        },
+                        {
+                            field: 'countries',
+                            value: 'viet-nam',
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'view',
+                            order: 'desc',
+                        },
+                    ],
                 }}
-            >
-                <MovieList
-                    clearVisibleContentCard={activeList !== 'cartoonMovies'}
-                    title="PHIM HOẠT HÌNH"
-                    movies={cartoonMovies?.data}
-                    viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
-                        cartoonMovieAsset,
-                    )}`}
-                />
-            </div>
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="PHIM LẺ ĐANG HOT"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'type',
+                            value: MovieTypeEnum.SINGLE,
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'view',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="PHIM BỘ ĐANG NỔI"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'type',
+                            value: MovieTypeEnum.SERIES,
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'view',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="TV SHOWS XEM NHIỀU"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'type',
+                            value: MovieTypeEnum.TV_SHOWS,
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'view',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="THẾ GIỚI HỌC ĐƯỜNG"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'categories',
+                            value: 'hoc-duong',
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'view',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="VƯƠNG QUỐC TRẺ EM"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'categories',
+                            value: 'tre-em',
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'view',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="PHIM HÀNH ĐỘNG"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'categories',
+                            value: 'hanh-dong',
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'year',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="PHIM HOẠT HÌNH"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'categories',
+                            value: 'hoat-hinh,',
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'year',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="PHIM VIỄN TƯỞNG"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'categories',
+                            value: 'vien-tuong,',
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'year',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
+
+            <LazyMovieList
+                title="PHIM THẦN THOẠI"
+                movieAsset={{
+                    filters: [
+                        {
+                            field: 'categories',
+                            value: 'than-thoai',
+                            operator: 'eq',
+                        },
+                    ],
+                    sorters: [
+                        {
+                            field: 'year',
+                            order: 'desc',
+                        },
+                    ],
+                }}
+                activeList={activeList}
+                setActiveList={setActiveList}
+            />
         </>
     );
 }

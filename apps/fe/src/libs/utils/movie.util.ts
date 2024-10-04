@@ -1,5 +1,7 @@
+import slugify from 'slugify';
 import { canParseToNumber } from './common';
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
+import { removeDiacritics, removeTone } from '@vn-utils/text';
 
 export function getFirstEpisodeSlug(movie?: MovieType): string {
     if (!movie) {
@@ -57,4 +59,11 @@ export function getOptimizedImageUrl(
     }/api/images/optimize?url=${encodeURIComponent(
         url,
     )}&width=${width}&height=${height}&quality=${quality}`;
+}
+
+export function slugifyVietnamese(str: string) {
+    if (!str) {
+        return '';
+    }
+    return slugify(removeTone(removeDiacritics(str)), { lower: true, locale: 'vi' });
 }
