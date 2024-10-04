@@ -234,6 +234,10 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
             const processedEpisodes = this.processEpisodes(episodes, existingMovie?.episode || []);
 
+            const processedSlug =
+                existingMovie?.slug ||
+                slugifyVietnamese(slug?.toString() || '', { lower: true }) ||
+                slugifyVietnamese(name?.toString() || '', { lower: true });
             const movieData: Partial<Movie> = {
                 ...(existingMovie || {}),
 
@@ -259,12 +263,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 ),
 
                 _id: correctId,
-                slug: existingMovie?.slug
-                    ? existingMovie.slug
-                    : slug ||
-                      (name
-                          ? slugifyVietnamese(name.toString(), { lower: true })
-                          : existingMovie?.slug || ''),
+                slug: processedSlug,
                 content: description
                     ? stripHtml(description.toString()).result
                     : existingMovie?.content || '',
@@ -357,9 +356,9 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
 
         for (const group of Object.values<any>(category || {})) {
             if (group.group?.name?.toLowerCase() === 'quốc gia') {
-                countries = await this.processEntities(group.list, this.regionRepo);
+                countries = await this.processEntities(group?.list || [], this.regionRepo);
             } else if (group.group?.name?.toLowerCase() === 'thể loại') {
-                categories = await this.processEntities(group.list, this.categoryRepo);
+                categories = await this.processEntities(group?.list || [], this.categoryRepo);
             }
         }
 
@@ -371,7 +370,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             .split(',')
             ?.map((name) => name.trim())
             .filter((val) => !isNullOrUndefined(val));
-        return this.processEntities(actorNames, this.actorRepo);
+        return this.processEntities(actorNames || [], this.actorRepo);
     }
 
     private async processDirectors(directors: string) {
@@ -379,11 +378,11 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             .split(',')
             ?.map((name) => name.trim())
             .filter((val) => !isNullOrUndefined(val));
-        return this.processEntities(directorNames, this.directorRepo);
+        return this.processEntities(directorNames || [], this.directorRepo);
     }
 
     private async processEntities(names: string[], repo: AbstractRepository<any>) {
-        if (!names?.length) {
+        if (isNullOrUndefined(names) || !names?.length) {
             return [];
         }
         const entities = await Promise.all(
