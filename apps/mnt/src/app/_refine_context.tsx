@@ -25,6 +25,7 @@ import { ColorModeContextProvider } from '~fe/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
 import { useAxiosAuth } from '~fe/hooks/useAxiosAuth';
 import { authProvider } from '~fe/providers/auth-provider';
+import { isProduction } from '@/libs/utils/common';
 
 type RefineContextProps = {
     defaultMode?: string;
@@ -52,12 +53,24 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
 
     const defaultMode = props?.defaultMode;
 
+    const DevtoolWrapper = ({ children }: { children: React.ReactNode }) => {
+        if (!isProduction()) {
+            return (
+                <DevtoolsProvider url={'http://localhost:5001'}>
+                    {children}
+                    <DevtoolsPanel />
+                </DevtoolsProvider>
+            );
+        }
+        return <>{children}</>;
+    };
+
     return (
         <>
             <RefineKbarProvider>
                 <AntdRegistry>
                     <ColorModeContextProvider defaultMode={defaultMode}>
-                        <DevtoolsProvider url={'http://localhost:5001'}>
+                        <DevtoolWrapper>
                             <Refine
                                 routerProvider={routerProvider}
                                 dataProvider={{
@@ -150,14 +163,15 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                 }}
                             >
                                 {props.children}
-                                <ReactQueryDevtools
-                                    initialIsOpen={false}
-                                    buttonPosition="bottom-right"
-                                />
                                 <RefineKbar />
-                                <DevtoolsPanel />
+                                {!isProduction() && (
+                                    <ReactQueryDevtools
+                                        initialIsOpen={false}
+                                        buttonPosition="bottom-right"
+                                    />
+                                )}
                             </Refine>
-                        </DevtoolsProvider>
+                        </DevtoolWrapper>
                     </ColorModeContextProvider>
                 </AntdRegistry>
             </RefineKbarProvider>

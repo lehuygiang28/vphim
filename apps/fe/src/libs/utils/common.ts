@@ -68,3 +68,7 @@ export function formatDateToHumanReadable(
     const format = ms ? 'HH:mm:ss:SSS DD/MM/YYYY' : 'HH:mm DD/M/YY';
     return timezone ? dayjs(date).tz(timezone).format(format) : dayjs(date).format(format);
 }
+
+export function isProduction() {
+    return process.env.NODE_ENV === 'production';
+}

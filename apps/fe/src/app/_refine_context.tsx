@@ -15,6 +15,7 @@ import '@refinedev/antd/dist/reset.css';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 import { authProvider } from '@/providers/auth-provider';
 import { useAxios } from '@/hooks/useAxios';
+import { isProduction } from '@/libs/utils/common';
 
 type RefineContextProps = {
     defaultMode?: string;
@@ -63,7 +64,12 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                         }}
                     >
                         {props.children}
-                        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+                        {!isProduction() && (
+                            <ReactQueryDevtools
+                                initialIsOpen={false}
+                                buttonPosition="bottom-left"
+                            />
+                        )}
                     </Refine>
                 </ColorModeContextProvider>
             </AntdRegistry>
