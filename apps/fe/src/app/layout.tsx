@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import React, { Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
+
 import { RefineContext } from './_refine_context';
 
 export const metadata: Metadata = {
@@ -26,6 +28,7 @@ export default function DefaultNoLayoutStyle({
 
     return (
         <html lang="en">
+            <Analytics />
             <body>
                 <Suspense>
                     <RefineContext defaultMode={defaultMode}>
