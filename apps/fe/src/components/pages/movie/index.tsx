@@ -480,7 +480,7 @@ export function Movie({ slug }: MovieProps) {
                     </Row>
                 )}
                 {movie && (
-                    <Row style={{ marginTop: '2rem', marginBottom: md ? '4rem' : '2rem' }}>
+                    <Row style={{ marginTop: '2rem', marginBottom: '4rem' }}>
                         <Col span={24}>
                             <MovieRelated movie={movie} />
                         </Col>
