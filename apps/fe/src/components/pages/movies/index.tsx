@@ -11,6 +11,7 @@ import { MovieCard } from '@/components/card/movie-card';
 import { MovieFilters } from './movie-filter';
 
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
+import { sortedStringify } from 'apps/api/src/libs/utils/common';
 
 const { useBreakpoint } = Grid;
 
@@ -31,7 +32,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     const router = useRouter();
     const { md } = useBreakpoint();
     const search = useSearchParams();
-    const parsedQuery = parseTableParams(search?.toString());
+    const [parsedQuery, setParsedQuery] = useState(parseTableParams(search?.toString()));
     const [query, setQuery] = useState<undefined | LocalQuery>(undefined);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -72,6 +73,19 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                     : [{ field: 'view', order: 'desc' }],
         },
     });
+
+    useEffect(() => {
+        if (search) {
+            const parsed = parseTableParams(search?.toString());
+            if (sortedStringify(parsed) !== sortedStringify(parsedQuery)) {
+                setParsedQuery(parsed);
+                setFilters(parsed?.filters || []);
+                setSorters(parsed?.sorters || []);
+                setCurrent(Number(parsed?.pagination?.current) || 1);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
 
     useEffect(() => {
         if (current) {
