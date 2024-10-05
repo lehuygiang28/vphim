@@ -1,6 +1,5 @@
 import { ConfigService } from '@nestjs/config';
 import { Condition, ObjectId, Types, isValidObjectId } from 'mongoose';
-import { createHash } from 'node:crypto';
 import { removeTone, removeDiacritics } from '@vn-utils/text';
 import slug from 'slugify';
 
@@ -35,11 +34,6 @@ export function convertToObjectId(
         throw new Error(`Invalid object id: ${input}`);
     }
     return new Types.ObjectId(input);
-}
-
-export function getGravatarUrl(email: string, size = 500, defaultImage = 'mp', rating = 'g') {
-    const hash = createHash('sha256').update(email.trim().toLowerCase()).digest('hex');
-    return `https://gravatar.com/avatar/${hash}?s=${size}&d=${defaultImage}&r=${rating}`;
 }
 
 /**

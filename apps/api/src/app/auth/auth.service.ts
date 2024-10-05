@@ -15,7 +15,7 @@ import { Octokit } from '@octokit/rest';
 import * as otplib from 'otplib';
 
 import { RedisService } from '../../libs/modules/redis';
-import { convertToObjectId, getGravatarUrl } from '../../libs/utils/common';
+import { convertToObjectId, getGravatarUrl } from '../../libs/utils';
 import { NullableType } from '../../libs/types';
 import {
     AuthLoginGithubDto,

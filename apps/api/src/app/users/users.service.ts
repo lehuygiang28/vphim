@@ -9,7 +9,7 @@ import { FilterQuery, ProjectionType, QueryOptions, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
 import type { NullableType } from '../../libs/types';
-import { convertToObjectId, getGravatarUrl } from '../../libs/utils/common';
+import { convertToObjectId, getGravatarUrl } from '../../libs/utils';
 
 import {
     BlockUserDto,
