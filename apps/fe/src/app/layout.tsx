@@ -1,9 +1,10 @@
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import React, { Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 
 import { RefineContext } from './_refine_context';
+import { customFont } from '@/fonts';
 
 export const metadata: Metadata = {
     title: 'VePhim - Xem phim, phim hay theo thể loại, quốc gia, ...',
@@ -27,7 +28,7 @@ export default function DefaultNoLayoutStyle({
     const defaultMode = theme?.value === 'light' ? 'light' : 'dark';
 
     return (
-        <html lang="en">
+        <html lang="en" className={customFont.className}>
             <Analytics />
             <body>
                 <Suspense>

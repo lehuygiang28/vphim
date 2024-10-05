@@ -1,5 +1,6 @@
 'use client';
 
+import { customFont } from '@/fonts';
 import { RefineThemes } from '@refinedev/antd';
 import { App as AntdApp, ConfigProvider, theme } from 'antd';
 import Cookies from 'js-cookie';
@@ -59,6 +60,7 @@ export const ColorModeContextProvider: React.FC<
                     token: {
                         ...RefineThemes.Purple.token,
                         colorBgBase: 'rgba(17 19 25)',
+                        fontFamily: customFont.style.fontFamily,
                     },
                 }}
             >
