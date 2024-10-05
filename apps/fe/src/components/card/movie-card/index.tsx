@@ -66,7 +66,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                             left: 8,
                             color: 'white',
                             fontWeight: 'bold',
-                            background: 'rgba(0, 0, 0, 0.8)',
+                            background: 'rgba(133, 78, 202, 0.8)',
                             border: 'none',
                         }}
                     >
@@ -105,6 +105,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                                 ellipsis={{ rows: 2, expandable: false }}
                                 style={{
                                     fontSize: md ? '0.7rem' : '0.5rem',
+                                    lineHeight: md ? '0.85rem' : '0.7rem',
                                     marginBottom: 0,
                                     color: '#a6a6a6',
                                 }}
@@ -148,7 +149,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                                 style={{
                                     color: '#a6a6a6',
                                     fontSize: md ? '0.7rem' : '0.6rem',
-                                    lineHeight: '0.8rem',
+                                    lineHeight: '1rem',
                                     WebkitLineClamp: 3,
                                     WebkitBoxOrient: 'vertical',
                                     overflow: 'hidden',
@@ -172,7 +173,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                     </div>
                 </div>
             </Card>
-            <Title level={5} style={{ lineHeight: '1rem', marginTop: '0.3rem' }}>
+            <Title level={5} style={{ lineHeight: '1.2rem', marginTop: '0.3rem' }}>
                 {movie.name && movie.name?.length > 50
                     ? movie.name?.slice(0, 50) + '...'
                     : movie.name}
