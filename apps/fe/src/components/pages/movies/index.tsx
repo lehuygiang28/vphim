@@ -4,7 +4,7 @@ import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Divider, Space, Breadcrumb, List, Grid, Empty } from 'antd';
-import { CrudFilter, useTable, LogicalFilter, CrudSort } from '@refinedev/core';
+import { useTable, CrudSort, CrudFilters } from '@refinedev/core';
 import { parseTableParams } from '@refinedev/nextjs-router';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieCard } from '@/components/card/movie-card';
@@ -14,6 +14,15 @@ import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 const { useBreakpoint } = Grid;
 
+export type LocalQuery = {
+    pagination: {
+        current: number | undefined;
+        pageSize: number | undefined;
+    };
+    filters?: CrudFilters | undefined;
+    sorters?: CrudSort[] | undefined;
+};
+
 export type MoviePageProps = {
     breadcrumbs: { label: string | ReactNode; url?: string }[];
 };
@@ -22,25 +31,8 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     const router = useRouter();
     const { md } = useBreakpoint();
     const search = useSearchParams();
-
-    const [query, setQuery] = useState<
-        | undefined
-        | {
-              pagination: {
-                  current: number | undefined;
-                  pageSize: number | undefined;
-              };
-              filters?: CrudFilter[] | undefined;
-              sorters?: CrudSort[] | undefined;
-              current?: number | undefined;
-              pageSize?: number | undefined;
-          }
-    >(undefined);
-
-    useEffect(() => {
-        setQuery(parseTableParams(search?.toString()));
-    }, [search]);
-
+    const parsedQuery = parseTableParams(search?.toString());
+    const [query, setQuery] = useState<undefined | LocalQuery>(undefined);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     const {
@@ -62,67 +54,59 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         filters: {
             mode: 'server',
             defaultBehavior: 'replace',
-            initial: query?.filters && query?.filters?.length > 0 ? query?.filters : [],
+            initial:
+                parsedQuery?.filters && parsedQuery?.filters?.length > 0
+                    ? parsedQuery?.filters
+                    : [],
         },
         pagination: {
             mode: 'server',
-            current: query?.current || 1,
-            pageSize: Math.min(query?.pageSize || 24, 24),
+            current: parsedQuery?.pagination.current || 1,
+            pageSize: Math.min(parsedQuery?.pagination.pageSize || 24, 24),
         },
         sorters: {
             mode: 'server',
             initial:
-                query?.sorters && query?.sorters?.length > 0
-                    ? query?.sorters
+                parsedQuery?.sorters && parsedQuery?.sorters?.length > 0
+                    ? parsedQuery?.sorters
                     : [{ field: 'view', order: 'desc' }],
         },
     });
 
     useEffect(() => {
-        setQuery({
-            pagination: {
-                current: current,
-                pageSize: pageSize,
-            },
-            filters: filters,
-            sorters: sorters,
-        });
+        if (current) {
+            setQuery((prev) => ({
+                ...prev,
+                pagination: { ...prev?.pagination, current: current },
+            }));
+        }
+
+        if (pageSize) {
+            setQuery((prev) => ({
+                ...prev,
+                pagination: { ...prev?.pagination, pageSize: pageSize },
+            }));
+        }
+
+        if (filters) {
+            setQuery((prev) => ({ ...prev, filters: filters }));
+        }
+
+        if (sorters) {
+            setQuery((prev) => ({ ...prev, sorters: sorters }));
+        }
     }, [filters, sorters, current, pageSize]);
 
     const handleVisibleContentCard = (index: number | null) => {
         setSelectedIndex(index === selectedIndex ? null : index);
     };
 
-    const handleFilterChange = (key: string, value: unknown) => {
-        let newFilters = query?.filters?.filter((x) => (x as LogicalFilter)?.field !== key);
-
-        if (value !== undefined && value !== null) {
-            newFilters = [
-                ...(newFilters || []),
-                {
-                    field: key,
-                    value: Array.isArray(value) ? value.join(',') : value,
-                    operator: Array.isArray(value) ? 'in' : 'eq',
-                },
-            ];
+    const applySearch = (localQuery: LocalQuery) => {
+        if (localQuery) {
+            setFilters(localQuery?.filters || []);
+            setSorters(localQuery?.sorters || []);
+            setCurrent(localQuery?.pagination?.current || 1);
         }
-        setQuery((prev) => ({ ...prev, filters: newFilters }));
-    };
-
-    const handleSorterChange = (value: string) => {
-        const [val, ord] = value?.split(',') || [];
-        if (value !== null || value !== undefined) {
-            setQuery((prev) => ({
-                ...prev,
-                sorters: [{ field: val, order: ord === 'asc' ? 'asc' : 'desc' }],
-            }));
-        }
-    };
-
-    const applyFilters = () => {
-        setFilters(query?.filters || []);
-        setSorters(query?.sorters ? [query?.sorters?.[0]] : []);
-        setCurrent(1);
     };
 
     return (
@@ -137,11 +121,10 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                 </Breadcrumb>
                 <Divider />
                 <MovieFilters
-                    localFilters={query?.filters}
-                    localSorter={query?.sorters?.[0]}
-                    onFilterChange={handleFilterChange}
-                    onSorterChange={handleSorterChange}
-                    onApplyFilters={applyFilters}
+                    query={query}
+                    setQuery={setQuery}
+                    isSearching={isLoading || isRefetching}
+                    applySearch={applySearch}
                 />
                 <Divider />
                 <List

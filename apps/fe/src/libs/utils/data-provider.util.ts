@@ -56,7 +56,11 @@ export function handleFilterQuery(
         ? filters
               .filter((filter) => filter['field'])
               .reduce((acc, filter) => {
-                  acc[filter['field']] = filter?.value ?? '';
+                  if (filter['field'] === 'cinemaRelease' || filter['field'] === 'isCopyright') {
+                      acc[filter['field']] = filter?.value === 'true' || filter?.value === true;
+                  } else {
+                      acc[filter['field']] = filter?.value ?? '';
+                  }
                   return acc;
               }, {} as Record<string, unknown>)
         : {};
