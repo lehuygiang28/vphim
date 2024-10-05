@@ -1,8 +1,11 @@
+import React from 'react';
+import { CrudFilters, stringifyTableParams, useList } from '@refinedev/core';
+
+import { MovieType } from 'apps/api/src/app/movies/movie.type';
+
 import MovieList from '@/components/swiper/movie-list';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieAsset } from '@/types/movie-asset.type';
-import { CrudFilters, stringifyTableParams, useList } from '@refinedev/core';
-import { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 export type MovieRelatedProps = {
     movie: MovieType;
