@@ -3,7 +3,7 @@
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 
-import { CSSProperties, useRef, useEffect, useState } from 'react';
+import React, { CSSProperties, useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Layout, Modal, Button } from 'antd';
@@ -13,9 +13,14 @@ import {
     MediaProvider,
     ChapterTitle,
     Track,
+    SeekButton,
+    PlayButton,
+    useMediaStore,
 } from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
+import { SeekForward10Icon, SeekBackward10Icon, PlayIcon, PauseIcon } from '@vidstack/react/icons';
 import { useUpdate } from '@refinedev/core';
+
 import { vietnameseLayoutTranslations } from './translate';
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
@@ -84,6 +89,7 @@ const getStorageKey = (host: string, searchParams: { movieSlug: string; ep?: str
 export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const { host } = useCurrentUrl();
     const player = useRef<MediaPlayerInstance>(null);
+    const { paused } = useMediaStore(player);
     const [viewUpdated, setViewUpdated] = useState(false);
     const watchTimeRef = useRef(0);
     const lastTimeRef = useRef(0);
@@ -210,6 +216,39 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                             searchParams?.lang === 'en' ? undefined : vietnameseLayoutTranslations
                         }
                         slots={{
+                            largeLayout: {
+                                afterPlayButton: (
+                                    <>
+                                        <SeekButton className="vds-button" seconds={-10}>
+                                            <SeekBackward10Icon className="vds-icon" />
+                                        </SeekButton>
+                                        <SeekButton className="vds-button" seconds={10}>
+                                            <SeekForward10Icon className="vds-icon" />
+                                        </SeekButton>
+                                    </>
+                                ),
+                            },
+                            smallLayout: {
+                                beforePlayButton: (
+                                    <SeekButton className="vds-button" seconds={-10}>
+                                        <SeekBackward10Icon className="vds-icon" />
+                                    </SeekButton>
+                                ),
+                                playButton: (
+                                    <PlayButton className="vds-button">
+                                        {paused ? (
+                                            <PlayIcon className="play-icon vds-icon" />
+                                        ) : (
+                                            <PauseIcon className="pause-icon vds-icon" />
+                                        )}
+                                    </PlayButton>
+                                ),
+                                afterPlayButton: (
+                                    <SeekButton className="vds-button" seconds={10}>
+                                        <SeekForward10Icon className="vds-icon" />
+                                    </SeekButton>
+                                ),
+                            },
                             chapterTitle: (
                                 <ChapterTitle className="vds-chapter-title">
                                     <Link
@@ -237,6 +276,8 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                                     </Link>
                                 </ChapterTitle>
                             ),
+                            googleCastButton: <></>,
+                            airPlayButton: <></>,
                         }}
                     />
                 </MediaPlayer>

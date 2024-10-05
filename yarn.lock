@@ -8281,6 +8281,7 @@ __metadata:
     jsonwebtoken: "npm:^9.0.2"
     lodash.debounce: "npm:^4.0.8"
     lucide-react-native: "npm:^0.446.0"
+    media-icons: "npm:^1.1.5"
     mongoose: "npm:^8.5.4"
     ms: "npm:^2.1.3"
     multer: "npm:^1.4.5-lts.1"
@@ -17927,6 +17928,13 @@ __metadata:
   version: 1.0.4
   resolution: "media-captions@npm:1.0.4"
   checksum: 10c0/62c6df2909b748284e929fe3d169548b42b91ea79374f67f89a313aa529395b024d5be82056613f3e88ebb2e4a86464f6c6a8d569bc7bae2f5542baa350031ba
+  languageName: node
+  linkType: hard
+
+"media-icons@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "media-icons@npm:1.1.5"
+  checksum: 10c0/7b9afb4314d0d3cc194e300bd88e05c4f468e070fa2d972e56bfbbb071d7ab969148efea351ba9bcf38b04a1c69ae34207a9807c7e9553d13aae88df8c42fa47
   languageName: node
   linkType: hard
 
