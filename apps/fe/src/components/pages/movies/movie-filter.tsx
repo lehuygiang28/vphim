@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Row, Col, Select, Button, Input, Space, Drawer, Tag, Checkbox } from 'antd';
+import { Row, Col, Select, Button, Input, Space, Drawer, Tag, Checkbox, Grid } from 'antd';
 import { LogicalFilter, useList } from '@refinedev/core';
 import { SearchOutlined, FilterOutlined, CloseOutlined } from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
@@ -14,6 +14,7 @@ import type { Region } from 'apps/api/src/app/regions/region.schema';
 import { LocalQuery } from './index';
 
 const { Option } = Select;
+const { useBreakpoint } = Grid;
 
 interface MovieFiltersProps {
     isSearching?: boolean;
@@ -43,6 +44,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
     applySearch,
     isSearching = false,
 }) => {
+    const { md } = useBreakpoint();
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 124 }, (_, i) => currentYear - i);
     const [keywordsInput, setKeywordsInput] = useState<string | undefined>(undefined);
@@ -355,7 +357,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             <Row gutter={[16, 16]} align="middle">
                 <Col xs={24} md={12} lg={12}>
                     <Input.Search
-                        placeholder="Tìm phim theo tên phim, diễn viên, đạo diễn..., hoặc nội dung"
+                        placeholder="Tìm phim theo tên phim, diễn viên, đạo diễn hoặc nội dung"
                         allowClear
                         value={keywordsInput}
                         onChange={(e) => setKeywordsInput(e.target.value)}
@@ -370,9 +372,13 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                 loading={isSearching}
                                 disabled={isSearching}
                             >
-                                Tìm kiếm
+                                {md ? <>{isSearching ? 'Đang tìm...' : 'Tìm kiếm'}</> : ''}
                             </Button>
                         }
+                        inputMode="search"
+                        autoComplete="off"
+                        disabled={isSearching}
+                        loading={isSearching}
                     />
                 </Col>
                 <Col xs={14} md={4} lg={4}>
