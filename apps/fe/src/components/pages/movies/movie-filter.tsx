@@ -381,7 +381,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         loading={isSearching}
                     />
                 </Col>
-                <Col xs={14} md={4} lg={4}>
+                <Col xs={14} md={4} lg={3}>
                     <Select
                         placeholder="Xắp xếp theo"
                         value={
@@ -399,7 +399,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         ))}
                     </Select>
                 </Col>
-                <Col xs={10} md={2} lg={2}>
+                <Col xs={10} md={3} lg={2}>
                     <Button
                         onClick={() => setDrawerVisible(true)}
                         icon={<FilterOutlined />}
