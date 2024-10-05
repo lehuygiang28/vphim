@@ -50,7 +50,7 @@ export default function MovieEpisodePage({ params }: MovieEpisodePageProps) {
                         ),
                     },
                     {
-                        title: <Link href={'/phim'}>Phim</Link>,
+                        title: <Link href={'/danh-sach-phim'}>Danh sách phim</Link>,
                     },
                     {
                         title: <Link href={`/phim/${movie?.data?.slug}`}>{movie?.data?.name}</Link>,
