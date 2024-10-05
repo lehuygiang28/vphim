@@ -134,8 +134,6 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
     const { data: user, isLoading } = useGetIdentity<UserDto>();
     const searchRef = useRef<HTMLDivElement>(null);
 
-    const showSearchBox = !pathname?.includes('danh-sach-phim');
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -243,45 +241,44 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 />
             )}
             <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                {showSearchBox && (
-                    <>
-                        {screens.md ? (
-                            <div ref={searchRef} style={{ position: 'relative' }}>
-                                <Input
-                                    placeholder="Tìm kiếm"
-                                    suffix={
-                                        <SearchOutlined
-                                            onClick={handleSearchIconClick}
-                                            style={{ cursor: 'pointer' }}
-                                        />
-                                    }
-                                    style={{
-                                        width: searchFocused ? '18.75rem' : '12.5rem',
-                                        marginRight: '1rem',
-                                        transition: 'all 0.3s ease',
-                                    }}
-                                    value={searchValue}
-                                    onChange={(e) => setSearchValue(e.target.value)}
-                                    onFocus={() => setSearchFocused(true)}
-                                    onBlur={() => !searchValue && setSearchFocused(false)}
-                                    onPressEnter={handleSearch}
-                                    allowClear
-                                    onClear={() => {
-                                        setSearchValue('');
-                                        setSearchFocused(false);
-                                    }}
-                                />
-                            </div>
-                        ) : (
-                            <Button
-                                type="text"
-                                icon={<SearchOutlined />}
-                                onClick={toggleSearch}
-                                style={{ marginRight: '0.5rem' }}
+                <>
+                    {screens.md ? (
+                        <div ref={searchRef} style={{ position: 'relative' }}>
+                            <Input
+                                placeholder="Tìm kiếm"
+                                suffix={
+                                    <SearchOutlined
+                                        onClick={handleSearchIconClick}
+                                        style={{ cursor: 'pointer' }}
+                                    />
+                                }
+                                style={{
+                                    width: searchFocused ? '18.75rem' : '12.5rem',
+                                    marginRight: '1rem',
+                                    transition: 'all 0.3s ease',
+                                }}
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                onFocus={() => setSearchFocused(true)}
+                                onBlur={() => !searchValue && setSearchFocused(false)}
+                                onPressEnter={handleSearch}
+                                allowClear
+                                onClear={() => {
+                                    setSearchValue('');
+                                    setSearchFocused(false);
+                                }}
                             />
-                        )}
-                    </>
-                )}
+                        </div>
+                    ) : (
+                        <Button
+                            type="text"
+                            icon={<SearchOutlined />}
+                            onClick={toggleSearch}
+                            style={{ marginRight: '0.5rem' }}
+                        />
+                    )}
+                </>
+
                 {!screens.md && (
                     <Button
                         type="text"
@@ -362,23 +359,22 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 width={'60%'}
             >
                 <div style={{ padding: '1rem' }}>
-                    {showSearchBox && (
-                        <Input
-                            placeholder="Tìm kiếm"
-                            suffix={
-                                <SearchOutlined
-                                    onClick={handleSearchIconClick}
-                                    style={{ cursor: 'pointer' }}
-                                />
-                            }
-                            style={{ width: '100%', marginBottom: '1rem' }}
-                            value={searchValue}
-                            onChange={(e) => setSearchValue(e.target.value)}
-                            onPressEnter={handleSearch}
-                            allowClear
-                            onClear={() => setSearchValue('')}
-                        />
-                    )}
+                    <Input
+                        placeholder="Tìm kiếm"
+                        suffix={
+                            <SearchOutlined
+                                onClick={handleSearchIconClick}
+                                style={{ cursor: 'pointer' }}
+                            />
+                        }
+                        style={{ width: '100%', marginBottom: '1rem' }}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        onPressEnter={handleSearch}
+                        allowClear
+                        onClear={() => setSearchValue('')}
+                    />
+
                     <Menu
                         mode="inline"
                         items={navItems}
@@ -387,7 +383,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                     />
                 </div>
             </Drawer>
-            {!screens.md && showSearchBox && (
+            {!screens.md && (
                 <Drawer
                     title="Search"
                     placement="top"
