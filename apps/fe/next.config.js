@@ -48,6 +48,9 @@ const nextConfig = {
             },
         ],
     },
+    experimental: {
+        serverComponentsExternalPackages: ['sharp'],
+    },
 };
 
 const plugins = [
