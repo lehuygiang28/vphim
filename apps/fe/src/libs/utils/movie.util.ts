@@ -47,7 +47,7 @@ export function getEpisodeNameBySlug(movie: MovieType, slug: string): string {
 export function getOptimizedImageUrl(
     url: string,
     {
-        useLocal = true,
+        useLocal = false,
         ...option
     }: {
         width: number | string;
