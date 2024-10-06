@@ -7,10 +7,13 @@ import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
+import { truncateText } from '@/libs/utils/movie.util';
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos/movie-response.dto';
 
 const { Text, Paragraph, Title } = Typography;
 const { useBreakpoint } = Grid;
+
+const MAX_LENGTH_MOVIE_NAME = 60;
 
 interface MovieCardProps {
     movie: MovieResponseDto;
@@ -54,7 +57,6 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                     <ImageOptimized
                         alt={movie.name}
                         url={movie.thumbUrl}
-                        // url2={movie.posterUrl}
                         width={480}
                         height={854}
                         style={{ maxHeight: '100%', maxWidth: '100%' }}
@@ -174,9 +176,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                 </div>
             </Card>
             <Title level={5} style={{ lineHeight: '1.2rem', marginTop: '0.3rem' }}>
-                {movie.name && movie.name?.length > 50
-                    ? movie.name?.slice(0, 50) + '...'
-                    : movie.name}
+                {movie?.name && truncateText(movie.name, MAX_LENGTH_MOVIE_NAME)}
             </Title>
         </>
     );

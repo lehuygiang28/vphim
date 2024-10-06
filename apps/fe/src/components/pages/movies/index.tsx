@@ -144,7 +144,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                 <List
                     loading={isLoading || isRefetching}
                     grid={{
-                        gutter: [16, 36],
+                        gutter: [16, 54],
                         xs: 2,
                         sm: 2,
                         md: 3,

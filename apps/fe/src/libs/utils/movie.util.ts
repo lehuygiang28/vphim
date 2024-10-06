@@ -77,3 +77,30 @@ export function slugifyVietnamese(str: string) {
     }
     return slugify(removeTone(removeDiacritics(str)), { lower: true, locale: 'vi' });
 }
+
+export function truncateText(text: string, maxLength = 100, ellipsis = '...'): string {
+    if (!text) {
+        return '';
+    }
+
+    // Ensure maxLength is at least the length of the ellipsis
+    maxLength = Math.max(ellipsis.length, maxLength);
+
+    if (text.length <= maxLength) {
+        return text;
+    }
+
+    // Adjust maxLength to account for ellipsis length
+    const truncationLength = maxLength - ellipsis.length;
+    let truncated = text.substring(0, truncationLength);
+
+    // Find the last space within the truncated text
+    const lastSpaceIndex = truncated.lastIndexOf(' ');
+
+    // If a space is found, truncate at that point
+    if (lastSpaceIndex > 0) {
+        truncated = truncated.substring(0, lastSpaceIndex);
+    }
+
+    return truncated + ellipsis;
+}

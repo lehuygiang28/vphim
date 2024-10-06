@@ -1,11 +1,11 @@
 import React from 'react';
-import MoviePage from '@/components/pages/movies';
+import MoviesPage from '@/components/pages/movies';
 import { HomeOutlined } from '@ant-design/icons';
 
-export default function MoviesPage() {
+export default function MovieListPage() {
     return (
         <>
-            <MoviePage
+            <MoviesPage
                 breadcrumbs={[
                     {
                         label: (
