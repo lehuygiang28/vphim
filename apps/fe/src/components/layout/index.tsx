@@ -1,7 +1,7 @@
 'use client';
 
 import { PropsWithChildren } from 'react';
-import { Layout, Grid, FloatButton } from 'antd';
+import { Layout, Grid } from 'antd';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { stringifyTableParams, useList } from '@refinedev/core';
@@ -16,7 +16,6 @@ import type { Region } from 'apps/api/src/app/regions/region.schema';
 import { RouteNameEnum } from '@/constants/route.constant';
 
 const { Content } = Layout;
-const { BackTop } = FloatButton;
 const { useBreakpoint } = Grid;
 
 export function LayoutComponent({ children }: PropsWithChildren) {
@@ -53,7 +52,6 @@ export function LayoutComponent({ children }: PropsWithChildren) {
                 overflowX: 'hidden',
             }}
         >
-            <BackTop />
             <Header
                 categoryMenu={categories?.data?.map((c) => ({
                     key: c.slug,
