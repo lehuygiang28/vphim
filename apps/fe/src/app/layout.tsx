@@ -1,7 +1,8 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { RefineContext } from './_refine_context';
 import { customFont } from '@/fonts';
@@ -29,7 +30,6 @@ export default function DefaultNoLayoutStyle({
 
     return (
         <html lang="en" className={customFont.className}>
-            <Analytics />
             <body>
                 <Suspense>
                     <RefineContext defaultMode={defaultMode}>
@@ -40,6 +40,8 @@ export default function DefaultNoLayoutStyle({
                         </>
                     </RefineContext>
                 </Suspense>
+                <Analytics />
+                <SpeedInsights />
             </body>
         </html>
     );
