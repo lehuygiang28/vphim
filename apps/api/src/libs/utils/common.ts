@@ -21,7 +21,10 @@ export function isProduction(configService?: ConfigService) {
  * @returns true if the string value is true, otherwise false
  * @description true value: true
  */
-export function isTrue(stringValue: string | boolean): boolean {
+export function isTrue(stringValue?: string | boolean): boolean {
+    if (!stringValue) {
+        return false;
+    }
     return typeof stringValue === 'boolean'
         ? stringValue
         : stringValue?.toLowerCase()?.trim() === 'true';

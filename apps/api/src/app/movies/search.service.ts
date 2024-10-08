@@ -1,17 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
 import { Movie } from './movie.schema';
 import { MovieRepository } from './movie.repository';
-import { convertToObjectId } from '../../libs/utils/common';
+import { convertToObjectId, isTrue } from '../../libs/utils/common';
+import { RedisService } from '../../libs/modules/redis/services';
 
 @Injectable()
 export class SearchService {
     private readonly logger = new Logger(SearchService.name);
+    private readonly REINDEX_LOCK_KEY = 'reindex_lock';
+    private readonly REINDEX_LOCK_TTL = 600; // 10 minutes in seconds
+    private readonly isReindexCronEnabled: boolean;
 
     constructor(
         private readonly elasticsearchService: ElasticsearchService,
         private readonly movieRepo: MovieRepository,
-    ) {}
+        private readonly redisService: RedisService,
+        private readonly configService: ConfigService,
+    ) {
+        this.isReindexCronEnabled = isTrue(
+            this.configService.get<string>('ENABLE_REINDEX_CRON', 'true'),
+        );
+        this.logger.log(
+            `Reindex cron job is ${this.isReindexCronEnabled ? 'enabled' : 'disabled'}`,
+        );
+    }
 
     async search(text: string) {
         const { hits } = await this.elasticsearchService.search({
@@ -66,7 +81,6 @@ export class SearchService {
             if (updateResponse.result === 'updated' || updateResponse.result === 'created') {
                 // Perform an immediate refresh of the index
                 await this.elasticsearchService.indices.refresh({ index: 'movies' });
-
                 this.logger.debug(
                     `Movie with ID ${movie._id} ${updateResponse.result} successfully in Elasticsearch`,
                 );
@@ -94,7 +108,6 @@ export class SearchService {
             if (deleteResponse.result === 'deleted') {
                 // Perform an immediate refresh of the index
                 await this.elasticsearchService.indices.refresh({ index: 'movies' });
-
                 this.logger.debug(
                     `Movie with ID ${movie._id} deleted successfully from Elasticsearch`,
                 );
@@ -110,7 +123,7 @@ export class SearchService {
         }
     }
 
-    async bulkIndexMovies(movies: Movie[]) {
+    private async bulkIndexMovies(movies: Movie[]) {
         const body = movies.flatMap((movie) => {
             const { _id, ...rest } = movie;
             return [
@@ -128,8 +141,13 @@ export class SearchService {
         let movies: Movie[];
 
         if (clear) {
-            const clear = await this.elasticsearchService.indices.delete({ index: 'movies' });
-            this.logger.log(`Cleared index: ${clear.acknowledged}`);
+            const indexExists = await this.elasticsearchService.indices.exists({ index: 'movies' });
+            if (indexExists) {
+                const clear = await this.elasticsearchService.indices.delete({ index: 'movies' });
+                this.logger.log(`Cleared index: ${clear.acknowledged}`);
+            } else {
+                this.logger.log('Index does not exist, skipping clearing');
+            }
         }
         do {
             this.logger.log(`Fetching movies with skip: ${skip}, limit: ${batchSize}`);
@@ -161,7 +179,7 @@ export class SearchService {
         await this.updateMappings();
     }
 
-    async setMaxResultWindow(indexName = 'movies', maxResultWindow = 350000) {
+    async setMaxResultWindow(indexName = 'movies', maxResultWindow = 80000) {
         try {
             const response = await this.elasticsearchService.indices.putSettings({
                 index: indexName,
@@ -236,5 +254,64 @@ export class SearchService {
             await this.elasticsearchService.indices.refresh({ index: 'movies' });
         }
         return '1';
+    }
+
+    @Cron(CronExpression.EVERY_MINUTE)
+    async checkAndReindexIfNecessary() {
+        if (!this.isReindexCronEnabled) {
+            return;
+        }
+
+        this.logger.log('Checking Elasticsearch index');
+
+        try {
+            const indexExists = await this.elasticsearchService.indices.exists({ index: 'movies' });
+
+            if (!indexExists) {
+                this.logger.warn('Movies index does not exist, triggering re-index');
+                await this.triggerReindex();
+                return;
+            }
+
+            const { count } = await this.elasticsearchService.count({ index: 'movies' });
+
+            if (count === 0) {
+                this.logger.warn('No documents found in Elasticsearch, triggering re-index');
+                await this.triggerReindex();
+            } else {
+                this.logger.log(`Elasticsearch index contains ${count} documents`);
+            }
+        } catch (error) {
+            this.logger.error(`Error checking Elasticsearch: ${error.message}`);
+            if (error.meta?.body?.error?.type === 'index_not_found_exception') {
+                this.logger.warn('Movies index not found, triggering re-index');
+                await this.triggerReindex();
+            }
+        }
+    }
+
+    private async triggerReindex() {
+        const lockAcquired = await this.redisService.getClient.set(
+            this.REINDEX_LOCK_KEY,
+            'locked',
+            'EX',
+            this.REINDEX_LOCK_TTL,
+            'NX',
+        );
+
+        if (!lockAcquired) {
+            this.logger.log('Another re-index process is already running');
+            return;
+        }
+
+        try {
+            this.logger.log('Starting re-index process');
+            await this.indexAllMovies(true);
+            this.logger.log('Re-index process completed');
+        } catch (error) {
+            this.logger.error(`Error during re-index process: ${error.message}`);
+        } finally {
+            await this.redisService.del(this.REINDEX_LOCK_KEY);
+        }
     }
 }
