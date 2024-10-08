@@ -33,4 +33,9 @@ export class MovieController {
     softRefresh() {
         return this.searchService.softRefresh();
     }
+
+    @Get('/:slug')
+    getMovie(@Param('slug') slug: string) {
+        return this.movieService.getMovie({ slug });
+    }
 }
