@@ -1,40 +1,62 @@
-'use client';
-
-import React, { useEffect } from 'react';
-import { useOne } from '@refinedev/core';
+import React from 'react';
 import { Breadcrumb } from 'antd';
+import { Metadata, ResolvingMetadata } from 'next';
 import Link from 'next/link';
 import { HomeOutlined } from '@ant-design/icons';
+
 import { MoviePlay } from '@/components/pages/movie/play';
-import { GET_MOVIE_QUERY } from '@/queries/movies';
-import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
+import { getEpisodeNameBySlug, getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 export type MovieEpisodePageProps = {
     params: { slug: string; episode: string };
 };
 
-export default function MovieEpisodePage({ params }: MovieEpisodePageProps) {
-    const { data: movie } = useOne<MovieType>({
-        dataProviderName: 'graphql',
-        resource: 'movies',
-        meta: {
-            gqlQuery: GET_MOVIE_QUERY,
-            operation: 'movie',
-            variables: {
-                input: {
-                    slug: params?.slug,
-                },
-            },
-        },
-        id: params?.slug,
-    });
+async function getMovieData(slug: string): Promise<MovieType> {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/movies/${slug}`);
+    if (!res.ok) {
+        throw new Error('Failed to fetch movie data');
+    }
+    return res.json();
+}
 
-    useEffect(() => {
-        if (movie?.data) {
-            document.title = `${movie?.data?.name} - ${movie?.data?.originName} | VePhim`;
-        }
-    }, [movie]);
+export async function generateMetadata(
+    { params }: MovieEpisodePageProps,
+    parent: ResolvingMetadata,
+): Promise<Metadata> {
+    const movie = await getMovieData(params.slug);
+    const episodeName = getEpisodeNameBySlug(movie, params.episode);
+    const desString = `${episodeName} - ${movie.name} (${movie.originName})`;
+
+    const previousImages = (await parent).openGraph?.images || [];
+    return {
+        title: `${desString} | VePhim`,
+        description: `${desString} trên VePhim`,
+        openGraph: {
+            title: `${desString} | VePhim`,
+            description: `Xem ${desString} trên VePhim`,
+            images: [
+                movie?.posterUrl &&
+                    getOptimizedImageUrl(movie?.posterUrl, {
+                        width: 1200,
+                        height: 630,
+                        quality: 80,
+                    }),
+                movie?.thumbUrl &&
+                    getOptimizedImageUrl(movie?.thumbUrl, {
+                        width: 1200,
+                        height: 630,
+                        quality: 80,
+                    }),
+                ...previousImages,
+            ],
+        },
+    };
+}
+
+export default async function MovieEpisodePage({ params }: MovieEpisodePageProps) {
+    const movie = await getMovieData(params.slug);
+    const episodeName = getEpisodeNameBySlug(movie, params.episode);
 
     return (
         <>
@@ -53,18 +75,18 @@ export default function MovieEpisodePage({ params }: MovieEpisodePageProps) {
                         title: <Link href={'/danh-sach-phim'}>Danh sách phim</Link>,
                     },
                     {
-                        title: <Link href={`/phim/${movie?.data?.slug}`}>{movie?.data?.name}</Link>,
+                        title: <Link href={`/phim/${movie.slug}`}>{movie.name}</Link>,
                     },
                     {
                         title: (
-                            <Link href={`/phim/${movie?.data?.slug}`}>
-                                {getEpisodeNameBySlug(movie?.data, params?.episode)}
+                            <Link href={`/phim/${movie.slug}/${params.episode}`}>
+                                {episodeName}
                             </Link>
                         ),
                     },
                 ]}
             />
-            {movie?.data && <MoviePlay movie={movie?.data} episodeSlug={params?.episode || ''} />}
+            <MoviePlay movie={movie} episodeSlug={params.episode} />
         </>
     );
 }

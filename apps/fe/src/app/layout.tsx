@@ -8,13 +8,99 @@ import { RefineContext } from './_refine_context';
 import { customFont } from '@/fonts';
 
 export const metadata: Metadata = {
-    title: 'VePhim - Xem phim, phim hay theo thể loại, quốc gia, ...',
-    description: 'VePhim - Xem phim, phim hay theo thể loại, quốc gia, ...',
+    title: {
+        default: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
+        template: '%s | VePhim',
+    },
+    description:
+        'VePhim - Trang web xem phim miễn phí với đa dạng thể loại và quốc gia. Cập nhật phim mới hàng ngày, chất lượng cao, phụ đề đầy đủ.',
+    keywords: [
+        'xem phim',
+        'phim miễn phí',
+        'phim online',
+        'phim hay',
+        'VePhim',
+        'vê phim',
+        'ophim',
+        'kkphim',
+        'nguonc',
+        'nguồn phim',
+    ],
+    authors: [{ name: 'VePhim Team' }],
+    creator: 'VePhim',
+    publisher: 'VePhim',
+    formatDetection: {
+        email: false,
+        address: false,
+        telephone: false,
+    },
+    metadataBase: new URL('https://vephim.vercel.app/'),
+    alternates: {
+        canonical: '/',
+        languages: {
+            'vi-VN': '/',
+        },
+    },
+    openGraph: {
+        title: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
+        description:
+            'VePhim - Trang web xem phim miễn phí với đa dạng thể loại và quốc gia. Cập nhật phim mới hàng ngày, chất lượng cao, phụ đề đầy đủ.',
+        url: 'https://vephim.vercel.app/',
+        siteName: 'VePhim',
+        images: [
+            {
+                url: '/assets/images/og-image-1200x630.webp',
+                width: 1200,
+                height: 630,
+                alt: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
+            },
+            {
+                url: '/assets/images/og-image-1920x1080.webp',
+                width: 1920,
+                height: 1080,
+                alt: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
+            },
+        ],
+        locale: 'vi_VN',
+        type: 'website',
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+        },
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
+        description:
+            'VePhim - Trang web xem phim miễn phí với đa dạng thể loại và quốc gia. Cập nhật phim mới hàng ngày, chất lượng cao, phụ đề đầy đủ.',
+        images: [
+            {
+                url: '/assets/images/og-image-1200x630.webp',
+                width: 1200,
+                height: 630,
+                alt: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
+            },
+            {
+                url: '/assets/images/og-image-1920x1080.webp',
+                width: 1920,
+                height: 1080,
+                alt: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
+            },
+        ],
+    },
     icons: {
         icon: '/favicon.ico',
+        apple: '/favicon.ico',
+        shortcut: '/favicon.ico',
     },
 };
-
 export default function DefaultNoLayoutStyle({
     children,
     noauth,

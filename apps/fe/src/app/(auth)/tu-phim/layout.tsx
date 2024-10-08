@@ -2,11 +2,7 @@ import type { Metadata } from 'next';
 import { LayoutComponent } from '@/components/layout';
 
 export const metadata: Metadata = {
-    title: 'VePhim - Xem phim miễn phí, phim hay theo thể loại, quốc gia, ...',
-    description: 'Xem phim miễn phí, phim hay theo thể loại, quốc gia, ...',
-    icons: {
-        icon: '/favicon.ico',
-    },
+    title: 'Tủ phim của bạn',
 };
 
 export default function RootLayout({
