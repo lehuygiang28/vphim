@@ -189,7 +189,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
             // Save categories
             const categoryIds = await Promise.all(
                 movieDetail?.category?.map(async (category) => {
-                    if (isNullOrUndefined(category)) {
+                    if (isNullOrUndefined(category) || !category?.name || !category?.slug) {
                         return null;
                     }
                     const existingCategory = await this.categoryRepo.findOne({
@@ -212,7 +212,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
             // Save countries
             const countryIds = await Promise.all(
                 movieDetail?.country?.map(async (country) => {
-                    if (isNullOrUndefined(country)) {
+                    if (isNullOrUndefined(country) || !country?.name || !country?.slug) {
                         return null;
                     }
                     const existingCountry = await this.regionRepo.findOne({
@@ -236,7 +236,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
 
             const actorIds = await Promise.all(
                 movieDetail?.actor?.map(async (actor) => {
-                    if (isNullOrUndefined(actor)) {
+                    if (isNullOrUndefined(actor) || !actor) {
                         return null;
                     }
                     const existingActor = await this.actorRepo.findOne({
@@ -258,7 +258,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
 
             const directorIds = await Promise.all(
                 movieDetail?.director?.map(async (director) => {
-                    if (isNullOrUndefined(director)) {
+                    if (isNullOrUndefined(director) || !director) {
                         return null;
                     }
                     const existingDirector = await this.directorRepo.findOne({

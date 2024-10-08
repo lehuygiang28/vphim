@@ -369,7 +369,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         const actorNames = (casts || '')
             .split(',')
             ?.map((name) => name.trim())
-            .filter((val) => !isNullOrUndefined(val));
+            .filter((actor) => !isNullOrUndefined(actor) && !!actor);
         return this.processEntities(actorNames || [], this.actorRepo);
     }
 
@@ -377,7 +377,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         const directorNames = (directors || '')
             .split(',')
             ?.map((name) => name.trim())
-            .filter((val) => !isNullOrUndefined(val));
+            .filter((director) => !isNullOrUndefined(director) && !!director);
         return this.processEntities(directorNames || [], this.directorRepo);
     }
 
@@ -387,21 +387,22 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         }
         const entities = await Promise.all(
             names?.map(async (name) => {
+                name = name?.trim();
                 // Ensure name is a string and not empty
-                if (isNullOrUndefined(name) || typeof name !== 'string' || name.trim() === '') {
+                if (isNullOrUndefined(name) || typeof name !== 'string' || name === '') {
                     return null;
                 }
-                const slug = slugifyVietnamese(name.trim(), { lower: true });
+                const slug = slugifyVietnamese(name, { lower: true });
                 let entity = await repo.findOne({ filterQuery: { slug } });
                 if (!entity) {
                     entity = await repo.create({
-                        document: { name: name.trim(), slug },
+                        document: { name: name, slug },
                     });
                 }
                 return entity._id;
             }),
         );
-        return entities.filter((val) => !isNullOrUndefined(val));
+        return entities.filter((val) => !isNullOrUndefined(val) && !!val);
     }
 
     private processEpisodes(newEpisodes: any[], existingEpisodes: Episode[] = []): Episode[] {
