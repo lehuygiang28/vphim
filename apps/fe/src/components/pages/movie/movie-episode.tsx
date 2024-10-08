@@ -1,10 +1,14 @@
 'use client';
 
-import './movie-episode.css';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Tabs, Button, Typography, Alert, ConfigProvider, theme } from 'antd';
-import type { MovieType, EpisodeType } from 'apps/api/src/app/movies/movie.type';
+import type {
+    MovieType,
+    EpisodeType,
+    EpisodeServerDataType,
+} from 'apps/api/src/app/movies/movie.type';
 
 const { Title } = Typography;
 
@@ -25,6 +29,7 @@ export function MovieEpisode({
     onServerChange,
     showTrailerAsFirstEpisode = true,
 }: MovieEpisodeProps) {
+    const router = useRouter();
     const [activeKey, setActiveKey] = useState(activeServerIndex.toString());
     const episodeListRef = useRef<HTMLDivElement>(null);
     const activeEpisodeRef = useRef<HTMLAnchorElement>(null);
@@ -62,6 +67,44 @@ export function MovieEpisode({
         movie.episode[0].serverData.length > 0 &&
         (movie.episode[0].serverData[0].linkM3u8 || movie.episode[0].serverData[0].linkEmbed);
 
+    const findEpisodeInServer = useCallback(
+        (serverData: EpisodeServerDataType[], targetSlug: string): EpisodeServerDataType | null => {
+            return serverData.find((ep) => ep.slug === targetSlug) || null;
+        },
+        [],
+    );
+
+    const handleServerChange = useCallback(
+        (newServerIndex: number) => {
+            setActiveKey(newServerIndex.toString());
+            if (onServerChange) {
+                onServerChange(newServerIndex);
+            }
+
+            if (hasValidEpisodes) {
+                const newServer = movie.episode[newServerIndex];
+                const currentEpisode = findEpisodeInServer(
+                    newServer.serverData,
+                    activeEpisodeSlug || '',
+                );
+
+                if (currentEpisode) {
+                    // If the current episode exists in the new server, navigate to it
+                    router.push(
+                        `/phim/${movie.slug}/${currentEpisode.slug}?server=${newServerIndex}`,
+                    );
+                } else {
+                    // If not found, navigate to the first episode of the new server
+                    const firstEpisode = newServer?.serverData[0];
+                    router.push(
+                        `/phim/${movie.slug}/${firstEpisode.slug}?server=${newServerIndex}`,
+                    );
+                }
+            }
+        },
+        [movie, activeEpisodeSlug, onServerChange, hasValidEpisodes, findEpisodeInServer, router],
+    );
+
     const renderEpisodes = (serverIndex: number) => {
         if (!hasValidEpisodes && !movie?.trailerUrl) {
             return (
@@ -94,7 +137,9 @@ export function MovieEpisode({
                 {episodes.map((item, index) => (
                     <Link
                         key={`serverData-${item.slug}-${index}`}
-                        href={`/phim/${movie.slug}/${item.slug}`}
+                        href={`/phim/${movie.slug}/${item.slug}${
+                            serverIndex && serverIndex > 0 ? `?server=${serverIndex}` : ''
+                        }`}
                         ref={activeEpisodeSlug === item.slug ? activeEpisodeRef : null}
                     >
                         <Button
@@ -117,10 +162,7 @@ export function MovieEpisode({
         return (
             <Tabs
                 activeKey={activeKey}
-                onChange={(key) => {
-                    setActiveKey(key);
-                    onServerChange && onServerChange(parseInt(key));
-                }}
+                onChange={(key) => handleServerChange(parseInt(key))}
                 items={movie.episode.map((ep: EpisodeType, index: number) => ({
                     key: index.toString(),
                     label: ep.serverName,

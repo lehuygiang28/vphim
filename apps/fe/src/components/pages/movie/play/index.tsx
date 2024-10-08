@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Typography, Grid, Divider, Button, Space, Alert } from 'antd';
 import { ExpandAltOutlined, StepForwardOutlined, StepBackwardOutlined } from '@ant-design/icons';
@@ -12,7 +12,11 @@ import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
 
-import type { MovieType, EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
+import type {
+    MovieType,
+    EpisodeServerDataType,
+    EpisodeType,
+} from 'apps/api/src/app/movies/movie.type';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -24,6 +28,7 @@ export type MoviePlayProps = {
 
 export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { md } = useBreakpoint();
     const { host } = useCurrentUrl();
     const videoContainerRef = useRef<HTMLDivElement>(null);
@@ -50,7 +55,33 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         }
     }, []);
 
+    const findEpisodeInServer = useCallback(
+        (server: EpisodeType, targetSlug: string): EpisodeServerDataType | null => {
+            return server.serverData.find((ep) => ep.slug === targetSlug) || null;
+        },
+        [],
+    );
+
+    const findEpisodeAcrossServers = useCallback(
+        (
+            movie: MovieType,
+            targetSlug: string,
+        ): { serverIndex: number; episode: EpisodeServerDataType } | null => {
+            for (let i = 0; i < movie.episode.length; i++) {
+                const foundEpisode = findEpisodeInServer(movie.episode[i], targetSlug);
+                if (foundEpisode) {
+                    return { serverIndex: i, episode: foundEpisode };
+                }
+            }
+            return null;
+        },
+        [findEpisodeInServer],
+    );
+
     useEffect(() => {
+        const serverIndex = parseInt(searchParams.get('server') || '0', 10);
+        setSelectedServerIndex(serverIndex);
+
         if (
             movie?.trailerUrl &&
             (episodeSlug === 'trailer' ||
@@ -69,39 +100,56 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             setHasPrevEpisode(false);
             setHasNextEpisode(false);
         } else if (movie?.episode && movie.episode.length > 0) {
-            const episode = movie.episode.find((ep) =>
-                ep.serverData.some((server) => server.slug === episodeSlug),
-            );
-            if (episode) {
-                const serverIndex = movie.episode.findIndex(
-                    (ep) => ep.serverName === episode.serverName,
-                );
-                setSelectedServerIndex(serverIndex);
-                const currentEpisode =
-                    episode.serverData.find((server) => server.slug === episodeSlug) || null;
-                setSelectedEpisode(currentEpisode);
+            let foundEpisode: EpisodeServerDataType | null = null;
+            let actualServerIndex = serverIndex;
 
-                if (currentEpisode) {
-                    if (currentEpisode.linkM3u8) {
-                        preFetchM3u8(currentEpisode.linkM3u8);
-                    } else if (currentEpisode.linkEmbed) {
-                        setUseEmbedLink(true);
-                        setIsM3u8Available(false);
-                    } else {
-                        setError('Phim đang được cập nhật, vui lòng quay lại sau.');
-                    }
+            // Try to find the episode in the specified server
+            if (movie.episode[serverIndex]) {
+                foundEpisode = findEpisodeInServer(movie.episode[serverIndex], episodeSlug);
+            }
+
+            // If not found, fallback to server 0 or search all servers
+            if (!foundEpisode) {
+                const result = findEpisodeAcrossServers(movie, episodeSlug);
+                if (result) {
+                    foundEpisode = result.episode;
+                    actualServerIndex = result.serverIndex;
+                    setSelectedServerIndex(actualServerIndex);
+                }
+            }
+
+            if (foundEpisode) {
+                setSelectedEpisode(foundEpisode);
+                if (foundEpisode.linkM3u8) {
+                    preFetchM3u8(foundEpisode.linkM3u8);
+                } else if (foundEpisode.linkEmbed) {
+                    setUseEmbedLink(true);
+                    setIsM3u8Available(false);
+                } else {
+                    setError('Phim đang được cập nhật, vui lòng quay lại sau.');
                 }
 
-                const currentEpisodeIndex = episode.serverData.findIndex(
+                const currentEpisodeIndex = movie.episode[actualServerIndex].serverData.findIndex(
                     (ep) => ep.slug === episodeSlug,
                 );
                 setHasPrevEpisode(currentEpisodeIndex > 0);
-                setHasNextEpisode(currentEpisodeIndex < episode.serverData.length - 1);
+                setHasNextEpisode(
+                    currentEpisodeIndex < movie.episode[actualServerIndex].serverData.length - 1,
+                );
+            } else {
+                setError('Không tìm thấy tập phim. Vui lòng thử lại sau.');
             }
         } else {
-            setError('Phim đang được cập nhật, vui lòng quay lại sau.');
+            setError('Phim đang được cập nhật, vui lòng quay lại sau.');
         }
-    }, [movie, episodeSlug, preFetchM3u8]);
+    }, [
+        movie,
+        episodeSlug,
+        preFetchM3u8,
+        searchParams,
+        findEpisodeInServer,
+        findEpisodeAcrossServers,
+    ]);
 
     const handleServerChange = (serverIndex: number) => {
         setSelectedServerIndex(serverIndex);
@@ -116,11 +164,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 setUseEmbedLink(true);
                 setIsM3u8Available(false);
             }
-            router.push(
-                `${RouteNameEnum.MOVIE_PAGE}/${encodeURIComponent(
-                    movie?.slug,
-                )}/${encodeURIComponent(newEpisode.slug)}`,
-            );
+            navigateToEpisode(newEpisode.slug, serverIndex);
         }
     };
 
@@ -130,6 +174,14 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         } else {
             setError('Không thể phát video. Vui lòng thử lại sau.');
         }
+    };
+
+    const navigateToEpisode = (episodeSlug: string, serverIndex: number) => {
+        router.push(
+            `${RouteNameEnum.MOVIE_PAGE}/${encodeURIComponent(movie?.slug)}/${encodeURIComponent(
+                episodeSlug,
+            )}?server=${serverIndex}`,
+        );
     };
 
     const smoothScroll = (element: HTMLElement, to: number, duration: number) => {
@@ -169,26 +221,24 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     };
 
     const goToAdjacentEpisode = (direction: 'prev' | 'next') => {
-        const currentEpisodeIndex = movie?.episode?.[selectedServerIndex]?.serverData.findIndex(
-            (ep) => ep.slug === selectedEpisode?.slug,
-        );
-        if (currentEpisodeIndex !== undefined && currentEpisodeIndex !== -1) {
-            const adjacentIndex =
-                direction === 'prev' ? currentEpisodeIndex - 1 : currentEpisodeIndex + 1;
-            const adjacentEpisode =
-                movie?.episode?.[selectedServerIndex]?.serverData[adjacentIndex];
-            if (adjacentEpisode) {
-                setSelectedEpisode(adjacentEpisode);
-                setUseEmbedLink(false);
-                setIsM3u8Available(true);
-                if (adjacentEpisode.linkM3u8) {
-                    preFetchM3u8(adjacentEpisode.linkM3u8);
+        const currentServer = movie?.episode?.[selectedServerIndex];
+        if (currentServer) {
+            const currentEpisodeIndex = currentServer.serverData.findIndex(
+                (ep) => ep.slug === selectedEpisode?.slug,
+            );
+            if (currentEpisodeIndex !== -1) {
+                const adjacentIndex =
+                    direction === 'prev' ? currentEpisodeIndex - 1 : currentEpisodeIndex + 1;
+                const adjacentEpisode = currentServer.serverData[adjacentIndex];
+                if (adjacentEpisode) {
+                    setSelectedEpisode(adjacentEpisode);
+                    setUseEmbedLink(false);
+                    setIsM3u8Available(true);
+                    if (adjacentEpisode.linkM3u8) {
+                        preFetchM3u8(adjacentEpisode.linkM3u8);
+                    }
+                    navigateToEpisode(adjacentEpisode.slug, selectedServerIndex);
                 }
-                router.push(
-                    `${RouteNameEnum.MOVIE_PAGE}/${encodeURIComponent(
-                        movie?.slug,
-                    )}/${encodeURIComponent(adjacentEpisode.slug)}`,
-                );
             }
         }
     };
