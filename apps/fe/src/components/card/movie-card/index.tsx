@@ -1,6 +1,6 @@
 'use client';
 
-import React, { FC } from 'react';
+import React, { CSSProperties, FC } from 'react';
 import Link from 'next/link';
 import { Button, Card, Divider, Grid, Space, Tag, Typography } from 'antd';
 import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
@@ -24,13 +24,17 @@ interface MovieCardProps {
 export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1.25 }) => {
     const { md } = useBreakpoint();
 
+    const maxWidth: CSSProperties = {
+        maxWidth: '14rem',
+    };
+
     return (
         <>
             <Card
                 hoverable
                 style={{
+                    ...maxWidth,
                     position: 'relative',
-                    maxWidth: '14rem',
                     maxHeight: '21rem',
                     width: '100%',
                     height: '100%',
@@ -175,7 +179,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                     </div>
                 </div>
             </Card>
-            <Title level={5} style={{ lineHeight: '1.2rem', marginTop: '0.3rem' }}>
+            <Title level={5} style={{ ...maxWidth, lineHeight: '1.2rem', marginTop: '0.3rem' }}>
                 {movie?.name && truncateText(movie.name, MAX_LENGTH_MOVIE_NAME)}
             </Title>
         </>
