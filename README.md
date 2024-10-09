@@ -21,6 +21,7 @@ VePhim is built as a monorepo using Nx, a powerful build system and set of exten
 
 ### Project Structure
 
+```md
 vephim/
 ├── apps/
 │   ├── api/         # NestJS backend
@@ -33,7 +34,7 @@ vephim/
 ├── tools/           # Build and development tools
 ├── .env             # Root environment variables (using when run mongodb, redis, elasticsearch with docker compose)
 └── nx.json          # Nx configuration
-
+```
 
 ## Technologies Used
 
