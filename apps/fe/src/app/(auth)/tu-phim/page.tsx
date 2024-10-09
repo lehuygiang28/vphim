@@ -136,9 +136,8 @@ export default function MovieFollowingsPage() {
                           }
                 }
             />
-            <Divider />
+            <Divider style={{ marginTop: '4rem' }} />
             <MovieList
-                style={{ marginTop: '4rem' }}
                 title="Có thể bạn quan tâm"
                 isLoading={mostViewedLoading}
                 movies={mostViewedMovies?.data}
