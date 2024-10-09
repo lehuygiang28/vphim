@@ -37,7 +37,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly KKPHIM_CRON: string = '0 4 * * *';
     private readonly RETRY_DELAY = 5000;
     private readonly KKPHIM_FORCE_UPDATE: boolean = false;
-    private readonly KKPHIM_HOST: string = null;
+    private readonly KKPHIM_HOST: string = 'https://phimapi.com';
     private readonly KKPHIM_IMG_HOST: string = null;
     private readonly logger = new Logger(KKPhimCrawler.name);
     private readonly kkphim: Ophim;

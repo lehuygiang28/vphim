@@ -37,7 +37,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly OPHIM_CRON: string = '0 2 * * *';
     private readonly RETRY_DELAY = 5000;
     private readonly OPHIM_FORCE_UPDATE: boolean = false;
-    private readonly OPHIM_HOST: string = null;
+    private readonly OPHIM_HOST: string = 'https://ophim1.com';
     private readonly OPHIM_IMG_HOST: string = null;
     private readonly logger = new Logger(OphimCrawler.name);
     private readonly ophim: Ophim;
