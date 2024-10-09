@@ -59,9 +59,9 @@ VePhim is built using a combination of powerful technologies:
 
 ## How to Run VePhim Locally
 
-**First, run `yarn install` to install all dependencies.**
-**Then, copy `.env.example` to `.env` in root project, fill your environment variables in `.env`**
-**Last, run `docker compose -f docker-compose.infra.yml up -d` to start the mongodb, redis, and elasticsearch. If you already have other instances of mongodb, redis, and elasticsearch running, you can skip this and fill in each project `.env` with your environment variables**
+- **First, run `yarn install` to install all dependencies.**
+- **Then, copy `.env.example` to `.env` in root project, fill your environment variables in `.env`**
+- **Last, run `docker compose -f docker-compose.infra.yml up -d` to start the mongodb, redis, and elasticsearch. If you already have other instances of mongodb, redis, and elasticsearch running, you can skip this and fill in each project `.env` with your environment variables**
 
 1. Backend:
    - Copy `.env.example` to `apps/api/.env`
