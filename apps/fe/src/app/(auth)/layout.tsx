@@ -3,6 +3,7 @@
 import { PropsWithChildren } from 'react';
 import { useIsAuthenticated } from '@refinedev/core';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 export default function RequiredAuthLayout({ children }: PropsWithChildren) {
     const router = useRouter();
@@ -13,6 +14,7 @@ export default function RequiredAuthLayout({ children }: PropsWithChildren) {
     }
 
     if (!isLoading && !data?.authenticated) {
+        signOut({ redirect: false });
         return router.replace('/');
     }
 
