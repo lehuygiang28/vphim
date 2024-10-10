@@ -31,7 +31,7 @@ export class RegionsService {
             return fromCache;
         }
 
-        const { keywords } = query;
+        const { keywords = null } = query;
         const filters: FilterQuery<Region> = {};
 
         if (keywords) {
@@ -43,7 +43,7 @@ export class RegionsService {
             this.regionsRepo.find({ filterQuery: filters, query }),
             this.regionsRepo.count(filters),
         ]);
-        const result = { data: regions, total };
+        const result = { data: regions, total, count: regions?.length || 0 };
 
         await this.redisService.set(cacheKey, result, 1000 * 10);
         return result;

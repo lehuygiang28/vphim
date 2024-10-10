@@ -1,1 +1,1 @@
-export * from './update-region.dto';
+export * from './get-regions.dto';
