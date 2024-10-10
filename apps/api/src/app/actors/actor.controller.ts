@@ -1,7 +1,9 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 import { ActorService } from './actor.service';
+import { GetActorsDto } from './dtos';
 
 @ApiTags('actors')
 @Controller({
@@ -10,8 +12,9 @@ import { ActorService } from './actor.service';
 export class ActorController {
     constructor(private readonly actorService: ActorService) {}
 
+    @Throttle({ default: { limit: 10, ttl: 10000 } })
     @Get('/')
-    async getActor() {
-        return this.actorService.getActors();
+    async getActor(@Query() query: GetActorsDto) {
+        return this.actorService.getActors(query);
     }
 }

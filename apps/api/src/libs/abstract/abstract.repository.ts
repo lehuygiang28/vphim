@@ -166,6 +166,8 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
         const filter: FilterQuery<TDocument> = { ...filterQuery };
         let options: Partial<QueryOptions<TDocument>> = {
             lean: true,
+            skip: 0,
+            limit: 10,
             ...queryOptions,
         };
 

@@ -1,1 +1,1 @@
-export * from './update-actor.dto';
+export * from './get-actors.dto';

@@ -1,9 +1,9 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { FilterQuery } from 'mongoose';
+import { createRegex, removeDiacritics, removeTone } from '@vn-utils/text';
 
 import { ActorRepository } from './actor.repository';
 import { GetActorsInput } from './inputs/get-actors.input';
-import { createRegex, removeDiacritics, removeTone } from '@vn-utils/text';
-import { FilterQuery } from 'mongoose';
 import { Actor } from './actor.schema';
 import { convertToObjectId, sortedStringify } from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis/services';
@@ -31,7 +31,7 @@ export class ActorService {
             return fromCache;
         }
 
-        const { keywords } = query;
+        const { keywords = null } = query;
         const filters: FilterQuery<Actor> = {};
 
         if (keywords) {
@@ -43,7 +43,7 @@ export class ActorService {
             this.actorRepo.find({ filterQuery: filters, query }),
             this.actorRepo.count(filters),
         ]);
-        const result = { data: actors, total };
+        const result = { data: actors, total, count: actors?.length || 0 };
 
         await this.redisService.set(cacheKey, result, 1000 * 10);
         return result;
