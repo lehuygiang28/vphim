@@ -256,7 +256,7 @@ export class SearchService {
         return '1';
     }
 
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_10_MINUTES)
     async checkAndReindexIfNecessary() {
         if (!this.isReindexCronEnabled) {
             return;
