@@ -1,1 +1,1 @@
-export * from './update-category.dto';
+export * from './get-categories.dto';

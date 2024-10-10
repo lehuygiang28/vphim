@@ -31,7 +31,7 @@ export class CategoryService {
             return fromCache;
         }
 
-        const { keywords } = query;
+        const { keywords = null } = query;
         const filterQuery: FilterQuery<Category> = {};
 
         if (keywords) {
@@ -40,11 +40,15 @@ export class CategoryService {
         }
 
         if (query?.ids?.length) {
-            filterQuery._id = { $in: query?.ids?.map((id) => convertToObjectId(id)) };
+            filterQuery._id = {
+                $in: Array.isArray(query?.ids)
+                    ? query?.ids?.map((id) => convertToObjectId(id))
+                    : [convertToObjectId(query?.ids)],
+            };
         }
 
         if (query?.slugs?.length) {
-            filterQuery.slug = { $in: query.slugs };
+            filterQuery.slug = { $in: Array.isArray(query?.slugs) ? query?.slugs : [query?.slugs] };
         }
 
         const [data, total] = await Promise.all([

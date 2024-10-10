@@ -12,9 +12,9 @@ export class GetCategoriesInput extends PartialType(PaginationInput) {
     @Field(() => [String], { nullable: true })
     @IsOptional()
     @IsMongoId({ each: true })
-    ids: string[];
+    ids?: string[];
 
     @Field(() => [String], { nullable: true })
     @IsOptional()
-    slugs: string[];
+    slugs?: string[];
 }

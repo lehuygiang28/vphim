@@ -1,7 +1,9 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 import { CategoryService } from './category.service';
+import { GetCategoriesDto } from './dtos';
 
 @ApiTags('categories')
 @Controller({
@@ -10,8 +12,9 @@ import { CategoryService } from './category.service';
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
 
+    @Throttle({ default: { limit: 10, ttl: 10000 } })
     @Get('/')
-    async getCategories() {
-        return this.categoryService.getCategories();
+    async getCategories(@Query() query: GetCategoriesDto) {
+        return this.categoryService.getCategories(query);
     }
 }

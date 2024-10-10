@@ -1,4 +1,3 @@
-import { AbstractDocument } from './abstract.schema';
 import {
     Model,
     Connection,
@@ -13,8 +12,11 @@ import {
     AggregateOptions,
 } from 'mongoose';
 import { Logger, NotFoundException } from '@nestjs/common';
+
+import { AbstractDocument } from './abstract.schema';
 import type { NullableType } from '../types';
 import { PaginationRequestDto } from '../dtos';
+import { isNullOrUndefined } from '../utils';
 
 export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     protected abstract readonly logger: Logger;
@@ -158,19 +160,25 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
         projectionType?: ProjectionType<TDocument>;
         query?: PaginationRequestDto;
     }): Promise<NullableType<TDocument[]>> {
+        const limit = Math.min(query?.limit ?? 1, 500);
+        const skip = Math.max(((query?.page ?? 1) - 1) * limit, 0);
+
         const filter: FilterQuery<TDocument> = { ...filterQuery };
-        const options: Partial<QueryOptions<TDocument>> = {
+        let options: Partial<QueryOptions<TDocument>> = {
             lean: true,
             ...queryOptions,
         };
 
         if (query?.sortBy && query?.sortOrder) {
-            options.sort = { [query.sortBy]: query.sortOrder };
+            options = { ...options, sort: { [query.sortBy]: query.sortOrder } };
         }
 
-        if (query?.page && query?.limit) {
-            options.skip = (query.page - 1) * query.limit;
-            options.limit = query.limit;
+        if (!isNullOrUndefined(query?.limit)) {
+            options = { ...options, limit };
+        }
+
+        if (!isNullOrUndefined(query?.page)) {
+            options = { ...options, skip };
         }
 
         const document = await this.model.find(filter, projectionType, options);
