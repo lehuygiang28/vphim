@@ -32,6 +32,7 @@ import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
 import { IMDBRating } from '@/components/card/imdb-rating';
 import { TMDBRating } from '@/components/card/tmdb-rating';
 import { usePathname, useRouter } from 'next/navigation';
+import MovieComments from './movie-comment';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -480,11 +481,18 @@ export function Movie({ slug }: MovieProps) {
                     </Row>
                 )}
                 {movie && (
-                    <Row style={{ marginTop: '2rem', marginBottom: '4rem' }}>
-                        <Col span={24}>
-                            <MovieRelated movie={movie} />
-                        </Col>
-                    </Row>
+                    <>
+                        <Row style={{ marginTop: '2rem', marginBottom: '4rem' }}>
+                            <Col span={24}>
+                                <MovieRelated movie={movie} />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={24}>
+                                <MovieComments movieId={movie?._id?.toString()} />
+                            </Col>
+                        </Row>
+                    </>
                 )}
             </Space>
         </>

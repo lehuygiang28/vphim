@@ -8343,6 +8343,7 @@ __metadata:
     react-native-webview: "npm:13.8.6"
     react-test-renderer: "npm:18.2.0"
     reflect-metadata: "npm:^0.1.13"
+    relative-time-format: "npm:^1.1.6"
     rxjs: "npm:^7.8.0"
     sharp: "npm:^0.33.5"
     slugify: "npm:^1.6.6"
@@ -22849,6 +22850,13 @@ __metadata:
   version: 0.2.7
   resolution: "relateurl@npm:0.2.7"
   checksum: 10c0/c248b4e3b32474f116a804b537fa6343d731b80056fb506dffd91e737eef4cac6be47a65aae39b522b0db9d0b1011d1a12e288d82a109ecd94a5299d82f6573a
+  languageName: node
+  linkType: hard
+
+"relative-time-format@npm:^1.1.6":
+  version: 1.1.6
+  resolution: "relative-time-format@npm:1.1.6"
+  checksum: 10c0/d0784eda966ebf256c5585f67786435c611972406abcabebca0d4489e28cba7523a40c8c9725a7a089c5f33a20c16d537068a909ed91da275feed9d8607e70f0
   languageName: node
   linkType: hard
 

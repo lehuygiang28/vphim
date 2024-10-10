@@ -26,9 +26,9 @@ export class CommentType {
     @Field(() => GetCommentsOutput, { nullable: true })
     replies?: GetCommentsOutput;
 
-    @Field()
+    @Field(() => Date)
     createdAt: Date;
 
-    @Field()
+    @Field(() => Date)
     updatedAt: Date;
 }
