@@ -368,7 +368,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     private async processActors(casts: string) {
         const actorNames = (casts || '')
             .split(',')
-            ?.map((name) => name.trim())
+            ?.map((name) => name?.toString()?.trim())
             .filter((actor) => !isNullOrUndefined(actor) && !!actor);
         return this.processEntities(actorNames || [], this.actorRepo);
     }
@@ -376,7 +376,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     private async processDirectors(directors: string) {
         const directorNames = (directors || '')
             .split(',')
-            ?.map((name) => name.trim())
+            ?.map((name) => name?.toString()?.trim())
             .filter((director) => !isNullOrUndefined(director) && !!director);
         return this.processEntities(directorNames || [], this.directorRepo);
     }
@@ -387,7 +387,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         }
         const entities = await Promise.all(
             names?.map(async (name) => {
-                name = name?.trim();
+                name = name?.toString()?.trim();
                 // Ensure name is a string and not empty
                 if (isNullOrUndefined(name) || typeof name !== 'string' || name === '') {
                     return null;
