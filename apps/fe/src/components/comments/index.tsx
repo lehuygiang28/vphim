@@ -7,6 +7,7 @@ import { CommentType } from 'apps/api/src/app/comments/comment.type';
 import { CREATE_COMMENT_MUTATION } from '@/queries/comment';
 import { isNullOrUndefined } from 'apps/api/src/libs/utils/common';
 import { relativeDate } from '@/libs/utils/relative-date';
+import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -63,7 +64,14 @@ export const Comment: React.FC<CommentProps> = ({ comment }) => {
                 <Row gutter={[16, 0]}>
                     <Col span={4} md={1}>
                         <Avatar
-                            src={comment.user?.avatar?.url}
+                            src={
+                                comment.user?.avatar?.url &&
+                                getOptimizedImageUrl(comment.user?.avatar?.url, {
+                                    width: 32,
+                                    height: 32,
+                                    quality: 50,
+                                })
+                            }
                             alt={comment.user.fullName}
                             icon={<UserOutlined />}
                             style={{ width: '2.5rem', height: '2.5rem' }}
