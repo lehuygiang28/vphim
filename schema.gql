@@ -199,6 +199,29 @@ type GetMoviesOutput {
   total: Float!
 }
 
+type GetCommentsOutput {
+  data: [CommentType!]!
+  total: Float!
+  count: Float!
+}
+
+type UserCommentType {
+  _id: ID!
+  fullName: String!
+  avatar: AvatarType
+}
+
+type CommentType {
+  _id: ID!
+  user: UserCommentType!
+  movie: ID!
+  content: String!
+  parentComment: ID
+  replies: GetCommentsOutput
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 input EpisodeServerDataInputType {
   slug: String
   name: String
@@ -238,6 +261,7 @@ type Query {
   director(input: GetDirectorInput!): Director!
   regions(input: GetRegionsInput!): GetRegionsOutput!
   region(input: GetRegionInput!): Region!
+  movieComments(input: GetCommentsInput!): GetCommentsOutput!
 }
 
 input GetMovieInput {
@@ -328,6 +352,14 @@ input GetRegionInput {
   slug: String
 }
 
+input GetCommentsInput {
+  limit: Float = 10
+  page: Float = 1
+  movieId: ID!
+  replyPage: Float = 1
+  replyLimit: Float = 5
+}
+
 type Mutation {
   mutationMe(input: MutationMeInput!): UserType!
   followMovie(input: MutationFollowMovieInput!): UserType!
@@ -347,6 +379,9 @@ type Mutation {
   updateRegion(input: UpdateRegionInput!): Region!
   createRegion(input: CreateRegionInput!): Region!
   deleteRegion(input: DeleteRegionInput!): Int!
+  createComment(input: CreateCommentInput!): CommentType!
+  updateComment(input: UpdateCommentInput!): CommentType!
+  deleteComment(id: String!): Boolean!
 }
 
 input MutationMeInput {
@@ -489,4 +524,15 @@ input CreateRegionInput {
 
 input DeleteRegionInput {
   _id: ID!
+}
+
+input CreateCommentInput {
+  movieId: ID!
+  content: String!
+  parentCommentId: ID
+}
+
+input UpdateCommentInput {
+  _id: ID!
+  content: String!
 }

@@ -16,6 +16,7 @@ import { MovieModule } from './movies';
 import { RegionsModule } from './regions';
 import { UsersModule } from './users';
 import { ImagesModule } from './images';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
     imports: [
@@ -57,6 +58,7 @@ import { ImagesModule } from './images';
         MovieModule,
         ActorModule,
         DirectorModule,
+        CommentsModule,
     ],
     controllers: [],
     providers: [],

@@ -272,4 +272,8 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     async deleteOne(filterQuery: FilterQuery<TDocument>, session?: ClientSession) {
         return this.model.deleteOne(filterQuery, session ? { session } : null);
     }
+
+    async deleteMany(filterQuery: FilterQuery<TDocument>, session?: ClientSession) {
+        return this.model.deleteMany(filterQuery, session ? { session } : null);
+    }
 }
