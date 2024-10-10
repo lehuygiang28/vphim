@@ -51,11 +51,11 @@ export class CategoryService {
             filterQuery.slug = { $in: Array.isArray(query?.slugs) ? query?.slugs : [query?.slugs] };
         }
 
-        const [data, total] = await Promise.all([
+        const [categories, total] = await Promise.all([
             this.categoryRepo.find({ filterQuery, query }),
             this.categoryRepo.count(filterQuery),
         ]);
-        const result = { data, total };
+        const result = { data: categories, total, count: categories?.length || 0 };
 
         await this.redisService.set(cacheKey, result, 1000 * 10);
         return result;
