@@ -1,1 +1,1 @@
-export * from './update-director.dto';
+export * from './get-directors.dto';

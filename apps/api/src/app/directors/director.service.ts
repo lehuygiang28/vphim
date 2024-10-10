@@ -31,7 +31,7 @@ export class DirectorService {
             return fromCache;
         }
 
-        const { keywords } = query;
+        const { keywords = null } = query;
         const filters: FilterQuery<Director> = {};
 
         if (keywords) {
@@ -43,7 +43,7 @@ export class DirectorService {
             this.directorRepo.find({ filterQuery: filters, query }),
             this.directorRepo.count(filters),
         ]);
-        const result = { data: directors, total };
+        const result = { data: directors, total, count: directors?.length || 0 };
 
         await this.redisService.set(cacheKey, result, 1000 * 10);
         return result;
