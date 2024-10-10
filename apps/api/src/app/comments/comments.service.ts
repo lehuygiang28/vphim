@@ -11,6 +11,7 @@ import { CommentType } from './comment.type';
 import { Comment } from './comment.schema';
 import { convertToObjectId, sortedStringify } from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis/services';
+import { GetCommentsOutput } from './outputs/get-movie-comments.output';
 
 @Injectable()
 export class CommentService {
@@ -103,8 +104,25 @@ export class CommentService {
     async getMovieComments(query: GetCommentsInput) {
         const cacheKey = `CACHED:COMMENTS:${query?.movieId}:${sortedStringify(query)}`;
 
-        const fromCache = await this.redisService.get(cacheKey);
+        let fromCache = await this.redisService.get<GetCommentsOutput>(cacheKey);
         if (fromCache) {
+            fromCache = {
+                ...fromCache,
+                data: fromCache.data.map((comment) => ({
+                    ...comment,
+                    createdAt: new Date(comment.createdAt),
+                    updatedAt: new Date(comment.updatedAt),
+                    replies: {
+                        ...comment.replies,
+                        data:
+                            comment?.replies?.data.map((reply) => ({
+                                ...reply,
+                                createdAt: new Date(reply.createdAt),
+                                updatedAt: new Date(reply.updatedAt),
+                            })) || [],
+                    },
+                })),
+            };
             return fromCache;
         }
 
@@ -130,6 +148,7 @@ export class CommentService {
                 query,
                 queryOptions: {
                     populate: [{ path: 'user', select: 'fullName avatar' }],
+                    sort: { createdAt: -1 },
                 },
             }),
             this.commentRepository.count(filters),
@@ -144,6 +163,7 @@ export class CommentService {
                     query: { limit: replyLimit, page: replyPage },
                     queryOptions: {
                         populate: [{ path: 'user', select: '_id fullName avatar' }],
+                        sort: { createdAt: 1 },
                     },
                 });
                 return {
@@ -163,7 +183,7 @@ export class CommentService {
             count: commentsWithReplies?.length || 0,
         };
 
-        await this.redisService.set(cacheKey, result, 1000 * 60); // Cache for 1 minute
+        await this.redisService.set(cacheKey, result, 1000); // Cache for 1 second
 
         return result as unknown as CommentType;
     }
