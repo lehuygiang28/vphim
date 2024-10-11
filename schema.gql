@@ -381,7 +381,7 @@ type Mutation {
   deleteRegion(input: DeleteRegionInput!): Int!
   createComment(input: CreateCommentInput!): CommentType!
   updateComment(input: UpdateCommentInput!): CommentType!
-  deleteComment(id: String!): Boolean!
+  deleteComment(input: DeleteCommentInput!): Boolean!
 }
 
 input MutationMeInput {
@@ -535,4 +535,8 @@ input CreateCommentInput {
 input UpdateCommentInput {
   _id: ID!
   content: String!
+}
+
+input DeleteCommentInput {
+  _id: ID!
 }

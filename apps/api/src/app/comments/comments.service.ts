@@ -66,11 +66,14 @@ export class CommentService {
 
     async updateComment({ _id: commentId, content }: UpdateCommentInput, actor: UserJwt) {
         const comment = await this.commentRepository.findOneOrThrow({
-            filterQuery: { _id: convertToObjectId(commentId), user: actor.userId },
+            filterQuery: {
+                _id: convertToObjectId(commentId),
+                user: convertToObjectId(actor.userId),
+            },
         });
 
         const updatedComment = await this.commentRepository.findOneAndUpdate({
-            filterQuery: { _id: commentId },
+            filterQuery: { _id: convertToObjectId(commentId) },
             updateQuery: { content: stripHtml(content).result },
         });
 
@@ -80,7 +83,7 @@ export class CommentService {
         return updatedComment;
     }
 
-    async deleteComment(actor: UserJwt, commentId: string) {
+    async deleteComment(commentId: string, actor: UserJwt) {
         const comment = await this.commentRepository.findOneOrThrow({
             filterQuery: {
                 _id: convertToObjectId(commentId),
@@ -90,10 +93,10 @@ export class CommentService {
 
         // Delete all replies to this comment
         await this.commentRepository.deleteMany({
-            filterQuery: { parentComment: comment?._id },
+            filterQuery: { parentComment: convertToObjectId(comment._id) },
         });
 
-        await this.commentRepository.deleteOne({ _id: commentId });
+        await this.commentRepository.deleteOne({ _id: convertToObjectId(commentId) });
 
         // Invalidate cache
         await this.redisService.del(`CACHED:COMMENTS:${comment.movie}*`);

@@ -1,7 +1,12 @@
 import { Resolver, Mutation, Args, Query } from '@nestjs/graphql';
 import { CommentType } from './comment.type';
 import { CommentService } from './comments.service';
-import { CreateCommentInput, GetCommentsInput, UpdateCommentInput } from './inputs';
+import {
+    CreateCommentInput,
+    DeleteCommentInput,
+    GetCommentsInput,
+    UpdateCommentInput,
+} from './inputs';
 import { RequiredRoles } from '../auth/guards/auth.guard';
 import { CurrentUser, UserJwt } from '../auth';
 import { GetCommentsOutput } from './outputs/get-movie-comments.output';
@@ -24,8 +29,8 @@ export class CommentResolver {
 
     @RequiredRoles([], { isGql: true })
     @Mutation(() => Boolean, { name: 'deleteComment' })
-    deleteComment(@Args('id') id: string, @CurrentUser() actor: UserJwt) {
-        return this.commentService.deleteComment(actor, id);
+    deleteComment(@Args('input') query: DeleteCommentInput, @CurrentUser() actor: UserJwt) {
+        return this.commentService.deleteComment(query?._id, actor);
     }
 
     @Query(() => GetCommentsOutput, { name: 'movieComments' })
