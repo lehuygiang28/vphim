@@ -175,6 +175,9 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
                     loading={isLoading}
                     itemLayout="vertical"
                     dataSource={sortedComments}
+                    locale={{
+                        emptyText: 'Chưa có bình luận nào!',
+                    }}
                     renderItem={(comment) => (
                         <List.Item
                             style={{
