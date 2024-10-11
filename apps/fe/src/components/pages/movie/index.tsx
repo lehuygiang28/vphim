@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb } from 'antd';
 import { useGetIdentity, useOne, useUpdate } from '@refinedev/core';
 import { MovieType } from 'apps/api/src/app/movies/movie.type';
@@ -13,16 +16,13 @@ import {
     PlayCircleOutlined,
 } from '@ant-design/icons';
 
+import { MovieTypeEnum, MovieStatusEnum } from 'apps/api/src/app/movies/movie.constant';
+import { UserType } from 'apps/api/src/app/users/user.type';
+
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { GET_MOVIE_QUERY } from '@/queries/movies';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { movieTypeTranslations, movieStatusTranslations } from '@/constants/translation-enum';
-
-import { MovieTypeEnum, MovieStatusEnum } from 'apps/api/src/app/movies/movie.constant';
-import { MovieEpisode } from './movie-episode';
-import { MovieRelated } from './movie-related';
-import Link from 'next/link';
-import { UserType } from 'apps/api/src/app/users/user.type';
 import {
     FOLLOW_MOVIE_MUTATION,
     GET_OWN_FOLLOWING_MOVIES,
@@ -31,8 +31,10 @@ import {
 import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
 import { IMDBRating } from '@/components/card/imdb-rating';
 import { TMDBRating } from '@/components/card/tmdb-rating';
-import { usePathname, useRouter } from 'next/navigation';
-import MovieComments from './movie-comment';
+
+import { MovieEpisode } from './movie-episode';
+import { MovieRelated } from './movie-related';
+const MovieComments = dynamic(() => import('./movie-comment'));
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;

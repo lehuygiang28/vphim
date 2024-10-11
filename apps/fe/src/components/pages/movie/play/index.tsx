@@ -3,14 +3,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Typography, Grid, Divider, Button, Space, Alert } from 'antd';
+import dynamic from 'next/dynamic';
+import { Typography, Grid, Divider, Button, Space, Alert, Row, Col } from 'antd';
 import { ExpandAltOutlined, StepForwardOutlined, StepBackwardOutlined } from '@ant-design/icons';
 
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
+
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
+const MovieComments = dynamic(() => import('../movie-comment'));
 
 import type {
     MovieType,
@@ -384,9 +387,18 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 </div>
                 <Divider />
                 {movie && (
-                    <div style={{ marginTop: '2rem', marginBottom: md ? '4rem' : '2rem' }}>
-                        <MovieRelated movie={movie} />
-                    </div>
+                    <>
+                        <Row style={{ marginTop: '2rem', marginBottom: '4rem' }}>
+                            <Col span={24}>
+                                <MovieRelated movie={movie} />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={24}>
+                                <MovieComments movieId={movie?._id?.toString()} />
+                            </Col>
+                        </Row>
+                    </>
                 )}
             </div>
         </div>
