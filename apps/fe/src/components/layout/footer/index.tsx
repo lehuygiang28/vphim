@@ -65,9 +65,9 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
                             }}
                         >
                             Trang web xem phim trực tuyến miễn phí chất lượng cao với giao diện trực
-                            quan, tốc độ tải trang nhanh, cùng kho phim với hơn 30.000+ phim mới,
-                            phim hay, luôn cập nhật phim nhanh, hứa hẹn sẽ đem lại phút giây thư
-                            giãn cho bạn.
+                            quan, tốc độ tải trang nhanh, cùng kho phim với hơn 40.000+ phim mới,
+                            phim hay, cập nhật mỗi ngày, hứa hẹn sẽ đem lại phút giây thư giãn cho
+                            bạn.
                         </Text>
                     </Col>
 
