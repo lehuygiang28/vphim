@@ -109,7 +109,7 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
         >
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
                 <Title level={5} style={{ color: 'white' }}>
-                    Comments ({data?.pages[0]?.total || 0})
+                    Bình luận ({data?.pages[0]?.total || 0})
                 </Title>
 
                 {/* Leave a comment section */}
