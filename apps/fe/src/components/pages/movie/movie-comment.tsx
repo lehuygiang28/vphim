@@ -184,7 +184,12 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
                                 marginBottom: '1rem',
                             }}
                         >
-                            <Comment comment={comment} isLoggedIn={!!user} />
+                            <Comment
+                                comment={comment}
+                                isLoggedIn={!!user}
+                                currentUserId={user?._id?.toString() || ''}
+                                refetch={refetch}
+                            />
                         </List.Item>
                     )}
                     loadMore={

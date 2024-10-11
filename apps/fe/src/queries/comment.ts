@@ -12,6 +12,7 @@ export const COMMENT_LIST_QUERY = gql`
                 createdAt
                 updatedAt
                 user {
+                    _id
                     fullName
                     avatar {
                         url
@@ -26,6 +27,7 @@ export const COMMENT_LIST_QUERY = gql`
                         createdAt
                         updatedAt
                         user {
+                            _id
                             fullName
                             avatar {
                                 url
@@ -42,7 +44,20 @@ export const CREATE_COMMENT_MUTATION = gql`
     mutation CreateComment($input: CreateCommentInput!) {
         createComment(input: $input) {
             _id
-            movie
         }
+    }
+`;
+
+export const UPDATE_COMMENT_MUTATION = gql`
+    mutation UpdateComment($input: UpdateCommentInput!) {
+        updateComment(input: $input) {
+            _id
+        }
+    }
+`;
+
+export const DELETE_COMMENT_MUTATION = gql`
+    mutation DeleteComment($input: DeleteCommentInput!) {
+        deleteComment(input: $input)
     }
 `;
