@@ -1,15 +1,18 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, List, Space, Typography, Input, Card, Divider } from 'antd';
 import { SendOutlined, LoadingOutlined } from '@ant-design/icons';
-import { useCreate, useInfiniteList } from '@refinedev/core';
+import { useCreate, useInfiniteList, useGetIdentity } from '@refinedev/core';
 import { useDebouncedCallback } from 'use-debounce';
+
+import { CommentType } from 'apps/api/src/app/comments/comment.type';
+import { isNullOrUndefined } from 'apps/api/src/libs/utils/common';
+import { UserType } from 'apps/api/src/app/users/user.type';
 
 import { COMMENT_LIST_QUERY, CREATE_COMMENT_MUTATION } from '@/queries/comment';
 import { Comment } from '@/components/comments';
-import { CommentType } from 'apps/api/src/app/comments/comment.type';
-import { isNullOrUndefined } from 'apps/api/src/libs/utils/common';
 
-const { Title } = Typography;
+const { Title, Link } = Typography;
 const { TextArea } = Input;
 
 interface MovieCommentsProps {
@@ -17,8 +20,10 @@ interface MovieCommentsProps {
 }
 
 export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
+    const { data: user } = useGetIdentity<UserType>();
     const [commentInput, setCommentInput] = useState('');
     const commentInputRef = useRef<HTMLTextAreaElement>(null);
+    const router = useRouter();
 
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
         useInfiniteList<CommentType>({
@@ -114,20 +119,20 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
                         borderRadius: '0.5rem',
                     }}
                 >
-                    <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                        <TextArea
-                            ref={commentInputRef}
-                            rows={4}
-                            placeholder="Để lại bình luận..."
-                            defaultValue={commentInput}
-                            onChange={(e) => debouncedSetCommentInput(e.target.value)}
-                            onPressEnter={(e) => {
-                                if (e.ctrlKey || e.metaKey) {
-                                    handleCreateComment();
-                                }
-                            }}
-                        />
-                        <Space>
+                    {user ? (
+                        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                            <TextArea
+                                ref={commentInputRef}
+                                rows={4}
+                                placeholder="Để lại bình luận..."
+                                defaultValue={commentInput}
+                                onChange={(e) => debouncedSetCommentInput(e.target.value)}
+                                onPressEnter={(e) => {
+                                    if (e.ctrlKey || e.metaKey) {
+                                        handleCreateComment();
+                                    }
+                                }}
+                            />
                             <Button
                                 type="primary"
                                 icon={<SendOutlined />}
@@ -138,7 +143,30 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
                                 Bình luận
                             </Button>
                         </Space>
-                    </Space>
+                    ) : (
+                        <>
+                            <style>
+                                {`
+                                    .comment_require_login {
+                                        color: peru !important;
+                                    }
+                                `}
+                            </style>
+                            <Typography.Text>
+                                Vui lòng
+                                <Link
+                                    className="comment_require_login"
+                                    onClick={() =>
+                                        router.push(`/dang-nhap?to=${window?.location?.href}`)
+                                    }
+                                >
+                                    {' '}
+                                    đăng nhập{' '}
+                                </Link>
+                                để bình luận
+                            </Typography.Text>
+                        </>
+                    )}
                 </Card>
                 <Divider />
 
@@ -156,7 +184,7 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
                                 marginBottom: '1rem',
                             }}
                         >
-                            <Comment comment={comment} />
+                            <Comment comment={comment} isLoggedIn={!!user} />
                         </List.Item>
                     )}
                     loadMore={

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Avatar, Button, List, Typography, Input, Row, Col } from 'antd';
+import { Avatar, Button, List, Typography, Input, Row, Col, notification } from 'antd';
 import { CommentOutlined, UserOutlined, SendOutlined } from '@ant-design/icons';
 import { useCreate } from '@refinedev/core';
 
@@ -14,9 +14,10 @@ const { TextArea } = Input;
 
 interface CommentProps {
     comment: CommentType;
+    isLoggedIn: boolean;
 }
 
-export const Comment: React.FC<CommentProps> = ({ comment }) => {
+export const Comment: React.FC<CommentProps> = ({ comment, isLoggedIn }) => {
     const [replyVisible, setReplyVisible] = useState(false);
     const [newComment, setNewComment] = useState('');
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -37,6 +38,15 @@ export const Comment: React.FC<CommentProps> = ({ comment }) => {
     }, [replyVisible]);
 
     const handleCreateComment = () => {
+        if (!isLoggedIn) {
+            notification.error({
+                type: 'error',
+                message: 'Vui lòng đăng nhập để bình luận',
+                key: 'comment_require_login',
+            });
+            return;
+        }
+
         if (isNullOrUndefined(newComment) || newComment.trim() === '') {
             return;
         }
@@ -93,17 +103,19 @@ export const Comment: React.FC<CommentProps> = ({ comment }) => {
                                     {comment.content}
                                 </Paragraph>
                             </Col>
-                            <Col span={24}>
-                                <Button
-                                    type="text"
-                                    onClick={() => setReplyVisible(!replyVisible)}
-                                    icon={<CommentOutlined />}
-                                    style={{ paddingLeft: 0 }}
-                                >
-                                    Trả lời
-                                </Button>
-                            </Col>
-                            {replyVisible && (
+                            {isLoggedIn && (
+                                <Col span={24}>
+                                    <Button
+                                        type="text"
+                                        onClick={() => setReplyVisible(!replyVisible)}
+                                        icon={<CommentOutlined />}
+                                        style={{ paddingLeft: 0 }}
+                                    >
+                                        Trả lời
+                                    </Button>
+                                </Col>
+                            )}
+                            {replyVisible && isLoggedIn && (
                                 <Col span={24}>
                                     <Row gutter={[0, 8]}>
                                         <Col span={24}>
@@ -140,7 +152,7 @@ export const Comment: React.FC<CommentProps> = ({ comment }) => {
                         dataSource={comment.replies.data}
                         renderItem={(reply) => (
                             <List.Item style={{ borderBottom: 'none', paddingLeft: '2.5rem' }}>
-                                <Comment comment={{ ...reply, _id: comment._id }} />
+                                <Comment comment={{ ...reply, _id: comment._id }} isLoggedIn />
                             </List.Item>
                         )}
                     />
