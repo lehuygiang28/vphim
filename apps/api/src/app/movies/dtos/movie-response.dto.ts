@@ -11,7 +11,7 @@ export class MovieResponseDto extends OmitType(Movie, [
     'countries',
     'directors',
 ]) {
-    constructor(movie: Movie) {
+    constructor(movie: Movie, options?: { excludeSrc?: ('ophim' | 'kkphim' | 'nguonc')[] }) {
         super(movie);
         Object.assign(this, movie);
         this.posterUrl = movie?.posterUrl || '';
@@ -20,6 +20,14 @@ export class MovieResponseDto extends OmitType(Movie, [
         this.categories = (movie?.categories as unknown as Category[]) || [];
         this.countries = (movie?.countries as unknown as Region[]) || [];
         this.directors = (movie?.directors as unknown as Director[]) || [];
+
+        if (options?.excludeSrc) {
+            const excludeSources = options.excludeSrc;
+            this.episode =
+                movie.episode?.filter(
+                    (ep) => !(excludeSources as string[]).includes(ep?.originSrc),
+                ) || [];
+        }
     }
 
     @ApiProperty({ type: [Actor] })

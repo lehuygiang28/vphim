@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
+import { ConfigService } from '@nestjs/config';
 import {
     QueryDslQueryContainer,
     SearchTotalHits,
@@ -29,14 +30,24 @@ import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
 @Injectable()
 export class MovieService {
     private readonly logger: Logger;
+    private readonly EXCLUDE_MOVIE_SRC: ('ophim' | 'kkphim' | 'nguonc')[] = [];
 
     constructor(
+        private readonly configService: ConfigService,
         private readonly movieRepo: MovieRepository,
         private readonly redisService: RedisService,
         private readonly searchService: SearchService,
         private readonly elasticsearchService: ElasticsearchService,
     ) {
         this.logger = new Logger(MovieService.name);
+        this.EXCLUDE_MOVIE_SRC = (this.configService
+            .get<string>('EXCLUDE_MOVIE_SRC')
+            ?.split(',')
+            ?.map((s: string | undefined) => s?.toString()?.trim()) || []) as (
+            | 'ophim'
+            | 'kkphim'
+            | 'nguonc'
+        )[];
     }
 
     async createMovie(input: CreateMovieInput): Promise<MovieType> {
@@ -59,7 +70,7 @@ export class MovieService {
         });
         await this.searchService.indexMovie(createdMovie);
 
-        return new MovieResponseDto(createdMovie);
+        return new MovieResponseDto(createdMovie, { excludeSrc: this.EXCLUDE_MOVIE_SRC });
     }
 
     async getMovie({ _id, slug }: GetMovieInput, { populate = true }: { populate?: boolean } = {}) {
@@ -92,7 +103,7 @@ export class MovieService {
                 }),
             },
         });
-        return new MovieResponseDto(movie);
+        return new MovieResponseDto(movie, { excludeSrc: this.EXCLUDE_MOVIE_SRC });
     }
 
     async getMoviesEs(dto: GetMoviesAdminInput | GetMoviesInput) {
