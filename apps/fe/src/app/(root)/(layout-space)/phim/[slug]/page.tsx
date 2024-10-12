@@ -1,8 +1,9 @@
 import React from 'react';
-import { Movie } from '@/components/pages/movie';
 import { Metadata, ResolvingMetadata } from 'next';
-import type { MovieType } from 'apps/api/src/app/movies/movie.type';
+
+import { Movie } from '@/components/pages/movie';
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
+import { getMovieBySlug } from '@/services/movies';
 
 export type MoviePageProps = {
     params: { slug: string };
@@ -12,10 +13,7 @@ export async function generateMetadata(
     { params }: MoviePageProps,
     parent: ResolvingMetadata,
 ): Promise<Metadata> {
-    // Fetch movie data
-    const movie = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/movies/${params.slug}`).then(
-        (res) => res.json() as unknown as MovieType,
-    );
+    const movie = await getMovieBySlug(params.slug);
 
     // Optionally access and extend parent metadata
     const previousImages = (await parent).openGraph?.images || [];

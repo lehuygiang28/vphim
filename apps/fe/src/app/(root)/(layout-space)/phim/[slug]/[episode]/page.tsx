@@ -6,25 +6,17 @@ import { HomeOutlined } from '@ant-design/icons';
 
 import { MoviePlay } from '@/components/pages/movie/play';
 import { getEpisodeNameBySlug, getOptimizedImageUrl } from '@/libs/utils/movie.util';
-import { MovieType } from 'apps/api/src/app/movies/movie.type';
+import { getMovieBySlug } from '@/services/movies';
 
 export type MovieEpisodePageProps = {
     params: { slug: string; episode: string };
 };
 
-async function getMovieData(slug: string): Promise<MovieType> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/movies/${slug}`);
-    if (!res.ok) {
-        throw new Error('Failed to fetch movie data');
-    }
-    return res.json();
-}
-
 export async function generateMetadata(
     { params }: MovieEpisodePageProps,
     parent: ResolvingMetadata,
 ): Promise<Metadata> {
-    const movie = await getMovieData(params.slug);
+    const movie = await getMovieBySlug(params.slug);
     const episodeName = getEpisodeNameBySlug(movie, params.episode);
     const desString = `${episodeName} - ${movie.name} (${movie.originName})`;
 
@@ -55,7 +47,7 @@ export async function generateMetadata(
 }
 
 export default async function MovieEpisodePage({ params }: MovieEpisodePageProps) {
-    const movie = await getMovieData(params.slug);
+    const movie = await getMovieBySlug(params.slug);
     const episodeName = getEpisodeNameBySlug(movie, params.episode);
 
     return (
