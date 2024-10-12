@@ -35,7 +35,7 @@ export const relativeDate = (
     });
 
     const now = Date.now();
-    const timestamp = typeof date === 'object' ? date.getTime() : new Date(date).getTime();
+    const timestamp = new Date(date).getTime();
     const elapsed = (timestamp - now) / 1000;
 
     for (const [divisor, unit] of DIVISIONS) {
