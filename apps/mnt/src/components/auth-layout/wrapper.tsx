@@ -8,6 +8,8 @@ import { signOut } from 'next-auth/react';
 import { UserType } from '~api/app/users/user.type';
 import { UserRoleEnum } from '~api/app/users/users.enum';
 
+import Loading from '~mnt/app/loading';
+
 type AuthWrapperProps = PropsWithChildren<{
     accessType: 'public' | 'authenticated' | 'not-authenticated';
 }>;
@@ -17,7 +19,7 @@ export function AuthWrapper({ children, accessType }: AuthWrapperProps) {
     const { data: user, isLoading: isIdentityLoading } = useGetIdentity<UserType>();
 
     if (isIdentityLoading) {
-        return <></>;
+        return <Loading />;
     }
 
     const isAuthenticated = !!user;
