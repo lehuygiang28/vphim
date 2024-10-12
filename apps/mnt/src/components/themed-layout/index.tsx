@@ -4,15 +4,13 @@ import React, { Fragment, PropsWithChildren, useContext } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Layout, Typography } from 'antd';
-import { useGetIdentity } from '@refinedev/core';
 import { ThemedLayoutV2, ThemedSiderV2 } from '@refinedev/antd';
 
 import { ColorModeContext } from '~fe/contexts/color-mode';
-import { type UserType } from '~api/app/users/user.type';
 
 const { Text } = Typography;
 
-function CustomSider({ mode, user }: { mode: string; user: UserType }) {
+function CustomSider() {
     return (
         <ThemedSiderV2
             Title={() => (
@@ -62,13 +60,9 @@ function CustomFooter({ mode }: { mode: string }) {
 
 export function ThemedLayout({ children }: PropsWithChildren) {
     const { mode } = useContext(ColorModeContext);
-    const { data: user } = useGetIdentity<UserType>();
 
     return (
-        <ThemedLayoutV2
-            Sider={() => <CustomSider mode={mode} user={user} />}
-            Footer={() => <CustomFooter mode={mode} />}
-        >
+        <ThemedLayoutV2 Sider={() => <CustomSider />} Footer={() => <CustomFooter mode={mode} />}>
             {children}
         </ThemedLayoutV2>
     );
