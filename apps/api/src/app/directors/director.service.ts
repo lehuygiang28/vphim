@@ -11,6 +11,7 @@ import { UpdateDirectorInput } from './inputs/update-director.input';
 import { CreateDirectorInput } from './inputs/create-director.input';
 import { GetDirectorInput } from './inputs/get-director.input';
 import { DeleteDirectorInput } from './inputs/delete-director.input';
+import { GetDirectorsOutput } from './outputs/get-directors.output';
 
 @Injectable()
 export class DirectorService {
@@ -23,12 +24,19 @@ export class DirectorService {
         this.logger = new Logger(DirectorService.name);
     }
 
-    async getDirectors(query?: GetDirectorsInput) {
+    async getDirectors(query?: GetDirectorsInput): Promise<GetDirectorsOutput> {
         const cacheKey = `CACHED:DIRECTORS:${sortedStringify(query)}`;
 
-        const fromCache = await this.redisService.get(cacheKey);
+        const fromCache = await this.redisService.get<GetDirectorsOutput>(cacheKey);
         if (fromCache) {
-            return fromCache;
+            return {
+                ...fromCache,
+                data: fromCache.data.map((director) => ({
+                    ...director,
+                    createdAt: new Date(director.createdAt),
+                    updatedAt: new Date(director.updatedAt),
+                })),
+            };
         }
 
         const { keywords = null } = query;

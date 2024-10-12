@@ -11,6 +11,7 @@ import { CreateRegionInput } from './inputs/create-region.input';
 import { GetRegionInput } from './inputs/get-region.input';
 import { DeleteRegionInput } from './inputs/delete-region.input';
 import { UpdateRegionInput } from './inputs/update-region.input';
+import { GetRegionsOutput } from './outputs';
 
 @Injectable()
 export class RegionsService {
@@ -23,12 +24,19 @@ export class RegionsService {
         this.logger = new Logger(RegionsService.name);
     }
 
-    async getRegions(query?: GetRegionsInput) {
+    async getRegions(query?: GetRegionsInput): Promise<GetRegionsOutput> {
         const cacheKey = `CACHED:REGIONS:${sortedStringify(query)}`;
 
-        const fromCache = await this.redisService.get(cacheKey);
+        const fromCache = await this.redisService.get<GetRegionsOutput>(cacheKey);
         if (fromCache) {
-            return fromCache;
+            return {
+                ...fromCache,
+                data: fromCache.data.map((region) => ({
+                    ...region,
+                    createdAt: new Date(region.createdAt),
+                    updatedAt: new Date(region.updatedAt),
+                })),
+            };
         }
 
         const { keywords = null } = query;

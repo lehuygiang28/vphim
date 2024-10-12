@@ -11,6 +11,7 @@ import { UpdateCategoryInput } from './inputs/update-category.input';
 import { CreateCategoryInput } from './inputs/create-category.input';
 import { GetCategoryInput } from './inputs/get-category.input';
 import { DeleteCategoryInput } from './inputs/delete-category.input';
+import { GetCategoriesOutput } from './outputs/get-categories.output';
 
 @Injectable()
 export class CategoryService {
@@ -23,12 +24,20 @@ export class CategoryService {
         this.logger = new Logger(CategoryService.name);
     }
 
-    async getCategories(query?: GetCategoriesInput) {
+    async getCategories(query?: GetCategoriesInput): Promise<GetCategoriesOutput> {
         const cacheKey = `CACHED:CATEGORIES:${sortedStringify(query)}`;
 
-        const fromCache = await this.redisService.get(cacheKey);
+        const fromCache = await this.redisService.get<GetCategoriesOutput>(cacheKey);
         if (fromCache) {
-            return fromCache;
+            return {
+                ...fromCache,
+                data:
+                    fromCache?.data?.map((category) => ({
+                        ...category,
+                        createdAt: new Date(category.createdAt),
+                        updatedAt: new Date(category.updatedAt),
+                    })) || [],
+            };
         }
 
         const { keywords = null } = query;

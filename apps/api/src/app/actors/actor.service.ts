@@ -11,6 +11,7 @@ import { UpdateActorInput } from './inputs/update-actor.input';
 import { CreateActorInput } from './inputs/create-actor.input';
 import { GetActorInput } from './inputs/get-actor.input';
 import { DeleteActorInput } from './inputs/delete-actor.input';
+import { GetActorsOutput } from './outputs/get-actors.output';
 
 @Injectable()
 export class ActorService {
@@ -23,12 +24,19 @@ export class ActorService {
         this.logger = new Logger(ActorService.name);
     }
 
-    async getActors(query?: GetActorsInput) {
+    async getActors(query?: GetActorsInput): Promise<GetActorsOutput> {
         const cacheKey = `CACHED:ACTORS:${sortedStringify(query)}`;
 
-        const fromCache = await this.redisService.get(cacheKey);
+        const fromCache = await this.redisService.get<GetActorsOutput>(cacheKey);
         if (fromCache) {
-            return fromCache;
+            return {
+                ...fromCache,
+                data: fromCache.data.map((actor) => ({
+                    ...actor,
+                    createdAt: new Date(actor.createdAt),
+                    updatedAt: new Date(actor.updatedAt),
+                })),
+            };
         }
 
         const { keywords = null } = query;

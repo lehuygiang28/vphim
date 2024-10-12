@@ -72,7 +72,7 @@ export class UserType implements UserDto {
     @Field()
     role: string;
 
-    @Field()
+    @Field(() => Date, { nullable: true })
     updatedAt?: Date;
 
     @Field(() => AvatarType, { nullable: true })

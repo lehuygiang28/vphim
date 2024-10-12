@@ -178,7 +178,7 @@ type UserType {
   fullName: String!
   password: String!
   role: String!
-  updatedAt: DateTime!
+  updatedAt: DateTime
   avatar: AvatarType
   block: UserBlockType
   followMovies: [MovieFollowType!]
