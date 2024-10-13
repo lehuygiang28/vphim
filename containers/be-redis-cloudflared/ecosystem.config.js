@@ -51,7 +51,7 @@ module.exports = {
             kill_timeout: 30000,
             watch: false,
             ignore_watch: ['*'],
-            max_memory_restart: '2.5G',
+            max_memory_restart: '2048M',
         },
         {
             namespace: 'apps',
