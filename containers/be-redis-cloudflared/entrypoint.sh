@@ -15,5 +15,11 @@ else
   echo "PM2_ID and PM2_SEC must be set to link to PM2.io"
 fi
 
+# Echo all env
+echo "Environment variables:"
+echo "---------------------"
+env
+echo "---------------------"
+
 # Start PM2 with the ecosystem file in runtime mode (suitable for Docker)
 exec pm2-runtime start ecosystem.config.js
