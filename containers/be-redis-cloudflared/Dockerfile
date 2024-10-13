@@ -48,10 +48,6 @@ RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/relea
   mv cloudflared /usr/local/bin/ && \
   setcap cap_net_bind_service=+ep /usr/local/bin/cloudflared
 
-# Increase UDP buffer size
-RUN echo 'net.core.rmem_max=2500000' >> /etc/sysctl.conf && \
-  echo 'net.core.wmem_max=2500000' >> /etc/sysctl.conf
-
 # Copy necessary files
 COPY --chown=node:node ./containers/be-redis-cloudflared/supervisord.conf ./supervisord.conf
 COPY --chown=node:node ./containers/be-redis-cloudflared/entrypoint.sh ./entrypoint.sh
