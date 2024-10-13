@@ -1,6 +1,7 @@
 module.exports = {
     apps: [
         {
+            namespace: 'proxy',
             name: 'cloudflared',
             script: 'cloudflared',
             args: 'tunnel --no-autoupdate --metrics localhost:9000 run',
@@ -13,6 +14,7 @@ module.exports = {
             autorestart: true,
         },
         {
+            namespace: 'cache',
             name: 'redis',
             script: '/usr/bin/redis-server',
             args: [
@@ -21,21 +23,30 @@ module.exports = {
                 '--requirepass',
                 process.env.REDIS_PASSWORD || 'giang',
                 '--save',
-                '""', // Disable RDB snapshots
+                '""',
                 '--appendonly',
-                'no', // Disable AOF persistence
+                'no',
+                '--maxmemory',
+                '256mb',
+                '--maxmemory-policy',
+                'allkeys-lru',
             ].join(' '),
             output: '/dev/stdout',
             error: '/dev/stderr',
             log_date_format: 'YYYY-MM-DD HH:mm:ss',
             autorestart: true,
+            kill_timeout: 3000,
+            shutdown_with_message: true,
+            wait_ready: true,
+            listen_timeout: 5000,
         },
         {
+            namespace: 'apps',
             name: 'vphim-api',
             script: '/usr/src/app/dist/apps/api/main.js',
             instances: 'max',
             exec_mode: 'cluster',
-            max_memory_restart: '4G',
+            max_memory_restart: '2G',
             output: '/dev/stdout',
             error: '/dev/stderr',
             log_date_format: 'YYYY-MM-DD HH:mm:ss',
