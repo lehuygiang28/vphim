@@ -106,7 +106,7 @@ export class MovieService {
         return new MovieResponseDto(movie, { excludeSrc: this.EXCLUDE_MOVIE_SRC });
     }
 
-    async getMoviesEs(dto: GetMoviesAdminInput | GetMoviesInput) {
+    async getMoviesEs(dto: GetMoviesAdminInput | GetMoviesInput, isRestful = false) {
         const {
             resetCache = false,
             bypassCache = false,
@@ -335,15 +335,34 @@ export class MovieService {
             },
         });
 
-        const movies = body.hits.hits.map(
+        let movies = body.hits.hits.map(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (hit) => new MovieType({ ...(hit as any)?.['_source'], _id: hit?._id }),
         );
+
         const total = (body.hits.total as SearchTotalHits).value;
+
+        if (isRestful) {
+            movies = movies?.map(
+                (movie) =>
+                    ({
+                        _id: movie?._id,
+                        slug: movie?.slug,
+                        name: movie?.name,
+                        originName: movie?.originName,
+                        quality: movie?.quality,
+                        year: movie?.year,
+                        lastSyncModified: movie?.lastSyncModified,
+                        createdAt: movie?.createdAt,
+                        updatedAt: movie?.updatedAt,
+                    } as any),
+            );
+        }
 
         const res = {
             data: movies,
             total,
+            count: movies?.length || 0,
         };
         await this.redisService.set(cacheKey, res, 1000 * 30);
 

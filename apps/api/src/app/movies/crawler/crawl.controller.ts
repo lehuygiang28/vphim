@@ -1,5 +1,5 @@
 import { Body, Controller, Logger, Param, Post } from '@nestjs/common';
-import { ApiBody, ApiParam } from '@nestjs/swagger';
+import { ApiBody, ApiExcludeController, ApiParam } from '@nestjs/swagger';
 
 import { KKPhimCrawler } from './kkphim.crawler';
 import { OphimCrawler } from './ophim.crawler';
@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { isNullOrUndefined, isTrue } from 'apps/api/src/libs/utils/common';
 import { SearchService } from '../search.service';
 
+@ApiExcludeController()
 @Controller({ path: 'trigger-crawl' })
 export class CrawlController {
     private readonly pw: undefined | string;

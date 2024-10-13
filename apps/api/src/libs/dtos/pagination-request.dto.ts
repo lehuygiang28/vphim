@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class PaginationRequestDto {
-    @ApiPropertyOptional({ description: 'Sort by field', example: 'name' })
+    @ApiPropertyOptional({ description: 'Sort by field', example: 'createdAt' })
     @IsOptional()
     @IsString()
     sortBy?: string;

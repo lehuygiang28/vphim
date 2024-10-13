@@ -20,6 +20,7 @@ scalar DateTime
 
 type GetActorsOutput {
   data: [Actor!]!
+  count: Float!
   total: Float!
 }
 
@@ -33,6 +34,7 @@ type Category {
 
 type GetCategoriesOutput {
   data: [Category!]!
+  count: Float!
   total: Float!
 }
 
@@ -186,11 +188,13 @@ type UserType {
 
 type GetDirectorsOutput {
   data: [Director!]!
+  count: Float!
   total: Float!
 }
 
 type GetRegionsOutput {
   data: [Region!]!
+  count: Float!
   total: Float!
 }
 

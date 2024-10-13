@@ -15,6 +15,7 @@ import { AppModule } from './app/app.module';
 import { ProblemDetails } from './libs/dtos';
 import { ProblemDetailsFilter } from './libs/filters';
 import { isProduction } from './libs/utils/common';
+import { openApiSwagger } from './open-api.swagger';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -39,7 +40,7 @@ async function bootstrap() {
 
     const swaggerDocumentConfig = new DocumentBuilder()
         .setTitle('vphim RESTful API Documentations')
-        .setContact('lehuygiang28', 'https://giaang.id.vn', 'lehuygiang28@gmail.com')
+        .setContact('lehuygiang28', 'https://github.com/lehuygiang28', 'lehuygiang28@gmail.com')
         .setDescription('The documentations of the vphim RESTful API')
         .setVersion('0.0.1')
         .setLicense('MIT LICENSE', 'https://github.com/lehuygiang28/vphim?tab=MIT-1-ov-file')
@@ -59,7 +60,9 @@ async function bootstrap() {
         customCss: new SwaggerTheme().getBuffer(SwaggerThemeNameEnum.NORD_DARK),
         customfavIcon: '/favicon.ico',
     };
-    SwaggerModule.setup('docs', app, document, swaggerCustomOptions);
+    SwaggerModule.setup('hidden-vephim-docs', app, document, swaggerCustomOptions);
+
+    openApiSwagger(app, 'docs');
 
     if (configService.get('API_STATS_PATH')) {
         app.use(
