@@ -3,7 +3,7 @@ module.exports = {
         {
             name: 'cloudflared',
             script: 'cloudflared',
-            args: 'tunnel --no-autoupdate run --metrics localhost:9000',
+            args: 'tunnel --no-autoupdate --metrics localhost:9000 run',
             env: {
                 TUNNEL_TOKEN: process.env.CLOUDFLARED_TOKEN || 'giang',
             },
