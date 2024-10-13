@@ -1,5 +1,5 @@
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Global, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService, ConditionalModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
 import { HttpModule } from '@nestjs/axios';
@@ -22,8 +22,7 @@ import { MovieService } from './movie.service';
 import { MovieResolver } from './movie.resolver';
 import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
 import { SearchService } from './search.service';
-import { NguoncCrawler, KKPhimCrawler, OphimCrawler } from './crawler';
-import { CrawlController } from './crawler/crawl.controller';
+import { MovieCrawlerModule } from './crawler';
 
 @Global()
 @Module({
@@ -93,8 +92,12 @@ import { CrawlController } from './crawler/crawl.controller';
                 };
             },
         }),
+        ConditionalModule.registerWhen(
+            MovieCrawlerModule,
+            (env: NodeJS.ProcessEnv) => !env?.DISABLE_CRAWL || env?.DISABLE_CRAWL === 'false',
+        ),
     ],
-    controllers: [MovieController, CrawlController],
+    controllers: [MovieController],
     providers: [
         {
             provide: APP_GUARD,
@@ -104,9 +107,6 @@ import { CrawlController } from './crawler/crawl.controller';
         MovieResolver,
         MovieRepository,
         MovieService,
-        OphimCrawler,
-        KKPhimCrawler,
-        NguoncCrawler,
         {
             provide: 'SEARCH_SERVICE',
             useFactory: (searchService: SearchService) => {
