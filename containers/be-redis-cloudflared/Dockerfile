@@ -38,7 +38,7 @@ RUN apk update && \
 WORKDIR /usr/src/app
 
 # Install cloudflared
-RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && \
+RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/download/2024.9.1/cloudflared-linux-amd64 && \
   chmod +x cloudflared && \
   mv cloudflared /usr/local/bin/
 
