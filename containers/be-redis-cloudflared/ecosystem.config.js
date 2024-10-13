@@ -4,9 +4,10 @@ module.exports = {
             namespace: 'proxy',
             name: 'cloudflared',
             script: 'cloudflared',
-            args: `tunnel --no-autoupdate --metrics localhost:9000 --protocol http2 run --token ${
-                process.env.CLOUDFLARED_TOKEN || 'giang'
-            }`,
+            args: 'tunnel --no-autoupdate --metrics localhost:9000 --protocol http2 run',
+            env: {
+                TUNNEL_TOKEN: process.env.CLOUDFLARED_TOKEN || 'giang',
+            },
             instances: 1,
             exec_mode: 'cluster',
             output: '/dev/stdout',
