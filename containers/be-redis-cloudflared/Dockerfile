@@ -10,7 +10,7 @@ COPY .yarn ./.yarn
 
 RUN yarn workspaces focus --all
 
-COPY . .
+COPY --chown=node:node . .
 
 RUN yarn nx build api
 
@@ -31,37 +31,34 @@ LABEL git="https://github.com/lehuygiang28/vphim"
 LABEL author="lehuygiang28 <lehuygiang28@gmail.com>"
 LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>"
 
-# Install Redis, Supervisor, and dependencies for cloudflared
+# Install Redis and dependencies for cloudflared
 RUN apk update && \
-  apk add --no-cache supervisor redis curl
+  apk add --no-cache redis curl
 
 WORKDIR /usr/src/app
 
-RUN chown node:node /usr/src/app
-# Create log directory
-RUN mkdir -p ./log
-RUN chown node:node ./log
-
 # Install cloudflared
-RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/download/2024.10.0/cloudflared-linux-amd64 && \
+RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && \
   chmod +x cloudflared && \
   mv cloudflared /usr/local/bin/
 
-# Copy necessary files
-COPY --chown=node:node ./containers/be-redis-cloudflared/supervisord.conf ./supervisord.conf
-COPY --chown=node:node ./containers/be-redis-cloudflared/entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+# Install PM2
+RUN npm install -g pm2 dotenv-cli
 
 # Copy built app and production dependencies
 COPY --chown=node:node --from=build-stage /usr/src/app/dist ./dist
 COPY --chown=node:node --from=production-deps /usr/src/app/node_modules ./node_modules
 
-ENV NODE_ENV production
+# Copy necessary files
+COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloudflared/ecosystem.config.js ./ecosystem.config.js
+COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloudflared/entrypoint.sh ./entrypoint.sh
 
-# Set proper permissions
-RUN chown node:node /usr/src/app/supervisord.conf && \
-  chmod 755 /usr/src/app/supervisord.conf
+# Copy schema.gql file and set correct permissions
+COPY --chown=node:node --from=build-stage /usr/src/app/schema.gql ./schema.gql
+RUN chmod 644 ./schema.gql
+
+ENV NODE_ENV production
 
 USER node
 
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["/bin/sh", "./entrypoint.sh"]
