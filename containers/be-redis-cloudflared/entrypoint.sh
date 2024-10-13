@@ -15,8 +15,5 @@ else
   echo "PM2_ID and PM2_SEC must be set to link to PM2.io"
 fi
 
-# Set the ping_group_range
-echo 0 2147483647 | tee /proc/sys/net/ipv4/ping_group_range
-
 # Start PM2 with the ecosystem file in runtime mode (suitable for Docker)
 exec pm2-runtime start ecosystem.config.js
