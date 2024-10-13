@@ -29,7 +29,7 @@ module.exports = {
                 '--maxmemory',
                 '2048mb',
                 '--maxmemory-policy',
-                'allkeys-lru',
+                'noeviction',
             ].join(' '),
             output: '/dev/stdout',
             error: '/dev/stderr',

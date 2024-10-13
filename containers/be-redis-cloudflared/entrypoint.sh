@@ -15,5 +15,10 @@ else
   echo "PM2_ID and PM2_SEC must be set to link to PM2.io"
 fi
 
+sysctl -w net.core.rmem_default=26214400
+sysctl -w net.core.wmem_default=26214400
+sysctl -w net.core.rmem_max=26214400
+sysctl -w net.core.wmem_max=26214400
+
 # Start PM2 with the ecosystem file in runtime mode (suitable for Docker)
 exec pm2-runtime start ecosystem.config.js
