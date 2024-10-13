@@ -13,6 +13,8 @@ module.exports = {
             error: '/dev/stderr',
             log_date_format: 'YYYY-MM-DD HH:mm:ss',
             autorestart: true,
+            kill_signal: 'SIGKILL',
+            force: true,
         },
         {
             namespace: 'cache',
@@ -35,11 +37,13 @@ module.exports = {
             output: '/dev/stdout',
             error: '/dev/stderr',
             log_date_format: 'YYYY-MM-DD HH:mm:ss',
-            autorestart: true,
             kill_timeout: 3000,
             shutdown_with_message: true,
             wait_ready: true,
             listen_timeout: 5000,
+            autorestart: true,
+            kill_signal: 'SIGKILL',
+            force: true,
         },
         {
             namespace: 'apps',
@@ -52,6 +56,8 @@ module.exports = {
             error: '/dev/stderr',
             log_date_format: 'YYYY-MM-DD HH:mm:ss',
             autorestart: true,
+            kill_signal: 'SIGKILL',
+            force: true,
         },
     ],
 };
