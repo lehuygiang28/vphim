@@ -17,6 +17,7 @@ import { RegionsModule } from './regions';
 import { UsersModule } from './users';
 import { ImagesModule } from './images';
 import { CommentsModule } from './comments/comments.module';
+import { isProduction } from '../libs/utils';
 
 @Module({
     imports: [
@@ -31,7 +32,7 @@ import { CommentsModule } from './comments/comments.module';
             driver: ApolloDriver,
             useFactory: async () => {
                 return {
-                    autoSchemaFile: './schema.gql',
+                    autoSchemaFile: isProduction() ? false : './schema.gql',
                     playground: true,
                     csrfPrevention: false,
                     context: ({ req, res }) => ({ req, res }),
