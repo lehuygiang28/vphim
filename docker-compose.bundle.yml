@@ -14,5 +14,20 @@ services:
             - vphim_net
         restart: unless-stopped
 
+    vphim_api_redis_cloudflared:
+        container_name: vphim_api_redis_cloudflared
+        hostname: vphim_api_redis_cloudflared
+        build:
+            context: ./
+            dockerfile: ./containers/be-redis-cloudflared/Dockerfile
+        image: lehuygiang28/vphim_api_redis_cloudflared:${COMPOSE_TAG:-latest}
+        env_file:
+            - ./containers/be-redis-cloudflared/.env
+        ports:
+            - 8000:${API_PORT:-8000}
+        networks:
+            - vphim_net
+        restart: unless-stopped
+
 networks:
     vphim_net:
