@@ -59,9 +59,6 @@ RUN chmod 644 ./schema.gql
 
 ENV NODE_ENV production
 
-# Allow node user to use ping and modify ping_group_range without password
-RUN echo "node ALL=(ALL) NOPASSWD: /bin/ping, /bin/sh -c echo * > /proc/sys/net/ipv4/ping_group_range" >> /etc/sudoers
-
 USER node
 
 CMD ["/bin/sh", "./entrypoint.sh"]
