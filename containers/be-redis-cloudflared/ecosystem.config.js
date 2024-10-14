@@ -4,7 +4,9 @@ module.exports = {
             namespace: 'proxy',
             name: 'cloudflared',
             script: 'cloudflared',
-            args: 'tunnel --no-autoupdate --metrics localhost:9000 --protocol quic run',
+            args: `tunnel --no-autoupdate --metrics localhost:9000 --protocol quic run --token ${
+                process.env.CLOUDFLARED_TOKEN || 'giang'
+            }`,
             env: {
                 TUNNEL_TOKEN: process.env.CLOUDFLARED_TOKEN || 'giang',
             },
