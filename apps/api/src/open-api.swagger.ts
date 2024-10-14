@@ -23,7 +23,7 @@ export function openApiSwagger(app: INestApplication, path = '/open-api'): void 
         .setLicense('MIT LICENSE', 'https://github.com/lehuygiang28/vphim?tab=MIT-1-ov-file')
         .setExternalDoc('vphim Github', 'https://github.com/lehuygiang28/vphim')
         .addServer('http://localhost:8000', 'localhost')
-        .addServer('https://lehuygiang28-vphim-api-wk1.hf.space/', 'staging')
+        .addServer('https://gh150-vphim-api-wk7.hf.space/', 'staging')
         .addBearerAuth()
         .build();
 
