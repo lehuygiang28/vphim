@@ -43,7 +43,7 @@ module.exports = {
         {
             namespace: 'apps',
             name: 'vphim-api',
-            script: path.resolve(__dirname, 'dist/apps/api/main.js'),
+            script: '/usr/src/app/dist/apps/api/main.js',
             instances: 4,
             exec_mode: 'cluster',
             max_memory_restart: '2G',
