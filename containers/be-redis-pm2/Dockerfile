@@ -33,11 +33,11 @@ LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>
 
 # Install Redis and Supervisor
 RUN apk update && \
-  apk add --no-cache supervisor redis
+  apk add --no-cache supervisor=4.2.5-r5 redis=7.2.5-r2
 
 WORKDIR /usr/src/app
 
-RUN npm install -g pm2
+RUN npm install -g pm2@5.4.2
 
 RUN chown node:node /usr/src/app
 # Create log directory
