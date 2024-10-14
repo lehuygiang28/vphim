@@ -33,6 +33,8 @@ module.exports = {
                 '2048mb',
                 '--maxmemory-policy',
                 'noeviction',
+                '--daemonize',
+                'yes',
             ].join(' '),
             instances: 1,
             exec_mode: 'fork',
