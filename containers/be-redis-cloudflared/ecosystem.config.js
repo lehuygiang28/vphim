@@ -4,14 +4,12 @@ module.exports = {
             namespace: 'proxy',
             name: 'cloudflared',
             script: 'cloudflared',
-            args: `tunnel --no-autoupdate --metrics localhost:9000 --protocol quic run --token ${
-                process.env.CLOUDFLARED_TOKEN || 'giang'
-            }`,
+            args: 'tunnel --no-autoupdate --metrics localhost:9000 --protocol quic run',
             env: {
                 TUNNEL_TOKEN: process.env.CLOUDFLARED_TOKEN || 'giang',
             },
             instances: 1,
-            exec_mode: 'cluster',
+            exec_mode: 'fork',
             output: '/dev/stdout',
             error: '/dev/stderr',
             log_date_format: 'YYYY-MM-DD HH:mm:ss',
@@ -20,7 +18,7 @@ module.exports = {
         {
             namespace: 'cache',
             name: 'redis',
-            script: '/usr/bin/redis-server',
+            script: 'redis-server',
             args: [
                 '--port',
                 process.env.REDIS_PORT || '6379',
@@ -36,7 +34,7 @@ module.exports = {
                 'noeviction',
             ].join(' '),
             instances: 1,
-            exec_mode: 'cluster',
+            exec_mode: 'fork',
             output: '/dev/stdout',
             error: '/dev/stderr',
             log_date_format: 'YYYY-MM-DD HH:mm:ss',
@@ -45,7 +43,7 @@ module.exports = {
         {
             namespace: 'apps',
             name: 'vphim-api',
-            script: '/usr/src/app/dist/apps/api/main.js',
+            script: path.resolve(__dirname, 'dist/apps/api/main.js'),
             instances: 4,
             exec_mode: 'cluster',
             max_memory_restart: '2G',
