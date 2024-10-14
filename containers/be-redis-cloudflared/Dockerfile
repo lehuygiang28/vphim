@@ -38,12 +38,12 @@ RUN apk update && \
 WORKDIR /usr/src/app
 
 # Install cloudflared
-RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/download/2024.9.1/cloudflared-linux-amd64 && \
+RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/download/2024.10.0/cloudflared-linux-amd64 && \
   chmod +x cloudflared && \
   mv cloudflared /usr/local/bin/
 
 # Install PM2
-RUN npm install -g pm2 dotenv-cli
+RUN npm install -g pm2
 
 # Copy built app and production dependencies
 COPY --chown=node:node --from=build-stage /usr/src/app/dist ./dist
@@ -57,14 +57,8 @@ COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloud
 COPY --chown=node:node --from=build-stage /usr/src/app/schema.gql ./schema.gql
 RUN chmod 644 ./schema.gql
 
-RUN addgroup -S cloudflared && \
-  adduser node cloudflared
-
-# Set the correct permissions for the ping socket
-RUN echo 'node ALL=(ALL) NOPASSWD: /sbin/sysctl -w net.ipv4.ping_group_range="0 2147483647"' > /etc/sudoers.d/cloudflared-ping && \
-  chmod 0440 /etc/sudoers.d/cloudflared-ping
-
 ENV NODE_ENV production
+ENV DNS_SERVER 1.1.1.1
 
 USER node
 

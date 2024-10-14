@@ -3,10 +3,11 @@ module.exports = {
         {
             namespace: 'proxy',
             name: 'cloudflared',
-            script: '/bin/sh',
-            args: '-c "sudo /sbin/sysctl -w net.ipv4.ping_group_range=\'0 2147483647\' && /usr/local/bin/cloudflared tunnel --no-autoupdate --metrics localhost:9000 --protocol http2 run"',
+            script: '/usr/local/bin/cloudflared',
+            args: 'tunnel --no-autoupdate --metrics localhost:9000 --protocol http2 run',
             env: {
                 TUNNEL_TOKEN: process.env.CLOUDFLARED_TOKEN || 'giang',
+                DNS_SERVER: '1.1.1.1',
             },
             instances: 1,
             exec_mode: 'fork',
