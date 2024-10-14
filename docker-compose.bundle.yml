@@ -9,20 +9,20 @@ services:
         env_file:
             - ./containers/be-with-redis/.env
         ports:
-            - 8000:${API_PORT:-8000}
+            - 8001:${API_PORT:-8000}
         networks:
             - vphim_net
         restart: unless-stopped
 
-    vphim_api_redis_cloudflared:
-        container_name: vphim_api_redis_cloudflared
-        hostname: vphim_api_redis_cloudflared
+    vphim_api_redis_pm2:
+        container_name: vphim_api_redis_pm2
+        hostname: vphim_api_redis_pm2
         build:
             context: ./
-            dockerfile: ./containers/be-redis-cloudflared/Dockerfile
-        image: lehuygiang28/vphim_api_redis_cloudflared:${COMPOSE_TAG:-latest}
+            dockerfile: ./containers/be-redis-pm2/Dockerfile
+        image: lehuygiang28/vphim_api_redis_pm2:${COMPOSE_TAG:-latest}
         env_file:
-            - ./containers/be-redis-cloudflared/.env
+            - ./containers/be-redis-pm2/.env
         ports:
             - 8000:${API_PORT:-8000}
         networks:
