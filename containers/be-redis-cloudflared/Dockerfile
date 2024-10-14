@@ -10,7 +10,7 @@ COPY .yarn ./.yarn
 
 RUN yarn workspaces focus --all
 
-COPY --chown=node:node . .
+COPY . .
 
 RUN yarn nx build api
 
@@ -31,41 +31,40 @@ LABEL git="https://github.com/lehuygiang28/vphim"
 LABEL author="lehuygiang28 <lehuygiang28@gmail.com>"
 LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>"
 
-# Install Redis and dependencies for cloudflared
+# Install Redis and Supervisor
 RUN apk update && \
-  apk add --no-cache redis curl supervisor
-
-WORKDIR /usr/src/app
-
-RUN chown node:node /usr/src/app
-# Create log directory
-RUN mkdir -p ./log
-RUN chown node:node ./log
+  apk add --no-cache supervisor redis curl
 
 # Install cloudflared
 RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/download/2024.10.0/cloudflared-linux-amd64 && \
   chmod +x cloudflared && \
   mv cloudflared /usr/local/bin/
 
-# Install PM2
+WORKDIR /usr/src/app
+
 RUN npm install -g pm2
+
+RUN chown node:node /usr/src/app
+# Create log directory
+RUN mkdir -p ./log
+RUN chown node:node ./log
+
+# Copy necessary files
+COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloudflared/ecosystem.config.js ./ecosystem.config.js
+COPY --chown=node:node ./containers/be-redis-cloudflared/supervisord.conf ./supervisord.conf
+COPY --chown=node:node ./containers/be-redis-cloudflared/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 # Copy built app and production dependencies
 COPY --chown=node:node --from=build-stage /usr/src/app/dist ./dist
 COPY --chown=node:node --from=production-deps /usr/src/app/node_modules ./node_modules
 
-# Copy necessary files
-COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloudflared/supervisord.conf ./supervisord.conf
-COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloudflared/ecosystem.config.js ./ecosystem.config.js
-COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloudflared/entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
 
 # Copy schema.gql file and set correct permissions
 COPY --chown=node:node --from=build-stage /usr/src/app/schema.gql ./schema.gql
 RUN chmod 644 ./schema.gql
 
 ENV NODE_ENV production
-ENV DNS_SERVER 1.1.1.1
 
 # Set proper permissions
 RUN chown node:node /usr/src/app/supervisord.conf && \
@@ -73,4 +72,4 @@ RUN chown node:node /usr/src/app/supervisord.conf && \
 
 USER node
 
-CMD ["/bin/sh", "./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
