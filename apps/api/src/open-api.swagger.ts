@@ -17,13 +17,12 @@ import { MovieModule } from './app/movies';
 export function openApiSwagger(app: INestApplication, path = '/open-api'): void {
     const swaggerDocumentConfig = new DocumentBuilder()
         .setTitle('VePhim RESTful API Documentations')
-        .setContact('lehuygiang28', 'https://giaang.id.vn', 'lehuygiang28@gmail.com')
+        .setContact('admin', 'https://vephim.online', 'admin@vephim.online')
         .setDescription('Restful Open API for VePhim')
         .setVersion('0.0.1')
-        .setLicense('MIT LICENSE', 'https://github.com/lehuygiang28/vphim?tab=MIT-1-ov-file')
-        .setExternalDoc('vphim Github', 'https://github.com/lehuygiang28/vphim')
         .addServer('http://localhost:8000', 'localhost')
         .addServer('https://gh150-vphim-api-wk7.hf.space/', 'staging')
+        .addServer('https://wk2.vephim.online', 'tunnel')
         .addBearerAuth()
         .build();
 

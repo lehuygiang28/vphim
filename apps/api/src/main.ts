@@ -40,12 +40,10 @@ async function bootstrap() {
 
     const swaggerDocumentConfig = new DocumentBuilder()
         .setTitle('vphim RESTful API Documentations')
-        .setContact('lehuygiang28', 'https://github.com/lehuygiang28', 'lehuygiang28@gmail.com')
         .setDescription('The documentations of the vphim RESTful API')
         .setVersion('0.0.1')
-        .setLicense('MIT LICENSE', 'https://github.com/lehuygiang28/vphim?tab=MIT-1-ov-file')
-        .setExternalDoc('vphim Github', 'https://github.com/lehuygiang28/vphim')
         .addServer('http://localhost:8000')
+        .addServer('https://wk2.vephim.online', 'tunnel')
         .addBearerAuth()
         .build();
 
