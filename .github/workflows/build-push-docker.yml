@@ -87,10 +87,8 @@ jobs:
             - name: Build and push images with short commit SHA tag
               id: build_and_push
               run: |
-                  # docker compose -f docker-compose.yml build && docker compose -f docker-compose.bundle.yml build
-                  # docker compose -f docker-compose.yml push && docker compose -f docker-compose.bundle.yml push
-                  docker compose -f docker-compose.bundle.yml build
-                  docker compose -f docker-compose.bundle.yml push
+                  docker compose -f docker-compose.yml build && docker compose -f docker-compose.bundle.yml build
+                  docker compose -f docker-compose.yml push && docker compose -f docker-compose.bundle.yml push
 
             - name: Set COMPOSE_TAG as latest
               if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
@@ -100,10 +98,8 @@ jobs:
               id: build_and_push_latest
               if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
               run: |
-                  # docker compose -f docker-compose.yml build && docker compose -f docker-compose.bundle.yml build
-                  # docker compose -f docker-compose.yml push && docker compose -f docker-compose.bundle.yml push
-                  docker compose -f docker-compose.bundle.yml build
-                  docker compose -f docker-compose.bundle.yml push
+                  docker compose -f docker-compose.yml build && docker compose -f docker-compose.bundle.yml build
+                  docker compose -f docker-compose.yml push && docker compose -f docker-compose.bundle.yml push
 
             - name: Remove .env file
               run: |
