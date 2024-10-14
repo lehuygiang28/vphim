@@ -57,6 +57,13 @@ COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloud
 COPY --chown=node:node --from=build-stage /usr/src/app/schema.gql ./schema.gql
 RUN chmod 644 ./schema.gql
 
+RUN addgroup -S cloudflared && \
+  adduser node cloudflared
+
+# Set the correct permissions for the ping socket
+RUN echo 'node ALL=(ALL) NOPASSWD: /sbin/sysctl -w net.ipv4.ping_group_range="0 2147483647"' > /etc/sudoers.d/cloudflared-ping && \
+  chmod 0440 /etc/sudoers.d/cloudflared-ping
+
 ENV NODE_ENV production
 
 USER node
