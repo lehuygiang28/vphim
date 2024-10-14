@@ -33,12 +33,7 @@ LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>
 
 # Install Redis and Supervisor
 RUN apk update && \
-  apk add --no-cache supervisor redis curl
-
-# Install cloudflared
-RUN curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/download/2024.10.0/cloudflared-linux-amd64 && \
-  chmod +x cloudflared && \
-  mv cloudflared /usr/local/bin/
+  apk add --no-cache supervisor redis
 
 WORKDIR /usr/src/app
 
@@ -50,9 +45,9 @@ RUN mkdir -p ./log
 RUN chown node:node ./log
 
 # Copy necessary files
-COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-cloudflared/ecosystem.config.js ./ecosystem.config.js
-COPY --chown=node:node ./containers/be-redis-cloudflared/supervisord.conf ./supervisord.conf
-COPY --chown=node:node ./containers/be-redis-cloudflared/entrypoint.sh ./entrypoint.sh
+COPY --chown=node:node --from=build-stage /usr/src/app/containers/be-redis-pm2/ecosystem.config.js ./ecosystem.config.js
+COPY --chown=node:node ./containers/be-redis-pm2/supervisord.conf ./supervisord.conf
+COPY --chown=node:node ./containers/be-redis-pm2/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 
 # Copy built app and production dependencies
