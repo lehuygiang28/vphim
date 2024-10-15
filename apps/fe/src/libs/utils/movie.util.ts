@@ -2,6 +2,7 @@ import slugify from 'slugify';
 import { canParseToNumber } from './common';
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
+import { isTrue } from 'apps/api/src/libs/utils/common';
 
 export function getFirstEpisodeSlug(movie?: MovieType): string {
     if (!movie) {
@@ -47,7 +48,7 @@ export function getEpisodeNameBySlug(movie: MovieType, slug: string): string {
 export function getOptimizedImageUrl(
     url: string,
     {
-        useLocal = false,
+        useLocal = isTrue(process.env.NEXT_PUBLIC_USE_LOCAL_IMAGE_OPTIMIZER),
         ...option
     }: {
         width: number | string;
