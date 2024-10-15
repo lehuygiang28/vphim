@@ -1,90 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
-import sharp from 'sharp';
-
-const CLOUDINARY_ENV_NAMES = ['giang04', 'techcell', 'gcp-1408'];
-
-async function fetchImageWithFallback(url: string): Promise<Buffer | null> {
-    try {
-        return await fetchImage(url);
-    } catch (fetchError) {
-        console.warn(`Failed to fetch image from original URL: ${url}`);
-        return await fetchThroughCloudinary(url);
-    }
-}
-
-async function fetchImage(url: string): Promise<Buffer> {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return Buffer.from(await response.arrayBuffer());
-}
-
-async function optimizeImageBuffer(
-    buffer: Buffer,
-    width: number,
-    height: number,
-    quality: number,
-): Promise<Buffer> {
-    return sharp(buffer)
-        .resize({
-            width: width || undefined,
-            height: height || undefined,
-            fit: 'inside',
-            withoutEnlargement: true,
-            fastShrinkOnLoad: true,
-        })
-        .webp({ quality })
-        .toBuffer();
-}
-
-async function fetchThroughCloudinary(url: string): Promise<Buffer | null> {
-    for (const envName of CLOUDINARY_ENV_NAMES) {
-        try {
-            const cloudinaryUrl = `https://res.cloudinary.com/${envName}/image/fetch/${url}`;
-            return await fetchImage(cloudinaryUrl);
-        } catch (error) {
-            console.warn(`Failed to fetch image from Cloudinary (${envName}): ${error.message}`);
-        }
-    }
-    return null;
-}
-
-function getResponseHeaders() {
-    return {
-        'Content-Type': 'image/webp',
-        'Cache-Control': 'public, max-age=31536000, immutable',
-    };
-}
+import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 
 export async function GET(request: NextRequest) {
-    const searchParams = request.nextUrl.searchParams;
-    const url = searchParams.get('url');
-    const width = parseInt(searchParams.get('width') || '0', 10);
-    const height = parseInt(searchParams.get('height') || '0', 10);
-    const quality = parseInt(searchParams.get('quality') || '75', 10);
+    const searchParams = request?.nextUrl?.searchParams;
+    const imageUrl = searchParams.get('url');
+    const width = searchParams.get('width');
+    const height = searchParams.get('height');
+    const quality = searchParams.get('quality') || '75';
 
-    if (!url) {
+    if (!imageUrl) {
         return new NextResponse('Missing URL parameter', { status: 400 });
     }
 
-    try {
-        // Fetch and optimize image
-        const imageBuffer = await fetchImageWithFallback(url);
-        if (!imageBuffer) {
-            return new NextResponse('Cannot fetch image buffer', { status: 422 });
-        }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+        return new NextResponse('Backend API URL is not configured', { status: 500 });
+    }
 
-        const optimizedImage = await optimizeImageBuffer(imageBuffer, width, height, quality);
-        const stream = new ReadableStream({
-            start(controller) {
-                controller.enqueue(optimizedImage);
-                controller.close();
-            },
+    try {
+        // Construct the backend API URL with the same parameters
+        const backendUrl = getOptimizedImageUrl(imageUrl, {
+            baseUrl: apiUrl,
+            useLocal: false,
+            width: parseInt(width || '0', 10),
+            height: parseInt(height || '0', 10),
+            quality: parseInt(quality, 10),
         });
 
+        // Fetch the optimized image from the backend
+        const response = await fetch(backendUrl.toString());
+
+        if (!response.ok) {
+            throw new Error(`Backend API error! status: ${response.status}`);
+        }
+
+        // Create a ReadableStream from the response body
+        const stream = response.body;
+
+        // Get the Content-Type header from the backend response
+        const contentType = response.headers.get('Content-Type') || 'image/webp';
+        const cacheControl =
+            response.headers.get('Cache-Control') || 'public, max-age=31536000, immutable';
+
+        // Return the streamed response
         return new NextResponse(stream, {
-            headers: getResponseHeaders(),
+            headers: {
+                'Content-Type': contentType,
+                'Cache-Control': cacheControl,
+            },
         });
     } catch (error) {
         console.error('Image optimization error:', error);
