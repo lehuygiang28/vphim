@@ -1,37 +1,37 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { CustomDarkTheme } from '~mb/config/theme';
-import AppHeader from '../../components/app-header';
+import { useTheme } from '@ui-kitten/components';
+import { Home, HomeIcon, Compass, User } from 'lucide-react-native';
+import AppHeader from '~mb/components/app-header';
 
 export default function TabsLayout() {
+    const theme = useTheme();
+
     return (
         <Tabs
             screenOptions={({ route }) => ({
                 tabBarIcon: ({ focused, color, size }) => {
-                    let iconName;
-
                     if (route.name === 'index') {
-                        iconName = focused ? 'home' : 'home-outline';
+                        return focused ? (
+                            <Home size={size} color={color} />
+                        ) : (
+                            <HomeIcon size={size} color={color} />
+                        );
                     } else if (route.name === 'explore') {
-                        iconName = focused ? 'compass' : 'compass-outline';
+                        return <Compass size={size} color={color} />;
                     } else if (route.name === 'account') {
-                        iconName = focused ? 'person' : 'person-outline';
+                        return <User size={size} color={color} />;
                     }
-
-                    return <Ionicons name={iconName as any} size={size} color={color} />;
                 },
-                tabBarActiveTintColor: CustomDarkTheme.colors.primary,
-                tabBarInactiveTintColor: CustomDarkTheme.colors.onSurfaceVariant,
+                tabBarActiveTintColor: theme['color-primary-500'],
+                tabBarInactiveTintColor: theme['text-hint-color'],
                 tabBarStyle: {
-                    backgroundColor: CustomDarkTheme.colors.surface,
+                    backgroundColor: theme['background-basic-color-1'],
                 },
                 header: () => <AppHeader />,
             })}
         >
             <Tabs.Screen name="index" options={{ title: 'Home' }} />
-            <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
-            <Tabs.Screen name="account" options={{ title: 'Account' }} />
         </Tabs>
     );
 }

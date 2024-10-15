@@ -107,6 +107,8 @@ export const MOVIES_LIST_QUERY = gql`
                 year
                 quality
                 content
+                time
+                lang
             }
             total
         }

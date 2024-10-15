@@ -126,13 +126,21 @@
         "@refinedev/ui-types": "*",
         "use-debounce": "*",
         "react-native-webview": "*",
-        "expo-blur": "*"
+        "expo-blur": "*",
+        "@tanstack/react-query-devtools": "*",
+        "@vercel/analytics": "*",
+        "@vercel/speed-insights": "*",
+        "relative-time-format": "*",
+        "@refinedev/devtools": "*",
+        "@ui-kitten/components": "*",
+        "@eva-design/eva": "*"
     },
     "scripts": {
         "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",
         "eas-build-post-install": "cd ../../ && node tools/scripts/eas-build-post-install.mjs . apps/mobile",
         "android": "expo run:android",
-        "ios": "expo run:ios"
+        "ios": "expo run:ios",
+        "add": "nx install mobile --packages="
     },
     "devDependencies": {},
     "main": "index.js"

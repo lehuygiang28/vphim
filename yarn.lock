@@ -2536,6 +2536,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@eva-design/dss@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "@eva-design/dss@npm:2.2.0"
+  checksum: 10c0/22ffc50d684751fec24ec80424de6b2f19fc37c4666950940854520ddee79dd91b29ae64c4d74c8305d199108b78c026e336a12dc1c5334df4b249e7b126bc0f
+  languageName: node
+  linkType: hard
+
+"@eva-design/eva@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "@eva-design/eva@npm:2.2.0"
+  checksum: 10c0/7c212abdd066f254b670a4ad6f1f840ab46525506c120087937ab27685733d347067d0ebea21413fc41822ed7ef00a64f191150c5515113fe7f1b864808343bf
+  languageName: node
+  linkType: hard
+
+"@eva-design/processor@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "@eva-design/processor@npm:2.2.0"
+  checksum: 10c0/423b98b49db894e0f5962c24dcbdaacfa3abbca536ed529b10a1c3494574b0e2833dbe3f0d528d61846cc9e010570b5802943aaab430f07dae36ff666231adb4
+  languageName: node
+  linkType: hard
+
 "@expo/bunyan@npm:^4.0.0":
   version: 4.0.1
   resolution: "@expo/bunyan@npm:4.0.1"
@@ -8055,6 +8076,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ui-kitten/components@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "@ui-kitten/components@npm:5.3.1"
+  dependencies:
+    "@eva-design/dss": "npm:^2.2.0"
+    "@eva-design/processor": "npm:^2.2.0"
+    fecha: "npm:3.0.3"
+    hoist-non-react-statics: "npm:^3.2.1"
+    lodash.merge: "npm:^4.6.1"
+  peerDependencies:
+    react-native-svg: "*"
+  checksum: 10c0/75aa765b265bf3b5d8e73da3e156956bd01c323634bb0a595abb8e1db1ad626638f67b744a05de4ec920988e60c2cf170a94d1e55489a127bfe31e3122f020fb
+  languageName: node
+  linkType: hard
+
 "@umijs/route-utils@npm:^4.0.0":
   version: 4.0.1
   resolution: "@umijs/route-utils@npm:4.0.1"
@@ -8184,6 +8220,7 @@ __metadata:
     "@ant-design/nextjs-registry": "npm:^1.0.1"
     "@apollo/server": "npm:^4.11.0"
     "@elastic/elasticsearch": "npm:^8.15.0"
+    "@eva-design/eva": "npm:^2.2.0"
     "@expo/cli": "npm:~0.18.13"
     "@expo/metro-config": "npm:~0.18.1"
     "@expo/metro-runtime": "npm:~3.2.1"
@@ -8262,6 +8299,7 @@ __metadata:
     "@types/streamifier": "npm:^0.1.2"
     "@typescript-eslint/eslint-plugin": "npm:^7.16.0"
     "@typescript-eslint/parser": "npm:^7.16.0"
+    "@ui-kitten/components": "npm:^5.3.1"
     "@vercel/analytics": "npm:^1.3.1"
     "@vercel/speed-insights": "npm:^1.0.12"
     "@vidstack/react": "npm:^1.12.9"
@@ -13433,6 +13471,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fecha@npm:3.0.3":
+  version: 3.0.3
+  resolution: "fecha@npm:3.0.3"
+  checksum: 10c0/62c9f69f905788ff767c4784faabaf106d87e81670b3ab519d1d36af4fb32b7fe7882f2980e8d70de08e176c79b17231d5c1d9051908fa006723a5f9e9e41ca1
+  languageName: node
+  linkType: hard
+
 "fetch-retry@npm:^4.1.1":
   version: 4.1.1
   resolution: "fetch-retry@npm:4.1.1"
@@ -14565,7 +14610,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hoist-non-react-statics@npm:^3.3.0":
+"hoist-non-react-statics@npm:^3.2.1, hoist-non-react-statics@npm:^3.3.0":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
   dependencies:
@@ -17443,7 +17488,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash.merge@npm:^4.6.2":
+"lodash.merge@npm:^4.6.1, lodash.merge@npm:^4.6.2":
   version: 4.6.2
   resolution: "lodash.merge@npm:4.6.2"
   checksum: 10c0/402fa16a1edd7538de5b5903a90228aa48eb5533986ba7fa26606a49db2572bf414ff73a2c9f5d5fd36b31c46a5d5c7e1527749c07cbcf965ccff5fbdf32c506

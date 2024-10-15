@@ -1,15 +1,12 @@
 import React from 'react';
-import { Tabs, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Platform, StatusBar } from 'react-native';
 import { DataProvider, Refine } from '@refinedev/core';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { ReactNavigationThemeProvider } from '@refinenative/react-native-paper';
-import { Ionicons } from '@expo/vector-icons';
+import * as eva from '@eva-design/eva';
+import { ApplicationProvider } from '@ui-kitten/components';
 
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
-import { CustomDarkTheme } from '~mb/config/theme';
 import { useAxiosAuth } from '../hooks/useAxiosAuth';
-import AppHeader from '../components/app-header';
 
 export default function AppLayout() {
     const axiosAuth = useAxiosAuth({ baseURL: process.env.EXPO_PUBLIC_BASE_API_URL });
@@ -35,15 +32,13 @@ export default function AppLayout() {
                 disableTelemetry: true,
             }}
         >
-            <ReactNavigationThemeProvider theme={CustomDarkTheme}>
-                <PaperProvider theme={CustomDarkTheme}>
-                    <Stack>
-                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                        <Stack.Screen name="movie/[slug]" options={{ title: 'Movie Details' }} />
-                    </Stack>
-                    <StatusBar barStyle="light-content" />
-                </PaperProvider>
-            </ReactNavigationThemeProvider>
+            <ApplicationProvider {...eva} theme={eva.dark}>
+                <Stack>
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="search" options={{ headerShown: false }} />
+                </Stack>
+                <StatusBar barStyle="dark-content" />
+            </ApplicationProvider>
         </Refine>
     );
 }

@@ -1,52 +1,54 @@
-import React, { useState } from 'react';
-import { Image } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
-import { Appbar, Searchbar } from 'react-native-paper';
-import { CustomDarkTheme } from '~mb/config/theme';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { TopNavigation, Layout, useTheme } from '@ui-kitten/components';
+import { Film, Search } from 'lucide-react-native';
 
-const Logo = () => (
-    <Image
-        source={{ uri: 'https://vephim.vercel.app/assets/images/logo-mini.png' }}
-        style={{ width: 80, height: 80 }}
-        resizeMode="contain"
-    />
-);
-
-const AppHeader = () => {
-    const [searchQuery, setSearchQuery] = useState('');
+export default function AppHeader() {
     const router = useRouter();
-    const pathname = usePathname();
+    const theme = useTheme();
 
-    const isExploreScreen = pathname === '/explore';
+    const navigateToSearch = () => {
+        router.push('/search');
+    };
+
+    const renderLeftContent = () => (
+        <View style={styles.leftContent}>
+            <Film color={theme['text-basic-color']} size={32} />
+        </View>
+    );
+
+    const renderRightContent = () => (
+        <TouchableOpacity onPress={navigateToSearch}>
+            <Search color={theme['text-basic-color']} size={24} />
+        </TouchableOpacity>
+    );
 
     return (
-        <Appbar.Header style={{ backgroundColor: CustomDarkTheme.colors.surface }}>
-            <Appbar.Content
-                title={<Logo />}
-                titleStyle={{ alignSelf: 'center' } as any}
-                accessibilityLabel="VePhim"
+        <Layout style={styles.headerContainer} level="1">
+            <TopNavigation
+                style={styles.header}
+                accessoryLeft={renderLeftContent}
+                accessoryRight={renderRightContent}
             />
-            {!isExploreScreen && (
-                <Searchbar
-                    placeholder="Search movies"
-                    onChangeText={setSearchQuery}
-                    value={searchQuery}
-                    style={{
-                        flex: 1,
-                        marginHorizontal: 16,
-                        backgroundColor: CustomDarkTheme.colors.surfaceVariant,
-                        height: 36,
-                        maxWidth: '70%',
-                    }}
-                    inputStyle={{ fontSize: 14, alignSelf: 'center' }}
-                    onSubmitEditing={() => {
-                        router.push({ pathname: '/explore', params: { searchQuery } });
-                        setSearchQuery('');
-                    }}
-                />
-            )}
-        </Appbar.Header>
+        </Layout>
     );
-};
+}
 
-export default AppHeader;
+const styles = StyleSheet.create({
+    headerContainer: {
+        paddingTop: 40,
+        zIndex: 2,
+    },
+    header: {
+        height: 60,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+    },
+    leftContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+});
