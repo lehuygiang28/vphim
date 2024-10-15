@@ -2,7 +2,6 @@ import slugify from 'slugify';
 import { canParseToNumber } from './common';
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
-import { isTrue } from 'apps/api/src/libs/utils/common';
 
 export function getFirstEpisodeSlug(movie?: MovieType): string {
     if (!movie) {
@@ -47,27 +46,15 @@ export function getEpisodeNameBySlug(movie: MovieType, slug: string): string {
 
 export function getOptimizedImageUrl(
     url: string,
-    {
-        useLocal = isTrue(process.env.NEXT_PUBLIC_USE_LOCAL_IMAGE_OPTIMIZER),
-        ...option
-    }: {
+    option: {
         width: number | string;
         height: number | string;
         quality?: number | string;
         baseUrl?: string;
-        useLocal?: boolean;
     },
 ) {
     const { width, height, quality = 60 } = option;
-    if (useLocal) {
-        return `/api/images/optimize?url=${encodeURIComponent(
-            url,
-        )}&width=${width}&height=${height}&quality=${quality}`;
-    }
-
-    return `${
-        option?.baseUrl || process.env.NEXT_PUBLIC_API_URL
-    }/api/images/optimize?url=${encodeURIComponent(
+    return `${option?.baseUrl || ''}/api/images/optimize?url=${encodeURIComponent(
         url,
     )}&width=${width}&height=${height}&quality=${quality}`;
 }

@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
         // Construct the backend API URL with the same parameters
         const backendUrl = getOptimizedImageUrl(imageUrl, {
             baseUrl: apiUrl,
-            useLocal: false,
             width: parseInt(width || '0', 10),
             height: parseInt(height || '0', 10),
             quality: parseInt(quality, 10),
