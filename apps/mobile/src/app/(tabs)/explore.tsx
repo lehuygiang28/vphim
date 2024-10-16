@@ -1,20 +1,21 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { FlatList, View, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Searchbar, Chip, Button, Text, useTheme, ActivityIndicator } from 'react-native-paper';
+import { Input, Text, useTheme, Spinner } from '@ui-kitten/components';
 import { useInfiniteList, CrudFilters, CrudSort, LogicalFilter } from '@refinedev/core';
-import { MOVIES_LIST_QUERY } from '@/queries/movies';
-import { MovieCard } from '~mb/components/card/movie-card';
+import { Search } from 'lucide-react-native';
+import { useDebouncedCallback } from 'use-debounce';
+
+import { MOVIES_LIST_QUERY } from '~fe/queries/movies';
 import { MovieType } from '~api/app/movies/movie.type';
-import debounce from 'lodash.debounce';
-import FilterModal from '../../components/modal/movie-filter';
+
+import { MovieCard } from '~mb/components/card/movie-card';
 
 const ExploreScreen = () => {
     const theme = useTheme();
     const router = useRouter();
     const { searchQuery: initialSearchQuery } = useLocalSearchParams();
     const [searchQuery, setSearchQuery] = useState((initialSearchQuery as string) || '');
-    const [isFilterModalVisible, setFilterModalVisible] = useState(false);
     const [appliedFilters, setAppliedFilters] = useState<CrudFilters>([]);
     const [appliedSorter, setAppliedSorter] = useState<CrudSort | null>(null);
     const [isSearching, setIsSearching] = useState(false);
@@ -31,33 +32,29 @@ const ExploreScreen = () => {
                 pageSize: 20,
             },
             filters: appliedFilters,
-            sorters: appliedSorter ? [appliedSorter] : undefined,
+            sorters: appliedSorter ? [appliedSorter] : [],
             errorNotification: false,
             successNotification: false,
         });
 
-    const handleSearch = useCallback(
-        debounce((query: string) => {
-            setIsSearching(true);
-            const newFilters: CrudFilters = [
-                { field: 'keywords', operator: 'contains', value: query },
-                ...appliedFilters.filter(
-                    (filter) => (filter as LogicalFilter).field !== 'keywords',
-                ),
-            ];
-            setAppliedFilters(newFilters);
-            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-            setIsSearching(false);
-        }, 300),
-        [appliedFilters],
-    );
-
-    const handleFilterApply = (filters: CrudFilters, sorter: CrudSort | null) => {
-        setAppliedFilters(filters);
-        setAppliedSorter(sorter);
-        setFilterModalVisible(false);
+    const debouncedSearch = useDebouncedCallback((query: string) => {
+        setIsSearching(true);
+        const newFilters: CrudFilters = [
+            { field: 'keywords', operator: 'contains', value: query },
+            ...appliedFilters.filter((filter) => (filter as LogicalFilter).field !== 'keywords'),
+        ];
+        setAppliedFilters(newFilters);
         flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-    };
+        setIsSearching(false);
+    }, 500);
+
+    const handleSearch = useCallback(
+        (query: string) => {
+            setSearchQuery(query);
+            debouncedSearch(query);
+        },
+        [debouncedSearch],
+    );
 
     const renderMovieItem = useCallback(
         ({ item }: { item: MovieType }) => (
@@ -72,7 +69,7 @@ const ExploreScreen = () => {
         if (!isFetchingNextPage) return null;
         return (
             <View style={styles.footerLoader}>
-                <ActivityIndicator animating={true} color={theme.colors.primary} />
+                <Spinner size="medium" />
             </View>
         );
     };
@@ -80,7 +77,7 @@ const ExploreScreen = () => {
     if (isError) {
         return (
             <View style={styles.centerContainer}>
-                <Text>An error occurred while fetching movies.</Text>
+                <Text category="h6">An error occurred while fetching movies.</Text>
             </View>
         );
     }
@@ -88,37 +85,20 @@ const ExploreScreen = () => {
     const allMovies = data?.pages.flatMap((page) => page.data) || [];
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <Searchbar
+        <View style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}>
+            <Input
                 placeholder="Search movies"
-                onChangeText={(query) => {
-                    setSearchQuery(query);
-                    handleSearch(query);
-                }}
                 value={searchQuery}
+                onChangeText={handleSearch}
+                accessoryLeft={(props) => (
+                    <Search {...props} size={20} color={theme['text-basic-color']} />
+                )}
                 style={styles.searchBar}
             />
-            <View style={styles.filterContainer}>
-                <Button
-                    mode="outlined"
-                    onPress={() => setFilterModalVisible(true)}
-                    icon="filter-variant"
-                    style={styles.filterButton}
-                >
-                    Filters
-                </Button>
-                {appliedFilters.length > 0 && (
-                    <Chip onClose={() => handleFilterApply([], null)} style={styles.filterChip}>
-                        {appliedFilters.length} filter{appliedFilters.length > 1 ? 's' : ''} applied
-                    </Chip>
-                )}
-            </View>
             {isLoading || isSearching ? (
-                <ActivityIndicator
-                    animating={true}
-                    color={theme.colors.primary}
-                    style={styles.loader}
-                />
+                <View style={styles.loader}>
+                    <Spinner size="large" />
+                </View>
             ) : (
                 <FlatList
                     ref={flatListRef}
@@ -136,13 +116,6 @@ const ExploreScreen = () => {
                     ListFooterComponent={renderFooter}
                 />
             )}
-            <FilterModal
-                visible={isFilterModalVisible}
-                onDismiss={() => setFilterModalVisible(false)}
-                onApply={handleFilterApply}
-                initialFilters={appliedFilters}
-                initialSorter={appliedSorter}
-            />
         </View>
     );
 };
@@ -169,13 +142,19 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     filterChip: {
-        marginRight: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 16,
     },
     movieList: {
         paddingBottom: 16,
     },
     loader: {
         flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     footerLoader: {
         paddingVertical: 20,

@@ -84,15 +84,12 @@
         "@apollo/client": "*",
         "@refinedev/core": "*",
         "graphql": "*",
-        "@refinenative/expo-router": "*",
         "expo-router": "*",
         "react-native-safe-area-context": "*",
         "react-native-screens": "*",
         "expo-linking": "*",
         "react-native-reanimated": "*",
         "react-native-gesture-handler": "*",
-        "@refinenative/react-native-paper": "*",
-        "react-native-paper": "*",
         "@expo/vector-icons": "*",
         "@nx/next": "*",
         "next": "*",
@@ -115,7 +112,6 @@
         "pluralize": "*",
         "@refinedev/simple-rest": "*",
         "graphql-tag": "*",
-        "react-native-swiper": "*",
         "expo-image": "*",
         "expo-linear-gradient": "*",
         "lucide-react-native": "*",
@@ -126,13 +122,22 @@
         "@refinedev/ui-types": "*",
         "use-debounce": "*",
         "react-native-webview": "*",
-        "expo-blur": "*"
+        "expo-blur": "*",
+        "@tanstack/react-query-devtools": "*",
+        "@vercel/analytics": "*",
+        "@vercel/speed-insights": "*",
+        "relative-time-format": "*",
+        "@refinedev/devtools": "*",
+        "@ui-kitten/components": "*",
+        "@eva-design/eva": "*",
+        "react-native-swiper-flatlist": "*"
     },
     "scripts": {
         "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",
         "eas-build-post-install": "cd ../../ && node tools/scripts/eas-build-post-install.mjs . apps/mobile",
         "android": "expo run:android",
-        "ios": "expo run:ios"
+        "ios": "expo run:ios",
+        "add": "nx install mobile --packages="
     },
     "devDependencies": {},
     "main": "index.js"

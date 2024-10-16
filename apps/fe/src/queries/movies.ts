@@ -78,6 +78,7 @@ export const MOVIES_LIST_FOR_SWIPER_QUERY = gql`
                 slug
                 year
                 quality
+                time
                 content
                 view
                 imdb {
@@ -107,6 +108,8 @@ export const MOVIES_LIST_QUERY = gql`
                 year
                 quality
                 content
+                time
+                lang
             }
             total
         }

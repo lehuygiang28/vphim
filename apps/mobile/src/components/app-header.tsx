@@ -1,52 +1,86 @@
-import React, { useState } from 'react';
-import { Image } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
-import { Appbar, Searchbar } from 'react-native-paper';
-import { CustomDarkTheme } from '~mb/config/theme';
+import React, { memo, useCallback } from 'react';
+import { SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import { TopNavigation, Layout, useTheme } from '@ui-kitten/components';
+import { Search } from 'lucide-react-native';
 
-const Logo = () => (
-    <Image
-        source={{ uri: 'https://vephim.vercel.app/assets/images/logo-mini.png' }}
-        style={{ width: 80, height: 80 }}
-        resizeMode="contain"
-    />
-);
+import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 
-const AppHeader = () => {
-    const [searchQuery, setSearchQuery] = useState('');
+function AppHeader() {
     const router = useRouter();
-    const pathname = usePathname();
+    const theme = useTheme();
 
-    const isExploreScreen = pathname === '/explore';
+    const navigateToSearch = useCallback(() => {
+        router.push('/search');
+    }, [router]);
+
+    const renderLeftContent = useCallback(
+        () => (
+            <View style={styles.leftContent}>
+                <TouchableOpacity onPress={() => router.push('/')} activeOpacity={0.9}>
+                    <Image
+                        style={styles.logo}
+                        source={{
+                            uri: getOptimizedImageUrl(
+                                'https://vephim.online/assets/images/logo-mini.png',
+                                {
+                                    height: 80,
+                                    width: 80,
+                                    baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
+                                    quality: 100,
+                                },
+                            ),
+                        }}
+                    />
+                </TouchableOpacity>
+            </View>
+        ),
+        [router],
+    );
+
+    const renderRightContent = useCallback(
+        () => (
+            <TouchableOpacity onPress={navigateToSearch}>
+                <Search color={theme['text-basic-color']} size={24} />
+            </TouchableOpacity>
+        ),
+        [theme, navigateToSearch],
+    );
 
     return (
-        <Appbar.Header style={{ backgroundColor: CustomDarkTheme.colors.surface }}>
-            <Appbar.Content
-                title={<Logo />}
-                titleStyle={{ alignSelf: 'center' } as any}
-                accessibilityLabel="VePhim"
-            />
-            {!isExploreScreen && (
-                <Searchbar
-                    placeholder="Search movies"
-                    onChangeText={setSearchQuery}
-                    value={searchQuery}
-                    style={{
-                        flex: 1,
-                        marginHorizontal: 16,
-                        backgroundColor: CustomDarkTheme.colors.surfaceVariant,
-                        height: 36,
-                        maxWidth: '70%',
-                    }}
-                    inputStyle={{ fontSize: 14, alignSelf: 'center' }}
-                    onSubmitEditing={() => {
-                        router.push({ pathname: '/explore', params: { searchQuery } });
-                        setSearchQuery('');
-                    }}
+        <SafeAreaView>
+            <Layout style={styles.headerContainer} level="1">
+                <TopNavigation
+                    style={styles.header}
+                    accessoryLeft={renderLeftContent}
+                    accessoryRight={renderRightContent}
                 />
-            )}
-        </Appbar.Header>
+            </Layout>
+        </SafeAreaView>
     );
-};
+}
 
-export default AppHeader;
+export default memo(AppHeader);
+
+const styles = StyleSheet.create({
+    headerContainer: {
+        zIndex: 2,
+    },
+    header: {
+        height: 60,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+    },
+    logo: {
+        width: 80,
+        height: 80,
+        resizeMode: 'contain',
+    },
+    leftContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+});

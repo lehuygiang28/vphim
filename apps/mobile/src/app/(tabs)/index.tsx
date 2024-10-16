@@ -1,25 +1,14 @@
 import React from 'react';
 import { View, StyleSheet, FlatList, ScrollView, Dimensions } from 'react-native';
 import { useList } from '@refinedev/core';
-import {
-    useTheme,
-    Text,
-    Title,
-    ActivityIndicator,
-    TouchableRipple,
-    Chip,
-} from 'react-native-paper';
+import { useTheme, Text, Spinner, Layout } from '@ui-kitten/components';
 import { useRouter } from 'expo-router';
-import Swiper from 'react-native-swiper';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarIcon, EyeIcon } from 'lucide-react-native';
 
 import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
-import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
 import { MovieCard } from '~mb/components/card/movie-card';
+import { type MovieType } from '~api/app/movies/movie.type';
+import ImmersiveMovieSwiper from '~mb/components/swiper/movie-swiper';
 
 const { width } = Dimensions.get('window');
 
@@ -29,14 +18,19 @@ const MovieSection = ({
     onMoviePress,
 }: {
     title: string;
-    movies: MovieResponseDto[];
-    onMoviePress: (movie: MovieResponseDto) => void;
+    movies: MovieType[];
+    onMoviePress: (movie: MovieType) => void;
 }) => {
     const theme = useTheme();
 
     return (
         <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.primary }]}>{title}</Text>
+            <Text
+                category="h5"
+                style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}
+            >
+                {title}
+            </Text>
             <FlatList
                 data={movies}
                 renderItem={({ item }) => (
@@ -50,86 +44,18 @@ const MovieSection = ({
     );
 };
 
-const MovieSwiper = ({ movies }: { movies: MovieResponseDto[] }) => {
-    const theme = useTheme();
-    const router = useRouter();
-
-    if (!movies || movies.length === 0) {
-        return null;
-    }
-
-    return (
-        <View style={styles.swiperContainer}>
-            <Swiper autoplay autoplayTimeout={5} showsPagination={false} loop style={styles.swiper}>
-                {movies.map((movie) => (
-                    <TouchableRipple
-                        key={movie._id.toString()}
-                        onPress={() => router.push(`/movie/${movie.slug}`)}
-                        style={styles.swiperSlide}
-                    >
-                        <View>
-                            <Image
-                                source={{
-                                    uri: getOptimizedImageUrl(movie.posterUrl || movie.thumbUrl, {
-                                        baseUrl: process.env.EXPO_PUBLIC_BASE_API_URL,
-                                        width: 1200,
-                                        height: 720,
-                                    }),
-                                }}
-                                style={styles.swiperImage}
-                                contentFit="cover"
-                            />
-                            <LinearGradient
-                                colors={['transparent', 'rgba(0,0,0,0.8)']}
-                                style={StyleSheet.absoluteFillObject}
-                            />
-                            <View style={styles.swiperContent}>
-                                <Title style={styles.swiperTitle}>{movie.name}</Title>
-                                <Text style={styles.swiperSubtitle}>{movie.originName}</Text>
-                                <View style={styles.swiperMetadata}>
-                                    <Chip
-                                        icon={() => (
-                                            <CalendarIcon
-                                                size={16}
-                                                color={theme.colors.onPrimary}
-                                            />
-                                        )}
-                                        style={{ backgroundColor: theme.colors.primary }}
-                                        textStyle={{ color: theme.colors.onPrimary }}
-                                    >
-                                        {movie.year || 'N/A'}
-                                    </Chip>
-                                    <Chip
-                                        icon={() => (
-                                            <EyeIcon size={16} color={theme.colors.onPrimary} />
-                                        )}
-                                        style={{ backgroundColor: theme.colors.primary }}
-                                        textStyle={{ color: theme.colors.onPrimary }}
-                                    >
-                                        {movie.view?.toLocaleString() || '0'}
-                                    </Chip>
-                                </View>
-                            </View>
-                        </View>
-                    </TouchableRipple>
-                ))}
-            </Swiper>
-        </View>
-    );
-};
-
 export default function HomeScreen() {
     const theme = useTheme();
     const router = useRouter();
 
-    const { data: mostViewed, isLoading: mostViewedLoading } = useList<MovieResponseDto>({
+    const { data: mostViewed, isLoading: mostViewedLoading } = useList<MovieType>({
         dataProviderName: 'graphql',
         meta: { gqlQuery: MOVIES_LIST_FOR_SWIPER_QUERY, operation: 'movies' },
         resource: 'movies',
         sorters: [{ field: 'view', order: 'desc' }],
     });
 
-    const { data: newMovies } = useList<MovieResponseDto>({
+    const { data: newMovies } = useList<MovieType>({
         dataProviderName: 'graphql',
         meta: { gqlQuery: MOVIES_LIST_QUERY, operation: 'movies' },
         resource: 'movies',
@@ -137,7 +63,7 @@ export default function HomeScreen() {
         sorters: [{ field: 'year', order: 'asc' }],
     });
 
-    const { data: actionMovies } = useList<MovieResponseDto>({
+    const { data: actionMovies } = useList<MovieType>({
         dataProviderName: 'graphql',
         meta: { gqlQuery: MOVIES_LIST_QUERY, operation: 'movies' },
         resource: 'movies',
@@ -145,25 +71,30 @@ export default function HomeScreen() {
         sorters: [{ field: 'year', order: 'desc' }],
     });
 
-    const onMoviePress = (movie: MovieResponseDto) => {
+    const onMoviePress = (movie: MovieType) => {
         router.push(`/movie/${movie.slug}`);
     };
 
     if (mostViewedLoading) {
         return (
-            <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator animating={true} color={theme.colors.primary} size="large" />
-            </View>
+            <Layout
+                style={[
+                    styles.loadingContainer,
+                    { backgroundColor: theme['background-basic-color-1'] },
+                ]}
+            >
+                <Spinner size="large" />
+            </Layout>
         );
     }
 
     return (
         <ScrollView
-            style={[styles.container, { backgroundColor: theme.colors.background }]}
+            style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
             contentContainerStyle={styles.contentContainer}
         >
             {mostViewed?.data && mostViewed.data.length > 0 && (
-                <MovieSwiper movies={mostViewed.data.slice(0, 5)} />
+                <ImmersiveMovieSwiper movies={mostViewed.data} />
             )}
             {newMovies?.data && newMovies.data.length > 0 && (
                 <MovieSection
@@ -199,8 +130,6 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     sectionTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
         marginLeft: 16,
         marginBottom: 12,
     },
@@ -228,12 +157,10 @@ const styles = StyleSheet.create({
     },
     swiperTitle: {
         color: 'white',
-        fontSize: 24,
         fontWeight: 'bold',
     },
     swiperSubtitle: {
         color: 'white',
-        fontSize: 16,
         marginBottom: 8,
     },
     swiperMetadata: {

@@ -1,51 +1,56 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import {
-    View,
-    StyleSheet,
-    ScrollView,
-    Dimensions,
-    TouchableOpacity,
-    StatusBar,
-} from 'react-native';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { View, ScrollView, Dimensions, TouchableOpacity, StyleSheet } from 'react-native';
 import { useOne } from '@refinedev/core';
 import {
-    useTheme,
+    Layout,
     Text,
-    Title,
-    Paragraph,
-    Chip,
-    ActivityIndicator,
-    Surface,
+    Card,
     Button,
-} from 'react-native-paper';
+    Spinner,
+    TopNavigation,
+    TopNavigationAction,
+    Divider,
+    useTheme,
+    Select,
+    SelectItem,
+    IndexPath,
+    Modal,
+} from '@ui-kitten/components';
 import { Image } from 'expo-image';
-import { Calendar, Eye, Clock, Play, ChevronUp, ChevronDown } from 'lucide-react-native';
+import {
+    ArrowLeft,
+    Calendar,
+    Clock,
+    PlayCircle,
+    Star,
+    ChevronLeft,
+    ChevronRight,
+    AlertTriangle,
+} from 'lucide-react-native';
 import WebView from 'react-native-webview';
 import { BlurView } from 'expo-blur';
-
-import { GET_MOVIE_QUERY } from '@/queries/movies';
-import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
-import type { EpisodeServerDataType } from 'apps/api/src/app/movies/movie.type';
-import MovieEpisode from '../../components/movie-episode';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { EpisodeServerDataType, MovieType, EpisodeType } from '~api/app/movies/movie.type';
+import { GET_MOVIE_QUERY } from '~fe/queries/movies';
+import { truncateText } from '~fe/libs/utils/movie.util';
 
 const { width, height } = Dimensions.get('window');
 
-export default function MovieDetailsScreen() {
-    const { slug, episodeSlug } = useLocalSearchParams<{ slug: string; episodeSlug?: string }>();
+export default function MovieScreen() {
     const theme = useTheme();
-    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const { slug } = useLocalSearchParams<{ slug: string }>();
+    const navigation = useNavigation();
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedEpisode, setSelectedEpisode] = useState<EpisodeServerDataType | null>(null);
+    const [selectedServerIndex, setSelectedServerIndex] = useState(new IndexPath(0));
+    const [selectedEpisodeIndex, setSelectedEpisodeIndex] = useState(new IndexPath(0));
     const [error, setError] = useState<string | null>(null);
     const [useEmbedLink, setUseEmbedLink] = useState(false);
     const [isM3u8Available, setIsM3u8Available] = useState(true);
-    const episodeScrollViewRef = useRef<ScrollView>(null);
-    const [activeEpisodeSlug, setActiveEpisodeSlug] = useState<string | null>(null);
-    const [activeServerIndex, setActiveServerIndex] = useState(0);
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const webViewRef = useRef<WebView>(null);
 
-    const { data, isLoading } = useOne<MovieResponseDto>({
+    const { data: movie, isLoading } = useOne<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
         meta: {
@@ -57,12 +62,8 @@ export default function MovieDetailsScreen() {
                 },
             },
         },
-        id: Array.isArray(slug) ? slug?.[0] : slug,
+        id: Array.isArray(slug) ? slug[0] : slug,
     });
-
-    const toggleDescription = useCallback(() => {
-        setIsDescriptionExpanded(!isDescriptionExpanded);
-    }, [isDescriptionExpanded]);
 
     const preFetchM3u8 = useCallback(async (url: string) => {
         try {
@@ -71,121 +72,32 @@ export default function MovieDetailsScreen() {
                 throw new Error('M3U8 file not available');
             }
             setIsM3u8Available(true);
+            setUseEmbedLink(false);
         } catch (error) {
             setIsM3u8Available(false);
+            setUseEmbedLink(true);
         }
     }, []);
 
-    const selectAndPlayEpisode = useCallback(
-        (episode: EpisodeServerDataType, serverIndex: number) => {
-            setSelectedEpisode(episode);
-            setActiveEpisodeSlug(episode.slug);
-            setActiveServerIndex(serverIndex);
-            setIsPlaying(true);
-            setUseEmbedLink(false);
-            setIsM3u8Available(true);
-            if (episode.linkM3u8) {
-                preFetchM3u8(episode.linkM3u8);
-            } else if (episode.linkEmbed) {
+    useEffect(() => {
+        if (movie?.data?.episode && movie.data.episode.length > 0) {
+            const initialEpisode = movie.data.episode[0].serverData[0];
+            setSelectedEpisode(initialEpisode);
+            if (initialEpisode.linkM3u8) {
+                preFetchM3u8(initialEpisode.linkM3u8);
+            } else if (initialEpisode.linkEmbed) {
                 setUseEmbedLink(true);
                 setIsM3u8Available(false);
-            }
-        },
-        [preFetchM3u8],
-    );
-
-    useEffect(() => {
-        if (data?.data) {
-            const movie = data.data;
-            let episodeToPlay: EpisodeServerDataType | null = null;
-            let serverIndexToUse = 0;
-
-            if (movie?.trailerUrl && (!movie.episode || movie.episode.length === 0)) {
-                episodeToPlay = {
-                    slug: 'trailer',
-                    name: 'Trailer',
-                    filename: 'trailer',
-                    linkM3u8: movie.trailerUrl,
-                    linkEmbed: movie.trailerUrl,
-                };
-            } else if (movie?.episode && movie.episode.length > 0) {
-                if (episodeSlug) {
-                    for (let i = 0; i < movie.episode.length; i++) {
-                        const episode = movie.episode[i];
-                        const foundEpisode = episode.serverData.find(
-                            (server) => server.slug === episodeSlug,
-                        );
-                        if (foundEpisode) {
-                            episodeToPlay = foundEpisode;
-                            serverIndexToUse = i;
-                            break;
-                        }
-                    }
-                }
-
-                if (!episodeToPlay) {
-                    episodeToPlay = movie.episode[0].serverData[0];
-                }
-            }
-
-            if (episodeToPlay) {
-                selectAndPlayEpisode(episodeToPlay, serverIndexToUse);
             } else {
-                setError('Video is being updated. Please try again later.');
+                setError('Phim đang được cập nhật, vui lòng quay lại sau.');
+                setIsErrorModalVisible(true);
             }
-        }
-    }, [data, episodeSlug, selectAndPlayEpisode]);
-
-    const handleVideoError = useCallback(() => {
-        if (isM3u8Available && !useEmbedLink && selectedEpisode?.linkEmbed) {
-            setUseEmbedLink(true);
         } else {
-            setError('Unable to play video. Please try again later.');
+            setError('Phim đang được cập nhật, vui lòng quay lại sau.');
+            setIsErrorModalVisible(true);
+            return;
         }
-    }, [isM3u8Available, useEmbedLink, selectedEpisode]);
-
-    const handleEpisodeSelect = useCallback(
-        (episode: EpisodeServerDataType, serverIndex: number) => {
-            selectAndPlayEpisode(episode, serverIndex);
-        },
-        [selectAndPlayEpisode],
-    );
-
-    useEffect(() => {
-        if (episodeScrollViewRef.current && selectedEpisode) {
-            episodeScrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
-        }
-    }, [selectedEpisode]);
-
-    if (isLoading) {
-        return (
-            <View
-                style={[
-                    styles.container,
-                    styles.centerContent,
-                    { backgroundColor: theme.colors.background },
-                ]}
-            >
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-            </View>
-        );
-    }
-
-    const movie = data?.data;
-
-    if (!movie) {
-        return (
-            <View
-                style={[
-                    styles.container,
-                    styles.centerContent,
-                    { backgroundColor: theme.colors.background },
-                ]}
-            >
-                <Text style={{ color: theme.colors.error }}>Movie not found</Text>
-            </View>
-        );
-    }
+    }, [movie, preFetchM3u8]);
 
     const getVideoUrl = (): string => {
         if (!selectedEpisode) return '';
@@ -200,156 +112,334 @@ export default function MovieDetailsScreen() {
 
         return `${process.env.EXPO_PUBLIC_BASE_PLAYER_URL}/player/${encodeURIComponent(
             selectedEpisode.linkM3u8,
-        )}?movieSlug=${encodeURIComponent(movie.slug)}&poster=${encodeURIComponent(
-            movie.thumbUrl?.includes('/phimimg.com/upload')
-                ? movie.thumbUrl
-                : movie.posterUrl || '',
-        )}&ep=${encodeURIComponent(selectedEpisode.slug)}`;
+        )}?movieSlug=${encodeURIComponent(movie?.data.slug || '')}&ep=${encodeURIComponent(
+            selectedEpisode.slug,
+        )}`;
     };
 
-    const videoUrl = getVideoUrl();
-
-    const renderVideoPlayer = () => {
-        if (error) {
-            return (
-                <View style={[styles.errorContainer, { backgroundColor: theme.colors.error }]}>
-                    <Text style={[styles.errorText, { color: theme.colors.onError }]}>{error}</Text>
-                </View>
-            );
+    const videoUrl = useMemo(
+        () => getVideoUrl(),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [selectedEpisode, isM3u8Available, useEmbedLink, movie],
+    );
+    const handlePlayPress = useCallback(() => {
+        if (!error) {
+            setIsPlaying(true);
+        } else {
+            setIsErrorModalVisible(true);
         }
+    }, [error]);
 
-        if (!isPlaying) {
-            return (
-                <View style={styles.posterContainer}>
-                    <Image
-                        source={{
-                            uri: getOptimizedImageUrl(movie.posterUrl || movie.thumbUrl, {
-                                baseUrl: process.env.EXPO_PUBLIC_BASE_API_URL || '',
-                                width: 1200,
-                                height: 720,
-                            }),
-                        }}
-                        style={styles.poster}
-                        contentFit="cover"
-                    />
-                    <BlurView intensity={80} style={styles.blurOverlay}>
-                        <TouchableOpacity
-                            onPress={() => setIsPlaying(true)}
-                            style={[styles.playButton, { backgroundColor: theme.colors.primary }]}
-                        >
-                            <Play size={32} color={theme.colors.onPrimary} />
-                        </TouchableOpacity>
-                    </BlurView>
-                </View>
-            );
+    const handleServerChange = (_index: IndexPath | IndexPath[]) => {
+        const index = Array.isArray(_index) ? _index[0] : _index;
+        setSelectedServerIndex(index);
+        setSelectedEpisodeIndex(new IndexPath(0));
+        updateSelectedEpisode(index, new IndexPath(0));
+    };
+
+    const handleEpisodeChange = (_index: IndexPath | IndexPath[]) => {
+        const index = Array.isArray(_index) ? _index[0] : _index;
+        setSelectedEpisodeIndex(index);
+        updateSelectedEpisode(selectedServerIndex, index);
+    };
+
+    const updateSelectedEpisode = (serverIndex: IndexPath, episodeIndex: IndexPath) => {
+        const newEpisode = movie?.data?.episode?.[serverIndex.row]?.serverData[episodeIndex.row];
+        if (newEpisode) {
+            setSelectedEpisode(newEpisode);
+            setUseEmbedLink(false);
+            setIsM3u8Available(true);
+            setError(null);
+            if (newEpisode.linkM3u8) {
+                preFetchM3u8(newEpisode.linkM3u8);
+            } else if (newEpisode.linkEmbed) {
+                setUseEmbedLink(true);
+                setIsM3u8Available(false);
+            } else {
+                setError('Không thể phát video. Vui lòng thử lại sau hoặc chọn một nguồn khác.');
+            }
+        } else {
+            setError('Tập phim chưa khả dụng. Vui lòng thử lại sau!');
+            setIsErrorModalVisible(true);
+            return;
         }
+    };
 
-        if (!selectedEpisode || !videoUrl) {
-            return (
-                <View style={[styles.noVideoContainer, { backgroundColor: theme.colors.surface }]}>
-                    <Text style={[styles.noVideoText, { color: theme.colors.onSurface }]}>
-                        No video available for this movie.
-                    </Text>
-                </View>
-            );
+    const handleVideoError = () => {
+        if (isM3u8Available && !useEmbedLink && selectedEpisode?.linkEmbed) {
+            setUseEmbedLink(true);
+            setIsM3u8Available(false);
+        } else {
+            setError('Không thể phát video. Vui lòng thử lại sau hoặc chọn một nguồn khác.');
+            setIsErrorModalVisible(true);
+            setIsPlaying(false);
         }
+    };
 
-        return (
-            <View style={styles.videoContainer}>
-                <WebView
-                    source={{ uri: videoUrl }}
-                    style={styles.video}
-                    allowsFullscreenVideo
-                    javaScriptEnabled
-                    domStorageEnabled
-                    onError={handleVideoError}
+    const renderBackAction = () => (
+        <TopNavigationAction
+            icon={(props) => <ArrowLeft {...props} color={theme['text-basic-color']} />}
+            onPress={() => navigation.goBack()}
+        />
+    );
+
+    const renderServerOptions = () => {
+        return movie?.data?.episode?.map((server: EpisodeType, index: number) => (
+            <SelectItem key={index} title={server.serverName} />
+        ));
+    };
+
+    const renderEpisodeOptions = () => {
+        const currentServer = movie?.data?.episode?.[selectedServerIndex.row];
+        return currentServer?.serverData.map((episode: EpisodeServerDataType, index: number) => (
+            <SelectItem key={index} title={episode.name} />
+        ));
+    };
+
+    const renderErrorModal = () => (
+        <Modal
+            visible={isErrorModalVisible}
+            backdropStyle={styles.backdrop}
+            onBackdropPress={() => setIsErrorModalVisible(false)}
+            style={styles.modalContainer}
+        >
+            <Card disabled={true} style={styles.modalCard}>
+                <AlertTriangle
+                    color={theme['color-danger-500']}
+                    size={48}
+                    style={styles.modalIcon}
                 />
-            </View>
+                <Text category="h6" style={styles.modalTitle}>
+                    Oops! Đã xảy ra lỗi
+                </Text>
+                <Text style={styles.modalText}>{error?.toString()}</Text>
+                <Button onPress={() => setIsErrorModalVisible(false)}>OK</Button>
+            </Card>
+        </Modal>
+    );
+
+    if (isLoading) {
+        return (
+            <Layout style={styles.loadingContainer} level="2">
+                <Spinner size="large" />
+            </Layout>
         );
-    };
+    }
+
+    if (!movie?.data) {
+        return (
+            <Layout style={styles.errorContainer} level="2">
+                <Text category="h5">Phim đang cập nhật, vui lòng thử lại sau!</Text>
+            </Layout>
+        );
+    }
 
     return (
-        <ScrollView
-            style={[styles.container, { backgroundColor: theme.colors.background }]}
-            contentContainerStyle={styles.contentContainer}
-        >
-            <StatusBar barStyle="light-content" />
-            {renderVideoPlayer()}
-            <Surface style={[styles.content, { elevation: 1 }]}>
-                <Title style={[styles.title, { color: theme.colors.primary }]}>{movie.name}</Title>
-                <Text style={[styles.originalTitle, { color: theme.colors.onSurface }]}>
-                    {movie.originName}
-                </Text>
-                <View style={styles.metadataContainer}>
-                    <Chip
-                        icon={() => <Calendar size={16} color={theme.colors.primary} />}
-                        style={[styles.chip, { backgroundColor: theme.colors.primaryContainer }]}
-                        textStyle={{ color: theme.colors.onPrimaryContainer }}
+        <Layout style={styles.container} level="2">
+            <TopNavigation
+                title={() => (
+                    <Text category="h6" ellipsizeMode="tail">
+                        {truncateText(movie?.data?.name, 30)}
+                    </Text>
+                )}
+                alignment="center"
+                accessoryLeft={renderBackAction}
+                style={styles.topNavigation}
+            />
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                {isPlaying && selectedEpisode && !error ? (
+                    <View style={styles.playerContainer}>
+                        <WebView
+                            ref={webViewRef}
+                            source={{
+                                uri: videoUrl,
+                                headers: {
+                                    'User-Agent':
+                                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.142.86 Safari/537.36',
+                                },
+                            }}
+                            style={styles.webView}
+                            allowsFullscreenVideo
+                            onError={handleVideoError}
+                            javaScriptEnabled
+                            domStorageEnabled
+                        />
+                    </View>
+                ) : (
+                    <TouchableOpacity onPress={handlePlayPress} style={styles.posterContainer}>
+                        <Image
+                            source={{ uri: movie.data.posterUrl || movie.data.thumbUrl }}
+                            style={styles.poster}
+                            contentFit="cover"
+                        />
+                        <BlurView intensity={80} tint="dark" style={styles.blurOverlay}>
+                            <PlayCircle color={theme['text-basic-color']} size={64} />
+                        </BlurView>
+                    </TouchableOpacity>
+                )}
+                {isPlaying && !error && (
+                    <View style={styles.controls}>
+                        <Button
+                            accessoryLeft={(props) => <ChevronLeft {...props} />}
+                            onPress={() => {
+                                if (selectedEpisodeIndex.row > 0) {
+                                    handleEpisodeChange(
+                                        new IndexPath(selectedEpisodeIndex.row - 1),
+                                    );
+                                }
+                            }}
+                            appearance="ghost"
+                            disabled={selectedEpisodeIndex.row === 0}
+                        />
+                        <Button
+                            accessoryRight={(props) => <ChevronRight {...props} />}
+                            onPress={() => {
+                                const currentServer =
+                                    movie?.data?.episode?.[selectedServerIndex.row];
+                                if (
+                                    selectedEpisodeIndex.row <
+                                    (currentServer?.serverData?.length || 0) - 1
+                                ) {
+                                    handleEpisodeChange(
+                                        new IndexPath(selectedEpisodeIndex.row + 1),
+                                    );
+                                }
+                            }}
+                            appearance="ghost"
+                            disabled={
+                                selectedEpisodeIndex.row ===
+                                (movie?.data?.episode?.[selectedServerIndex.row]?.serverData
+                                    ?.length || 0) -
+                                    1
+                            }
+                        />
+                    </View>
+                )}
+                <View style={styles.selectionContainer}>
+                    <Select
+                        style={styles.select}
+                        label="Máy chủ"
+                        value={movie?.data?.episode?.[selectedServerIndex.row]?.serverName}
+                        selectedIndex={selectedServerIndex}
+                        onSelect={handleServerChange}
                     >
-                        {movie.year || 'N/A'}
-                    </Chip>
-                    <Chip
-                        icon={() => <Eye size={16} color={theme.colors.secondary} />}
-                        style={[styles.chip, { backgroundColor: theme.colors.secondaryContainer }]}
-                        textStyle={{ color: theme.colors.onSecondaryContainer }}
+                        {renderServerOptions()}
+                    </Select>
+                    <Select
+                        style={styles.select}
+                        label="Chọn tập"
+                        value={selectedEpisode?.name}
+                        selectedIndex={selectedEpisodeIndex}
+                        onSelect={handleEpisodeChange}
                     >
-                        {movie.view?.toLocaleString() || '0'} views
-                    </Chip>
-                    <Chip
-                        icon={() => <Clock size={16} color={theme.colors.tertiary} />}
-                        style={[styles.chip, { backgroundColor: theme.colors.tertiaryContainer }]}
-                        textStyle={{ color: theme.colors.onTertiaryContainer }}
-                    >
-                        {movie.time || 'N/A'}
-                    </Chip>
+                        {renderEpisodeOptions()}
+                    </Select>
                 </View>
-                <View>
-                    <Paragraph
-                        style={[styles.description, { color: theme.colors.onSurface }]}
-                        numberOfLines={isDescriptionExpanded ? undefined : 3}
-                    >
-                        {movie.content}
-                    </Paragraph>
-                    <Button
-                        onPress={toggleDescription}
-                        style={styles.expandButton}
-                        icon={() =>
-                            isDescriptionExpanded ? (
-                                <ChevronUp size={24} color={theme.colors.primary} />
-                            ) : (
-                                <ChevronDown size={24} color={theme.colors.primary} />
-                            )
-                        }
-                    >
-                        {isDescriptionExpanded ? 'Ẩn bớt' : 'Xem thêm'}
-                    </Button>
-                </View>
-
-                <MovieEpisode
-                    movie={movie}
-                    onEpisodeSelect={handleEpisodeSelect}
-                    activeEpisodeSlug={activeEpisodeSlug}
-                    activeServerIndex={activeServerIndex}
-                />
-            </Surface>
-        </ScrollView>
+                <Card style={styles.infoCard} status="basic">
+                    <Text category="h5" style={styles.title}>
+                        {movie.data.name}
+                    </Text>
+                    <Text category="s1" appearance="hint" style={styles.originalTitle}>
+                        {movie.data.originName}
+                    </Text>
+                    <View style={styles.metaInfo}>
+                        <Button
+                            appearance="ghost"
+                            status="basic"
+                            accessoryLeft={(props) => (
+                                <Calendar {...props} color={theme['text-hint-color']} />
+                            )}
+                            size="small"
+                        >
+                            {movie.data.year || 'N/A'}
+                        </Button>
+                        <Button
+                            appearance="ghost"
+                            status="basic"
+                            accessoryLeft={(props) => (
+                                <Clock {...props} color={theme['text-hint-color']} />
+                            )}
+                            size="small"
+                        >
+                            {movie.data.time || 'N/A'}
+                        </Button>
+                        {movie.data.tmdb?.voteAverage && (
+                            <Button
+                                appearance="ghost"
+                                status="warning"
+                                accessoryLeft={(props) => (
+                                    <Star {...props} color={theme['color-warning-500']} />
+                                )}
+                                size="small"
+                            >
+                                {movie.data.tmdb.voteAverage.toFixed(1)}
+                            </Button>
+                        )}
+                    </View>
+                    <Divider style={styles.divider} />
+                    <Text category="s1" style={styles.description}>
+                        {movie.data.content}
+                    </Text>
+                    {movie?.data?.categories && movie?.data?.categories?.length > 0 && (
+                        <View style={styles.categoriesContainer}>
+                            <Text category="s1" style={styles.categoriesTitle}>
+                                Thể loại:
+                            </Text>
+                            <View style={styles.categoriesList}>
+                                {movie.data.categories.map((category) => (
+                                    <Button
+                                        key={category.slug}
+                                        size="tiny"
+                                        appearance="outline"
+                                        status="basic"
+                                        style={styles.categoryButton}
+                                    >
+                                        {category.name}
+                                    </Button>
+                                ))}
+                            </View>
+                        </View>
+                    )}
+                </Card>
+            </ScrollView>
+            {renderErrorModal()}
+        </Layout>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        paddingTop: 40,
     },
-    contentContainer: {
-        paddingBottom: 20,
-    },
-    centerContent: {
+    loadingContainer: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scrollContent: {
+        flexGrow: 1,
+    },
+    topNavigation: {
+        backgroundColor: 'transparent',
+    },
+    playerContainer: {
+        width: '100%',
+        height: width * (9 / 16),
+        position: 'relative',
+    },
+    webView: {
+        width: '100%',
+        height: '100%',
+    },
     posterContainer: {
         width: '100%',
-        height: height * 0.3,
+        height: height * 0.25,
         position: 'relative',
     },
     poster: {
@@ -361,76 +451,83 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    videoContainer: {
-        width: '100%',
-        height: width * (9 / 16),
-        position: 'relative',
+    controls: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 8,
     },
-    video: {
-        width: '100%',
-        height: '100%',
+    selectionContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginHorizontal: 16,
+        marginTop: 16,
     },
-    playButton: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
+    select: {
+        flex: 1,
+        marginHorizontal: 4,
     },
-    content: {
-        padding: 16,
+    infoCard: {
         margin: 16,
-        borderRadius: 8,
+        backgroundColor: 'transparent',
     },
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
         marginBottom: 4,
     },
     originalTitle: {
-        fontSize: 18,
         marginBottom: 12,
-        fontStyle: 'italic',
     },
-    metadataContainer: {
+    metaInfo: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
         marginBottom: 16,
     },
-    chip: {
-        marginBottom: 8,
+    divider: {
+        marginVertical: 16,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     description: {
-        fontSize: 16,
-        lineHeight: 24,
+        lineHeight: 20,
+        marginBottom: 16,
+    },
+    categoriesContainer: {
+        marginTop: 16,
+    },
+    categoriesTitle: {
+        marginBottom: 8,
+        fontWeight: 'bold',
+    },
+    categoriesList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    categoryButton: {
+        marginRight: 8,
         marginBottom: 8,
     },
-    expandButton: {
-        alignSelf: 'flex-start',
-        marginBottom: 16,
+    backdrop: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
-    errorContainer: {
-        padding: 16,
-        borderRadius: 8,
-        marginBottom: 16,
-    },
-    errorText: {
-        fontSize: 16,
-        textAlign: 'center',
-    },
-    noVideoContainer: {
+    modalContainer: {
         width: '100%',
-        height: width * (9 / 16),
+        height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    noVideoText: {
-        fontSize: 16,
+    modalCard: {
+        width: '80%',
+        maxWidth: 300,
+        borderRadius: 8,
+        padding: 16,
+    },
+    modalIcon: {
+        alignSelf: 'center',
+        marginBottom: 16,
+    },
+    modalTitle: {
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    modalText: {
+        textAlign: 'center',
+        marginBottom: 16,
     },
 });
