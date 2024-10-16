@@ -46,7 +46,7 @@ const ExploreScreen = () => {
         setAppliedFilters(newFilters);
         flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
         setIsSearching(false);
-    }, 800);
+    }, 500);
 
     const handleSearch = useCallback(
         (query: string) => {
