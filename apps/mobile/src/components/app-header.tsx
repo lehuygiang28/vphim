@@ -1,20 +1,38 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { TopNavigation, Layout, useTheme } from '@ui-kitten/components';
-import { Film, Search } from 'lucide-react-native';
+import { Search } from 'lucide-react-native';
+
+import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 
 export default function AppHeader() {
     const router = useRouter();
     const theme = useTheme();
 
-    const navigateToSearch = () => {
+    const navigateToSearch = useCallback(() => {
         router.push('/search');
-    };
+    }, [router]);
 
     const renderLeftContent = () => (
         <View style={styles.leftContent}>
-            <Film color={theme['text-basic-color']} size={32} />
+            <TouchableOpacity onPress={() => router.push('/')} activeOpacity={0.9}>
+                <Image
+                    style={styles.logo}
+                    source={{
+                        uri: getOptimizedImageUrl(
+                            'https://vephim.online/assets/images/logo-mini.png',
+                            {
+                                height: 80,
+                                width: 80,
+                                baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
+                                quality: 100,
+                            },
+                        ),
+                    }}
+                />
+            </TouchableOpacity>
         </View>
     );
 
@@ -46,6 +64,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
+    },
+    logo: {
+        width: 80,
+        height: 80,
+        resizeMode: 'contain',
     },
     leftContent: {
         flexDirection: 'row',
