@@ -1,72 +1,79 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import { useTheme, Card, Title, Paragraph, TouchableRipple } from 'react-native-paper';
-import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
+import { StyleSheet, View, Dimensions } from 'react-native';
+import { Card, Text, useTheme } from '@ui-kitten/components';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import { type MovieType } from '~api/app/movies/movie.type';
 
-const AnimatedCard = Animated.createAnimatedComponent(Card);
-
 const { width } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.42;
+const CARD_HEIGHT = CARD_WIDTH * 1.5; // Maintaining a 2:3 aspect ratio
 
 export const MovieCard = ({ movie, onPress }: { movie: MovieType; onPress: () => void }) => {
     const theme = useTheme();
 
     return (
-        <AnimatedCard
-            style={[styles.movieCard, { backgroundColor: theme.colors.elevation.level2 }]}
-            entering={FadeInRight}
-            exiting={FadeOutLeft}
-        >
-            <TouchableRipple onPress={onPress}>
-                <View>
-                    <Image
-                        source={{
-                            uri: getOptimizedImageUrl(movie.thumbUrl || movie.posterUrl, {
-                                baseUrl: process.env.EXPO_PUBLIC_BASE_API_URL,
-                                width: 750,
-                                height: 1000,
-                            }),
-                        }}
-                        style={styles.moviePoster}
-                        contentFit="cover"
-                    />
-                    <LinearGradient
-                        colors={['transparent', 'rgba(0,0,0,0.8)']}
-                        style={StyleSheet.absoluteFillObject}
-                    />
-                    <View style={styles.movieCardContent}>
-                        <Title numberOfLines={1} style={{ color: theme.colors.onSurface }}>
-                            {movie.name}
-                        </Title>
-                        <Paragraph style={{ color: theme.colors.primary }}>{movie.year}</Paragraph>
-                    </View>
-                </View>
-            </TouchableRipple>
-        </AnimatedCard>
+        <View style={styles.container}>
+            <Card style={styles.card} onPress={onPress}>
+                <Image
+                    source={{
+                        uri: getOptimizedImageUrl(movie?.thumbUrl || movie?.posterUrl, {
+                            baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
+                            width: 360,
+                            height: 640,
+                        }),
+                    }}
+                    style={styles.poster}
+                    contentFit="cover"
+                    transition={1000}
+                />
+                <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.8)']}
+                    style={styles.gradient}
+                />
+            </Card>
+            <Text
+                category="s1"
+                numberOfLines={2}
+                style={[styles.title, { color: theme['text-basic-color'] }]}
+            >
+                {movie.name}
+            </Text>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    movieCard: {
-        width: width * 0.4,
+    container: {
+        width: CARD_WIDTH,
         marginHorizontal: 8,
         marginBottom: 16,
-        borderRadius: 8,
+    },
+    card: {
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
+        borderRadius: 12,
+        padding: 0,
         overflow: 'hidden',
+        position: 'relative',
     },
-    moviePoster: {
-        width: '100%',
-        aspectRatio: 2 / 3,
-    },
-    movieCardContent: {
+    poster: {
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
         position: 'absolute',
-        bottom: 0,
+    },
+    title: {
+        marginTop: 8,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    gradient: {
+        position: 'absolute',
         left: 0,
         right: 0,
-        padding: 8,
+        bottom: 0,
+        height: '50%',
     },
 });

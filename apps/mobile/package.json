@@ -115,7 +115,6 @@
         "pluralize": "*",
         "@refinedev/simple-rest": "*",
         "graphql-tag": "*",
-        "react-native-swiper": "*",
         "expo-image": "*",
         "expo-linear-gradient": "*",
         "lucide-react-native": "*",
@@ -133,7 +132,8 @@
         "relative-time-format": "*",
         "@refinedev/devtools": "*",
         "@ui-kitten/components": "*",
-        "@eva-design/eva": "*"
+        "@eva-design/eva": "*",
+        "react-native-swiper-flatlist": "*"
     },
     "scripts": {
         "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",
