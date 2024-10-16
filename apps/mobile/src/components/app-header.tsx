@@ -15,31 +15,37 @@ export default function AppHeader() {
         router.push('/search');
     }, [router]);
 
-    const renderLeftContent = () => (
-        <View style={styles.leftContent}>
-            <TouchableOpacity onPress={() => router.push('/')} activeOpacity={0.9}>
-                <Image
-                    style={styles.logo}
-                    source={{
-                        uri: getOptimizedImageUrl(
-                            'https://vephim.online/assets/images/logo-mini.png',
-                            {
-                                height: 80,
-                                width: 80,
-                                baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
-                                quality: 100,
-                            },
-                        ),
-                    }}
-                />
-            </TouchableOpacity>
-        </View>
+    const renderLeftContent = useCallback(
+        () => (
+            <View style={styles.leftContent}>
+                <TouchableOpacity onPress={() => router.push('/')} activeOpacity={0.9}>
+                    <Image
+                        style={styles.logo}
+                        source={{
+                            uri: getOptimizedImageUrl(
+                                'https://vephim.online/assets/images/logo-mini.png',
+                                {
+                                    height: 80,
+                                    width: 80,
+                                    baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
+                                    quality: 100,
+                                },
+                            ),
+                        }}
+                    />
+                </TouchableOpacity>
+            </View>
+        ),
+        [router],
     );
 
-    const renderRightContent = () => (
-        <TouchableOpacity onPress={navigateToSearch}>
-            <Search color={theme['text-basic-color']} size={24} />
-        </TouchableOpacity>
+    const renderRightContent = useCallback(
+        () => (
+            <TouchableOpacity onPress={navigateToSearch}>
+                <Search color={theme['text-basic-color']} size={24} />
+            </TouchableOpacity>
+        ),
+        [theme, navigateToSearch],
     );
 
     return (
