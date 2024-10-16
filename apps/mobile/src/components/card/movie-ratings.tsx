@@ -22,18 +22,24 @@ function MovieRatings({ imdbId, tmdbId, tmdbType, size = 'medium' }: MovieRating
     const [tmdbData, setTmdbData] = useState<RatingData>({ rating: 'N/A', votes: 'N/A' });
 
     useEffect(() => {
+        const abortController = new AbortController();
+
         const fetchImdbData = async () => {
             if (!imdbId) return;
             try {
                 const response = await fetch(
                     `https://data.ratings.media-imdb.com/${imdbId}/data.json`,
+                    { signal: abortController.signal },
                 );
                 if (!response.ok) throw new Error('Failed to fetch IMDB data');
                 const data = await response.json();
                 setImdbData({ rating: data.imdbRating[0], votes: data.imdbRating[1] });
             } catch (error) {
-                console.error('Error fetching IMDB data:', error);
-                setImdbData({ rating: 'N/A', votes: 'N/A' });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if ((error as any)?.name !== 'AbortError') {
+                    console.error('Error fetching IMDB data:', error);
+                    setImdbData({ rating: 'N/A', votes: 'N/A' });
+                }
             }
         };
 
@@ -42,6 +48,7 @@ function MovieRatings({ imdbId, tmdbId, tmdbType, size = 'medium' }: MovieRating
             try {
                 const response = await fetch(
                     `https://api.themoviedb.org/3/${tmdbType}/${tmdbId}?language=en-US&api_key=${process.env.EXPO_PUBLIC_TMDB_API_KEY}`,
+                    { signal: abortController.signal },
                 );
                 if (!response.ok) throw new Error('Failed to fetch TMDB data');
                 const data = await response.json();
@@ -50,13 +57,20 @@ function MovieRatings({ imdbId, tmdbId, tmdbType, size = 'medium' }: MovieRating
                     votes: data.vote_count.toString(),
                 });
             } catch (error) {
-                console.error('Error fetching TMDB data:', error);
-                setTmdbData({ rating: 'N/A', votes: 'N/A' });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if ((error as any)?.name !== 'AbortError') {
+                    console.error('Error fetching TMDB data:', error);
+                    setTmdbData({ rating: 'N/A', votes: 'N/A' });
+                }
             }
         };
 
         fetchImdbData();
         fetchTmdbData();
+
+        return () => {
+            abortController.abort();
+        };
     }, [imdbId, tmdbId, tmdbType]);
 
     const sizeStyles = {
@@ -97,12 +111,15 @@ function MovieRatings({ imdbId, tmdbId, tmdbType, size = 'medium' }: MovieRating
             {imdbData && imdbId && (
                 <RatingTag
                     color="#f5c518"
-                    logo={getOptimizedImageUrl('https://vephim.online/assets/imdb_46x22.png', {
-                        baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
-                        height: 120,
-                        width: 120,
-                        quality: 100,
-                    })}
+                    logo={getOptimizedImageUrl(
+                        `${process.env.EXPO_PUBLIC_BASE_PLAYER_URL}/assets/imdb_46x22.png`,
+                        {
+                            baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
+                            height: 120,
+                            width: 120,
+                            quality: 100,
+                        },
+                    )}
                     rating={imdbData.rating}
                     votes={imdbData.votes}
                     url={`https://www.imdb.com/title/${imdbId}/`}
