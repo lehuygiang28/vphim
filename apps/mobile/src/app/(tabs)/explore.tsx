@@ -95,7 +95,6 @@ const ExploreScreen = () => {
                 )}
                 style={styles.searchBar}
             />
-            <View style={styles.filterContainer}></View>
             {isLoading || isSearching ? (
                 <View style={styles.loader}>
                     <Spinner size="large" />
