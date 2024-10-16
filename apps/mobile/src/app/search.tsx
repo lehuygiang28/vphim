@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Image, Dimensions } from 'react-native';
-import { Layout, Input, Text, List, ListItem, useTheme } from '@ui-kitten/components';
+import { Layout, Input, Text, ListItem, useTheme } from '@ui-kitten/components';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Search, ArrowLeft } from 'lucide-react-native';
 import { useInfiniteList } from '@refinedev/core';
@@ -52,13 +52,13 @@ const SkeletonLoader = () => {
     );
 };
 
-export default function Component() {
+export default function SearchScreen() {
     const theme = useTheme();
     const router = useRouter();
     const { searchQuery: initialSearchQuery } = useLocalSearchParams();
     const [inputValue, setInputValue] = useState((initialSearchQuery as string) || '');
     const [debouncedSearchQuery] = useDebounce(inputValue, 300);
-    const flatListRef = useRef<any>(null);
+    const flatListRef = useRef<Animated.FlatList<MovieType>>(null);
     const [isSearching, setIsSearching] = useState(false);
 
     const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } =
@@ -83,10 +83,13 @@ export default function Component() {
         return () => clearTimeout(timer);
     }, [debouncedSearchQuery]);
 
-    const handleInputChange = useCallback((text: string) => {
-        setInputValue(text);
-        flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-    }, []);
+    const handleInputChange = useCallback(
+        (text: string) => {
+            setInputValue(text);
+            flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+        },
+        [flatListRef],
+    );
 
     const renderMovieItem = useCallback(
         ({ item }: { item: MovieType }) => (
