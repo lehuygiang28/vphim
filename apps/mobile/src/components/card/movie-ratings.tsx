@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Image } from 'expo-image';
-import { Text, Tooltip } from '@ui-kitten/components';
+import { Text } from '@ui-kitten/components';
 
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 
@@ -17,12 +17,12 @@ interface RatingData {
     votes: string;
 }
 
-const MovieRatings: React.FC<MovieRatingsProps> = ({
+export default function MovieRatings({
     imdbId,
     tmdbId,
     tmdbType,
     size = 'medium',
-}) => {
+}: MovieRatingsProps) {
     const [imdbData, setImdbData] = useState<RatingData | null>(null);
     const [tmdbData, setTmdbData] = useState<RatingData | null>(null);
 
@@ -90,15 +90,10 @@ const MovieRatings: React.FC<MovieRatingsProps> = ({
                     contentFit="contain"
                 />
             </View>
-            <Tooltip
-                anchor={() => (
-                    <View style={styles.ratingContainer}>
-                        <Text style={[styles.rating, { fontSize }]}>{rating}</Text>
-                    </View>
-                )}
-            >
-                {`${votes} votes`}
-            </Tooltip>
+            <View style={styles.ratingContainer}>
+                <Text style={[styles.rating, { fontSize }]}>{rating}</Text>
+                <Text style={[styles.votes, { fontSize: fontSize * 0.8 }]}>({votes})</Text>
+            </View>
         </TouchableOpacity>
     );
 
@@ -134,7 +129,7 @@ const MovieRatings: React.FC<MovieRatingsProps> = ({
             )}
         </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -169,6 +164,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginRight: 4,
     },
+    votes: {
+        color: '#ffffff',
+        opacity: 0.8,
+    },
 });
-
-export default MovieRatings;
