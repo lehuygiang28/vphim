@@ -2274,18 +2274,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@callstack/react-theme-provider@npm:^3.0.9":
-  version: 3.0.9
-  resolution: "@callstack/react-theme-provider@npm:3.0.9"
-  dependencies:
-    deepmerge: "npm:^3.2.0"
-    hoist-non-react-statics: "npm:^3.3.0"
-  peerDependencies:
-    react: ">=16.3.0"
-  checksum: 10c0/ac3463383c35e1a4ef813e869532bf86d3e83a4c211b00616c832a5f08545f04f07f769726664b5010124575af2cf8152aabfb7d4c37a64b22ae8a7f9490df0e
-  languageName: node
-  linkType: hard
-
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -6427,7 +6415,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@refinedev/react-hook-form@npm:^4.4.2, @refinedev/react-hook-form@npm:^4.9.0":
+"@refinedev/react-hook-form@npm:^4.9.0":
   version: 4.9.0
   resolution: "@refinedev/react-hook-form@npm:4.9.0"
   dependencies:
@@ -6457,7 +6445,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@refinedev/ui-types@npm:^1.18.0, @refinedev/ui-types@npm:^1.22.9":
+"@refinedev/ui-types@npm:^1.22.9":
   version: 1.22.9
   resolution: "@refinedev/ui-types@npm:1.22.9"
   dependencies:
@@ -6469,52 +6457,6 @@ __metadata:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
   checksum: 10c0/06d84721882157ec1b1b119fbc7439de5e622a0865f4ebcbde7ceea1a270433283ea20b981416fd9c64b3c6a997e038ea4808bc0b2fa46cf6fb3c629b722634c
-  languageName: node
-  linkType: hard
-
-"@refinenative/expo-router@npm:^0.1.12":
-  version: 0.1.12
-  resolution: "@refinenative/expo-router@npm:0.1.12"
-  dependencies:
-    qs: "npm:^6.11.2"
-  peerDependencies:
-    "@expo/vector-icons": "*"
-    "@react-navigation/drawer": ^6.5.8
-    "@refinedev/core": ^4.0.0
-    expo: "*"
-    expo-constants: "*"
-    expo-linking: "*"
-    expo-router: "*"
-    expo-status-bar: "*"
-    metro: "*"
-    react: ^17.0.0 || ^18.0.0
-    react-native: "*"
-    react-native-gesture-handler: "*"
-    react-native-reanimated: "*"
-    react-native-safe-area-context: "*"
-    react-native-screens: "*"
-  peerDependenciesMeta:
-    "@react-navigation/drawer":
-      optional: true
-    react-native-reanimated:
-      optional: true
-  checksum: 10c0/33fabab0ebe301e00480757ec796000eb1dc773ff77cc57a41abb9fa879705ce9b9fbb281932177bca826d76933c1566d8628abfd940a4f4d3604c4ee8aef9aa
-  languageName: node
-  linkType: hard
-
-"@refinenative/react-native-paper@npm:^0.1.12":
-  version: 0.1.12
-  resolution: "@refinenative/react-native-paper@npm:0.1.12"
-  dependencies:
-    "@refinedev/react-hook-form": "npm:^4.4.2"
-    "@refinedev/ui-types": "npm:^1.18.0"
-  peerDependencies:
-    "@refinedev/core": ^4.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-hook-form: "*"
-    react-native: "*"
-    react-native-paper: ^5.0.0
-  checksum: 10c0/00c65a29dff463cb32d572a78a86cb3af4910a47cdabfee526013b853d1b641370f7681a0415abcbbc1918ede1ba1f9cad3c56fa7a5969b3aa17b3e598b703b8
   languageName: node
   linkType: hard
 
@@ -8270,8 +8212,6 @@ __metadata:
     "@refinedev/nextjs-router": "npm:^6.1.0"
     "@refinedev/react-hook-form": "npm:^4.9.0"
     "@refinedev/simple-rest": "npm:^5.0.8"
-    "@refinenative/expo-router": "npm:^0.1.12"
-    "@refinenative/react-native-paper": "npm:^0.1.12"
     "@swc-node/register": "npm:~1.9.1"
     "@swc/core": "npm:~1.5.7"
     "@swc/helpers": "npm:~0.5.11"
@@ -8371,7 +8311,6 @@ __metadata:
     react-hook-form: "npm:^7.53.0"
     react-native: "npm:0.74.1"
     react-native-gesture-handler: "npm:~2.16.1"
-    react-native-paper: "npm:^5.12.5"
     react-native-reanimated: "npm:~3.10.1"
     react-native-safe-area-context: "npm:4.10.5"
     react-native-screens: "npm:3.31.1"
@@ -10516,7 +10455,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-convert@npm:^1.9.0, color-convert@npm:^1.9.3":
+"color-convert@npm:^1.9.0":
   version: 1.9.3
   resolution: "color-convert@npm:1.9.3"
   dependencies:
@@ -10548,23 +10487,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-string@npm:^1.6.0, color-string@npm:^1.9.0":
+"color-string@npm:^1.9.0":
   version: 1.9.1
   resolution: "color-string@npm:1.9.1"
   dependencies:
     color-name: "npm:^1.0.0"
     simple-swizzle: "npm:^0.2.2"
   checksum: 10c0/b0bfd74c03b1f837f543898b512f5ea353f71630ccdd0d66f83028d1f0924a7d4272deb278b9aef376cacf1289b522ac3fb175e99895283645a2dc3a33af2404
-  languageName: node
-  linkType: hard
-
-"color@npm:^3.1.2":
-  version: 3.2.1
-  resolution: "color@npm:3.2.1"
-  dependencies:
-    color-convert: "npm:^1.9.3"
-    color-string: "npm:^1.6.0"
-  checksum: 10c0/39345d55825884c32a88b95127d417a2c24681d8b57069413596d9fcbb721459ef9d9ec24ce3e65527b5373ce171b73e38dbcd9c830a52a6487e7f37bf00e83c
   languageName: node
   linkType: hard
 
@@ -11576,13 +11505,6 @@ __metadata:
   version: 0.1.4
   resolution: "deep-is@npm:0.1.4"
   checksum: 10c0/7f0ee496e0dff14a573dc6127f14c95061b448b87b995fc96c017ce0a1e66af1675e73f1d6064407975bc4ea6ab679497a29fff7b5b9c4e99cb10797c1ad0b4c
-  languageName: node
-  linkType: hard
-
-"deepmerge@npm:^3.2.0":
-  version: 3.3.0
-  resolution: "deepmerge@npm:3.3.0"
-  checksum: 10c0/143bc6b6cd8a1216565c61c0fe38bf43fe691fb6876fb3f5727c6e323defe4e947c68fbab9957e17e837c5594a56af885c5834d23dc6cf2c41bef97090005104
   languageName: node
   linkType: hard
 
@@ -22429,22 +22351,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-paper@npm:^5.12.5":
-  version: 5.12.5
-  resolution: "react-native-paper@npm:5.12.5"
-  dependencies:
-    "@callstack/react-theme-provider": "npm:^3.0.9"
-    color: "npm:^3.1.2"
-    use-latest-callback: "npm:^0.1.5"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-    react-native-safe-area-context: "*"
-    react-native-vector-icons: "*"
-  checksum: 10c0/feeeedae6fcd9684be04a8a9e9f568776d1680efa190cf0594d72fd91724985bbef2847e06e474ee6221dd1e236701e69c28f1e47f41cc0be8c99656ecf3f58c
-  languageName: node
-  linkType: hard
-
 "react-native-reanimated@npm:~3.10.1":
   version: 3.10.1
   resolution: "react-native-reanimated@npm:3.10.1"
@@ -25873,15 +25779,6 @@ __metadata:
   peerDependencies:
     react: "*"
   checksum: 10c0/351b62c565d6dce5a21ecc21fe3e1f8db74f70c81c8f7d9dbdfc2da1cb82d883578589f6146e684d91dac534bc3c8b145ab1a36fbf4d44cbb4113827508b39aa
-  languageName: node
-  linkType: hard
-
-"use-latest-callback@npm:^0.1.5":
-  version: 0.1.11
-  resolution: "use-latest-callback@npm:0.1.11"
-  peerDependencies:
-    react: ">=16.8"
-  checksum: 10c0/8361ccd3e121552173a27fad67bd226e0cc8acf377073357a7ce83f516be3993b57111eb0e5a8748932543ff6bf4d202200de6e8ba6fa78ae111f44d05404128
   languageName: node
   linkType: hard
 
