@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, ScrollView, Dimensions, TouchableOpacity, StyleSheet } from 'react-native';
 import { useOne } from '@refinedev/core';
 import {
@@ -11,15 +11,28 @@ import {
     TopNavigationAction,
     Divider,
     useTheme,
+    Select,
+    SelectItem,
+    IndexPath,
+    Modal,
 } from '@ui-kitten/components';
 import { Image } from 'expo-image';
-import { ArrowLeft, Calendar, Clock, PlayCircle, Star } from 'lucide-react-native';
+import {
+    ArrowLeft,
+    Calendar,
+    Clock,
+    PlayCircle,
+    Star,
+    ChevronLeft,
+    ChevronRight,
+    AlertTriangle,
+} from 'lucide-react-native';
 import WebView from 'react-native-webview';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { EpisodeServerDataType, MovieType } from '~api/app/movies/movie.type';
-import { GET_MOVIE_QUERY } from '@/queries/movies';
-import { truncateText } from '@/libs/utils/movie.util';
+import { EpisodeServerDataType, MovieType, EpisodeType } from '~api/app/movies/movie.type';
+import { GET_MOVIE_QUERY } from '~fe/queries/movies';
+import { truncateText } from '~fe/libs/utils/movie.util';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,6 +42,13 @@ export default function MovieScreen() {
     const navigation = useNavigation();
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedEpisode, setSelectedEpisode] = useState<EpisodeServerDataType | null>(null);
+    const [selectedServerIndex, setSelectedServerIndex] = useState(new IndexPath(0));
+    const [selectedEpisodeIndex, setSelectedEpisodeIndex] = useState(new IndexPath(0));
+    const [error, setError] = useState<string | null>(null);
+    const [useEmbedLink, setUseEmbedLink] = useState(false);
+    const [isM3u8Available, setIsM3u8Available] = useState(true);
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const webViewRef = useRef<WebView>(null);
 
     const { data: movie, isLoading } = useOne<MovieType>({
         dataProviderName: 'graphql',
@@ -45,21 +65,146 @@ export default function MovieScreen() {
         id: Array.isArray(slug) ? slug[0] : slug,
     });
 
+    const preFetchM3u8 = useCallback(async (url: string) => {
+        try {
+            const response = await fetch(url, { method: 'GET' });
+            if (!response.ok) {
+                throw new Error('M3U8 file not available');
+            }
+            setIsM3u8Available(true);
+            setUseEmbedLink(false);
+        } catch (error) {
+            setIsM3u8Available(false);
+            setUseEmbedLink(true);
+        }
+    }, []);
+
     useEffect(() => {
         if (movie?.data?.episode && movie.data.episode.length > 0) {
-            setSelectedEpisode(movie.data.episode[0].serverData[0]);
+            const initialEpisode = movie.data.episode[0].serverData[0];
+            setSelectedEpisode(initialEpisode);
+            if (initialEpisode.linkM3u8) {
+                preFetchM3u8(initialEpisode.linkM3u8);
+            } else if (initialEpisode.linkEmbed) {
+                setUseEmbedLink(true);
+                setIsM3u8Available(false);
+            } else {
+                setError('Phim đang được cập nhật, vui lòng quay lại sau.');
+                setIsErrorModalVisible(true);
+            }
         }
-    }, [movie]);
+    }, [movie, preFetchM3u8]);
+
+    const getVideoUrl = (): string => {
+        if (!selectedEpisode) return '';
+
+        if (!isM3u8Available || useEmbedLink) {
+            return selectedEpisode.linkEmbed || '';
+        }
+
+        if (!selectedEpisode.linkM3u8) {
+            return '';
+        }
+
+        return `${process.env.EXPO_PUBLIC_BASE_PLAYER_URL}/player/${encodeURIComponent(
+            selectedEpisode.linkM3u8,
+        )}?movieSlug=${encodeURIComponent(movie?.data.slug || '')}&ep=${encodeURIComponent(
+            selectedEpisode.slug,
+        )}`;
+    };
+
+    const videoUrl = getVideoUrl();
 
     const handlePlayPress = useCallback(() => {
-        setIsPlaying(true);
-    }, []);
+        if (!error) {
+            setIsPlaying(true);
+        } else {
+            setIsErrorModalVisible(true);
+        }
+    }, [error]);
+
+    const handleServerChange = (_index: IndexPath | IndexPath[]) => {
+        const index = Array.isArray(_index) ? _index[0] : _index;
+        setSelectedServerIndex(index);
+        setSelectedEpisodeIndex(new IndexPath(0));
+        updateSelectedEpisode(index, new IndexPath(0));
+    };
+
+    const handleEpisodeChange = (_index: IndexPath | IndexPath[]) => {
+        const index = Array.isArray(_index) ? _index[0] : _index;
+        setSelectedEpisodeIndex(index);
+        updateSelectedEpisode(selectedServerIndex, index);
+    };
+
+    const updateSelectedEpisode = (serverIndex: IndexPath, episodeIndex: IndexPath) => {
+        const newEpisode = movie?.data?.episode?.[serverIndex.row]?.serverData[episodeIndex.row];
+        if (newEpisode) {
+            setSelectedEpisode(newEpisode);
+            setUseEmbedLink(false);
+            setIsM3u8Available(true);
+            setError(null);
+            if (newEpisode.linkM3u8) {
+                preFetchM3u8(newEpisode.linkM3u8);
+            } else if (newEpisode.linkEmbed) {
+                setUseEmbedLink(true);
+                setIsM3u8Available(false);
+            } else {
+                setError('Không thể phát video. Vui lòng thử lại sau hoặc chọn một nguồn khác.');
+            }
+        }
+    };
+
+    const handleVideoError = () => {
+        if (isM3u8Available && !useEmbedLink && selectedEpisode?.linkEmbed) {
+            setUseEmbedLink(true);
+            setIsM3u8Available(false);
+        } else {
+            setError('Không thể phát video. Vui lòng thử lại sau hoặc chọn một nguồn khác.');
+            setIsErrorModalVisible(true);
+            setIsPlaying(false);
+        }
+    };
 
     const renderBackAction = () => (
         <TopNavigationAction
             icon={(props) => <ArrowLeft {...props} color={theme['text-basic-color']} />}
             onPress={() => navigation.goBack()}
         />
+    );
+
+    const renderServerOptions = () => {
+        return movie?.data?.episode?.map((server: EpisodeType, index: number) => (
+            <SelectItem key={index} title={server.serverName} />
+        ));
+    };
+
+    const renderEpisodeOptions = () => {
+        const currentServer = movie?.data?.episode?.[selectedServerIndex.row];
+        return currentServer?.serverData.map((episode: EpisodeServerDataType, index: number) => (
+            <SelectItem key={index} title={episode.name} />
+        ));
+    };
+
+    const renderErrorModal = () => (
+        <Modal
+            visible={isErrorModalVisible}
+            backdropStyle={styles.backdrop}
+            onBackdropPress={() => setIsErrorModalVisible(false)}
+            style={styles.modalContainer}
+        >
+            <Card disabled={true} style={styles.modalCard}>
+                <AlertTriangle
+                    color={theme['color-danger-500']}
+                    size={48}
+                    style={styles.modalIcon}
+                />
+                <Text category="h6" style={styles.modalTitle}>
+                    Oops! Đã xảy ra lỗi
+                </Text>
+                <Text style={styles.modalText}>{error?.toString()}</Text>
+                <Button onPress={() => setIsErrorModalVisible(false)}>OK</Button>
+            </Card>
+        </Modal>
     );
 
     if (isLoading) {
@@ -91,14 +236,22 @@ export default function MovieScreen() {
                 style={styles.topNavigation}
             />
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {isPlaying && selectedEpisode ? (
+                {isPlaying && selectedEpisode && !error ? (
                     <View style={styles.playerContainer}>
                         <WebView
+                            ref={webViewRef}
                             source={{
-                                uri: selectedEpisode.linkEmbed || selectedEpisode.linkM3u8 || '',
+                                uri: videoUrl,
+                                headers: {
+                                    'User-Agent':
+                                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.142.86 Safari/537.36',
+                                },
                             }}
                             style={styles.webView}
                             allowsFullscreenVideo
+                            onError={handleVideoError}
+                            javaScriptEnabled
+                            domStorageEnabled
                         />
                     </View>
                 ) : (
@@ -113,6 +266,64 @@ export default function MovieScreen() {
                         </BlurView>
                     </TouchableOpacity>
                 )}
+                {isPlaying && !error && (
+                    <View style={styles.controls}>
+                        <Button
+                            accessoryLeft={(props) => <ChevronLeft {...props} />}
+                            onPress={() => {
+                                if (selectedEpisodeIndex.row > 0) {
+                                    handleEpisodeChange(
+                                        new IndexPath(selectedEpisodeIndex.row - 1),
+                                    );
+                                }
+                            }}
+                            appearance="ghost"
+                            disabled={selectedEpisodeIndex.row === 0}
+                        />
+                        <Button
+                            accessoryRight={(props) => <ChevronRight {...props} />}
+                            onPress={() => {
+                                const currentServer =
+                                    movie?.data?.episode?.[selectedServerIndex.row];
+                                if (
+                                    selectedEpisodeIndex.row <
+                                    (currentServer?.serverData?.length || 0) - 1
+                                ) {
+                                    handleEpisodeChange(
+                                        new IndexPath(selectedEpisodeIndex.row + 1),
+                                    );
+                                }
+                            }}
+                            appearance="ghost"
+                            disabled={
+                                selectedEpisodeIndex.row ===
+                                (movie?.data?.episode?.[selectedServerIndex.row]?.serverData
+                                    ?.length || 0) -
+                                    1
+                            }
+                        />
+                    </View>
+                )}
+                <View style={styles.selectionContainer}>
+                    <Select
+                        style={styles.select}
+                        label="Máy chủ"
+                        value={movie?.data?.episode?.[selectedServerIndex.row]?.serverName}
+                        selectedIndex={selectedServerIndex}
+                        onSelect={handleServerChange}
+                    >
+                        {renderServerOptions()}
+                    </Select>
+                    <Select
+                        style={styles.select}
+                        label="Chọn tập"
+                        value={selectedEpisode?.name}
+                        selectedIndex={selectedEpisodeIndex}
+                        onSelect={handleEpisodeChange}
+                    >
+                        {renderEpisodeOptions()}
+                    </Select>
+                </View>
                 <Card style={styles.infoCard} status="basic">
                     <Text category="h5" style={styles.title}>
                         {movie.data.name}
@@ -158,13 +369,13 @@ export default function MovieScreen() {
                     <Text category="s1" style={styles.description}>
                         {movie.data.content}
                     </Text>
-                    {movie.data.categories && movie.data.categories.length > 0 && (
+                    {movie?.data?.categories && movie?.data?.categories?.length > 0 && (
                         <View style={styles.categoriesContainer}>
                             <Text category="s1" style={styles.categoriesTitle}>
-                                Categories:
+                                Thể loại:
                             </Text>
                             <View style={styles.categoriesList}>
-                                {movie.data.categories.map((category, index) => (
+                                {movie.data.categories.map((category) => (
                                     <Button
                                         key={category.slug}
                                         size="tiny"
@@ -180,6 +391,7 @@ export default function MovieScreen() {
                     )}
                 </Card>
             </ScrollView>
+            {renderErrorModal()}
         </Layout>
     );
 }
@@ -208,10 +420,11 @@ const styles = StyleSheet.create({
     playerContainer: {
         width: '100%',
         height: width * (9 / 16),
-        backgroundColor: '#000',
+        position: 'relative',
     },
     webView: {
-        flex: 1,
+        width: '100%',
+        height: '100%',
     },
     posterContainer: {
         width: '100%',
@@ -226,6 +439,21 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    controls: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 8,
+    },
+    selectionContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginHorizontal: 16,
+        marginTop: 16,
+    },
+    select: {
+        flex: 1,
+        marginHorizontal: 4,
     },
     infoCard: {
         margin: 16,
@@ -263,5 +491,32 @@ const styles = StyleSheet.create({
     categoryButton: {
         marginRight: 8,
         marginBottom: 8,
+    },
+    backdrop: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContainer: {
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalCard: {
+        width: '80%',
+        maxWidth: 300,
+        borderRadius: 8,
+        padding: 16,
+    },
+    modalIcon: {
+        alignSelf: 'center',
+        marginBottom: 16,
+    },
+    modalTitle: {
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    modalText: {
+        textAlign: 'center',
+        marginBottom: 16,
     },
 });
