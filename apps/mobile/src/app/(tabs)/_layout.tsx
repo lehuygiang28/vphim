@@ -1,7 +1,8 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { useTheme } from '@ui-kitten/components';
-import { Home, HomeIcon, Compass, User } from 'lucide-react-native';
+import { Home, Compass, User } from 'lucide-react-native';
+
 import AppHeader from '~mb/components/app-header';
 
 export default function TabsLayout() {
@@ -10,17 +11,14 @@ export default function TabsLayout() {
     return (
         <Tabs
             screenOptions={({ route }) => ({
-                tabBarIcon: ({ focused, color, size }) => {
-                    if (route.name === 'index') {
-                        return focused ? (
-                            <Home size={size} color={color} />
-                        ) : (
-                            <HomeIcon size={size} color={color} />
-                        );
-                    } else if (route.name === 'explore') {
-                        return <Compass size={size} color={color} />;
-                    } else if (route.name === 'account') {
-                        return <User size={size} color={color} />;
+                tabBarIcon: ({ color, size }) => {
+                    switch (route.name) {
+                        case 'index':
+                            return <Home size={size} color={color} />;
+                        case 'explore':
+                            return <Compass size={size} color={color} />;
+                        case 'account':
+                            return <User size={size} color={color} />;
                     }
                 },
                 tabBarActiveTintColor: theme['color-primary-500'],
