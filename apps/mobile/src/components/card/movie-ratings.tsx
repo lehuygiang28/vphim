@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { View, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Image } from 'expo-image';
 import { Text } from '@ui-kitten/components';
@@ -17,14 +17,9 @@ interface RatingData {
     votes: string;
 }
 
-export default function MovieRatings({
-    imdbId,
-    tmdbId,
-    tmdbType,
-    size = 'medium',
-}: MovieRatingsProps) {
-    const [imdbData, setImdbData] = useState<RatingData | null>(null);
-    const [tmdbData, setTmdbData] = useState<RatingData | null>(null);
+function MovieRatings({ imdbId, tmdbId, tmdbType, size = 'medium' }: MovieRatingsProps) {
+    const [imdbData, setImdbData] = useState<RatingData>({ rating: 'N/A', votes: 'N/A' });
+    const [tmdbData, setTmdbData] = useState<RatingData>({ rating: 'N/A', votes: 'N/A' });
 
     useEffect(() => {
         const fetchImdbData = async () => {
@@ -130,6 +125,8 @@ export default function MovieRatings({
         </View>
     );
 }
+
+export default memo(MovieRatings);
 
 const styles = StyleSheet.create({
     container: {
