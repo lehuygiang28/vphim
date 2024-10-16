@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import { SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { TopNavigation, Layout, useTheme } from '@ui-kitten/components';
@@ -7,7 +7,7 @@ import { Search } from 'lucide-react-native';
 
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 
-export default function AppHeader() {
+function AppHeader() {
     const router = useRouter();
     const theme = useTheme();
 
@@ -49,19 +49,22 @@ export default function AppHeader() {
     );
 
     return (
-        <Layout style={styles.headerContainer} level="1">
-            <TopNavigation
-                style={styles.header}
-                accessoryLeft={renderLeftContent}
-                accessoryRight={renderRightContent}
-            />
-        </Layout>
+        <SafeAreaView>
+            <Layout style={styles.headerContainer} level="1">
+                <TopNavigation
+                    style={styles.header}
+                    accessoryLeft={renderLeftContent}
+                    accessoryRight={renderRightContent}
+                />
+            </Layout>
+        </SafeAreaView>
     );
 }
 
+export default memo(AppHeader);
+
 const styles = StyleSheet.create({
     headerContainer: {
-        paddingTop: 40,
         zIndex: 2,
     },
     header: {
