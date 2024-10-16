@@ -6,7 +6,12 @@ import * as eva from '@eva-design/eva';
 import { ApplicationProvider } from '@ui-kitten/components';
 
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
-import { useAxiosAuth } from '../hooks/useAxiosAuth';
+import { useAxiosAuth } from '~mb/hooks/useAxiosAuth';
+import { ignoreExpoWaring } from '~mb/libs/utils';
+
+if (__DEV__) {
+    ignoreExpoWaring();
+}
 
 export default function AppLayout() {
     const axiosAuth = useAxiosAuth({ baseURL: process.env.EXPO_PUBLIC_BASE_API_URL });
@@ -21,8 +26,8 @@ export default function AppLayout() {
             }}
             resources={[
                 {
-                    name: 'movies',
-                    list: '/movies',
+                    name: 'movie',
+                    list: '/movie',
                 },
             ]}
             options={{
