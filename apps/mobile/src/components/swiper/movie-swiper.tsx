@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { LucideIcon, Calendar, Eye, Star, Clock, SlidersHorizontal } from 'lucide-react-native';
-import { Layout, Text, Button, useTheme } from '@ui-kitten/components';
+import { LucideIcon, Calendar, Eye, Clock } from 'lucide-react-native';
+import { Layout, Text, useTheme } from '@ui-kitten/components';
 import SwiperFlatList from 'react-native-swiper-flatlist';
 
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
@@ -13,58 +13,58 @@ import MovieRatings from '../card/movie-ratings';
 
 const { width, height } = Dimensions.get('window');
 
-export default function MovieSwiper({ movies = [] }: { movies?: MovieType[] }) {
+function MovieSwiper({ movies = [] }: { movies?: MovieType[] }) {
     const router = useRouter();
     const theme = useTheme();
 
-    if (!movies || movies.length === 0) {
-        return null;
-    }
-
-    const renderItem = ({ item: movie }: { item: MovieType }) => (
-        <TouchableOpacity
-            style={styles.movieCard}
-            onPress={() => router.push(`/movie/${movie.slug}`)}
-            activeOpacity={0.9}
-        >
-            <Image
-                source={{
-                    uri: getOptimizedImageUrl(movie.posterUrl || movie.thumbUrl, {
-                        baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
-                        width: 1200,
-                        height: 720,
-                    }),
-                }}
-                style={styles.backgroundImage}
-                contentFit="cover"
-            />
-            <LinearGradient
-                colors={['transparent', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
-                style={StyleSheet.absoluteFillObject}
-            />
-            <View style={styles.movieInfo}>
-                <Text category="h4" style={styles.title}>
-                    {movie.name}
-                </Text>
-                <Text category="s1" style={styles.subtitle}>
-                    {movie.originName}
-                </Text>
-                <View style={styles.metadataContainer}>
-                    <MetadataItem icon={Calendar} text={movie?.year?.toString() || 'N/A'} />
-                    <MetadataItem icon={Eye} text={movie.view?.toLocaleString() || '0'} />
-                    {movie.time && <MetadataItem icon={Clock} text={movie.time} />}
-                    <MovieRatings
-                        imdbId={movie.imdb?.id}
-                        tmdbId={movie?.tmdb?.id}
-                        tmdbType={movie?.tmdb?.type}
-                        size="small"
-                    />
+    const renderItem = useCallback(
+        ({ item: movie }: { item: MovieType }) => (
+            <TouchableOpacity
+                style={styles.movieCard}
+                onPress={() => router.push(`/movie/${movie.slug}`)}
+                activeOpacity={0.9}
+            >
+                <Image
+                    source={{
+                        uri: getOptimizedImageUrl(movie.posterUrl || movie.thumbUrl, {
+                            baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
+                            width: 1200,
+                            height: 720,
+                        }),
+                    }}
+                    style={styles.backgroundImage}
+                    contentFit="cover"
+                />
+                <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+                    style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.movieInfo}>
+                    <Text category="h4" style={styles.title}>
+                        {movie.name}
+                    </Text>
+                    <Text category="s1" style={styles.subtitle}>
+                        {movie.originName}
+                    </Text>
+                    <View style={styles.metadataContainer}>
+                        <MetadataItem icon={Calendar} text={movie?.year?.toString() || 'N/A'} />
+                        <MetadataItem icon={Eye} text={movie.view?.toLocaleString() || '0'} />
+                        {movie.time && <MetadataItem icon={Clock} text={movie.time} />}
+                        <MovieRatings
+                            imdbId={movie.imdb?.id}
+                            tmdbId={movie?.tmdb?.id}
+                            tmdbType={movie?.tmdb?.type}
+                            size="small"
+                        />
+                    </View>
+                    <Text category="p2" style={styles.description} numberOfLines={2}>
+                        {movie.content}
+                    </Text>
                 </View>
-                <Text category="p2" style={styles.description} numberOfLines={2}>
-                    {movie.content}
-                </Text>
-            </View>
-        </TouchableOpacity>
+            </TouchableOpacity>
+        ),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [movies],
     );
 
     const MetadataItem = ({
@@ -84,6 +84,10 @@ export default function MovieSwiper({ movies = [] }: { movies?: MovieType[] }) {
         </View>
     );
 
+    if (!movies || movies.length === 0) {
+        return null;
+    }
+
     return (
         <Layout style={styles.container} level="1">
             <SwiperFlatList
@@ -101,7 +105,9 @@ export default function MovieSwiper({ movies = [] }: { movies?: MovieType[] }) {
     );
 }
 
-const styles = StyleSheet.create({
+export default memo(MovieSwiper);
+
+export const styles = StyleSheet.create({
     container: {
         height: height * 0.4,
         marginBottom: 20,
@@ -122,12 +128,16 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         marginBottom: 4,
-        textShadowColor: '0px 1px 2px rgba(0,0,0,0.8)',
+        textShadowColor: 'rgba(0,0,0,0.8)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     subtitle: {
         color: 'white',
         marginBottom: 12,
-        textShadowColor: '0px 1px 2px rgba(0,0,0,0.8)',
+        textShadowColor: 'rgba(0,0,0,0.8)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     metadataContainer: {
         flexDirection: 'row',
@@ -143,13 +153,17 @@ const styles = StyleSheet.create({
     metadataText: {
         color: 'white',
         marginLeft: 4,
-        textShadowColor: '0px 1px 2px rgba(0,0,0,0.8)',
+        textShadowColor: 'rgba(0,0,0,0.8)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     description: {
         color: 'white',
         opacity: 0.9,
         marginBottom: 16,
-        textShadowColor: '0px 1px 2px rgba(0,0,0,0.8)',
+        textShadowColor: 'rgba(0,0,0,0.8)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     watchButton: {
         alignSelf: 'flex-start',
