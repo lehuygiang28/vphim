@@ -43,7 +43,7 @@ export default function AppLayout() {
                     <Stack.Screen name="search" options={{ headerShown: false }} />
                     <Stack.Screen name="movie/[slug]" options={{ headerShown: false }} />
                 </Stack>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle="light-content" />
             </ApplicationProvider>
         </Refine>
     );
