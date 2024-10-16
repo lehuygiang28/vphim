@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { View, ScrollView, Dimensions, TouchableOpacity, StyleSheet } from 'react-native';
 import { useOne } from '@refinedev/core';
 import {
@@ -92,6 +92,10 @@ export default function MovieScreen() {
                 setError('Phim đang được cập nhật, vui lòng quay lại sau.');
                 setIsErrorModalVisible(true);
             }
+        } else {
+            setError('Phim đang được cập nhật, vui lòng quay lại sau.');
+            setIsErrorModalVisible(true);
+            return;
         }
     }, [movie, preFetchM3u8]);
 
@@ -113,8 +117,11 @@ export default function MovieScreen() {
         )}`;
     };
 
-    const videoUrl = getVideoUrl();
-
+    const videoUrl = useMemo(
+        () => getVideoUrl(),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [selectedEpisode, isM3u8Available, useEmbedLink, movie],
+    );
     const handlePlayPress = useCallback(() => {
         if (!error) {
             setIsPlaying(true);
@@ -151,6 +158,10 @@ export default function MovieScreen() {
             } else {
                 setError('Không thể phát video. Vui lòng thử lại sau hoặc chọn một nguồn khác.');
             }
+        } else {
+            setError('Tập phim chưa khả dụng. Vui lòng thử lại sau!');
+            setIsErrorModalVisible(true);
+            return;
         }
     };
 
@@ -218,7 +229,7 @@ export default function MovieScreen() {
     if (!movie?.data) {
         return (
             <Layout style={styles.errorContainer} level="2">
-                <Text category="h5">Movie not found</Text>
+                <Text category="h5">Phim đang cập nhật, vui lòng thử lại sau!</Text>
             </Layout>
         );
     }
