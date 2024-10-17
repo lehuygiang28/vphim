@@ -1,14 +1,24 @@
-import React from 'react';
-import { StyleSheet, ScrollView, View, Pressable, SafeAreaView } from 'react-native';
-import { Link } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import {
+    StyleSheet,
+    ScrollView,
+    View,
+    Pressable,
+    SafeAreaView,
+    RefreshControl,
+    Alert,
+} from 'react-native';
+import { Link, useFocusEffect, router } from 'expo-router';
 import { Text, useTheme, Spinner } from '@ui-kitten/components';
-import { User, Info, MessageSquare, ChevronRight, FileText } from 'lucide-react-native';
+import { User, Info, MessageSquare, ChevronRight, FileText, LogOut } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useSession } from '~mb/hooks/useSession';
 
 export default function AccountScreen() {
-    const { session, loading } = useSession();
+    const { session, loading, loadSession, clearSession } = useSession();
+    const [refreshing, setRefreshing] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
     const theme = useTheme();
 
     const menuItems = [
@@ -17,7 +27,46 @@ export default function AccountScreen() {
         { title: 'Về ứng dụng', icon: Info, href: '/about' },
     ];
 
-    if (loading) {
+    useFocusEffect(
+        useCallback(() => {
+            loadSession();
+        }, [loadSession]),
+    );
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await loadSession();
+        setRefreshing(false);
+    }, [loadSession]);
+
+    const handleLogout = useCallback(() => {
+        Alert.alert(
+            'Xác nhận đăng xuất',
+            'Bạn có chắc chắn muốn đăng xuất?',
+            [
+                {
+                    text: 'Hủy',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Đăng xuất',
+                    onPress: async () => {
+                        setLoggingOut(true);
+                        await clearSession();
+                        // Add a slight delay for better UX
+                        setTimeout(() => {
+                            setLoggingOut(false);
+                            router.replace('/');
+                        }, 2000);
+                    },
+                    style: 'destructive',
+                },
+            ],
+            { cancelable: false },
+        );
+    }, [clearSession]);
+
+    if (loading && !refreshing) {
         return (
             <SafeAreaView style={[styles.container, styles.loadingContainer]}>
                 <Spinner size="large" />
@@ -34,7 +83,12 @@ export default function AccountScreen() {
             style={styles.container}
         >
             <SafeAreaView style={styles.safeArea}>
-                <ScrollView contentContainerStyle={styles.scrollViewContent}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollViewContent}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                >
                     <View style={styles.headerContent}>
                         {session ? (
                             <View style={styles.profileInfo}>
@@ -90,6 +144,29 @@ export default function AccountScreen() {
                                 </Pressable>
                             </Link>
                         ))}
+                        {session && (
+                            <Pressable
+                                style={styles.listItem}
+                                onPress={handleLogout}
+                                disabled={loggingOut}
+                            >
+                                {loggingOut ? (
+                                    <Spinner size="small" status="danger" />
+                                ) : (
+                                    <LogOut color={theme['color-danger-500']} size={24} />
+                                )}
+                                <Text
+                                    category="s1"
+                                    style={[
+                                        styles.listItemText,
+                                        styles.logoutText,
+                                        loggingOut && styles.logoutTextDisabled,
+                                    ]}
+                                >
+                                    {loggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                                </Text>
+                            </Pressable>
+                        )}
                     </View>
                 </ScrollView>
             </SafeAreaView>
@@ -182,5 +259,11 @@ const styles = StyleSheet.create({
     listItemText: {
         flex: 1,
         marginLeft: 16,
+    },
+    logoutText: {
+        color: 'red',
+    },
+    logoutTextDisabled: {
+        color: 'gray',
     },
 });

@@ -51,5 +51,5 @@ export function useSession() {
         }
     };
 
-    return { session, loading, updateSession, clearSession };
+    return { session, loading, updateSession, clearSession, loadSession };
 }
