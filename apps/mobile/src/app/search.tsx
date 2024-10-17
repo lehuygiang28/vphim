@@ -1,17 +1,17 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Image, SafeAreaView } from 'react-native';
 import { Layout, Input, Text, ListItem, useTheme } from '@ui-kitten/components';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Search, ArrowLeft } from 'lucide-react-native';
 import { useInfiniteList } from '@refinedev/core';
 import { useDebounce } from 'use-debounce';
-import Animated, { FadeIn, FadeOut, Layout as AnimatedLayout } from 'react-native-reanimated';
-import { MOVIES_LIST_QUERY } from '@/queries/movies';
-import { MovieType } from '~api/app/movies/movie.type';
 import { capitalize } from 'lodash';
-import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
+import { MovieType } from '~api/app/movies/movie.type';
+
+import { MOVIES_LIST_QUERY } from '~fe/queries/movies';
+import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
 
 const SkeletonLoader = () => {
     const theme = useTheme();
@@ -93,7 +93,7 @@ export default function SearchScreen() {
 
     const renderMovieItem = useCallback(
         ({ item }: { item: MovieType }) => (
-            <Animated.View entering={FadeIn} layout={AnimatedLayout}>
+            <Animated.View entering={FadeIn} layout={LinearTransition}>
                 <ListItem
                     title={(evaProps) => (
                         <Text
@@ -149,55 +149,61 @@ export default function SearchScreen() {
     const allMovies = data?.pages.flatMap((page) => page.data) || [];
 
     return (
-        <Layout style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}>
-            <Animated.View style={styles.searchContainer} layout={AnimatedLayout}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeft color={theme['text-basic-color']} size={24} />
-                </TouchableOpacity>
-                <Input
-                    placeholder="Search movies"
-                    value={inputValue}
-                    onChangeText={handleInputChange}
-                    style={styles.searchInput}
-                    accessoryRight={(props) => (
-                        <Search {...props} color={theme['text-basic-color']} size={20} />
-                    )}
-                />
-            </Animated.View>
-            {isError ? (
-                <Text style={[styles.errorText, { color: theme['color-danger-500'] }]}>
-                    An error occurred while fetching movies.
-                </Text>
-            ) : isLoading || isSearching ? (
-                <SkeletonLoader />
-            ) : (
-                <Animated.FlatList
-                    ref={flatListRef}
-                    data={allMovies}
-                    renderItem={renderMovieItem}
-                    keyExtractor={keyExtractor}
-                    style={styles.resultsList}
-                    ListEmptyComponent={
-                        <Animated.Text
-                            entering={FadeIn}
-                            style={[styles.emptyText, { color: theme['text-hint-color'] }]}
-                        >
-                            No results found
-                        </Animated.Text>
-                    }
-                    onEndReached={() => {
-                        if (hasNextPage) {
-                            fetchNextPage();
+        <SafeAreaView
+            style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
+        >
+            <Layout
+                style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
+            >
+                <Animated.View style={styles.searchContainer} layout={LinearTransition}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                        <ArrowLeft color={theme['text-basic-color']} size={24} />
+                    </TouchableOpacity>
+                    <Input
+                        placeholder="Search movies"
+                        value={inputValue}
+                        onChangeText={handleInputChange}
+                        style={styles.searchInput}
+                        accessoryRight={(props) => (
+                            <Search {...props} color={theme['text-basic-color']} size={20} />
+                        )}
+                    />
+                </Animated.View>
+                {isError ? (
+                    <Text style={[styles.errorText, { color: theme['color-danger-500'] }]}>
+                        An error occurred while fetching movies.
+                    </Text>
+                ) : isLoading || isSearching ? (
+                    <SkeletonLoader />
+                ) : (
+                    <Animated.FlatList
+                        ref={flatListRef}
+                        data={allMovies}
+                        renderItem={renderMovieItem}
+                        keyExtractor={keyExtractor}
+                        style={styles.resultsList}
+                        ListEmptyComponent={
+                            <Animated.Text
+                                entering={FadeIn}
+                                style={[styles.emptyText, { color: theme['text-hint-color'] }]}
+                            >
+                                No results found
+                            </Animated.Text>
                         }
-                    }}
-                    onEndReachedThreshold={0.5}
-                    ListFooterComponent={renderFooter}
-                    initialNumToRender={10}
-                    maxToRenderPerBatch={10}
-                    windowSize={10}
-                />
-            )}
-        </Layout>
+                        onEndReached={() => {
+                            if (hasNextPage) {
+                                fetchNextPage();
+                            }
+                        }}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={renderFooter}
+                        initialNumToRender={10}
+                        maxToRenderPerBatch={10}
+                        windowSize={10}
+                    />
+                )}
+            </Layout>
+        </SafeAreaView>
     );
 }
 
@@ -205,7 +211,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        paddingTop: 40,
     },
     searchContainer: {
         flexDirection: 'row',

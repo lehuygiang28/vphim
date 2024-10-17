@@ -1,13 +1,13 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, ScrollView, Dimensions } from 'react-native';
+import { View, StyleSheet, FlatList, ScrollView, Dimensions, SafeAreaView } from 'react-native';
 import { useList } from '@refinedev/core';
 import { useTheme, Text, Spinner, Layout } from '@ui-kitten/components';
 import { useRouter } from 'expo-router';
 
-import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
+import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '~fe/queries/movies';
+import { type MovieType } from '~api/app/movies/movie.type';
 
 import { MovieCard } from '~mb/components/card/movie-card';
-import { type MovieType } from '~api/app/movies/movie.type';
 import ImmersiveMovieSwiper from '~mb/components/swiper/movie-swiper';
 
 const { width } = Dimensions.get('window');
@@ -89,28 +89,32 @@ export default function HomeScreen() {
     }
 
     return (
-        <ScrollView
+        <SafeAreaView
             style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
-            contentContainerStyle={styles.contentContainer}
         >
-            {mostViewed?.data && mostViewed.data.length > 0 && (
-                <ImmersiveMovieSwiper movies={mostViewed.data} />
-            )}
-            {newMovies?.data && newMovies.data.length > 0 && (
-                <MovieSection
-                    title="Phim Mới"
-                    movies={newMovies.data}
-                    onMoviePress={onMoviePress}
-                />
-            )}
-            {actionMovies?.data && actionMovies.data.length > 0 && (
-                <MovieSection
-                    title="Phim Hành Động"
-                    movies={actionMovies.data}
-                    onMoviePress={onMoviePress}
-                />
-            )}
-        </ScrollView>
+            <ScrollView
+                style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
+                contentContainerStyle={styles.contentContainer}
+            >
+                {mostViewed?.data && mostViewed.data.length > 0 && (
+                    <ImmersiveMovieSwiper movies={mostViewed.data} />
+                )}
+                {newMovies?.data && newMovies.data.length > 0 && (
+                    <MovieSection
+                        title="Phim Mới"
+                        movies={newMovies.data}
+                        onMoviePress={onMoviePress}
+                    />
+                )}
+                {actionMovies?.data && actionMovies.data.length > 0 && (
+                    <MovieSection
+                        title="Phim Hành Động"
+                        movies={actionMovies.data}
+                        onMoviePress={onMoviePress}
+                    />
+                )}
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
