@@ -17,6 +17,7 @@ export type ImageOptimizedProps = {
     shouldShowHorizontalImage?: boolean;
     quality?: number;
     disableSkeleton?: boolean;
+    loadType?: 'lazy' | 'eager';
 };
 
 const ForwardedImage = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
@@ -60,6 +61,7 @@ export function ImageOptimized({
     wrapperStyle,
     quality = 60,
     disableSkeleton = false,
+    loadType = 'lazy',
 }: ImageOptimizedProps) {
     const [showImage1, setShowImage1] = useState(true);
     const [currentUrl1, setCurrentUrl1] = useState(
@@ -154,6 +156,7 @@ export function ImageOptimized({
                     className={showImage ? className : ''}
                     onError={() => handleImageError(imageNumber)}
                     onLoad={() => handleImageLoad(imageNumber)}
+                    loading={loadType}
                 />
             );
         } else {
@@ -172,6 +175,7 @@ export function ImageOptimized({
                     onError={() => handleImageError(imageNumber)}
                     onLoad={() => handleImageLoad(imageNumber)}
                     wrapperStyle={{ display: 'unset', ...wrapperStyle }}
+                    loading={loadType}
                 />
             );
         }
