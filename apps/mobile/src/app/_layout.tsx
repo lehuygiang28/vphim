@@ -7,10 +7,10 @@ import { ApplicationProvider } from '@ui-kitten/components';
 
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
 import { useAxiosAuth } from '~mb/hooks/useAxiosAuth';
-import { ignoreExpoWaring } from '~mb/libs/utils';
+import { filterConsoleWarnings } from '~mb/libs/utils';
 
 if (__DEV__) {
-    ignoreExpoWaring();
+    filterConsoleWarnings();
 }
 
 export default function AppLayout() {

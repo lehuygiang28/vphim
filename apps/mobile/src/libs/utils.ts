@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export function ignoreExpoWaring() {
+export function filterConsoleWarnings() {
     const ignoreLogTextList = [
         'Warning: findNodeHandle is deprecated in StrictMode.',
         'Warning: findHostInstance_DEPRECATED is deprecated in StrictMode.',
