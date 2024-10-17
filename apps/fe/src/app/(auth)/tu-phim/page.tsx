@@ -6,10 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useOne } from '@refinedev/core';
 import { Empty, List, Grid, Breadcrumb, Divider } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
+
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
+import type { UserType } from 'apps/api/src/app/users/user.type';
+
 import { GET_OWN_FOLLOWING_MOVIES_WITH_DETAILS } from '@/queries/users';
 import { MovieCard } from '@/components/card/movie-card';
-import { MovieType } from 'apps/api/src/app/movies/movie.type';
-import { UserType } from 'apps/api/src/app/users/user.type';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import LazyMovieList from '@/components/list/movie-lazy-list';
 

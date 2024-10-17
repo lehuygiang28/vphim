@@ -6,11 +6,12 @@ import { LogicalFilter, useList } from '@refinedev/core';
 import { SearchOutlined, FilterOutlined, CloseOutlined } from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
 
+import type { Category } from 'apps/api/src/app/categories/category.schema';
+import type { Region } from 'apps/api/src/app/regions/region.schema';
+
 import { movieTypeTranslations } from '@/constants/translation-enum';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 import { REGIONS_LIST_QUERY } from '@/queries/regions';
-import type { Category } from 'apps/api/src/app/categories/category.schema';
-import type { Region } from 'apps/api/src/app/regions/region.schema';
 import { LocalQuery } from './index';
 
 const { Option } = Select;

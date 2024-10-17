@@ -1,5 +1,5 @@
+import type { AuthRegisterConfirmDto } from 'apps/api/src/app/auth/dtos/auth-register-confirm.dto';
 import { RegisterValidator } from '@/validators';
-import type { AuthRegisterConfirmDto } from 'apps/api/src/app/auth/dtos';
 
 export type RequestRegisterAction = {
     type: 'request-register';

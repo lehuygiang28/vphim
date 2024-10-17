@@ -6,12 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Divider, Space, Breadcrumb, List, Grid, Empty } from 'antd';
 import { useTable, CrudSort, CrudFilters } from '@refinedev/core';
 import { parseTableParams } from '@refinedev/nextjs-router';
+
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
+
+import { sortedStringify } from '@/libs/utils/common';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieCard } from '@/components/card/movie-card';
 import { MovieFilters } from './movie-filter';
-
-import type { MovieType } from 'apps/api/src/app/movies/movie.type';
-import { sortedStringify } from 'apps/api/src/libs/utils/common';
 
 const { useBreakpoint } = Grid;
 

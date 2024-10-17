@@ -1,17 +1,17 @@
 'use client';
 
+import '@refinedev/antd/dist/reset.css';
+
 import { useNotificationProvider } from '@refinedev/antd';
 import { DataProvider, Refine } from '@refinedev/core';
 import { SessionProvider, useSession } from 'next-auth/react';
 import React from 'react';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-
 import routerProvider from '@refinedev/nextjs-router';
-
 import { AntdRegistry } from '@ant-design/nextjs-registry';
+
 import { ColorModeContextProvider } from '@/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '@/providers/data-provider';
-import '@refinedev/antd/dist/reset.css';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 import { authProvider } from '@/providers/auth-provider';
 import { useAxios } from '@/hooks/useAxios';

@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Tag, Tooltip } from 'antd';
+import Link from 'next/link';
 import Image from 'next/image';
+import { Tag, Tooltip } from 'antd';
 
 interface TMDBRatingProps {
     id: string;

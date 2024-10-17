@@ -5,13 +5,14 @@ import { AxiosInstance } from 'axios';
 import camelCase from 'camelcase';
 import pluralize from 'pluralize';
 import { BaseRecord, GetListParams, GetListResponse, MetaQuery } from '@refinedev/core';
+
+import type { Movie } from 'apps/api/src/app/movies/movie.schema';
+
 import {
     handleFilterQuery,
     handlePaginationQuery,
     handleSortQuery,
 } from '@/libs/utils/data-provider.util';
-
-import type { Movie } from 'apps/api/src/app/movies/movie.schema';
 
 const handleResetCache = (meta: MetaQuery): { [key: string]: boolean } | object => {
     if (meta?.resetCache && (meta?.resetCache === true || meta?.resetCache === 'true')) {

@@ -1,7 +1,9 @@
 import slugify from 'slugify';
-import { canParseToNumber } from './common';
-import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
+
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
+
+import { canParseToNumber } from './common';
 
 export function getFirstEpisodeSlug(movie?: MovieType): string {
     if (!movie) {

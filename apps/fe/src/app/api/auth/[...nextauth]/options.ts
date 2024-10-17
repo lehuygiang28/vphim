@@ -2,8 +2,10 @@ import { Account, Session, User, AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import GithubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { AuthValidatePasswordlessDto, LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 import { AxiosError } from 'axios';
+
+import type { AuthValidatePasswordlessDto, LoginResponseDto } from 'apps/api/src/app/auth/dtos';
+
 import { axiosInstance } from '@/libs/axios';
 import { RouteNameEnum } from '@/constants/route.constant';
 

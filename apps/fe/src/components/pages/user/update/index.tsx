@@ -1,15 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useGetIdentity, useNotification, useApiUrl, useUpdate } from '@refinedev/core';
 import { useForm } from '@refinedev/react-hook-form';
 import { Controller } from 'react-hook-form';
 import { Form, Input, Upload, Button, Avatar, Typography, Space, Skeleton, message } from 'antd';
 import { UserOutlined, MailOutlined, UploadOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
-import { GET_ME_QUERY, MUTATION_ME_QUERY } from '@/queries/users';
-import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
+
+import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
+
+import { GET_ME_QUERY, MUTATION_ME_QUERY } from '@/queries/users';
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 
 const { Title, Text } = Typography;

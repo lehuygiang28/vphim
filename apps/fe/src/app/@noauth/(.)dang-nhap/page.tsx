@@ -3,9 +3,11 @@
 import { useGetIdentity } from '@refinedev/core';
 import { Modal } from 'antd';
 import { useRouter } from 'next/navigation';
+
+import type { UserType } from 'apps/api/src/app/users/user.type';
+
 import Login from '@/components/pages/auth/login';
 import { LoadingSpinner } from '@/components/loading';
-import type { UserType } from 'apps/api/src/app/users/user.type';
 
 export default function LoginParallelPage() {
     const router = useRouter();

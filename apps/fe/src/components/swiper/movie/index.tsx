@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import type { CSSProperties } from 'react';
+import './movie.css';
+import 'swiper/css';
+import 'swiper/css/effect-fade';
+import 'swiper/css/pagination';
+
+import React, { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Typography, Row, Col, Space, Grid, Tag } from 'antd';
@@ -7,12 +11,8 @@ import { CalendarOutlined, EyeOutlined } from '@ant-design/icons';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
 import { EffectFade, Pagination, Autoplay } from 'swiper/modules';
 
-import './movie.css';
-import 'swiper/css';
-import 'swiper/css/effect-fade';
-import 'swiper/css/pagination';
-
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { TMDBRating } from '@/components/card/tmdb-rating';
@@ -102,6 +102,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                     maxHeight: md ? '85vh' : '35vh',
                                 }}
                                 quality={20}
+                                loadType={index === 0 ? 'eager' : 'lazy'}
                             />
                         </div>
                     );
@@ -157,7 +158,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                     }
                 }}
             >
-                {movies?.map((movie) => (
+                {movies?.map((movie, movieIndex) => (
                     <SwiperSlide key={movie.slug}>
                         <div style={heroStyle}>
                             <div style={contentStyle}>
@@ -328,6 +329,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                     style={posterStyle}
                                                     className="posterImage"
                                                     disableSkeleton
+                                                    loadType={movieIndex === 0 ? 'lazy' : 'eager'}
                                                 />
                                             </Link>
                                         </div>

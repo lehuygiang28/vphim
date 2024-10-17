@@ -12,11 +12,11 @@ import { stringifyTableParams, useGetIdentity } from '@refinedev/core';
 import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
 import { signOut } from 'next-auth/react';
 
+import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
+import type { UserDto } from 'apps/api/src/app/users/dtos/user.dto';
+
 import { RouteNameEnum } from '@/constants/route.constant';
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
-
-import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
-import { UserDto } from 'apps/api/src/app/users/dtos/user.dto';
 
 const { Header } = Layout;
 const { useBreakpoint } = Grid;
@@ -341,11 +341,19 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                         </Button>
                     </Dropdown>
                 ) : (
-                    <Link href={`${RouteNameEnum.LOGIN_PAGE}?to=${encodeURIComponent(pathname)}`}>
-                        <Tooltip title="Đăng nhập/Đăng kí">
-                            <Button type="default" icon={<UserOutlined />}></Button>
-                        </Tooltip>
-                    </Link>
+                    <Tooltip title="Đăng nhập/Đăng kí">
+                        <Button
+                            type="default"
+                            icon={<UserOutlined />}
+                            onClick={() =>
+                                router.push(
+                                    `${RouteNameEnum.LOGIN_PAGE}?to=${encodeURIComponent(
+                                        pathname,
+                                    )}`,
+                                )
+                            }
+                        ></Button>
+                    </Tooltip>
                 )}
             </div>
             <Drawer

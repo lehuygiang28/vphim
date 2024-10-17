@@ -5,10 +5,10 @@ import { SendOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useCreate, useInfiniteList, useGetIdentity } from '@refinedev/core';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { CommentType } from 'apps/api/src/app/comments/comment.type';
-import { isNullOrUndefined } from 'apps/api/src/libs/utils/common';
-import { UserType } from 'apps/api/src/app/users/user.type';
+import type { CommentType } from 'apps/api/src/app/comments/comment.type';
+import type { UserType } from 'apps/api/src/app/users/user.type';
 
+import { isNullOrUndefined } from '@/libs/utils/common';
 import { COMMENT_LIST_QUERY, CREATE_COMMENT_MUTATION } from '@/queries/comment';
 import { Comment } from '@/components/comments';
 

@@ -1,5 +1,5 @@
 import { IsEmail, IsNotEmpty } from 'class-validator';
-import type { AuthLoginPasswordlessDto } from 'apps/api/src/app/auth/dtos';
+import type { AuthLoginPasswordlessDto } from 'apps/api/src/app/auth/dtos/auth-login-pwd-less.dto';
 
 export class LoginPwdless implements AuthLoginPasswordlessDto {
     @IsEmail(undefined, { message: 'Email is invalid' })

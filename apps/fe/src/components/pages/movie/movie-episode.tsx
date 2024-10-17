@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Tabs, Button, Typography, Alert, ConfigProvider, theme } from 'antd';
+
 import type {
     MovieType,
     EpisodeType,
