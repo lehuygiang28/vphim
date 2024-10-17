@@ -26,11 +26,12 @@ export default function TabsLayout() {
                 tabBarStyle: {
                     backgroundColor: theme['background-basic-color-1'],
                 },
-                header: () => <AppHeader />,
+                header: () => (route.name !== 'account' ? <AppHeader /> : null),
             })}
         >
-            <Tabs.Screen name="index" options={{ title: 'Home' }} />
-            <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
+            <Tabs.Screen name="index" options={{ title: 'Trang Chủ' }} />
+            <Tabs.Screen name="explore" options={{ title: 'Khám Phá' }} />
+            <Tabs.Screen name="account" options={{ title: 'Cá Nhân' }} />
         </Tabs>
     );
 }
