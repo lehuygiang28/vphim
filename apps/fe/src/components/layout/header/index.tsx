@@ -341,11 +341,19 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                         </Button>
                     </Dropdown>
                 ) : (
-                    <Link href={`${RouteNameEnum.LOGIN_PAGE}?to=${encodeURIComponent(pathname)}`}>
-                        <Tooltip title="Đăng nhập/Đăng kí">
-                            <Button type="default" icon={<UserOutlined />}></Button>
-                        </Tooltip>
-                    </Link>
+                    <Tooltip title="Đăng nhập/Đăng kí">
+                        <Button
+                            type="default"
+                            icon={<UserOutlined />}
+                            onClick={() =>
+                                router.push(
+                                    `${RouteNameEnum.LOGIN_PAGE}?to=${encodeURIComponent(
+                                        pathname,
+                                    )}`,
+                                )
+                            }
+                        ></Button>
+                    </Tooltip>
                 )}
             </div>
             <Drawer
