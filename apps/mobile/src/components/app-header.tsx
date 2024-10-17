@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { TopNavigation, Layout, useTheme } from '@ui-kitten/components';
 import { Search } from 'lucide-react-native';
 
-import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
+import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
 
 function AppHeader() {
     const router = useRouter();
@@ -49,7 +49,7 @@ function AppHeader() {
     );
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{ backgroundColor: theme['background-basic-color-1'] }}>
             <Layout style={styles.headerContainer} level="1">
                 <TopNavigation
                     style={styles.header}
