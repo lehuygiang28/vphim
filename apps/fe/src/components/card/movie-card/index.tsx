@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { Button, Card, Divider, Grid, Space, Tag, Typography } from 'antd';
 import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
 
+import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos/movie-response.dto';
+
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { truncateText } from '@/libs/utils/movie.util';
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos/movie-response.dto';
 
 const { Text, Paragraph, Title } = Typography;
 const { useBreakpoint } = Grid;

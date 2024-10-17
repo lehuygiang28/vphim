@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
-import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
+
+import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos/login-response.dto';
+
 import { useAxios } from './useAxios';
 import { AxiosError } from 'axios';
 

@@ -72,3 +72,34 @@ export function formatDateToHumanReadable(
 export function isProduction() {
     return process.env.NODE_ENV === 'production';
 }
+
+/**
+ *
+ * @param value The value to check if it is null or undefined
+ * @returns true if the value is null or undefined, otherwise false
+ */
+export function isNullOrUndefined(value: unknown): value is null | undefined {
+    return value === null || value === undefined;
+}
+
+/**
+ * Sorts and stringifies an argument
+ * @param arg The argument to be sorted and stringified
+ * @returns The sorted and stringified argument as a string
+ */
+export function sortedStringify(arg: unknown): string {
+    if (typeof arg !== 'object' || arg === null || arg === undefined) {
+        return JSON.stringify(arg);
+    }
+
+    if (Array.isArray(arg)) {
+        return '[' + arg.map(sortedStringify).join(',') + ']';
+    }
+
+    const keys = Object.keys(arg as object).sort((a, b) => a.localeCompare(b));
+    const keyValuePairs = keys.map((key) => {
+        const value = sortedStringify((arg as { [key: string]: unknown })[key]);
+        return '"' + key + '":' + value;
+    });
+    return '{' + keyValuePairs.join(',') + '}';
+}

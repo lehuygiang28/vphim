@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import axios, { AxiosInstance } from 'axios';
+
 import { axiosInstance } from '@/libs/axios';
 
 export type HttpMethodEnum = 'get' | 'post' | 'put' | 'patch' | 'delete';

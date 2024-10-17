@@ -1,5 +1,5 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import type { AuthSignupDto } from 'apps/api/src/app/auth/dtos';
+import type { AuthSignupDto } from 'apps/api/src/app/auth/dtos/auth-signup.dto';
 
 export class RegisterValidator implements AuthSignupDto {
     @IsNotEmpty({ message: 'Email is required' })

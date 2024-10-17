@@ -1,5 +1,5 @@
-import { Tag } from 'antd';
 import React, { CSSProperties, PropsWithChildren } from 'react';
+import { Tag } from 'antd';
 
 export type MovieQualityTagProps = {
     quality: string;

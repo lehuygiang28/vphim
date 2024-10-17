@@ -3,6 +3,7 @@
 import { useIsAuthenticated } from '@refinedev/core';
 import { Modal } from 'antd';
 import { useRouter } from 'next/navigation';
+
 import { UserUpdateComponent } from '@/components/pages/user/update';
 import { LoadingSpinner } from '@/components/loading';
 

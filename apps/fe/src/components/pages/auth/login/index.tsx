@@ -1,19 +1,19 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useLogin, useNotification } from '@refinedev/core';
 import { Space, Form, Input, Typography, Divider, Button, Modal } from 'antd';
 import { MailOutlined, GithubOutlined, GoogleOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import type { LoginActionPayload } from '@/providers/auth-provider/types';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { LoginPwdless } from '@/validators';
-import LoadingBtn from '@/components/button/loading-btn';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { LoadingSpinner } from '@/components/loading';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+
+import { LoginPwdless } from '@/validators';
+import type { LoginActionPayload } from '@/providers/auth-provider/types';
+import LoadingBtn from '@/components/button/loading-btn';
+import { LoadingSpinner } from '@/components/loading';
 
 const { Title, Text } = Typography;
 const SEEM_SAFE_HASH_LENGTH = 30;

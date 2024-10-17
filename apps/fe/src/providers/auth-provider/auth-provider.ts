@@ -6,8 +6,8 @@ import { AxiosError, AxiosInstance } from 'axios';
 import { print } from 'graphql/language/printer';
 import { axiosInstance } from '@/libs/axios';
 
-import { type ProblemDetails } from 'apps/api/src/libs/dtos';
-import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos';
+import type { ProblemDetails } from 'apps/api/src/libs/dtos/problem-details.dto';
+import type { LoginResponseDto } from 'apps/api/src/app/auth/dtos/login-response.dto';
 
 import type { LoginActionPayload, LoginAction, RequestLoginAction } from './types/login.type';
 import {

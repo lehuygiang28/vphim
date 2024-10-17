@@ -5,11 +5,11 @@ import dynamic from 'next/dynamic';
 import { CrudFilter, CrudSort, stringifyTableParams, useList } from '@refinedev/core';
 import { Grid } from 'antd';
 import { DocumentNode } from 'graphql';
-import { LoadingSpinner } from '@/components/loading';
-
-const MovieList = dynamic(() => import('@/components/swiper/movie-list'));
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+
+const MovieList = dynamic(() => import('@/components/swiper/movie-list'));
+import { LoadingSpinner } from '@/components/loading';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { slugifyVietnamese } from '@/libs/utils/movie.util';

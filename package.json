@@ -39,6 +39,7 @@
         "@nestjs/schedule": "^4.1.0",
         "@nestjs/swagger": "^7.4.0",
         "@nestjs/throttler": "^6.2.1",
+        "@next/bundle-analyzer": "^14.2.15",
         "@octokit/rest": "^20.1.1",
         "@react-native-async-storage/async-storage": "1.23.1",
         "@refinedev/antd": "^5.43.0",

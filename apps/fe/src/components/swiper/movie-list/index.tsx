@@ -1,3 +1,7 @@
+import 'swiper/css';
+import 'swiper/css/navigation';
+import './movie-list.css';
+
 import React, { useRef, CSSProperties, useState, useEffect } from 'react';
 import { Typography, Grid, Skeleton } from 'antd';
 import Link from 'next/link';
@@ -7,17 +11,14 @@ import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import { ArrowRightOutlined } from '@ant-design/icons';
 
-import 'swiper/css';
-import 'swiper/css/navigation';
-import './movie-list.css';
+import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+
+import { MovieCard } from '@/components/card/movie-card';
+import { randomString } from '@/libs/utils/common';
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
 const { Image: SkeletonImage } = Skeleton;
-
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
-import { MovieCard } from '@/components/card/movie-card';
-import { randomString } from '@/libs/utils/common';
 
 const getSlidesPerView = (md = false, lg = false, xl = false, xxl = false) => {
     if (xxl) return 6;

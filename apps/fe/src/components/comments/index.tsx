@@ -22,13 +22,14 @@ import {
 } from '@ant-design/icons';
 import { useCreate, useDelete, useUpdate } from '@refinedev/core';
 
-import { CommentType } from 'apps/api/src/app/comments/comment.type';
+import type { CommentType } from 'apps/api/src/app/comments/comment.type';
+
+import { isNullOrUndefined } from '@/libs/utils/common';
 import {
     CREATE_COMMENT_MUTATION,
     DELETE_COMMENT_MUTATION,
     UPDATE_COMMENT_MUTATION,
 } from '@/queries/comment';
-import { isNullOrUndefined } from 'apps/api/src/libs/utils/common';
 import { relativeDate } from '@/libs/utils/relative-date';
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 

@@ -1,6 +1,7 @@
 import React from 'react';
-import MoviesPage from '@/components/pages/movies';
 import { HomeOutlined } from '@ant-design/icons';
+
+import MoviesPage from '@/components/pages/movies';
 
 export default function MovieListPage() {
     return (

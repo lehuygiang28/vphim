@@ -1,4 +1,4 @@
-import type { AuthValidatePasswordlessDto } from 'apps/api/src/app/auth/dtos';
+import type { AuthValidatePasswordlessDto } from 'apps/api/src/app/auth/dtos/auth-login-validate-pwd-less.dto';
 
 export type LoginAction = AuthValidatePasswordlessDto & {
     type: 'login';

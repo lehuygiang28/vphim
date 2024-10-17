@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb } from 'antd';
 import { useGetIdentity, useOne, useUpdate } from '@refinedev/core';
-import { MovieType } from 'apps/api/src/app/movies/movie.type';
 import {
     CalendarOutlined,
     EyeOutlined,
@@ -16,8 +15,9 @@ import {
     PlayCircleOutlined,
 } from '@ant-design/icons';
 
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
+import type { UserType } from 'apps/api/src/app/users/user.type';
 import { MovieTypeEnum, MovieStatusEnum } from 'apps/api/src/app/movies/movie.constant';
-import { UserType } from 'apps/api/src/app/users/user.type';
 
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { GET_MOVIE_QUERY } from '@/queries/movies';
@@ -31,7 +31,6 @@ import {
 import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
 import { IMDBRating } from '@/components/card/imdb-rating';
 import { TMDBRating } from '@/components/card/tmdb-rating';
-
 import { MovieEpisode } from './movie-episode';
 import { MovieRelated } from './movie-related';
 const MovieComments = dynamic(() => import('./movie-comment'));

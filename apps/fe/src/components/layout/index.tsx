@@ -5,15 +5,15 @@ import { Layout, Grid } from 'antd';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { stringifyTableParams, useList } from '@refinedev/core';
-import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
-import { REGIONS_LIST_QUERY } from '@/queries/regions';
-
-import Header from './header';
-const Footer = dynamic(() => import('./footer'));
 
 import type { Category } from 'apps/api/src/app/categories/category.schema';
 import type { Region } from 'apps/api/src/app/regions/region.schema';
+
+import Header from './header';
+const Footer = dynamic(() => import('./footer'));
 import { RouteNameEnum } from '@/constants/route.constant';
+import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
+import { REGIONS_LIST_QUERY } from '@/queries/regions';
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;

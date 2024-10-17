@@ -5,10 +5,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Layout, Row, Col, Typography, Grid, Divider, FloatButton } from 'antd';
 import { stringifyTableParams } from '@refinedev/core';
-import { RouteNameEnum } from '@/constants/route.constant';
 
 import type { Category } from 'apps/api/src/app/categories/category.schema';
 import type { Region } from 'apps/api/src/app/regions/region.schema';
+
+import { RouteNameEnum } from '@/constants/route.constant';
 
 const { Footer } = Layout;
 const { Title, Text } = Typography;
