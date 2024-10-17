@@ -130,7 +130,8 @@
         "@refinedev/devtools": "*",
         "@ui-kitten/components": "*",
         "@eva-design/eva": "*",
-        "react-native-swiper-flatlist": "*"
+        "react-native-swiper-flatlist": "*",
+        "expo-secure-store": "*"
     },
     "scripts": {
         "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",

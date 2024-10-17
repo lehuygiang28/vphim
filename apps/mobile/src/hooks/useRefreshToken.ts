@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useSession } from './useSession';
-import { type LoginResponseDto } from 'apps/api/src/app/auth/dtos';
+import { type LoginResponseDto } from '~api/app/auth/dtos/login-response.dto';
 
 export function useRefreshToken() {
     const { session, updateSession, clearSession } = useSession();
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const refreshToken = async () => {
+    const refreshToken = useCallback(async () => {
         if (isRefreshing || !session?.user.refreshToken) {
             return;
         }
@@ -34,7 +34,7 @@ export function useRefreshToken() {
         } finally {
             setIsRefreshing(false);
         }
-    };
+    }, [isRefreshing, session, updateSession, clearSession]);
 
     return refreshToken;
 }

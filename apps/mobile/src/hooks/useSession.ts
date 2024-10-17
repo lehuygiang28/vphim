@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 import { type LoginResponseDto } from 'apps/api/src/app/auth/dtos';
 
@@ -22,7 +22,7 @@ export function useSession() {
 
     const loadSession = async () => {
         try {
-            const sessionData = await AsyncStorage.getItem('session');
+            const sessionData = await SecureStore.getItemAsync('session');
             if (sessionData) {
                 setSession(JSON.parse(sessionData));
             }
@@ -35,7 +35,7 @@ export function useSession() {
 
     const updateSession = async (newSession: Session) => {
         try {
-            await AsyncStorage.setItem('session', JSON.stringify(newSession));
+            await SecureStore.setItemAsync('session', JSON.stringify(newSession));
             setSession(newSession);
         } catch (error) {
             console.error('Failed to update session:', error);
@@ -44,7 +44,7 @@ export function useSession() {
 
     const clearSession = async () => {
         try {
-            await AsyncStorage.removeItem('session');
+            await SecureStore.deleteItemAsync('session');
             setSession(null);
         } catch (error) {
             console.error('Failed to clear session:', error);
