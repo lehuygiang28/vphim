@@ -81,6 +81,8 @@ export default function AccountScreen() {
         <LinearGradient
             colors={[theme['color-primary-700'], theme['background-basic-color-1']]}
             style={styles.container}
+            end={{ x: 0.1, y: 1 }}
+            start={{ x: 0, y: 0 }}
         >
             <SafeAreaView style={styles.safeArea}>
                 <ScrollView
@@ -109,7 +111,8 @@ export default function AccountScreen() {
                         ) : (
                             <View style={styles.ctaContainer}>
                                 <Text category="h4" style={styles.ctaText}>
-                                    Sign up to watch more movies!
+                                    Hãy tham gia VePhim để thưởng thức hàng ngàn nội dung phim miễn
+                                    phí!
                                 </Text>
                                 <Link href="/auth" asChild>
                                     <Pressable style={styles.ctaButton}>
@@ -119,7 +122,7 @@ export default function AccountScreen() {
                                             style={styles.buttonIcon}
                                         />
                                         <Text category="s1" style={styles.buttonText}>
-                                            Login / Sign Up
+                                            Đăng ký / Đăng nhập
                                         </Text>
                                     </Pressable>
                                 </Link>
