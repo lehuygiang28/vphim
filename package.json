@@ -9,7 +9,7 @@
         "fe:dt": "npx @refinedev/devtools-server start",
         "mnt": "yarn nx run mnt:dev -- -p 4000",
         "adr": "yarn nx run-android mobile -- --non-interactive=true",
-        "mb": "npx cross-env EXPO_PACKAGER_PROXY_URL=https://m.vephim.online yarn nx start mobile"
+        "mb": "yarn nx start mobile"
     },
     "dependencies": {
         "@ant-design/icons": "^5.4.0",
@@ -173,7 +173,6 @@
         "babel-jest": "^29.7.0",
         "babel-preset-expo": "~11.0.0",
         "copy-webpack-plugin": "^12.0.2",
-        "cross-env": "^7.0.3",
         "eslint": "~8.57.0",
         "eslint-config-next": "14.2.3",
         "eslint-config-prettier": "^9.0.0",
