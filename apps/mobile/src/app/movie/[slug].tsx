@@ -30,9 +30,12 @@ import {
 import WebView from 'react-native-webview';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
+
 import { EpisodeServerDataType, MovieType, EpisodeType } from '~api/app/movies/movie.type';
 import { GET_MOVIE_QUERY } from '~fe/queries/movies';
 import { truncateText } from '~fe/libs/utils/movie.util';
+
+import MovieRatings from '~mb/components/card/movie-ratings';
 
 const { width, height } = Dimensions.get('window');
 
@@ -396,7 +399,25 @@ export default function MovieScreen() {
                         )}
                     </View>
                     <Divider style={styles.divider} />
-                    <Text category="s1" style={styles.description}>
+                    {(movie?.data?.imdb?.id || movie?.data?.tmdb?.id) && (
+                        <>
+                            <Text category="s1" style={styles.categoriesTitle}>
+                                Đánh giá:
+                            </Text>
+                            <MovieRatings
+                                imdbId={movie?.data?.imdb?.id}
+                                tmdbId={movie?.data?.tmdb?.id}
+                                tmdbType={movie?.data?.tmdb?.type}
+                                size="small"
+                            />
+                            <Divider style={styles.divider} />
+                        </>
+                    )}
+
+                    <Text category="h1" style={styles.categoriesTitle}>
+                        Nội dung:
+                    </Text>
+                    <Text category="s2" style={styles.description}>
                         {movie.data.content}
                     </Text>
                     {movie?.data?.categories && movie?.data?.categories?.length > 0 && (
@@ -497,7 +518,6 @@ const styles = StyleSheet.create({
     },
     metaInfo: {
         flexDirection: 'row',
-        marginBottom: 16,
     },
     divider: {
         marginVertical: 16,
