@@ -44,11 +44,13 @@ export default function MovieScreen() {
     const [selectedEpisode, setSelectedEpisode] = useState<EpisodeServerDataType | null>(null);
     const [selectedServerIndex, setSelectedServerIndex] = useState(new IndexPath(0));
     const [selectedEpisodeIndex, setSelectedEpisodeIndex] = useState(new IndexPath(0));
-    const [error, setError] = useState<string | null>(null);
     const [useEmbedLink, setUseEmbedLink] = useState(false);
     const [isM3u8Available, setIsM3u8Available] = useState(true);
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const webViewRef = useRef<WebView>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const maxRetries = 3;
 
     const { data: movie, isLoading } = useOne<MovieType>({
         dataProviderName: 'graphql',
@@ -65,25 +67,36 @@ export default function MovieScreen() {
         id: Array.isArray(slug) ? slug[0] : slug,
     });
 
-    const preFetchM3u8 = useCallback(async (url: string) => {
-        try {
-            const response = await fetch(url, { method: 'GET' });
-            if (!response.ok) {
-                throw new Error('M3U8 file not available');
+    const preFetchM3u8 = useCallback(
+        async (url: string) => {
+            try {
+                const response = await fetch(url, { method: 'GET' });
+                if (!response.ok) {
+                    throw new Error('M3U8 file not available');
+                }
+                setIsM3u8Available(true);
+                setUseEmbedLink(false);
+                setError(null);
+                setIsErrorModalVisible(false);
+            } catch (error) {
+                if (retryCount < maxRetries) {
+                    setRetryCount((prevCount) => prevCount + 1);
+                    setTimeout(() => preFetchM3u8(url), 500); // Retry after 0.5 second
+                } else {
+                    setIsM3u8Available(false);
+                    setUseEmbedLink(true);
+                }
             }
-            setIsM3u8Available(true);
-            setUseEmbedLink(false);
-        } catch (error) {
-            setIsM3u8Available(false);
-            setUseEmbedLink(true);
-        }
-    }, []);
+        },
+        [retryCount],
+    );
 
     useEffect(() => {
         if (movie?.data?.episode && movie.data.episode.length > 0) {
             const initialEpisode = movie.data.episode[0].serverData[0];
             setSelectedEpisode(initialEpisode);
             if (initialEpisode.linkM3u8) {
+                setRetryCount(0); // Reset retry count
                 preFetchM3u8(initialEpisode.linkM3u8);
             } else if (initialEpisode.linkEmbed) {
                 setUseEmbedLink(true);
@@ -92,12 +105,11 @@ export default function MovieScreen() {
                 setError('Phim đang được cập nhật, vui lòng quay lại sau.');
                 setIsErrorModalVisible(true);
             }
-        } else {
+        } else if (!isLoading) {
             setError('Phim đang được cập nhật, vui lòng quay lại sau.');
             setIsErrorModalVisible(true);
-            return;
         }
-    }, [movie, preFetchM3u8]);
+    }, [movie, isLoading, preFetchM3u8]);
 
     const getVideoUrl = (): string => {
         if (!selectedEpisode) return '';
@@ -169,6 +181,13 @@ export default function MovieScreen() {
         if (isM3u8Available && !useEmbedLink && selectedEpisode?.linkEmbed) {
             setUseEmbedLink(true);
             setIsM3u8Available(false);
+        } else if (retryCount < maxRetries) {
+            setRetryCount((prevCount) => prevCount + 1);
+            setTimeout(() => {
+                if (webViewRef.current) {
+                    webViewRef.current.reload();
+                }
+            }, 1000); // Retry after 1 second
         } else {
             setError('Không thể phát video. Vui lòng thử lại sau hoặc chọn một nguồn khác.');
             setIsErrorModalVisible(true);
@@ -429,7 +448,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     playerContainer: {
-        width: '100%',
+        width: width,
         height: width * (9 / 16),
         position: 'relative',
     },
