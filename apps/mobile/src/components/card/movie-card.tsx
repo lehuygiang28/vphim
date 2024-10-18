@@ -39,6 +39,7 @@ export const MovieCard = ({ movie, onPress }: { movie: MovieType; onPress: () =>
                 category="s1"
                 numberOfLines={2}
                 style={[styles.title, { color: theme['text-basic-color'] }]}
+                onPress={onPress}
             >
                 {movie.name}
             </Text>
