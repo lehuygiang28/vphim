@@ -1,48 +1,16 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, ScrollView, Dimensions, SafeAreaView } from 'react-native';
-import { useList } from '@refinedev/core';
-import { useTheme, Text, Spinner, Layout } from '@ui-kitten/components';
+import { StyleSheet, ScrollView, Dimensions, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useList } from '@refinedev/core';
+import { useTheme, Spinner, Layout } from '@ui-kitten/components';
 
 import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '~fe/queries/movies';
 import { type MovieType } from '~api/app/movies/movie.type';
 
-import { MovieCard } from '~mb/components/card/movie-card';
 import ImmersiveMovieSwiper from '~mb/components/swiper/movie-swiper';
+import { MovieSection } from '~mb/components/list/movie-section';
 
 const { width } = Dimensions.get('window');
-
-const MovieSection = ({
-    title,
-    movies,
-    onMoviePress,
-}: {
-    title: string;
-    movies: MovieType[];
-    onMoviePress: (movie: MovieType) => void;
-}) => {
-    const theme = useTheme();
-
-    return (
-        <View style={styles.section}>
-            <Text
-                category="h5"
-                style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}
-            >
-                {title}
-            </Text>
-            <FlatList
-                data={movies}
-                renderItem={({ item }) => (
-                    <MovieCard movie={item} onPress={() => onMoviePress(item)} />
-                )}
-                keyExtractor={(item) => item._id.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-            />
-        </View>
-    );
-};
 
 export default function HomeScreen() {
     const theme = useTheme();
