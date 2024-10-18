@@ -36,6 +36,7 @@ import { GET_MOVIE_QUERY } from '~fe/queries/movies';
 import { truncateText } from '~fe/libs/utils/movie.util';
 
 import MovieRatings from '~mb/components/card/movie-ratings';
+import MovieContent from '~mb/components/text/movie-content';
 
 const { width, height } = Dimensions.get('window');
 
@@ -414,12 +415,9 @@ export default function MovieScreen() {
                         </>
                     )}
 
-                    <Text category="h1" style={styles.categoriesTitle}>
-                        Nội dung:
-                    </Text>
-                    <Text category="s2" style={styles.description}>
-                        {movie.data.content}
-                    </Text>
+                    <MovieContent content={movie?.data?.content} maxLines={5} />
+                    <Divider style={styles.divider} />
+
                     {movie?.data?.categories && movie?.data?.categories?.length > 0 && (
                         <View style={styles.categoriesContainer}>
                             <Text category="s1" style={styles.categoriesTitle}>
