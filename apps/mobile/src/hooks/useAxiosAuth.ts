@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { useSession } from './useSession';
 import { useRefreshToken } from './useRefreshToken';
@@ -16,26 +16,20 @@ const createAxiosInstance = (baseURL?: string): AxiosInstance => {
     });
 };
 
-const requestsQueue: {
-    prevRequest: AxiosRequestConfig;
-    resolve: (value: unknown) => void;
-    reject: (reason?: unknown) => void;
-}[] = [];
-let isRefreshing = false;
-
 export function useAxiosAuth(options?: UseAxiosAuthOptions) {
-    const { session, loading, updateSession } = useSession();
+    const { session, loading } = useSession();
     const refreshToken = useRefreshToken();
 
     const axiosInstance = useMemo(() => createAxiosInstance(options?.baseURL), [options?.baseURL]);
 
-    useEffect(() => {
-        if (loading) return;
+    const requestsQueue: {
+        prevRequest: AxiosRequestConfig;
+        resolve: (value: unknown) => void;
+        reject: (reason?: unknown) => void;
+    }[] = [];
+    let isRefreshing = false;
 
-        if (session?.user?.accessToken) {
-            axiosInstance.defaults.headers['Authorization'] = `Bearer ${session.user.accessToken}`;
-        }
-
+    const setupInterceptors = useCallback(() => {
         const requestInterceptor = axiosInstance.interceptors.request.use(
             (config) => {
                 if (!config.headers['Authorization'] && session?.user?.accessToken) {
@@ -85,12 +79,6 @@ export function useAxiosAuth(options?: UseAxiosAuthOptions) {
                 ) {
                     prevRequest.sent = true;
 
-                    // Create a Promise to pause the request
-                    const retryOriginalRequest = new Promise((resolve, reject) => {
-                        // Queue the request with its resolve/reject handlers
-                        requestsQueue.push({ resolve, reject, prevRequest });
-                    });
-
                     if (!isRefreshing) {
                         isRefreshing = true;
 
@@ -111,15 +99,15 @@ export function useAxiosAuth(options?: UseAxiosAuthOptions) {
                                 reject(error);
                             }
                             console.error('Failed to refresh token:', refreshError);
-                            // You might want to sign out the user here
-                            // await clearSession();
                         } finally {
-                            requestsQueue.length = 0; // Clear the queue
+                            requestsQueue.length = 0;
                             isRefreshing = false;
                         }
                     }
 
-                    return retryOriginalRequest;
+                    return new Promise((resolve, reject) => {
+                        requestsQueue.push({ resolve, reject, prevRequest });
+                    });
                 }
                 return Promise.reject(error);
             },
@@ -130,7 +118,23 @@ export function useAxiosAuth(options?: UseAxiosAuthOptions) {
             axiosInstance.interceptors.response.eject(graphqlResponseInterceptor);
             axiosInstance.interceptors.response.eject(responseInterceptor);
         };
-    }, [axiosInstance, session, refreshToken, loading, updateSession]);
+    }, [axiosInstance, session, refreshToken]);
+
+    useEffect(() => {
+        if (loading) return;
+
+        if (session?.user?.accessToken) {
+            axiosInstance.defaults.headers['Authorization'] = `Bearer ${session.user.accessToken}`;
+        } else {
+            delete axiosInstance.defaults.headers['Authorization'];
+        }
+
+        const cleanupInterceptors = setupInterceptors();
+
+        return () => {
+            cleanupInterceptors();
+        };
+    }, [axiosInstance, session, loading, setupInterceptors]);
 
     return axiosInstance;
 }
