@@ -21,8 +21,9 @@ export const MovieCard = ({ movie, onPress }: { movie: MovieType; onPress: () =>
                     source={{
                         uri: getOptimizedImageUrl(movie?.thumbUrl || movie?.posterUrl, {
                             baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
-                            width: 360,
-                            height: 640,
+                            width: 480,
+                            height: 854,
+                            quality: 60,
                         }),
                     }}
                     style={styles.poster}

@@ -121,8 +121,9 @@ export default function SearchScreen() {
                             source={{
                                 uri: getOptimizedImageUrl(item?.thumbUrl || item?.posterUrl, {
                                     baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
-                                    width: 360,
-                                    height: 540,
+                                    width: 480,
+                                    height: 854,
+                                    quality: 60,
                                 }),
                             }}
                             style={styles.thumbnail}
