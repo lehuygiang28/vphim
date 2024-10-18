@@ -37,6 +37,7 @@ import { truncateText } from '~fe/libs/utils/movie.util';
 
 import MovieRatings from '~mb/components/card/movie-ratings';
 import MovieContent from '~mb/components/text/movie-content';
+import { MovieRelated } from '~mb/components/list/movie-related';
 
 const { width, height } = Dimensions.get('window');
 
@@ -439,6 +440,7 @@ export default function MovieScreen() {
                         </View>
                     )}
                 </Card>
+                {movie.data && <MovieRelated movie={movie.data} />}
             </ScrollView>
             {renderErrorModal()}
         </Layout>
