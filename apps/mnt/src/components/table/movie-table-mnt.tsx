@@ -312,7 +312,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                                         width: 480,
                                         height: 854,
                                         quality: 60,
-                                        baseUrl: process.env?.NEXT_PUBLIC_FE_URL,
+                                        baseUrl: process?.env?.NEXT_PUBLIC_FE_URL,
                                     })}
                                     alt={originName?.slice(0, 15).concat('...') || 'thumb image'}
                                     width={40}

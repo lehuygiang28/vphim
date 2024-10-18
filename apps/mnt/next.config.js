@@ -13,8 +13,8 @@ const nextConfig = {
         svgr: false,
     },
     transpilePackages: ['@refinedev/antd'],
-    publicRuntimeConfig: {
-        apiUrl: process.env.NEXT_PUBLIC_API_URL,
+    env: {
+        NEXT_PUBLIC_FE_URL: process?.env?.NEXT_PUBLIC_FE_URL,
     },
     images: {
         remotePatterns: [
