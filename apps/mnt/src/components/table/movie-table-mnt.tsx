@@ -309,8 +309,10 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                             return (
                                 <AntImage
                                     src={getOptimizedImageUrl(thumbUrl, {
-                                        width: 40,
-                                        height: 60,
+                                        width: 480,
+                                        height: 854,
+                                        quality: 60,
+                                        baseUrl: process.env?.NEXT_PUBLIC_FE_URL,
                                     })}
                                     alt={originName?.slice(0, 15).concat('...') || 'thumb image'}
                                     width={40}
