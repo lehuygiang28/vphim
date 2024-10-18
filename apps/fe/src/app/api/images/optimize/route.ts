@@ -38,14 +38,17 @@ export async function GET(request: NextRequest) {
 
         // Get the Content-Type header from the backend response
         const contentType = response.headers.get('Content-Type') || 'image/webp';
-        const cacheControl =
-            response.headers.get('Cache-Control') || 'public, max-age=31536000, immutable';
+        const cacheControl = `${
+            response.headers.get('Cache-Control') || 'public, max-age=31536000, immutable'
+        }, s-maxage=31536000`;
 
         // Return the streamed response
         return new NextResponse(stream, {
             headers: {
                 'Content-Type': contentType,
                 'Cache-Control': cacheControl,
+                'CDN-Cache-Control': cacheControl,
+                'Vercel-CDN-Cache-Control': cacheControl,
             },
         });
     } catch (error) {
