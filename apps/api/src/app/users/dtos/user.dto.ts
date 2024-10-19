@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { IntersectionType, OmitType } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
     IsDate,
     IsEmail,
@@ -18,6 +18,7 @@ import { User } from '../schemas';
 import { AvatarSchema } from '../schemas/avatar.schema';
 import { UserBlockSchema } from '../schemas/block.schema';
 import { UserRoleEnum } from '../users.enum';
+import { lowerCaseTransformer } from 'apps/api/src/libs/transformers/lowercase.transform';
 
 export class AvatarDto extends IntersectionType(AvatarSchema) implements AvatarSchema {
     @IsOptional()
@@ -37,6 +38,7 @@ export class UserDto
 
     @IsNotEmpty()
     @IsEmail()
+    @Transform(lowerCaseTransformer)
     email: string;
 
     @IsString()

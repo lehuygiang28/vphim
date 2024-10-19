@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { lowerCaseTransformer } from 'apps/api/src/libs/transformers/lowercase.transform';
 
 export class AuthValidatePasswordlessDto {
     @ApiProperty({
@@ -19,5 +21,6 @@ export class AuthValidatePasswordlessDto {
     @IsOptional()
     @IsString()
     @IsEmail()
+    @Transform(lowerCaseTransformer)
     email?: string;
 }

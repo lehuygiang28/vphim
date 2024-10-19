@@ -52,7 +52,9 @@ export class AuthService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        const adminEmail = this.configService.get('auth.adminEmail', { infer: true });
+        const adminEmail = this.configService
+            .get('auth.adminEmail', { infer: true })
+            ?.toLowerCase();
         if (!adminEmail) {
             return;
         }
@@ -82,6 +84,7 @@ export class AuthService implements OnModuleInit {
     }
 
     private async createAdminUser(adminEmail: string) {
+        adminEmail = adminEmail.toLowerCase();
         const adminCreate = await this.usersService.usersRepository.create({
             document: {
                 email: adminEmail,
@@ -100,8 +103,9 @@ export class AuthService implements OnModuleInit {
         }
     }
 
-    async register(dto: AuthSignupDto): Promise<void> {
-        if (await this.usersService.findByEmail(dto.email)) {
+    async register({ email, ...dto }: AuthSignupDto): Promise<void> {
+        email = email?.toLowerCase()?.trim();
+        if (await this.usersService.findByEmail(email)) {
             throw new UnprocessableEntityException({
                 errors: {
                     email: 'emailAlreadyExists',
@@ -112,11 +116,11 @@ export class AuthService implements OnModuleInit {
 
         const userCreated = await this.usersService.create({
             ...dto,
-            email: dto.email,
+            email: email,
             emailVerified: false,
             fullName: dto?.fullName || 'faker.person.fullName()',
             avatar: {
-                url: getGravatarUrl(dto.email),
+                url: getGravatarUrl(email),
             },
         });
 
@@ -226,6 +230,7 @@ export class AuthService implements OnModuleInit {
     }
 
     async requestLoginPwdless({ email, returnUrl }: AuthLoginPasswordlessDto): Promise<'OK'> {
+        email = email?.toLowerCase()?.trim();
         let user = await this.usersService.findByEmail(email);
 
         if (!user) {
@@ -301,6 +306,7 @@ export class AuthService implements OnModuleInit {
         hash: hashOrOtp,
         email,
     }: AuthValidatePasswordlessDto): Promise<LoginResponseDto> {
+        email = email?.toLowerCase()?.trim();
         let userId: UserDto['_id'];
         let jwtData: { hash: string; userId: string };
 
@@ -505,6 +511,7 @@ export class AuthService implements OnModuleInit {
     }
 
     async refreshToken({ email }: UserJwt): Promise<LoginResponseDto> {
+        email = email?.toLowerCase().trim();
         const user = await this.usersService.findByEmail(email);
         if (!user) {
             throw new UnprocessableEntityException({
