@@ -149,7 +149,7 @@ export class MailService {
 
         await this.sendMailWithRetry({
             to,
-            subject: emailConfirmTitle,
+            subject: `${emailConfirmTitle}: ${mailData.otp}`,
             template,
             context: {
                 title: emailConfirmTitle,

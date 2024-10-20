@@ -21,22 +21,10 @@
         "btn1": "Xác nhận email"
     },
     "LOGIN_EMAIL": {
-        "title": "Đăng nhập vào tài khoản của bạn",
+        "title": "Đăng nhập vào VePhim",
         "text1": "Bạn đã yêu cầu đăng nhập vào tài khoản của mình. Vui lòng nhấn nút bên dưới để tiếp tục.",
         "text2": "Hoặc bạn có thể sao chép liên kết dưới đây và dán vào trình duyệt của bạn để bắt đầu:",
         "text3": "Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.",
         "btn1": "Đăng nhập"
-    },
-    "STOP_TASK": {
-        "title": "Task của bạn đã bị dừng",
-        "text1": "Task của bạn đã bị dừng do xảy ra lỗi.",
-        "text2": "Task của bạn đã bị hệ thống dừng lại do xảy ra nhiều nhiều lỗi.",
-        "btn1": "Xem Task"
-    },
-    "FAILED_TASK": {
-        "title": "Task của bạn đã thất bại",
-        "text1": "Việc thực hiện task của bạn đã thất bại do gặp sự cố.",
-        "text2": "Hãy xem chi tiết task để biết điều gì đã xảy ra.",
-        "btn1": "Xem task"
     }
 }

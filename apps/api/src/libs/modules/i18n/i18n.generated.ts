@@ -34,18 +34,6 @@ export type I18nTranslations = {
             "text3": string;
             "btn1": string;
         };
-        "STOP_TASK": {
-            "title": string;
-            "text1": string;
-            "text2": string;
-            "btn1": string;
-        };
-        "FAILED_TASK": {
-            "title": string;
-            "text1": string;
-            "text2": string;
-            "btn1": string;
-        };
     };
 };
 /* prettier-ignore */
