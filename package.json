@@ -124,7 +124,8 @@
         "swiper": "^11.1.11",
         "tslib": "^2.3.0",
         "use-debounce": "^10.0.3",
-        "vnpay": "^1.6.0"
+        "vnpay": "^1.6.0",
+        "zustand": "^5.0.0"
     },
     "devDependencies": {
         "@expo/cli": "~0.18.13",
