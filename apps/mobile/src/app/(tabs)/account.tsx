@@ -8,15 +8,16 @@ import {
     RefreshControl,
     Alert,
 } from 'react-native';
-import { Link, useFocusEffect, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { Text, useTheme, Spinner } from '@ui-kitten/components';
 import { User, Info, MessageSquare, ChevronRight, FileText, LogOut } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { useSession } from '~mb/hooks/useSession';
+import authStore from '~mb/stores/authStore';
+import { refreshSession } from '~mb/libs/authActions';
 
 export default function AccountScreen() {
-    const { session, loading, loadSession, clearSession } = useSession();
+    const { session, isLoading, clearSession } = authStore();
     const [refreshing, setRefreshing] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const theme = useTheme();
@@ -27,17 +28,14 @@ export default function AccountScreen() {
         { title: 'Về ứng dụng', icon: Info, href: '/about' },
     ];
 
-    useFocusEffect(
-        useCallback(() => {
-            loadSession();
-        }, [loadSession]),
-    );
-
     const onRefresh = useCallback(async () => {
-        setRefreshing(true);
-        await loadSession();
-        setRefreshing(false);
-    }, [loadSession]);
+        try {
+            setRefreshing(true);
+            await refreshSession();
+        } finally {
+            setRefreshing(false);
+        }
+    }, []);
 
     const handleLogout = useCallback(() => {
         Alert.alert(
@@ -52,12 +50,7 @@ export default function AccountScreen() {
                     text: 'Đăng xuất',
                     onPress: async () => {
                         setLoggingOut(true);
-                        await clearSession();
-                        // Add a slight delay for better UX
-                        setTimeout(() => {
-                            setLoggingOut(false);
-                            router.replace('/');
-                        }, 2000);
+                        clearSession();
                     },
                     style: 'destructive',
                 },
@@ -66,12 +59,18 @@ export default function AccountScreen() {
         );
     }, [clearSession]);
 
-    if (loading && !refreshing) {
+    if (isLoading && !refreshing) {
         return (
-            <SafeAreaView style={[styles.container, styles.loadingContainer]}>
+            <SafeAreaView
+                style={[
+                    styles.container,
+                    styles.loadingContainer,
+                    { backgroundColor: theme['background-basic-color-1'] },
+                ]}
+            >
                 <Spinner size="large" />
                 <Text category="s1" style={styles.loadingText}>
-                    Loading...
+                    Đang tải...
                 </Text>
             </SafeAreaView>
         );
@@ -136,7 +135,7 @@ export default function AccountScreen() {
                             { backgroundColor: theme['background-basic-color-1'] },
                         ]}
                     >
-                        {menuItems.map((item, index) => (
+                        {menuItems.map((item) => (
                             <Link key={item.title} href={item.href} asChild>
                                 <Pressable style={styles.listItem}>
                                     <item.icon color={theme['text-basic-color']} size={24} />

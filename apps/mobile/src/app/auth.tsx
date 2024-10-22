@@ -14,10 +14,11 @@ import {
 } from '@ui-kitten/components';
 import { Mail, ArrowLeft, Check } from 'lucide-react-native';
 
-import { useSession } from '~mb/hooks/useSession';
+import authStore from '~mb/stores/authStore';
 
 export default function AuthScreen() {
-    const { session, loading: sessionLoading, updateSession } = useSession();
+    const { session, setSession: updateSession, isLoading: sessionLoading } = authStore();
+
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
