@@ -31,7 +31,7 @@ interface AuthState {
 const authStore = create<AuthState>()(
     persist(
         (set, get) => ({
-            isLoading: true,
+            isLoading: false,
             session: null,
             setSession: (session: { user: LoginResponseDto } | null) =>
                 set({ session, isLoading: false }),
@@ -44,16 +44,6 @@ const authStore = create<AuthState>()(
         {
             name: 'auth-storage',
             storage: createJSONStorage(() => secureStorage),
-            onRehydrateStorage: () => (state) => {
-                return (rehydratedState: AuthState | undefined) => {
-                    if (rehydratedState) {
-                        authStore.setState({ isLoading: false });
-                    } else {
-                        // If rehydration fails, we should also set isLoading to false
-                        authStore.setState({ isLoading: false });
-                    }
-                };
-            },
         },
     ),
 );
