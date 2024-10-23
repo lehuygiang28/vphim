@@ -31,10 +31,10 @@ export default function AuthScreen() {
     const [otpSentTime, setOtpSentTime] = useState<number | null>(null); // Timestamp for OTP sent
 
     useEffect(() => {
-        if (session && !sessionLoading) {
+        if (session) {
             router.back();
         }
-    }, [session, sessionLoading]);
+    }, [session]);
 
     useEffect(() => {
         const keyboardWillShow = Keyboard.addListener('keyboardWillShow', (e) => {
@@ -178,9 +178,15 @@ export default function AuthScreen() {
         </TouchableOpacity>
     );
 
-    if (sessionLoading) {
+    if (!session && sessionLoading) {
         return (
-            <SafeAreaView style={[styles.container, styles.loadingContainer]}>
+            <SafeAreaView
+                style={[
+                    styles.container,
+                    styles.loadingContainer,
+                    { backgroundColor: theme['background-basic-color-1'] },
+                ]}
+            >
                 <Spinner size="large" />
                 <Text category="s1" style={styles.loadingText}>
                     Đang xử lý...

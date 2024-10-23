@@ -22,8 +22,10 @@ export const COMMENT_LIST_QUERY = gql`
                     total
                     count
                     data {
+                        _id
                         movie
                         content
+                        parentComment
                         createdAt
                         updatedAt
                         user {
