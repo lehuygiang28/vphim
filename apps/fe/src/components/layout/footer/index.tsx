@@ -1,5 +1,3 @@
-import './footer.css';
-
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,9 +16,9 @@ const { BackTop } = FloatButton;
 
 const helperLinks = [
     { label: 'Về chúng tôi', url: '#' },
-    { label: 'Liên hệ', url: '#' },
+    { label: 'Liên hệ', url: '#' },
     { label: 'Điều khoản', url: '#' },
-    { label: 'Chính sách bảo mật', url: '#' },
+    { label: 'Chính sách bảo mật', url: '#' },
 ];
 
 export type FooterComponentProps = {
@@ -28,7 +26,7 @@ export type FooterComponentProps = {
     regions?: Region[];
 };
 
-export default function FooterComponent({ categories = [], regions = [] }: FooterComponentProps) {
+export default function Component({ categories = [], regions = [] }: FooterComponentProps) {
     const screens = useBreakpoint();
 
     return (
@@ -171,7 +169,41 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
                 <Row justify="center">
                     <Col>
                         <Text style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>
-                            © {new Date().getFullYear()} vephim. All rights reserved.
+                            © {new Date().getFullYear()} VePhim. Educational Project - Not for
+                            Commercial Use.
+                        </Text>
+                    </Col>
+                </Row>
+                <Row justify="center" style={{ marginTop: '0.5rem' }}>
+                    <Col xs={24} sm={20} md={18} lg={16} xl={14}>
+                        <Text
+                            style={{
+                                color: 'rgba(255, 255, 255, 0.45)',
+                                fontSize: '0.75rem',
+                                textAlign: 'center',
+                                display: 'block',
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    fontSize: '0.75rem',
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                }}
+                            >
+                                Disclaimer
+                            </Text>
+                            This website is a non-commercial, educational project created solely for
+                            the purpose of learning web/app development techniques. All content
+                            displayed on this site is sourced from publicly available third-party
+                            APIs and is not hosted or owned by us. We do not claim ownership of any
+                            content shown here. This project is not intended for any commercial use.
+                            If you are a copyright owner and believe your content is displayed here
+                            without proper authorization, please contact us for its immediate
+                            removal. Users are advised to use this site at their own discretion and
+                            are responsible for complying with all applicable laws and regulations
+                            in their jurisdiction.
                         </Text>
                     </Col>
                 </Row>
