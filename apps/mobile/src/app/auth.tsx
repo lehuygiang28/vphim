@@ -128,7 +128,7 @@ export default function AuthScreen() {
     };
 
     const handleGoogleAuth = () => {
-        alert('Google authentication not implemented in this example');
+        alert('Chức năng đang cập nhật!');
     };
 
     const handleOTPSubmit = async () => {
@@ -151,7 +151,7 @@ export default function AuthScreen() {
 
             if (response.ok) {
                 const data = await response.json();
-                await updateSession({ user: data });
+                updateSession({ user: data });
                 router.replace('/');
             } else {
                 throw new Error('OTP validation failed');
@@ -272,7 +272,9 @@ export default function AuthScreen() {
                     <Button
                         onPress={showOTP ? handleOTPSubmit : handleAuth}
                         disabled={isLoading || (!showOTP && !isValid)}
-                        accessoryLeft={isLoading ? (props) => <Spinner size="small" /> : undefined}
+                        accessoryLeft={
+                            isLoading ? (props) => <Spinner {...props} size="small" /> : undefined
+                        }
                     >
                         {isLoading
                             ? 'Đang xử lý...'
@@ -287,7 +289,12 @@ export default function AuthScreen() {
                         onPress={handleGoogleAuth}
                         appearance="outline"
                         accessoryLeft={(props) => (
-                            <AntDesign name="google" size={20} color={theme['text-basic-color']} />
+                            <AntDesign
+                                {...props}
+                                name="google"
+                                size={20}
+                                color={theme['text-basic-color']}
+                            />
                         )}
                         style={styles.googleButton}
                     >
