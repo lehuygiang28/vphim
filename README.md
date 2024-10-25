@@ -110,3 +110,15 @@ VePhim is built using a combination of powerful technologies:
 ## Want to Learn More?
 
 This is just a basic overview of VePhim. If you're interested in learning more about the technical details, check out the full codebase on [GitHub](https://github.com/lehuygiang28/vphim).
+
+## Disclaimer
+
+This project is solely for educational purposes and is intended to demonstrate web/app development skills. It does not host or store any movie content or data. All media and data accessed by this project are sourced from publicly available, third-party sources on the internet.
+
+Important Notes:
+
+- This project is non-commercial and is not intended to distribute copyrighted material.
+- The author does not claim ownership or rights to any third-party data accessed by this project.
+- Users are responsible for ensuring their own compliance with copyright and licensing regulations when accessing third-party content.
+
+Use at Your Own Risk: The author assumes no responsibility for any legal or other issues that may arise from using this project.
