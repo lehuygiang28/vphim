@@ -7007,25 +7007,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-devtools@npm:5.56.1":
-  version: 5.56.1
-  resolution: "@tanstack/query-devtools@npm:5.56.1"
-  checksum: 10c0/4f50fccf9e731e0fee4b7d2344cd8bf73a9c45816d7361f54ca4ec2df0a0455bf400fa3b578279edc8a4d1013c52c0d90cd50dbffb133edcf52e55868468d6c3
-  languageName: node
-  linkType: hard
-
-"@tanstack/react-query-devtools@npm:^5.56.2":
-  version: 5.56.2
-  resolution: "@tanstack/react-query-devtools@npm:5.56.2"
-  dependencies:
-    "@tanstack/query-devtools": "npm:5.56.1"
-  peerDependencies:
-    "@tanstack/react-query": ^5.56.2
-    react: ^18 || ^19
-  checksum: 10c0/2edebb04800585da1ca479f9289a9265cfcc26c5d8fb1db08e6fbe9fdf370a55a2007416b52f819c2faeab7b919cd51a4afca7731b50b6f3dd164057e4966741
-  languageName: node
-  linkType: hard
-
 "@tanstack/react-query@npm:^4.10.1":
   version: 4.36.1
   resolution: "@tanstack/react-query@npm:4.36.1"
@@ -8215,7 +8196,6 @@ __metadata:
     "@swc-node/register": "npm:~1.9.1"
     "@swc/core": "npm:~1.5.7"
     "@swc/helpers": "npm:~0.5.11"
-    "@tanstack/react-query-devtools": "npm:^5.56.2"
     "@testing-library/jest-native": "npm:~5.4.3"
     "@testing-library/react": "npm:15.0.6"
     "@testing-library/react-native": "npm:~12.5.0"

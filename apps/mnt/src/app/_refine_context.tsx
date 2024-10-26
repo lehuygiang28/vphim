@@ -7,7 +7,6 @@ import { useNotificationProvider } from '@refinedev/antd';
 import { DataProvider, Refine } from '@refinedev/core';
 import routerProvider from '@refinedev/nextjs-router';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import {
     PlaySquareOutlined,
@@ -164,12 +163,6 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             >
                                 {props.children}
                                 <RefineKbar />
-                                {!isProduction() && (
-                                    <ReactQueryDevtools
-                                        initialIsOpen={false}
-                                        buttonPosition="bottom-right"
-                                    />
-                                )}
                             </Refine>
                         </DevtoolWrapper>
                     </ColorModeContextProvider>
