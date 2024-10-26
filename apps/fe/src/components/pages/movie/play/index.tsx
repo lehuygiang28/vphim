@@ -47,7 +47,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
 
     const preFetchM3u8 = useCallback(async (url: string) => {
         try {
-            const response = await fetch(url, { method: 'GET' });
+            const response = await fetch(url, { method: 'GET', next: { revalidate: 360000 } });
             if (!response.ok) {
                 throw new Error('M3U8 file not available');
             }

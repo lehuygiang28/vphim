@@ -24,6 +24,11 @@ export function TMDBRating({ id, type, size = 'middle' }: TMDBRatingProps) {
             try {
                 const response = await fetch(
                     `https://api.themoviedb.org/3/${type}/${id}?language=en-US&api_key=${process?.env?.NEXT_PUBLIC_TMDB_API_KEY}`,
+                    {
+                        next: {
+                            revalidate: 360000,
+                        },
+                    },
                 );
                 if (!response.ok) {
                     throw new Error('Failed to fetch TMDB data');
