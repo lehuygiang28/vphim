@@ -1,7 +1,10 @@
+'use client';
+
 import './movie.css';
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
+import 'swiper/css/navigation';
 
 import React, { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
