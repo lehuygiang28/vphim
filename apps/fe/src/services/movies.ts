@@ -2,8 +2,12 @@ import { print } from 'graphql/language/printer';
 
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 import { DocumentNode } from 'graphql';
-import { CrudFilters, CrudSort } from '@refinedev/core';
-import { handleFilterQuery, handleSortQuery } from '@/libs/utils/data-provider.util';
+import { CrudFilters, CrudSort, Pagination } from '@refinedev/core';
+import {
+    handleFilterQuery,
+    handlePaginationQuery,
+    handleSortQuery,
+} from '@/libs/utils/data-provider.util';
 
 export async function getMovieBySlug(slug: string): Promise<MovieType> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/movies/${slug}`);
@@ -15,11 +19,12 @@ export async function getMovieBySlug(slug: string): Promise<MovieType> {
 
 export async function getMovies(data: {
     gqlQuery: DocumentNode;
-    filter?: CrudFilters;
+    filters?: CrudFilters;
     sorters?: CrudSort;
+    pagination?: Pagination;
     operation?: string;
 }): Promise<MovieType[]> {
-    const { gqlQuery, filter, sorters, operation = 'movies' } = data;
+    const { gqlQuery, filters, sorters, pagination, operation = 'movies' } = data;
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
         method: 'POST',
         headers: {
@@ -30,8 +35,9 @@ export async function getMovies(data: {
             variables: {
                 input: {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    ...(filter && handleFilterQuery(filter as any)),
+                    ...(filters && handleFilterQuery(filters as any)),
                     ...(sorters && handleSortQuery(sorters)),
+                    ...(pagination && handlePaginationQuery(pagination)),
                 },
             },
         }),
