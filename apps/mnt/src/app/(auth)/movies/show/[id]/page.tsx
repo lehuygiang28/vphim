@@ -353,11 +353,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                             <Card
                                                 hoverable
                                                 cover={
-                                                    <Image
-                                                        alt={actor.name}
-                                                        src={actor.thumbUrl}
-                                                        fallback="/placeholder.svg?height=150&width=150"
-                                                    />
+                                                    <Image alt={actor.name} src={actor.thumbUrl} />
                                                 }
                                             >
                                                 <Card.Meta
