@@ -130,8 +130,11 @@ export default async function DefaultNoLayoutStyle({
     return (
         <html lang="en" className={customFont.className}>
             <head>
-                <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL} />
-                <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
+                <link rel="dns-prefetch" href={'https://api.themoviedb.org'} />
+                <link rel="preconnect" href={'https://api.themoviedb.org'} />
+
+                <link rel="dns-prefetch" href={'https://data.ratings.media-imdb.com'} />
+                <link rel="preconnect" href={'https://data.ratings.media-imdb.com'} />
 
                 {mostViewed?.map((movie) => (
                     <link

@@ -12,41 +12,15 @@ const nextConfig = {
         // See: https://github.com/gregberge/svgr
         svgr: false,
     },
-    transpilePackages: ['@refinedev/antd'],
+    transpilePackages: [
+        '@refinedev',
+        // antd & deps
+        '@ant-design',
+        '@rc-component',
+        'antd',
+    ],
     publicRuntimeConfig: {
         apiUrl: process.env.NEXT_PUBLIC_API_URL,
-    },
-    images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'phimimg.com',
-                port: '',
-                pathname: '**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'ophim.live',
-                port: '',
-                pathname: '**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'img.ophim.live',
-                port: '',
-                pathname: '**',
-            },
-            {
-                protocol: 'http',
-                hostname: 'localhost',
-                port: '8000',
-                pathname: '**',
-            },
-            {
-                protocol: 'https',
-                hostname: '**',
-            },
-        ],
     },
     experimental: {
         optimizeCss: true,
