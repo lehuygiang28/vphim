@@ -41,6 +41,7 @@ export function LazyMovieListSSR({
                 title={title}
                 movies={movies}
                 viewMoreHref={viewMoreHref}
+                eagerLoad={3}
             />
         </div>
     );

@@ -20,9 +20,15 @@ interface MovieCardProps {
     movie: MovieResponseDto;
     visibleContent?: boolean;
     scale?: number;
+    loadType?: 'lazy' | 'eager';
 }
 
-export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1.25 }) => {
+export const MovieCard: FC<MovieCardProps> = ({
+    movie,
+    visibleContent,
+    scale = 1.25,
+    loadType,
+}) => {
     const { md } = useBreakpoint();
 
     const maxWidth: CSSProperties = {
@@ -65,6 +71,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, visibleContent, scale = 1
                         width={480}
                         height={854}
                         style={{ maxHeight: '100%', maxWidth: '100%' }}
+                        loadType={loadType}
                     />
                     <Tag
                         style={{

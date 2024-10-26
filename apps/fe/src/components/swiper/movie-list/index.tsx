@@ -36,6 +36,7 @@ export type MovieListProps = {
     viewMoreHref?: string;
     clearVisibleContentCard?: boolean;
     disableNavigation?: boolean;
+    eagerLoad?: number;
 };
 
 export default function MovieList({
@@ -46,6 +47,7 @@ export default function MovieList({
     clearVisibleContentCard,
     style,
     disableNavigation = true,
+    eagerLoad = 0,
 }: MovieListProps) {
     const router = useRouter();
     const { md, lg, xl, xxl } = useBreakpoint();
@@ -172,6 +174,9 @@ export default function MovieList({
                                   movie={movie}
                                   visibleContent={selectedIndex === index}
                                   scale={md ? undefined : 1.1}
+                                  loadType={
+                                      eagerLoad > 0 && index < eagerLoad ? 'eager' : undefined
+                                  }
                               />
                           </SwiperSlide>
                       ))}
