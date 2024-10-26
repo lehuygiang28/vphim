@@ -99,8 +99,8 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                             <ImageOptimized
                                 url={movie?.posterUrl}
                                 alt={movie?.name}
-                                width={md ? 960 : 640}
-                                height={md ? 540 : 360}
+                                width={640}
+                                height={360}
                                 style={{
                                     maxHeight: md ? '85vh' : '35vh',
                                 }}
