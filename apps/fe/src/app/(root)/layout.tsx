@@ -7,18 +7,20 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const categories = await getCategories({
-        pagination: {
-            current: 1,
-            pageSize: 15,
-        },
-    });
-    const regions = await getRegions({
-        pagination: {
-            current: 1,
-            pageSize: 15,
-        },
-    });
+    const [categories, regions] = await Promise.all([
+        getCategories({
+            pagination: {
+                current: 1,
+                pageSize: 15,
+            },
+        }),
+        getRegions({
+            pagination: {
+                current: 1,
+                pageSize: 15,
+            },
+        }),
+    ]);
 
     return (
         <LayoutComponent categories={categories} regions={regions}>
