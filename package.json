@@ -177,6 +177,7 @@
         "babel-jest": "^29.7.0",
         "babel-preset-expo": "~11.0.0",
         "copy-webpack-plugin": "^12.0.2",
+        "critters": "^0.0.25",
         "eslint": "~8.57.0",
         "eslint-config-next": "14.2.3",
         "eslint-config-prettier": "^9.0.0",

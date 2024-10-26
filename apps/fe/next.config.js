@@ -49,7 +49,11 @@ const nextConfig = {
         ],
     },
     experimental: {
-        serverComponentsExternalPackages: ['sharp'],
+        optimizeCss: true,
+        cssChunking: 'loose',
+        gzipSize: true,
+        webVitalsAttribution: ['CLS', 'FCP', 'FID', 'INP', 'LCP', 'TTFB'],
+        swcMinify: true,
     },
 };
 
