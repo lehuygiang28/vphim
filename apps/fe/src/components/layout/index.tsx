@@ -4,47 +4,25 @@ import { PropsWithChildren } from 'react';
 import { Layout, Grid } from 'antd';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { stringifyTableParams, useList } from '@refinedev/core';
 
-import type { Category } from 'apps/api/src/app/categories/category.schema';
-import type { Region } from 'apps/api/src/app/regions/region.schema';
+import type { CategoryType } from 'apps/api/src/app/categories/category.type';
+import type { RegionType } from 'apps/api/src/app/regions/region.type';
 
 import Header from './header';
-const Footer = dynamic(() => import('./footer'));
+const Footer = dynamic(() => import('./footer'), { ssr: true });
 import { RouteNameEnum } from '@/constants/route.constant';
-import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
-import { REGIONS_LIST_QUERY } from '@/queries/regions';
+import { stringifyTableParams } from '@/libs/utils/url.util';
 
 const { Content } = Layout;
 const { useBreakpoint } = Grid;
 
-export function LayoutComponent({ children }: PropsWithChildren) {
-    const { md } = useBreakpoint();
-    const { data: categories } = useList<Category>({
-        dataProviderName: 'graphql',
-        resource: 'categories',
-        meta: {
-            gqlQuery: CATEGORIES_LIST_QUERY,
-            operation: 'categories',
-        },
-        pagination: {
-            current: 1,
-            pageSize: 12,
-        },
-    });
+export type LayoutComponentProps = PropsWithChildren & {
+    categories?: CategoryType[];
+    regions?: RegionType[];
+};
 
-    const { data: regions } = useList<Region>({
-        dataProviderName: 'graphql',
-        resource: 'regions',
-        meta: {
-            gqlQuery: REGIONS_LIST_QUERY,
-            operation: 'regions',
-        },
-        pagination: {
-            current: 1,
-            pageSize: 12,
-        },
-    });
+export function LayoutComponent({ children, categories, regions }: LayoutComponentProps) {
+    const { md } = useBreakpoint();
 
     return (
         <Layout
@@ -53,7 +31,7 @@ export function LayoutComponent({ children }: PropsWithChildren) {
             }}
         >
             <Header
-                categoryMenu={categories?.data?.map((c) => ({
+                categoryMenu={categories?.map((c) => ({
                     key: c.slug,
                     label: (
                         <Link
@@ -66,7 +44,7 @@ export function LayoutComponent({ children }: PropsWithChildren) {
                         </Link>
                     ),
                 }))}
-                regionMenu={regions?.data?.map((r) => ({
+                regionMenu={regions?.map((r) => ({
                     key: r.slug,
                     label: (
                         <Link
@@ -90,7 +68,7 @@ export function LayoutComponent({ children }: PropsWithChildren) {
             </Content>
 
             <div style={{ marginTop: md ? '3rem' : '1.5rem' }}>
-                <Footer categories={categories?.data} regions={regions?.data} />
+                <Footer categories={categories} regions={regions} />
             </div>
         </Layout>
     );

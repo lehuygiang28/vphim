@@ -1,37 +1,30 @@
-import { print } from 'graphql/language/printer';
-
-import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 import { DocumentNode } from 'graphql';
-import { CrudFilters, CrudSort, Pagination } from '@refinedev/core';
+import { print } from 'graphql/language/printer';
+import type { CrudFilters, CrudSort, Pagination } from '@refinedev/core';
+
+import type { CategoryType } from 'apps/api/src/app/categories';
+
 import {
     handleFilterQuery,
     handlePaginationQuery,
     handleSortQuery,
 } from '@/libs/utils/data-provider.util';
+import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 
-export async function getMovieBySlug(slug: string): Promise<MovieType> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/movies/${slug}`, {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        next: {
-            revalidate: 3600,
-        },
-    });
-    if (!res.ok) {
-        throw new Error('Failed to fetch movie data');
-    }
-    return res.json();
-}
-
-export async function getMovies(data: {
-    gqlQuery: DocumentNode;
+export async function getCategories(data: {
+    gqlQuery?: DocumentNode;
     filters?: CrudFilters;
     sorters?: CrudSort;
     pagination?: Pagination;
     operation?: string;
-}): Promise<MovieType[]> {
-    const { gqlQuery, filters, sorters, pagination, operation = 'movies' } = data;
+}): Promise<CategoryType[]> {
+    const {
+        gqlQuery = CATEGORIES_LIST_QUERY,
+        filters,
+        sorters,
+        pagination,
+        operation = 'categories',
+    } = data;
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
         method: 'POST',
         headers: {
@@ -53,7 +46,7 @@ export async function getMovies(data: {
         },
     });
     if (!res.ok) {
-        throw new Error('Failed to fetch movies');
+        throw new Error('Failed to fetch categories');
     }
     const result = await res.json();
     return result?.data?.[operation]?.data;

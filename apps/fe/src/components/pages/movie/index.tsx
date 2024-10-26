@@ -33,7 +33,7 @@ import { IMDBRating } from '@/components/card/imdb-rating';
 import { TMDBRating } from '@/components/card/tmdb-rating';
 import { MovieEpisode } from './movie-episode';
 import { MovieRelated } from './movie-related';
-const MovieComments = dynamic(() => import('./movie-comment'));
+const MovieComments = dynamic(() => import('./movie-comment'), { ssr: true });
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;

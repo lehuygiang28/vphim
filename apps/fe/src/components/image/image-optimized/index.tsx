@@ -137,6 +137,12 @@ export function ImageOptimized({
     ) => {
         if (!url) return null;
 
+        const imageStyle: CSSProperties = {
+            objectFit: 'cover',
+            ...style,
+            display: showImage && !isLoading ? style?.display ?? undefined : 'none',
+        };
+
         if (isBase64Image(url)) {
             const base64Data = extractBase64Data(url);
             const imageType = url.includes('data:image/jpeg') ? 'jpeg' : 'png';
@@ -148,11 +154,9 @@ export function ImageOptimized({
                     ref={imageRef}
                     src={fullBase64Url}
                     alt={alt}
-                    style={{
-                        objectFit: 'cover',
-                        ...style,
-                        display: showImage && !isLoading ? style?.display ?? undefined : 'none',
-                    }}
+                    width={'100%'}
+                    height={'100%'}
+                    style={imageStyle}
                     className={showImage ? className : ''}
                     onError={() => handleImageError(imageNumber)}
                     onLoad={() => handleImageLoad(imageNumber)}
@@ -165,12 +169,10 @@ export function ImageOptimized({
                     ref={imageRef}
                     src={url}
                     alt={alt}
+                    width={'100%'}
+                    height={'100%'}
                     preview={false}
-                    style={{
-                        objectFit: 'cover',
-                        ...style,
-                        display: showImage && !isLoading ? style?.display ?? undefined : 'none',
-                    }}
+                    style={imageStyle}
                     className={showImage ? className : ''}
                     onError={() => handleImageError(imageNumber)}
                     onLoad={() => handleImageLoad(imageNumber)}

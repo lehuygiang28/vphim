@@ -13,7 +13,7 @@ import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
 
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
-const MovieComments = dynamic(() => import('../movie-comment'));
+const MovieComments = dynamic(() => import('../movie-comment'), { ssr: true });
 
 import type {
     MovieType,
@@ -47,7 +47,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
 
     const preFetchM3u8 = useCallback(async (url: string) => {
         try {
-            const response = await fetch(url, { method: 'GET' });
+            const response = await fetch(url, { method: 'GET', next: { revalidate: 360000 } });
             if (!response.ok) {
                 throw new Error('M3U8 file not available');
             }

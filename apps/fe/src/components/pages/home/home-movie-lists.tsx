@@ -4,11 +4,20 @@ import React, { useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { type CrudFilter, type CrudSort } from '@refinedev/core';
 
-import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
-const LazyMovieList = dynamic(() => import('@/components/list/movie-lazy-list'), { ssr: false });
+import { LazyMovieListSSR } from '@/components/list/movie-lazy-list-ssr';
+const LazyMovieList = dynamic(() => import('@/components/list/movie-lazy-list'), { ssr: true });
 
-export default function HomeMovieLists() {
+export type HomeMovieListsProps = {
+    moviesWithAsset?: {
+        title: string;
+        movies: MovieType[];
+        viewMoreHref: string;
+    }[];
+};
+
+export default function HomeMovieLists({ moviesWithAsset }: HomeMovieListsProps) {
     const [activeList, setActiveList] = useState<string | null>(null);
 
     const setActiveListCallback = useCallback((list: string | null) => {
@@ -17,34 +26,6 @@ export default function HomeMovieLists() {
 
     const movieLists: { title: string; filters: CrudFilter[]; sorters: CrudSort[] }[] = useMemo(
         () => [
-            {
-                title: 'PHIM MỚI',
-                filters: [{ field: 'years', value: `${new Date().getFullYear()}`, operator: 'eq' }],
-                sorters: [{ field: 'year', order: 'asc' }],
-            },
-            {
-                title: 'PHIM VIỆT CHIẾU RẠP',
-                filters: [
-                    { field: 'cinemaRelease', value: true, operator: 'eq' },
-                    { field: 'countries', value: 'viet-nam', operator: 'eq' },
-                ],
-                sorters: [{ field: 'view', order: 'desc' }],
-            },
-            {
-                title: 'PHIM LẺ ĐANG HOT',
-                filters: [{ field: 'type', value: MovieTypeEnum.SINGLE, operator: 'eq' }],
-                sorters: [{ field: 'view', order: 'desc' }],
-            },
-            {
-                title: 'PHIM BỘ ĐANG NỔI',
-                filters: [{ field: 'type', value: MovieTypeEnum.SERIES, operator: 'eq' }],
-                sorters: [{ field: 'view', order: 'desc' }],
-            },
-            {
-                title: 'TV SHOWS XEM NHIỀU',
-                filters: [{ field: 'type', value: MovieTypeEnum.TV_SHOWS, operator: 'eq' }],
-                sorters: [{ field: 'view', order: 'desc' }],
-            },
             {
                 title: 'THẾ GIỚI HỌC ĐƯỜNG',
                 filters: [{ field: 'categories', value: 'hoc-duong', operator: 'eq' }],
@@ -81,6 +62,19 @@ export default function HomeMovieLists() {
 
     return (
         <>
+            {moviesWithAsset &&
+                moviesWithAsset?.length > 0 &&
+                moviesWithAsset?.map((movieWithAsset, index) => (
+                    <LazyMovieListSSR
+                        key={`movie-list-${index}`}
+                        activeList={activeList}
+                        setActiveList={setActiveListCallback}
+                        title={movieWithAsset.title}
+                        movies={movieWithAsset.movies}
+                        viewMoreHref={movieWithAsset.viewMoreHref}
+                    />
+                ))}
+
             {movieLists.map((list, index) => (
                 <LazyMovieList
                     key={index}

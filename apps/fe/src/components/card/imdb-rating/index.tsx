@@ -20,7 +20,14 @@ export function IMDBRating({ id, size = 'middle' }: IMDBRatingProps) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`https://data.ratings.media-imdb.com/${id}/data.json`);
+                const response = await fetch(
+                    `https://data.ratings.media-imdb.com/${id}/data.json`,
+                    {
+                        next: {
+                            revalidate: 360000,
+                        },
+                    },
+                );
                 if (!response.ok) {
                     throw new Error('Failed to fetch IMDB data');
                 }

@@ -6,6 +6,9 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { RefineContext } from './_refine_context';
 import { customFont } from '@/fonts';
+import { getMovies } from '@/services/movies';
+import { MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
+import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 
 export const metadata: Metadata = {
     title: {
@@ -34,7 +37,7 @@ export const metadata: Metadata = {
         address: false,
         telephone: false,
     },
-    metadataBase: new URL('https://vephim.vercel.app/'),
+    metadataBase: new URL('https://vephim.online/'),
     alternates: {
         canonical: '/',
         languages: {
@@ -45,7 +48,7 @@ export const metadata: Metadata = {
         title: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
         description:
             'VePhim - Trang web xem phim miễn phí với đa dạng thể loại và quốc gia. Cập nhật phim mới hàng ngày, chất lượng cao, phụ đề đầy đủ.',
-        url: 'https://vephim.vercel.app/',
+        url: 'https://vephim.online/',
         siteName: 'VePhim',
         images: [
             {
@@ -101,7 +104,8 @@ export const metadata: Metadata = {
         shortcut: '/favicon.ico',
     },
 };
-export default function DefaultNoLayoutStyle({
+
+export default async function DefaultNoLayoutStyle({
     children,
     noauth,
     auth,
@@ -113,9 +117,38 @@ export default function DefaultNoLayoutStyle({
     const cookieStore = cookies();
     const theme = cookieStore.get('theme');
     const defaultMode = theme?.value === 'light' ? 'light' : 'dark';
+    const mostViewed = await getMovies({
+        gqlQuery: MOVIES_LIST_FOR_SWIPER_QUERY,
+        sorters: { field: 'view', order: 'desc' },
+        operation: 'movies',
+        pagination: {
+            current: 1,
+            pageSize: 2,
+        },
+    });
 
     return (
         <html lang="en" className={customFont.className}>
+            <head>
+                <link rel="dns-prefetch" href={'https://api.themoviedb.org'} />
+                <link rel="preconnect" href={'https://api.themoviedb.org'} />
+
+                <link rel="dns-prefetch" href={'https://data.ratings.media-imdb.com'} />
+                <link rel="preconnect" href={'https://data.ratings.media-imdb.com'} />
+
+                {mostViewed?.map((movie) => (
+                    <link
+                        key={movie._id?.toString()}
+                        rel="preload"
+                        as="image"
+                        href={getOptimizedImageUrl(movie?.posterUrl, {
+                            width: 640,
+                            height: 360,
+                            quality: 20,
+                        })}
+                    />
+                ))}
+            </head>
             <body>
                 <Suspense>
                     <RefineContext defaultMode={defaultMode}>
