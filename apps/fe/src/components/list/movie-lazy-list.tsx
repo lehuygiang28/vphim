@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+
 import { CrudFilter, CrudSort, stringifyTableParams, useList } from '@refinedev/core';
 import { Grid } from 'antd';
 import { DocumentNode } from 'graphql';
+import { useInView } from 'react-intersection-observer';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
@@ -15,10 +17,12 @@ import { RouteNameEnum } from '@/constants/route.constant';
 import { slugifyVietnamese } from '@/libs/utils/movie.util';
 
 const { useBreakpoint } = Grid;
+
 type MovieAsset = {
     filters: CrudFilter[];
     sorters: CrudSort[];
 };
+
 interface LazyMovieListProps {
     title: string;
     movieAsset: MovieAsset;
@@ -34,36 +38,22 @@ export default function LazyMovieList({
     setActiveList,
     gqlQuery = MOVIES_LIST_QUERY,
 }: LazyMovieListProps) {
-    const [isVisible, setIsVisible] = useState(false);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
     const { md } = useBreakpoint();
     const slugTitle = slugifyVietnamese(title);
+    const [isVisible, setIsVisible] = useState(false);
+    const [shouldFetch, setShouldFetch] = useState(false);
+
+    const [ref, inView] = useInView({
+        triggerOnce: false,
+        rootMargin: '400px', // Increased to start loading even earlier
+        threshold: 0.1, // Start when 10% of the component is visible
+    });
 
     useEffect(() => {
-        const currentRef = ref.current;
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.unobserve(entry.target);
-                }
-            },
-            {
-                rootMargin: '100px', // Start loading when the component is 100px from entering the viewport
-            },
-        );
-
-        if (currentRef) {
-            observer.observe(currentRef);
+        if (inView && !shouldFetch) {
+            setShouldFetch(true);
         }
-
-        return () => {
-            if (currentRef) {
-                observer.unobserve(currentRef);
-            }
-        };
-    }, []);
+    }, [inView, shouldFetch]);
 
     const { data: movies, isLoading } = useList<MovieResponseDto>({
         dataProviderName: 'graphql',
@@ -74,10 +64,15 @@ export default function LazyMovieList({
         },
         ...movieAsset,
         queryOptions: {
-            enabled: isVisible,
-            onSuccess: () => setIsLoaded(true),
+            enabled: shouldFetch,
         },
     });
+
+    useEffect(() => {
+        if (movies && !isVisible) {
+            setIsVisible(true);
+        }
+    }, [movies, isVisible]);
 
     return (
         <div
@@ -90,21 +85,18 @@ export default function LazyMovieList({
             }}
             onClick={() => setActiveList(slugTitle)}
         >
-            {isVisible &&
-                (isLoading ? (
-                    <LoadingSpinner />
-                ) : (
-                    isLoaded && (
-                        <MovieList
-                            clearVisibleContentCard={activeList != slugTitle}
-                            title={title}
-                            movies={movies?.data}
-                            viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
-                                movieAsset,
-                            )}`}
-                        />
-                    )
-                ))}
+            {isLoading ? (
+                <LoadingSpinner />
+            ) : (
+                <MovieList
+                    clearVisibleContentCard={activeList !== slugTitle}
+                    title={title}
+                    movies={movies?.data}
+                    viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
+                        movieAsset,
+                    )}`}
+                />
+            )}
         </div>
     );
 }
