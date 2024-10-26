@@ -8,7 +8,7 @@ import { DocumentNode } from 'graphql';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
-const MovieList = dynamic(() => import('@/components/swiper/movie-list'));
+const MovieList = dynamic(() => import('@/components/swiper/movie-list'), { ssr: true });
 import { LoadingSpinner } from '@/components/loading';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { RouteNameEnum } from '@/constants/route.constant';

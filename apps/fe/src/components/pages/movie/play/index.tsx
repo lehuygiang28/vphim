@@ -13,7 +13,7 @@ import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
 
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
-const MovieComments = dynamic(() => import('../movie-comment'));
+const MovieComments = dynamic(() => import('../movie-comment'), { ssr: true });
 
 import type {
     MovieType,

@@ -6,7 +6,7 @@ import { type CrudFilter, type CrudSort } from '@refinedev/core';
 
 import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
 
-const LazyMovieList = dynamic(() => import('@/components/list/movie-lazy-list'), { ssr: false });
+const LazyMovieList = dynamic(() => import('@/components/list/movie-lazy-list'), { ssr: true });
 
 export default function HomeMovieLists() {
     const [activeList, setActiveList] = useState<string | null>(null);

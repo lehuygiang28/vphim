@@ -14,7 +14,7 @@ import { MovieSwiper } from '@/components/swiper/movie';
 import { MOVIES_LIST_FOR_SWIPER_QUERY } from '@/queries/movies';
 import { LoadingSpinner } from '@/components/loading';
 const HomeMovieLists = dynamic(() => import('./home-movie-lists'), {
-    ssr: false,
+    ssr: true,
 });
 
 export default function Home() {

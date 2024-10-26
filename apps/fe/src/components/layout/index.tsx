@@ -10,7 +10,7 @@ import type { Category } from 'apps/api/src/app/categories/category.schema';
 import type { Region } from 'apps/api/src/app/regions/region.schema';
 
 import Header from './header';
-const Footer = dynamic(() => import('./footer'));
+const Footer = dynamic(() => import('./footer'), { ssr: true });
 import { RouteNameEnum } from '@/constants/route.constant';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 import { REGIONS_LIST_QUERY } from '@/queries/regions';
