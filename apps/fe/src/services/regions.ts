@@ -1,37 +1,31 @@
-import { print } from 'graphql/language/printer';
-
-import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 import { DocumentNode } from 'graphql';
-import { CrudFilters, CrudSort, Pagination } from '@refinedev/core';
+import { print } from 'graphql/language/printer';
+import type { CrudFilters, CrudSort, Pagination } from '@refinedev/core';
+
+import type { RegionType } from 'apps/api/src/app/regions/region.type';
+
+import { REGIONS_LIST_QUERY } from '@/queries/regions';
+
 import {
     handleFilterQuery,
     handlePaginationQuery,
     handleSortQuery,
 } from '@/libs/utils/data-provider.util';
 
-export async function getMovieBySlug(slug: string): Promise<MovieType> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/movies/${slug}`, {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        next: {
-            revalidate: 3600,
-        },
-    });
-    if (!res.ok) {
-        throw new Error('Failed to fetch movie data');
-    }
-    return res.json();
-}
-
-export async function getMovies(data: {
-    gqlQuery: DocumentNode;
+export async function getRegions(data: {
+    gqlQuery?: DocumentNode;
     filters?: CrudFilters;
     sorters?: CrudSort;
     pagination?: Pagination;
     operation?: string;
-}): Promise<MovieType[]> {
-    const { gqlQuery, filters, sorters, pagination, operation = 'movies' } = data;
+}): Promise<RegionType[]> {
+    const {
+        filters,
+        sorters,
+        pagination,
+        gqlQuery = REGIONS_LIST_QUERY,
+        operation = 'regions',
+    } = data;
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
         method: 'POST',
         headers: {
@@ -53,7 +47,7 @@ export async function getMovies(data: {
         },
     });
     if (!res.ok) {
-        throw new Error('Failed to fetch movies');
+        throw new Error('Failed to fetch regions');
     }
     const result = await res.json();
     return result?.data?.[operation]?.data;

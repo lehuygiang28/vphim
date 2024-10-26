@@ -13,13 +13,13 @@ export const stringifyTableParams = (params: {
         arrayFormat: 'indices',
         encode: false,
     };
-    const { pagination, sorter, sorters, filters, ...rest } = params;
+    const { pagination = {}, sorter, sorters = [], filters = [], ...rest } = params;
 
     const queryString = qs.stringify(
         {
             ...rest,
-            ...(pagination ? pagination : {}),
-            sorters: sorters,
+            pagination,
+            sorters,
             filters,
         },
         options,
