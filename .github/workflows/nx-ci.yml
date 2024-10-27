@@ -32,6 +32,13 @@ jobs:
             - run: yarn install --immutable
             - uses: nrwl/nx-set-shas@v4
 
+            # Create .env file
+            - name: Create .env file
+              run: |
+                  echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> apps/fe/.env
+                  echo "REVALIDATE_API_KEY=${{ secrets.REVALIDATE_API_KEY }}" >> apps/fe/.env
+              shell: bash
+
             # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
             # - run: npx nx-cloud record -- echo Hello World
             - run: npx nx affected -t lint build --exclude=mobile

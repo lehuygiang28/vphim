@@ -116,6 +116,17 @@ export const MOVIES_LIST_QUERY = gql`
     }
 `;
 
+export const MOVIES_LIST_QUERY_FOR_ISR = gql`
+    query GetMovies($input: GetMoviesInput!) {
+        movies(input: $input) {
+            data {
+                slug
+            }
+            total
+        }
+    }
+`;
+
 export const GET_MOVE_RATING_QUERY = gql`
     query GetRating($input: GetMovieInput!) {
         getRating(input: $input) {

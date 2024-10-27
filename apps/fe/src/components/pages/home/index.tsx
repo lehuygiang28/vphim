@@ -66,6 +66,7 @@ export default async function Home() {
                 gqlQuery: MOVIES_LIST_QUERY,
                 filters: asset.filters,
                 sorters: asset.sorters[0],
+                pagination: asset.pagination,
                 operation: 'movies',
             });
             return {

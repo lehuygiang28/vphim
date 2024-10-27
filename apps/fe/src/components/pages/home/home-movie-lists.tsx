@@ -19,7 +19,6 @@ export type HomeMovieListsProps = {
 
 export default function HomeMovieLists({ moviesWithAsset }: HomeMovieListsProps) {
     const [activeList, setActiveList] = useState<string | null>(null);
-
     const setActiveListCallback = useCallback((list: string | null) => {
         setActiveList(list);
     }, []);
