@@ -105,7 +105,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                     maxHeight: md ? '85vh' : '35vh',
                                 }}
                                 quality={20}
-                                loadType={index === 0 ? 'eager' : 'lazy'}
+                                loadType={index === 0 ? 'eager' : undefined}
                             />
                         </div>
                     );
@@ -332,7 +332,9 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                     style={posterStyle}
                                                     className="posterImage"
                                                     disableSkeleton
-                                                    loadType={movieIndex === 0 ? 'lazy' : 'eager'}
+                                                    loadType={
+                                                        movieIndex === 0 ? 'eager' : undefined
+                                                    }
                                                 />
                                             </Link>
                                         </div>

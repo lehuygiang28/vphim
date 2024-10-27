@@ -61,7 +61,7 @@ export function ImageOptimized({
     wrapperStyle,
     quality = 60,
     disableSkeleton = false,
-    loadType = 'lazy',
+    loadType,
 }: ImageOptimizedProps) {
     const [showImage1, setShowImage1] = useState(true);
     const [currentUrl1, setCurrentUrl1] = useState(
