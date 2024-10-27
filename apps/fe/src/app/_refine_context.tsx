@@ -14,7 +14,7 @@ import { graphqlDataProvider, restfulDataProvider } from '@/providers/data-provi
 import { useAxiosAuth } from '@/hooks/useAxiosAuth';
 import { authProvider } from '@/providers/auth-provider';
 import { useAxios } from '@/hooks/useAxios';
-import { isProduction } from '@/libs/utils/common';
+import Loading from './loading';
 
 type RefineContextProps = {
     defaultMode?: string;
@@ -38,7 +38,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
     const { status } = useSession();
 
     if (status === 'loading') {
-        return <></>;
+        return <Loading />;
     }
 
     return (
