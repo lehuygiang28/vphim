@@ -32,7 +32,9 @@ import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
 import { IMDBRating } from '@/components/card/imdb-rating';
 import { TMDBRating } from '@/components/card/tmdb-rating';
 import { MovieEpisode } from './movie-episode';
-import { MovieRelated } from './movie-related';
+const MovieRelated = dynamic(() => import('./movie-related').then((mod) => mod.MovieRelated), {
+    ssr: true,
+});
 const MovieComments = dynamic(() => import('./movie-comment'), { ssr: true });
 
 const { Title, Paragraph, Text } = Typography;
@@ -488,14 +490,14 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                 )}
                 {movie && (
                     <>
-                        <Row style={{ marginTop: '2rem', marginBottom: '4rem' }}>
-                            <Col span={24}>
-                                <MovieRelated movie={movie} />
-                            </Col>
-                        </Row>
                         <Row>
                             <Col span={24}>
                                 <MovieComments movieId={movie?._id?.toString()} />
+                            </Col>
+                        </Row>
+                        <Row style={{ marginTop: '2rem', marginBottom: '4rem' }}>
+                            <Col span={24}>
+                                <MovieRelated movie={movie} />
                             </Col>
                         </Row>
                     </>
