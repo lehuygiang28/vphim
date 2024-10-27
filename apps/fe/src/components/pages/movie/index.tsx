@@ -68,15 +68,16 @@ const InfoItem = ({
 
 export type MovieProps = {
     slug: string;
+    movie?: MovieType;
 };
 
-export function Movie({ slug }: MovieProps) {
+export function Movie({ slug, movie: movieProp }: MovieProps) {
     const router = useRouter();
     const pathname = usePathname();
     const { md } = useBreakpoint();
     const [isFollowing, setIsFollowing] = useState(false);
 
-    const { data: { data: movie } = {} } = useOne<MovieType>({
+    const { data: { data: movieQuery } = {} } = useOne<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
         id: slug,
@@ -89,8 +90,12 @@ export function Movie({ slug }: MovieProps) {
                 },
             },
         },
+        queryOptions: {
+            enabled: movieProp === undefined && slug !== undefined,
+        },
     });
 
+    const movie = movieQuery ?? movieProp;
     const { data: user } = useGetIdentity<UserType>();
     const { data: { data: followMovies } = {} } = useOne<Pick<UserType, 'followMovies'>>({
         dataProviderName: 'graphql',

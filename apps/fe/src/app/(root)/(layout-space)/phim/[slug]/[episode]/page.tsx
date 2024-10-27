@@ -8,6 +8,13 @@ import { MoviePlay } from '@/components/pages/movie/play';
 import { getEpisodeNameBySlug, getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import { getMovieBySlug } from '@/services/movies';
 
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
+export function generateStaticParams() {
+    return [];
+}
+
 export type MovieEpisodePageProps = {
     params: { slug: string; episode: string };
 };

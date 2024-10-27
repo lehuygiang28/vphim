@@ -5,6 +5,13 @@ import { Movie } from '@/components/pages/movie';
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import { getMovieBySlug } from '@/services/movies';
 
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
+export function generateStaticParams() {
+    return [];
+}
+
 export type MoviePageProps = {
     params: { slug: string };
 };
@@ -41,6 +48,8 @@ export async function generateMetadata(
     };
 }
 
-export default function MoviePage({ params }: MoviePageProps) {
-    return <Movie slug={params?.slug ?? ''} />;
+export default async function MoviePage({ params }: MoviePageProps) {
+    const movie = await getMovieBySlug(params.slug);
+
+    return <Movie slug={params?.slug ?? ''} movie={movie} />;
 }
