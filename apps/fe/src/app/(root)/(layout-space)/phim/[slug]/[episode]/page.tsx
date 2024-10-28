@@ -24,31 +24,67 @@ export async function generateMetadata(
     parent: ResolvingMetadata,
 ): Promise<Metadata> {
     const movie = await getMovieBySlug(params.slug);
+    const previousImages = (await parent).openGraph?.images || [];
+
     const episodeName = getEpisodeNameBySlug(movie, params.episode);
     const desString = `${episodeName} - ${movie.name} (${movie.originName})`;
+    const title = `${desString} | VePhim`;
+    const description = movie.content;
+    const images = [
+        movie?.posterUrl && {
+            url: getOptimizedImageUrl(movie?.posterUrl, {
+                width: 1200,
+                height: 630,
+                quality: 80,
+            }),
+            alt: movie?.name,
+        },
+        movie?.thumbUrl && {
+            url: getOptimizedImageUrl(movie?.thumbUrl, {
+                width: 1200,
+                height: 630,
+                quality: 80,
+            }),
+            alt: movie?.name,
+        },
+        ...previousImages,
+    ].filter(Boolean);
 
-    const previousImages = (await parent).openGraph?.images || [];
     return {
-        title: `${desString} | VePhim`,
-        description: `${desString} trên VePhim`,
+        title,
+        description,
         openGraph: {
-            title: `${desString} | VePhim`,
-            description: `Xem ${desString} trên VePhim`,
-            images: [
-                movie?.posterUrl &&
-                    getOptimizedImageUrl(movie?.posterUrl, {
-                        width: 1200,
-                        height: 630,
-                        quality: 80,
-                    }),
-                movie?.thumbUrl &&
-                    getOptimizedImageUrl(movie?.thumbUrl, {
-                        width: 1200,
-                        height: 630,
-                        quality: 80,
-                    }),
-                ...previousImages,
+            title,
+            description: movie.content,
+            url: `/phim/${movie?.slug}/${params.episode}`,
+            images,
+            siteName: 'VePhim',
+            type: 'video.movie',
+            actors: movie?.actors?.map((a) => a.name),
+            directors: movie?.directors?.map((d) => d.name),
+            countryName: movie?.countries?.map((c) => c.name).join(', '),
+            releaseDate: movie?.year?.toString(),
+            tags: [
+                movie?.name,
+                movie?.originName,
+                ...(movie?.categories?.map((c) => c.name) || []),
             ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: images[0],
+        },
+        other: {
+            'og:updated_time': new Date(movie?.lastSyncModified)?.toISOString(),
+            'og:image:alt': movie?.name,
+            'og:video': movie?.trailerUrl,
+            'og:video:type': 'video/mp4',
+            'og:video:width': '1920',
+            'og:video:height': '1080',
+            'og:locale': 'vi_VN',
+            'og:country-name': movie?.countries?.map((c) => c.name).join(', '),
         },
     };
 }
