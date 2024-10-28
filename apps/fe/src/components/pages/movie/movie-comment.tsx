@@ -102,7 +102,7 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
     return (
         <Card
             style={{
-                background: 'rgb(30, 30, 30)',
+                background: 'rgb(25, 25, 25)',
                 borderRadius: '1rem',
                 marginBottom: '2rem',
             }}

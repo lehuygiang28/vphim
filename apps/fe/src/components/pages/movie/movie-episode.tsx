@@ -185,7 +185,7 @@ export function MovieEpisode({
                 },
             }}
         >
-            <div style={{ background: '#141414', padding: '1rem', borderRadius: '8px' }}>
+            <div style={{ background: 'rgb(25, 25, 25)', padding: '1rem', borderRadius: '1rem' }}>
                 <Title level={4} style={{ color: '#fff', marginBottom: '1rem' }}>
                     Danh sách tập
                 </Title>
