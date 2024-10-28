@@ -8235,6 +8235,7 @@ __metadata:
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.1"
     cloudinary: "npm:^2.4.0"
+    compression: "npm:^1.7.4"
     copy-webpack-plugin: "npm:^12.0.2"
     critters: "npm:^0.0.25"
     cron: "npm:^3.1.7"

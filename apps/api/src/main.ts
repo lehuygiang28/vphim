@@ -8,13 +8,14 @@ import {
 } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
+import compression from 'compression';
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 import * as swaggerStats from 'swagger-stats';
 
 import { AppModule } from './app/app.module';
 import { ProblemDetails } from './libs/dtos';
 import { ProblemDetailsFilter } from './libs/filters';
-import { isProduction } from './libs/utils/common';
+import { isProduction, isTrue } from './libs/utils/common';
 import { openApiSwagger } from './open-api.swagger';
 
 async function bootstrap() {
@@ -31,6 +32,11 @@ async function bootstrap() {
 
     app.enableCors();
     app.enableShutdownHooks();
+
+    if (!isTrue(configService.get('DISABLE_COMPRESS'))) {
+        logger.log('Compression is enabled');
+        app.use(compression({ level: 9 }));
+    }
 
     app.useGlobalFilters(new ProblemDetailsFilter(logger));
 
