@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import dataProvider, { GraphQLClient } from '@refinedev/graphql';
 import { print } from 'graphql/language/printer';
 import { AxiosInstance } from 'axios';
 import camelCase from 'camelcase';
@@ -32,10 +31,6 @@ export const graphqlDataProvider = (
 ) => {
     const baseUrl = `${publicApiUrl ?? process.env.NEXT_PUBLIC_API_URL}/graphql`;
 
-    const client = new GraphQLClient(baseUrl, {
-        fetch: axios,
-    });
-
     const updateFn = async ({ resource, id, variables, meta }) => {
         const singularResource = pluralize.singular(resource) as string;
         const camelResource = camelCase(singularResource);
@@ -53,7 +48,6 @@ export const graphqlDataProvider = (
     };
 
     return {
-        ...dataProvider(client),
         create: ({ resource, variables, meta }) =>
             updateFn({ resource, variables: variables, meta, id: '' }),
         getList: async ({

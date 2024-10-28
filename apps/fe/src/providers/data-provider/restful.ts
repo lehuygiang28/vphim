@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { GetListResponse, GetListParams, BaseRecord, DeleteOneParams } from '@refinedev/core';
-import dataProviderSimpleRest from '@refinedev/simple-rest';
 import { AxiosInstance } from 'axios';
 
 import type { Movie } from 'apps/api/src/app/movies/movie.schema';
@@ -12,7 +12,6 @@ export const restfulDataProvider = (axios: AxiosInstance) => {
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
     return {
-        ...dataProviderSimpleRest(apiUrl, axios),
         update: async ({ resource, id, variables, meta }) => {
             const url = `${apiUrl}/${resource}/${id}`;
 
@@ -55,12 +54,8 @@ export const restfulDataProvider = (axios: AxiosInstance) => {
             };
         },
         deleteOne: async ({ resource, id, meta, variables }: DeleteOneParams) => {
-            if (meta?.params && Array.isArray(meta?.params)) {
-                const url = `${resource}/${meta?.params.join('/')}/${id}`;
-                return axios.delete(url);
-            }
-
-            return dataProviderSimpleRest('', axios).deleteOne({ resource, id, meta, variables });
+            const url = `${resource}${meta?.params && '/' + meta?.params.join('/')}/${id}`;
+            return axios.delete(url);
         },
     };
 };

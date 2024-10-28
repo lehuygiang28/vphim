@@ -1,6 +1,7 @@
 'use client';
 
 import '@refinedev/antd/dist/reset.css';
+
 import React from 'react';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { useNotificationProvider } from '@refinedev/antd';
@@ -73,8 +74,12 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             <Refine
                                 routerProvider={routerProvider}
                                 dataProvider={{
-                                    default: { ...restfulDataProvider(axiosAuth) } as DataProvider,
-                                    graphql: graphqlDataProvider(axiosAuth) as DataProvider,
+                                    default: restfulDataProvider(
+                                        axiosAuth,
+                                    ) as unknown as DataProvider,
+                                    graphql: graphqlDataProvider(
+                                        axiosAuth,
+                                    ) as unknown as DataProvider,
                                 }}
                                 notificationProvider={useNotificationProvider}
                                 authProvider={authProvider(undefined, axiosAuth)}

@@ -12,13 +12,7 @@ const nextConfig = {
         // See: https://github.com/gregberge/svgr
         svgr: false,
     },
-    transpilePackages: [
-        '@refinedev',
-        // antd & deps
-        '@ant-design',
-        '@rc-component',
-        'antd',
-    ],
+    transpilePackages: ['@refinedev/antd', '@refinedev/core', 'antd'],
     publicRuntimeConfig: {
         apiUrl: process.env.NEXT_PUBLIC_API_URL,
     },
