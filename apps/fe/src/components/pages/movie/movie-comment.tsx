@@ -156,9 +156,11 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
                                 Vui lòng
                                 <Link
                                     className="comment_require_login"
-                                    onClick={() =>
-                                        router.push(`/dang-nhap?to=${window?.location?.href}`)
-                                    }
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        router.push(`/dang-nhap?to=${window?.location?.href}`);
+                                    }}
+                                    href={`/dang-nhap?to=${window?.location?.href}`}
                                 >
                                     {' '}
                                     đăng nhập{' '}
