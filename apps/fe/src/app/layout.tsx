@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -125,15 +126,17 @@ export default function DefaultNoLayoutStyle({
                 <link rel="preconnect" href={'https://data.ratings.media-imdb.com'} />
             </head>
             <body>
-                <Suspense>
-                    <RefineContext defaultMode={defaultMode}>
-                        <>
-                            {children}
-                            {auth}
-                            {noauth}
-                        </>
-                    </RefineContext>
-                </Suspense>
+                <AntdRegistry ssrInline defaultCache>
+                    <Suspense>
+                        <RefineContext defaultMode={defaultMode}>
+                            <>
+                                {children}
+                                {auth}
+                                {noauth}
+                            </>
+                        </RefineContext>
+                    </Suspense>
+                </AntdRegistry>
                 <Analytics />
                 <SpeedInsights />
             </body>
