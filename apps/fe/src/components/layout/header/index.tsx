@@ -174,7 +174,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 <Image
                     src="/assets/images/logo-mini.png"
                     alt="vphim Logo"
-                    width={100}
+                    width={128}
                     height={30}
                     priority
                 />

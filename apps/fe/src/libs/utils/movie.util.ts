@@ -55,8 +55,8 @@ export function getOptimizedImageUrl(
         baseUrl?: string;
     },
 ) {
-    const { width, height, quality = 60 } = option;
-    return `${option?.baseUrl || ''}/api/images/optimize?url=${encodeURIComponent(
+    const { width, height, quality = 60, baseUrl = process.env.NEXT_PUBLIC_API_URL } = option;
+    return `${baseUrl}/api/images/optimize?url=${encodeURIComponent(
         url,
     )}&width=${width}&height=${height}&quality=${quality}`;
 }
