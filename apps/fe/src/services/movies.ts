@@ -50,6 +50,7 @@ export async function getMovies(data: {
         }),
         next: {
             revalidate: 3600,
+            tags: ['movies'],
         },
     });
     if (!res.ok) {

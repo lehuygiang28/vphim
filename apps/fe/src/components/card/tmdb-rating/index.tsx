@@ -26,7 +26,7 @@ export function TMDBRating({ id, type, size = 'middle' }: TMDBRatingProps) {
                     `https://api.themoviedb.org/3/${type}/${id}?language=en-US&api_key=${process?.env?.NEXT_PUBLIC_TMDB_API_KEY}`,
                     {
                         next: {
-                            revalidate: 360000,
+                            revalidate: 3600,
                         },
                     },
                 );

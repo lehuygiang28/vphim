@@ -24,7 +24,7 @@ export function IMDBRating({ id, size = 'middle' }: IMDBRatingProps) {
                     `https://data.ratings.media-imdb.com/${id}/data.json`,
                     {
                         next: {
-                            revalidate: 360000,
+                            revalidate: 3600,
                         },
                     },
                 );

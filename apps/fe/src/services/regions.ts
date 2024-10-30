@@ -44,6 +44,7 @@ export async function getRegions(data: {
         }),
         next: {
             revalidate: 3600,
+            tags: ['regions', 'countries'],
         },
     });
     if (!res.ok) {

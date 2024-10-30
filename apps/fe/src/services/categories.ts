@@ -43,6 +43,7 @@ export async function getCategories(data: {
         }),
         next: {
             revalidate: 3600,
+            tags: ['categories'],
         },
     });
     if (!res.ok) {
