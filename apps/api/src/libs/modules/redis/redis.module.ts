@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis, { RedisOptions } from 'ioredis';
 import { RedisService } from './services';
+import { isTrue } from '../../utils';
 
 @Module({
     providers: [
@@ -17,6 +18,7 @@ import { RedisService } from './services';
                     password: config.getOrThrow<string>('REDIS_PASSWORD'),
                     connectTimeout: Number(config.get<number>('REDIS_CONNECT_TIMEOUT')) || 20000,
                     keepAlive: Number(config.get<number>('REDIS_KEEP_ALIVE')) || 10000, // Send a PING every 10 seconds
+                    ...(isTrue(config.get<boolean>('REDIS_TLS')) && { tls: {} }),
                     maxRetriesPerRequest: null,
                     reconnectOnError: () => {
                         const reconnectAndResendFailedCmd = 2;
