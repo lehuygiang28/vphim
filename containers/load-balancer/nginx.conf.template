@@ -1,5 +1,5 @@
 worker_processes auto;
-error_log /dev/stderr notice;  # Log errors to stderr (console)
+error_log /dev/stderr notice;
 pid /var/run/nginx.pid;
 
 events {
@@ -9,9 +9,9 @@ events {
 http {
     log_format main '$remote_addr - $remote_user [$time_local] "$request" '
                     '$status $body_bytes_sent "$http_referer" '
-                    '"$http_user_agent" "$selected_backend" "$backend_host"';
+                    '"$http_user_agent"';
 
-    access_log /dev/stdout main;  # Log access to stdout (console)
+    access_log /dev/stdout main;
 
     sendfile on;
     tcp_nopush on;
@@ -22,33 +22,11 @@ http {
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
 
-    # Define cache path with max size of 5GB and no inactive timeout
     proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=cache_image_webp:50m max_size=5g use_temp_path=off;
 
-    # Define each backend server as an upstream group
-    upstream b0 {
-        server gh150-vphim-api-wk7.hf.space:443;
-    }
-
-    upstream b1 {
-        server gh150-vp-api-wk1.hf.space:443;
-    }
-
-    upstream b2 {
-        server gh150-vp-api-wk2.hf.space:443;
-    }
-
-    # Use split_clients to randomly assign a backend to each request
-    split_clients "${remote_addr}AAA" $selected_backend {
-        10% "b0";
-        45% "b1";
-        *   "b2";
-    }
-
-    map $selected_backend $backend_host {
-        "b0" "gh150-vphim-api-wk7.hf.space";
-        "b1" "gh150-vp-api-wk1.hf.space";
-        "b2" "gh150-vp-api-wk2.hf.space";
+    upstream backend_servers {
+        random two least_conn;
+        ${UPSTREAM_CONFIG}
     }
 
     server {
@@ -56,38 +34,20 @@ http {
         server_name _;
 
         location /api/auth {
-            # Always proxy to the first backend (b1)
-            proxy_pass https://b1;
-
-            # Set headers dynamically based on the selected backend
-            proxy_set_header Host gh150-vp-api-wk1.hf.space;
-            proxy_set_header X-Host gh150-vp-api-wk1.hf.space;
-
-            add_header X-Lb-Server b1 always;  # Indicate that the first backend is used
+            proxy_pass ${AUTH_SERVER};
         }
 
         location / {
-            # Proxy to the selected backend based on split_clients result
-            proxy_pass https://$selected_backend;
-
-            # Enable caching for all responses
+            proxy_pass http://backend_servers;
             proxy_cache cache_image_webp;
-
-            # Use default caching behavior without expiration
             proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
-
-            # Set headers dynamically based on the selected backend
-            proxy_set_header Host $backend_host;
-            proxy_set_header X-Host $backend_host;
-
-            # Add custom cache status header
             add_header X-Lb-Cache-Status $upstream_cache_status always;
-
-            add_header X-Lb-Server $selected_backend always;
         }
 
         location /lb-stats {
             stub_status;
         }
     }
+
+    ${SERVER_CONFIGS}
 }

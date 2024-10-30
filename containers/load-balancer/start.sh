@@ -1,83 +1,51 @@
 #!/bin/bash
 
-# Parse BACKEND_SERVERS environment variable
-IFS=',' read -ra SERVERS <<< "$BACKEND_SERVERS"
-UPSTREAM_CONFIG=""
-SPLIT_CONFIG=""
-MAP_CONFIG=""
-TOTAL_SERVERS=${#SERVERS[@]}
-LAST_INDEX=$((TOTAL_SERVERS - 1))
-
-# Check if BACKEND_PERCENTAGES is set
-if [ -z "$BACKEND_PERCENTAGES" ]; then
-    # If not set, calculate equal percentages
-    PERCENTAGE_PER_SERVER=$((100 / TOTAL_SERVERS))
-    for ((i = 0; i < TOTAL_SERVERS; i++)); do
-        PERCENTAGES[i]=$PERCENTAGE_PER_SERVER
-    done
-else
-    # Parse BACKEND_PERCENTAGES if set
-    IFS=',' read -ra PERCENTAGES <<< "$BACKEND_PERCENTAGES"
-    
-    # Validate that the number of percentages matches the number of servers
-    if [[ ${#PERCENTAGES[@]} -ne $TOTAL_SERVERS ]]; then
-        echo "Error: The number of percentages must match the number of servers."
-        exit 1
-    fi
-    
-    # Check for wildcard (*) in BACKEND_PERCENTAGES
-    for i in "${!PERCENTAGES[@]}"; do
-        # Ensure wildcard is in the last position
-        if [[ "${PERCENTAGES[$i]}" == "*" ]]; then
-            if [[ $i -ne LAST_INDEX ]]; then
-                echo "Error: Wildcard (*) can only be used for the last server."
-                exit 1
-            fi
-            # Do not change the wildcard
-            continue
-        fi
-        
-        # Ensure the percentage is a valid integer
-        if ! [[ "${PERCENTAGES[$i]}" =~ ^[0-9]+$ ]]; then
-            echo "Error: Percentages must be integers."
-            exit 1
-        fi
-    done
+# Check if UPSTREAM_SERVERS is set
+if [ -z "$UPSTREAM_SERVERS" ]; then
+    echo "Error: UPSTREAM_SERVERS environment variable is not set."
+    exit 1
 fi
 
-# Generate upstream configuration and split_clients mapping
+# Convert comma-separated list to array
+IFS=',' read -ra SERVERS <<< "$UPSTREAM_SERVERS"
+
+# Generate upstream configuration
+UPSTREAM_CONFIG=""
+SERVER_CONFIGS=""
 for i in "${!SERVERS[@]}"; do
-    SERVER="b$((i + 1))"
-    HOST="${SERVERS[$i]}"
-    PERCENTAGE="${PERCENTAGES[$i]}"
-    
-    # Add to upstream configuration
-    UPSTREAM_CONFIG+="    upstream $SERVER { server $HOST:443; }"
-    
-    # Handle percentage formatting correctly
-    if [[ "$PERCENTAGE" == "*" ]]; then
-        SPLIT_CONFIG+="        * \"$SERVER\";"  # Wildcard case
-    else
-        SPLIT_CONFIG+="        ${PERCENTAGE}% \"$SERVER\";"  # Normal percentage case
-    fi
-    
-    # Add to map configuration
-    MAP_CONFIG+="    \"$SERVER\" \"$HOST\";"
+    server="${SERVERS[$i]}"
+    port=$((8000 + i))
+    UPSTREAM_CONFIG+=$(echo -e "        server 127.0.0.1:$port;\n")
+
+    SERVER_CONFIGS+=$(echo -e "    server {\n")
+    SERVER_CONFIGS+=$(echo -e "        listen $port;\n")
+    SERVER_CONFIGS+=$(echo -e "        server_name $server;\n")
+    SERVER_CONFIGS+=$(echo -e "        location / {\n")
+    SERVER_CONFIGS+=$(echo -e "            proxy_pass https://$server;\n")
+    SERVER_CONFIGS+=$(echo -e "            proxy_set_header Host $server;\n")
+    SERVER_CONFIGS+=$(echo -e "            proxy_set_header X-Host $server;\n")
+    SERVER_CONFIGS+=$(echo -e "            add_header X-Lb-Server b$i always;\n")
+    SERVER_CONFIGS+=$(echo -e "        }\n")
+    SERVER_CONFIGS+=$(echo -e "    }\n\n")
 done
 
-# Export configurations for envsubst
-export UPSTREAM_CONFIG
-export SPLIT_CONFIG
-export MAP_CONFIG
+# Set the auth server to the first server in the list
+AUTH_SERVER="http://127.0.0.1:8001"
 
-# Create a temporary file for the Nginx config
+# Export variables for envsubst
+export UPSTREAM_CONFIG
+export SERVER_CONFIGS
+export AUTH_SERVER
+
+# Create temporary config file
 TEMP_CONFIG=$(mktemp)
 
-# Use envsubst to replace environment variables in the template and write to the Nginx config file
-envsubst '\$UPSTREAM_CONFIG \$SPLIT_CONFIG \$MAP_CONFIG' < /etc/nginx/nginx.conf.template > "$TEMP_CONFIG"
+# Generate the final nginx configuration
+envsubst '${UPSTREAM_CONFIG} ${SERVER_CONFIGS} ${AUTH_SERVER}' < /etc/nginx/nginx.conf.template > "$TEMP_CONFIG"
 
-# Display the generated configuration for debugging
-echo "$(<$TEMP_CONFIG)"
+# Print the generated configuration for debugging
+echo "Generated Nginx configuration:"
+cat "$TEMP_CONFIG"
 
-# Start Nginx with the generated configuration
+# Start Nginx with the generated config
 exec nginx -c "$TEMP_CONFIG" -g 'daemon off;'
