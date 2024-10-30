@@ -30,7 +30,7 @@ for i in "${!SERVERS[@]}"; do
 done
 
 # Set the auth server to the first server in the list
-AUTH_SERVER="http://127.0.0.1:8001"
+AUTH_SERVER="http://127.0.0.1:8000"
 
 # Export variables for envsubst
 export UPSTREAM_CONFIG
