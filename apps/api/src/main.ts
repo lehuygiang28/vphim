@@ -48,8 +48,8 @@ async function bootstrap() {
         .setTitle('vphim RESTful API Documentations')
         .setDescription('The documentations of the vphim RESTful API')
         .setVersion('0.0.1')
+        .addServer('https://api.vephim.online', 'staging')
         .addServer('http://localhost:8000')
-        .addServer('https://wk2.vephim.online', 'tunnel')
         .addBearerAuth()
         .build();
 
