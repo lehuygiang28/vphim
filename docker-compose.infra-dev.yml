@@ -15,6 +15,21 @@ services:
             - vphim_net
         restart: unless-stopped
 
+    vp-load-balancer:
+        container_name: vp-load-balancer
+        hostname: vp-load-balancer
+        build:
+            context: ./
+            dockerfile: ./containers/load-balancer/Dockerfile
+        image: lehuygiang28/vp-load-balancer:${COMPOSE_TAG:-latest}
+        env_file:
+            - ./containers/load-balancer/.env
+        ports:
+            - 7000:7000
+        networks:
+            - vphim_net
+        restart: unless-stopped
+
 networks:
     vphim_net:
         driver: bridge
