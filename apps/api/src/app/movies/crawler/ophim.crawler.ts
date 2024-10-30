@@ -42,7 +42,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly OPHIM_IMG_HOST: string = null;
     private readonly logger = new Logger(OphimCrawler.name);
     private readonly ophim: Ophim;
-    private readonly REVALIDATION_BATCH_SIZE = 5;
+    private readonly REVALIDATION_BATCH_SIZE = 40;
     private moviesToRevalidate: string[] = [];
 
     constructor(

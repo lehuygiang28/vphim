@@ -42,7 +42,7 @@ export class KKPhimCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly KKPHIM_IMG_HOST: string = null;
     private readonly logger = new Logger(KKPhimCrawler.name);
     private readonly kkphim: Ophim;
-    private readonly REVALIDATION_BATCH_SIZE = 5;
+    private readonly REVALIDATION_BATCH_SIZE = 40;
     private moviesToRevalidate: string[] = [];
 
     constructor(

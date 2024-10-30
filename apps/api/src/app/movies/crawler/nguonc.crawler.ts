@@ -40,7 +40,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly NGUONC_FORCE_UPDATE: boolean = true;
     private readonly NGUONC_HOST: string = 'https://phim.nguonc.com/api';
     private readonly logger = new Logger(NguoncCrawler.name);
-    private readonly REVALIDATION_BATCH_SIZE = 100;
+    private readonly REVALIDATION_BATCH_SIZE = 40;
     private moviesToRevalidate: string[] = [];
 
     constructor(
