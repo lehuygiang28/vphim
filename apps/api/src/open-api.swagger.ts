@@ -20,9 +20,8 @@ export function openApiSwagger(app: INestApplication, path = '/open-api'): void 
         .setContact('admin', 'https://vephim.online', 'admin@vephim.online')
         .setDescription('Restful Open API for VePhim')
         .setVersion('0.0.1')
+        .addServer('https://api.vephim.online', 'staging')
         .addServer('http://localhost:8000', 'localhost')
-        .addServer('https://gh150-vphim-api-wk7.hf.space/', 'staging')
-        .addServer('https://wk2.vephim.online', 'tunnel')
         .addBearerAuth()
         .build();
 
