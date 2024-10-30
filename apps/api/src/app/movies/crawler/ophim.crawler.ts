@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { CronJob } from 'cron';
 import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js';
@@ -41,6 +42,8 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly OPHIM_IMG_HOST: string = null;
     private readonly logger = new Logger(OphimCrawler.name);
     private readonly ophim: Ophim;
+    private readonly REVALIDATION_BATCH_SIZE = 5;
+    private moviesToRevalidate: string[] = [];
 
     constructor(
         private readonly configService: ConfigService,
@@ -51,6 +54,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
         private readonly categoryRepo: CategoryRepository,
         private readonly directorRepo: DirectorRepository,
         private readonly regionRepo: RegionRepository,
+        private readonly httpService: HttpService,
     ) {
         if (!isNullOrUndefined(this.configService.get('OPHIM_HOST'))) {
             this.OPHIM_HOST = this.configService.getOrThrow<string>('OPHIM_HOST');
@@ -121,11 +125,24 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
 
                 // Cache the last crawled page for 24 hours
                 await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
+
+                // Revalidate all updated movies at once
+                if (
+                    this.moviesToRevalidate.length > 0 &&
+                    this.moviesToRevalidate.length >= this.REVALIDATION_BATCH_SIZE
+                ) {
+                    await this.revalidateMovies();
+                }
             }
 
             // Retry failed crawls after the main crawl is done (max 3 attempts)
             for (let retryAttempt = 0; retryAttempt < 3; retryAttempt++) {
                 await this.retryFailedCrawls();
+            }
+
+            // Revalidate all updated movies at once when all pages are crawled
+            if (this.moviesToRevalidate.length > 0) {
+                await this.revalidateMovies();
             }
         } catch (error) {
             this.logger.error(`Error crawling movies: ${error}`);
@@ -392,6 +409,7 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
                     filterQuery: { slug: movieSlug },
                     updateQuery,
                 });
+                this.moviesToRevalidate.push(movieSlug);
                 this.logger.log(`Updated movie: "${movieSlug}"`);
             } else {
                 await this.movieRepo.create({
@@ -440,6 +458,33 @@ export class OphimCrawler implements OnModuleInit, OnModuleDestroy {
             }
         } catch (error) {
             this.logger.error(`Error during retryFailedCrawls: ${error}`);
+        }
+    }
+
+    private async revalidateMovies() {
+        try {
+            const res = await this.httpService.axiosRef.post(
+                this.configService.getOrThrow<string>('REVALIDATE_WEBHOOK_URL'),
+                { movieSlug: this.moviesToRevalidate },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': this.configService.getOrThrow<string>('REVALIDATE_API_KEY'),
+                    },
+                },
+            );
+
+            if (res?.status !== 200) {
+                this.logger.error(`Failed to revalidate on front-end side: ${res.statusText}`);
+                return;
+            }
+
+            this.logger.log(
+                `Revalidated on front-end side: ${this.moviesToRevalidate.length} movies - ${res.statusText}`,
+            );
+            this.moviesToRevalidate = []; // Clear the array after revalidation
+        } catch (error) {
+            this.logger.error(`Error during revalidateMovies: ${error}`);
         }
     }
 }

@@ -40,6 +40,8 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly NGUONC_FORCE_UPDATE: boolean = true;
     private readonly NGUONC_HOST: string = 'https://phim.nguonc.com/api';
     private readonly logger = new Logger(NguoncCrawler.name);
+    private readonly REVALIDATION_BATCH_SIZE = 100;
+    private moviesToRevalidate: string[] = [];
 
     constructor(
         private readonly configService: ConfigService,
@@ -102,10 +104,23 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             for (let i = lastCrawledPage; i <= totalPages; i++) {
                 await this.crawlPage(i);
                 await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
+
+                // Revalidate all updated movies at once
+                if (
+                    this.moviesToRevalidate.length > 0 &&
+                    this.moviesToRevalidate.length >= this.REVALIDATION_BATCH_SIZE
+                ) {
+                    await this.revalidateMovies();
+                }
             }
 
             for (let retryAttempt = 0; retryAttempt < 3; retryAttempt++) {
                 await this.retryFailedCrawls();
+            }
+
+            // Revalidate all updated movies at once when all pages are crawled
+            if (this.moviesToRevalidate.length > 0) {
+                await this.revalidateMovies();
             }
         } catch (error) {
             this.logger.error(`Error crawling movies: ${error}`);
@@ -298,6 +313,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                     filterQuery: { slug: movieSlug },
                     updateQuery,
                 });
+                this.moviesToRevalidate.push(movieSlug);
                 this.logger.log(`Updated movie: "${movieSlug}"`);
             } else {
                 await this.movieRepo.create({
@@ -494,6 +510,33 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             }
         } catch (error) {
             this.logger.error(`Error during retryFailedCrawls: ${error}`);
+        }
+    }
+
+    private async revalidateMovies() {
+        try {
+            const res = await this.httpService.axiosRef.post(
+                this.configService.getOrThrow<string>('REVALIDATE_WEBHOOK_URL'),
+                { movieSlug: this.moviesToRevalidate },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': this.configService.getOrThrow<string>('REVALIDATE_API_KEY'),
+                    },
+                },
+            );
+
+            if (res?.status !== 200) {
+                this.logger.error(`Failed to revalidate on front-end side: ${res.statusText}`);
+                return;
+            }
+
+            this.logger.log(
+                `Revalidated on front-end side: ${this.moviesToRevalidate.length} movies - ${res.statusText}`,
+            );
+            this.moviesToRevalidate = []; // Clear the array after revalidation
+        } catch (error) {
+            this.logger.error(`Error during revalidateMovies: ${error}`);
         }
     }
 }
