@@ -16,7 +16,7 @@ RUN yarn workspaces focus --all
 
 COPY . .
 
-RUN yarn nx build mnt
+RUN yarn nx build mnt --skip-nx-cache
 
 FROM base AS production
 
