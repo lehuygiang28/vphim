@@ -16,6 +16,7 @@ RUN yarn workspaces focus --all
 
 COPY . .
 
+ENV NEXT_SHARP_PATH "/usr/src/app/node_modules/sharp"
 RUN yarn nx build mnt --skip-nx-cache
 
 FROM base AS production
