@@ -15,7 +15,7 @@ import * as swaggerStats from 'swagger-stats';
 import { AppModule } from './app/app.module';
 import { ProblemDetails } from './libs/dtos';
 import { ProblemDetailsFilter } from './libs/filters';
-import { isProduction, isTrue } from './libs/utils/common';
+import { isNullOrUndefined, isProduction } from './libs/utils/common';
 import { openApiSwagger } from './open-api.swagger';
 
 async function bootstrap() {
@@ -33,9 +33,12 @@ async function bootstrap() {
     app.enableCors();
     app.enableShutdownHooks();
 
-    if (!isTrue(configService.get('DISABLE_COMPRESS'))) {
+    if (
+        !isNullOrUndefined(configService.get('COMPRESS_LEVEL')) &&
+        !isNaN(Number(configService.get('COMPRESS_LEVEL')))
+    ) {
         logger.log('Compression is enabled');
-        app.use(compression({ level: 9 }));
+        app.use(compression({ level: Number(configService.get('COMPRESS_LEVEL')) }));
     }
 
     app.useGlobalFilters(new ProblemDetailsFilter(logger));

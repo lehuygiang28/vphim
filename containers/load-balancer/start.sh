@@ -15,11 +15,12 @@ SERVER_CONFIGS=""
 for i in "${!SERVERS[@]}"; do
     server="${SERVERS[$i]}"
     port=$((8000 + i))
-    UPSTREAM_CONFIG+=$(echo -e "        server 127.0.0.1:$port;\n")
+    UPSTREAM_CONFIG+=$(echo -e "        server 127.0.0.1:$port max_fails=3 fail_timeout=30s;\n")
 
     SERVER_CONFIGS+=$(echo -e "    server {\n")
     SERVER_CONFIGS+=$(echo -e "        listen $port;\n")
     SERVER_CONFIGS+=$(echo -e "        server_name $server;\n")
+    SERVER_CONFIGS+=$(echo -e "        access_log off;\n")
     SERVER_CONFIGS+=$(echo -e "        location / {\n")
     SERVER_CONFIGS+=$(echo -e "            proxy_pass https://$server;\n")
     SERVER_CONFIGS+=$(echo -e "            proxy_set_header Host $server;\n")
