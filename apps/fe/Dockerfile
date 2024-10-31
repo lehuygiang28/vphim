@@ -38,5 +38,6 @@ USER node
 
 ENV NODE_ENV production
 ENV HOSTNAME "0.0.0.0"
+ENV NEXT_SHARP_PATH "/usr/src/app/node_modules/sharp"
 
 CMD ["node", "server.js"]
