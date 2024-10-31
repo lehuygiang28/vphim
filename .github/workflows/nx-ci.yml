@@ -5,7 +5,8 @@ name: NX-CI
 on:
     push:
         branches:
-            - main
+            # - main
+            - disable-nx-ci
 
 permissions:
     actions: read
