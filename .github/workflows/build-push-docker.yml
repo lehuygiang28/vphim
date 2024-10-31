@@ -80,6 +80,16 @@ jobs:
                   echo "# .env created" >> ./containers/be-redis-pm2/.env
                   cat .env
 
+            - name: 'Prepare env for fe and mnt'
+              run: |
+                  echo "NEXT_PUBLIC_API_URL='https://api.vephim.online'" >> ./apps/fe/.env
+                  echo "NEXT_PUBLIC_FE_URL='https://vephim.online'" >> ./apps/fe/.env
+                  echo "NEXT_PUBLIC_TMDB_API_KEY='cd13b28d7ef8b3a8e96cfd214d3a0453'" >> ./apps/fe/.env
+
+                  echo "NEXT_PUBLIC_API_URL='https://api.vephim.online'" >> ./apps/mnt/.env
+                  echo "NEXT_PUBLIC_FE_URL='https://vephim.online'" >> ./apps/mnt/.env
+                  echo "NEXT_PUBLIC_TMDB_API_KEY='cd13b28d7ef8b3a8e96cfd214d3a0453'" >> ./apps/mnt/.env
+
             - name: Set COMPOSE_TAG as short commit SHA
               run: dotenvx set --plain COMPOSE_TAG ${{ steps.set_short_sha.outputs.SHORT_SHA }}
 

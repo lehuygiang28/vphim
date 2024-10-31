@@ -14,5 +14,35 @@ services:
             - vphim_net
         restart: unless-stopped
 
+    vphim_fe:
+        container_name: vphim_fe
+        hostname: vphim_fe
+        build:
+            context: ./
+            dockerfile: ./apps/fe/Dockerfile
+        image: lehuygiang28/vphim_fe:${COMPOSE_TAG:-latest}
+        env_file:
+            - ./apps/fe/.env
+        ports:
+            - 3000:3000
+        networks:
+            - vphim_net
+        restart: unless-stopped
+
+    vphim_mnt:
+        container_name: vphim_mnt
+        hostname: vphim_mnt
+        build:
+            context: ./
+            dockerfile: ./apps/mnt/Dockerfile
+        image: lehuygiang28/vphim_mnt:${COMPOSE_TAG:-latest}
+        env_file:
+            - ./apps/mnt/.env
+        ports:
+            - 4000:3000
+        networks:
+            - vphim_net
+        restart: unless-stopped
+
 networks:
     vphim_net:
