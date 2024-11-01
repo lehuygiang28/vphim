@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 import { RefineContext } from './_refine_context';
 import { customFont } from '@/fonts';
@@ -139,6 +140,7 @@ export default function DefaultNoLayoutStyle({
                 </AntdRegistry>
                 <Analytics />
                 <SpeedInsights />
+                <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
             </body>
         </html>
     );
