@@ -25,7 +25,7 @@ import { ColorModeContextProvider } from '~fe/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
 import { useAxiosAuth } from '~fe/hooks/useAxiosAuth';
 import { authProvider } from '~fe/providers/auth-provider';
-import { isProduction } from '@/libs/utils/common';
+import { isProduction } from '~fe/libs/utils/common';
 
 type RefineContextProps = {
     defaultMode?: string;

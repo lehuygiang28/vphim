@@ -40,6 +40,7 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
 
     return (
         <Edit
+            title={`Edit ${query?.data?.data?.originName}`}
             saveButtonProps={saveButtonProps}
             footerButtons={(button) => {
                 const { saveButtonProps } = button;
