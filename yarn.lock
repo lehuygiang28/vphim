@@ -24,17 +24,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aliemir/dom-to-fiber-utils@npm:^0.4.0":
-  version: 0.4.1
-  resolution: "@aliemir/dom-to-fiber-utils@npm:0.4.1"
-  dependencies:
-    react: "npm:^18.0.0"
-    react-dom: "npm:^18.0.0"
-    react-reconciler: "npm:^0.29.0"
-  checksum: 10c0/5e4f86ddc304968219fe2733efbb331eb6a777c3b310ddcdbf6d75dd35bf1ad7d7d1acda7a3b443fd401a23ac1a8a51762ec38d2f71873fec5aea33d504c7e74
-  languageName: node
-  linkType: hard
-
 "@ampproject/remapping@npm:^2.2.0":
   version: 2.3.0
   resolution: "@ampproject/remapping@npm:2.3.0"
@@ -6356,27 +6345,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@refinedev/devtools@npm:^1.2.8":
-  version: 1.2.8
-  resolution: "@refinedev/devtools@npm:1.2.8"
-  dependencies:
-    "@aliemir/dom-to-fiber-utils": "npm:^0.4.0"
-    "@refinedev/devtools-shared": "npm:1.1.12"
-    error-stack-parser: "npm:^2.1.4"
-    lodash: "npm:^4.17.21"
-    lodash-es: "npm:^4.17.21"
-  peerDependencies:
-    "@refinedev/cli": 2.16.38
-    "@refinedev/core": ^4.46.1
-    "@refinedev/devtools-server": 1.1.36
-    "@types/react": ^17.0.0 || ^18.0.0
-    "@types/react-dom": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10c0/9c7c35655bd57511102cf86daf7b2e57d716294c0ba7e15552f00dfc580d08d743875269edd0ec76072a4e8d9b90e006a3970adab71fa520e1618db8e476dc4a
-  languageName: node
-  linkType: hard
-
 "@refinedev/kbar@npm:^1.3.12":
   version: 1.3.12
   resolution: "@refinedev/kbar@npm:1.3.12"
@@ -8168,7 +8136,6 @@ __metadata:
     "@react-native-async-storage/async-storage": "npm:1.23.1"
     "@refinedev/antd": "npm:^5.43.0"
     "@refinedev/core": "npm:^4.54.0"
-    "@refinedev/devtools": "npm:^1.2.8"
     "@refinedev/kbar": "npm:^1.3.12"
     "@refinedev/nextjs-router": "npm:^6.1.0"
     "@refinedev/react-hook-form": "npm:^4.9.0"
@@ -22230,7 +22197,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:18.3.1, react-dom@npm:^18.0.0":
+"react-dom@npm:18.3.1":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
   dependencies:
@@ -22519,18 +22486,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-reconciler@npm:^0.29.0":
-  version: 0.29.2
-  resolution: "react-reconciler@npm:0.29.2"
-  dependencies:
-    loose-envify: "npm:^1.1.0"
-    scheduler: "npm:^0.23.2"
-  peerDependencies:
-    react: ^18.3.1
-  checksum: 10c0/94f48ddc348a974256cf13c859f5a94efdb0cd72e04c51b1a4d5c72a8b960ccd35df2196057ee6a4cbcb26145e12b01e3f9ba3b183fddb901414db36a07cbf43
-  languageName: node
-  linkType: hard
-
 "react-refresh@npm:^0.14.0, react-refresh@npm:^0.14.2":
   version: 0.14.2
   resolution: "react-refresh@npm:0.14.2"
@@ -22574,7 +22529,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.3.1, react@npm:^18.0.0":
+"react@npm:18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
