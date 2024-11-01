@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSelect } from '@refinedev/antd';
 import {
     Form,
@@ -58,6 +58,7 @@ export type MovieFormProps = {
 };
 
 export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) => {
+    const router = useRouter();
     const apiUrl = useApiUrl();
     const axios = useAxiosAuth();
     const pathname = usePathname();
@@ -332,16 +333,32 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
 
     useEffect(() => {
         const formData = {
-            actors: query?.data?.data?.actors?.map((actor: ActorType) => actor._id?.toString()),
-            categories: query?.data?.data?.categories?.map((category: CategoryType) =>
-                category._id?.toString(),
-            ),
-            countries: query?.data?.data?.countries?.map((country: RegionType) =>
-                country._id?.toString(),
-            ),
-            directors: query?.data?.data?.directors?.map((director: DirectorType) =>
-                director._id?.toString(),
-            ),
+            actors: Array.isArray(query?.data?.data?.actors)
+                ? query.data.data.actors.map((actor: ActorType) =>
+                      typeof actor === 'object' && actor._id ? actor?._id?.toString() : actor,
+                  )
+                : [],
+            categories: Array.isArray(query?.data?.data?.categories)
+                ? query.data.data.categories.map((category: CategoryType) =>
+                      typeof category === 'object' && category._id
+                          ? category?._id?.toString()
+                          : category,
+                  )
+                : [],
+            countries: Array.isArray(query?.data?.data?.countries)
+                ? query.data.data.countries.map((country: RegionType) =>
+                      typeof country === 'object' && country._id
+                          ? country?._id?.toString()
+                          : country,
+                  )
+                : [],
+            directors: Array.isArray(query?.data?.data?.directors)
+                ? query.data.data.directors.map((director: DirectorType) =>
+                      typeof director === 'object' && director._id
+                          ? director?._id?.toString()
+                          : director,
+                  )
+                : [],
         };
 
         Object.entries(formData).forEach(([key, value]) => {
@@ -355,14 +372,35 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
     const handleFormSubmit = (values: any) => {
         const updatedValues = {
             ...values,
-            actors: values.actors?.map((actor: ActorType) => actor._id?.toString()),
-            categories: values.categories?.map((category: CategoryType) =>
-                category._id?.toString(),
-            ),
-            countries: values.countries?.map((country: RegionType) => country._id?.toString()),
-            directors: values.directors?.map((director: DirectorType) => director._id?.toString()),
+            actors: Array.isArray(values?.actors)
+                ? values.actors.map((actor: ActorType) =>
+                      typeof actor === 'object' && actor._id ? actor?._id?.toString() : actor,
+                  )
+                : [],
+            categories: Array.isArray(values?.categories)
+                ? values.categories.map((category: CategoryType) =>
+                      typeof category === 'object' && category._id
+                          ? category?._id?.toString()
+                          : category,
+                  )
+                : [],
+            countries: Array.isArray(values?.countries)
+                ? values.countries.map((country: RegionType) =>
+                      typeof country === 'object' && country._id
+                          ? country?._id?.toString()
+                          : country,
+                  )
+                : [],
+            directors: Array.isArray(values?.directors)
+                ? values.directors.map((director: DirectorType) =>
+                      typeof director === 'object' && director._id
+                          ? director?._id?.toString()
+                          : director,
+                  )
+                : [],
         };
-        return formProps.onFinish?.(updatedValues);
+        formProps.onFinish?.(updatedValues);
+        router.refresh();
     };
 
     return (

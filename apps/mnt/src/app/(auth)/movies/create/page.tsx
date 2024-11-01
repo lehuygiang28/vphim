@@ -19,7 +19,6 @@ export default function MovieCreatePage() {
             gqlQuery: CREATE_MOVIE,
             operation: 'createMovie',
         },
-        redirect: 'list',
         invalidates: ['list', 'detail'],
     });
 
