@@ -30,19 +30,20 @@ for i in "${!SERVERS[@]}"; do
     SERVER_CONFIGS+=$(echo -e "    }\n\n")
 done
 
-# Set the auth server to the first server in the list
-AUTH_SERVER="http://127.0.0.1:8000"
+CRAWL_SERVER="http://127.0.0.1:8000"
+AUTH_SERVER="http://127.0.0.1:8001"
 
 # Export variables for envsubst
 export UPSTREAM_CONFIG
 export SERVER_CONFIGS
+export CRAWL_SERVER
 export AUTH_SERVER
 
 # Create temporary config file
 TEMP_CONFIG=$(mktemp)
 
 # Generate the final nginx configuration
-envsubst '${UPSTREAM_CONFIG} ${SERVER_CONFIGS} ${AUTH_SERVER}' < /etc/nginx/nginx.conf.template > "$TEMP_CONFIG"
+envsubst '${UPSTREAM_CONFIG} ${SERVER_CONFIGS} ${CRAWL_SERVER} ${AUTH_SERVER}' < /etc/nginx/nginx.conf.template > "$TEMP_CONFIG"
 
 # Print the generated configuration for debugging
 echo "Generated Nginx configuration:"
