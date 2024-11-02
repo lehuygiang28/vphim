@@ -217,7 +217,9 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
             const yearCategory = (Object.values(movieDetail.category || {}) as any[]).find(
                 (group: any) => group?.group?.name?.toLowerCase() === 'năm',
             );
-            const year = yearCategory?.list?.[0]?.name ? parseInt(yearCategory.list[0].name) : null;
+            const year =
+                existingMovie?.year ||
+                (yearCategory?.list?.[0]?.name ? parseInt(yearCategory.list[0].name) : null);
 
             const {
                 id,
@@ -289,8 +291,8 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                     directorIds && directorIds?.length > 0
                         ? directorIds
                         : existingMovie?.directors || [],
-                thumbUrl: thumb_url || existingMovie?.thumbUrl || '',
-                posterUrl: poster_url || existingMovie?.posterUrl || '',
+                thumbUrl: existingMovie?.thumbUrl || thumb_url || '',
+                posterUrl: existingMovie?.posterUrl || poster_url || '',
 
                 name: existingMovie?.name || name || '',
                 originName: existingMovie?.originName || original_name || '',
@@ -370,11 +372,17 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         let categories = [];
         let countries = [];
 
-        for (const group of Object.values<any>(category || {})) {
-            if (group.group?.name?.toLowerCase() === 'quốc gia') {
-                countries = await this.processEntities(group?.list || [], this.regionRepo);
-            } else if (group.group?.name?.toLowerCase() === 'thể loại') {
-                categories = await this.processEntities(group?.list || [], this.categoryRepo);
+        for (const c of Object.values<any>(category || {})) {
+            if (c.group?.name?.toLowerCase() === 'quốc gia') {
+                countries = await this.processEntities(
+                    c?.list?.map((c: { name: string }) => c?.name) || [],
+                    this.regionRepo,
+                );
+            } else if (c.group?.name?.toLowerCase() === 'thể loại') {
+                categories = await this.processEntities(
+                    c?.list?.map((c: { name: string }) => c?.name) || [],
+                    this.categoryRepo,
+                );
             }
         }
 
