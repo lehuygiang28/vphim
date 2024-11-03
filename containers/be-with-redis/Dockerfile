@@ -33,7 +33,7 @@ LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>
 
 # Install Redis and Supervisor
 RUN apk update && \
-  apk add --no-cache supervisor redis
+	apk add --no-cache supervisor=4.2.5-r5 redis=7.2.5-r1
 
 WORKDIR /usr/src/app
 
@@ -55,7 +55,7 @@ ENV NODE_ENV production
 
 # Set proper permissions
 RUN chown node:node /usr/src/app/supervisord.conf && \
-  chmod 755 /usr/src/app/supervisord.conf
+	chmod 755 /usr/src/app/supervisord.conf
 
 USER node
 
