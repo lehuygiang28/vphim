@@ -7,7 +7,7 @@ import { Region, RegionSchema } from './region.schema';
 import { RegionRepository } from './region.repository';
 import { RegionsService } from './region.service';
 import { RegionController } from './region.controller';
-import { RegionCrawler } from './region.crawler';
+// import { RegionCrawler } from './region.crawler';
 import { RegionResolver } from './region.resolver';
 import { RedisModule } from '../../libs/modules/redis';
 
@@ -19,7 +19,7 @@ import { RedisModule } from '../../libs/modules/redis';
         RedisModule,
     ],
     controllers: [RegionController],
-    providers: [RegionResolver, RegionRepository, RegionsService, RegionCrawler],
+    providers: [RegionResolver, RegionRepository, RegionsService],
     exports: [RegionRepository],
 })
 export class RegionsModule {}

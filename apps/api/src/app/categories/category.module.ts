@@ -5,7 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { Category, CategorySchema } from './category.schema';
 import { CategoryRepository } from './category.repository';
-import { CategoryCrawler } from './category.crawler';
+// import { CategoryCrawler } from './category.crawler';
 import { CategoryService } from './category.service';
 import { CategoryController } from './category.controller';
 import { CategoryResolver } from './category.resolver';
@@ -19,7 +19,7 @@ import { RedisModule } from '../../libs/modules/redis';
         RedisModule,
     ],
     controllers: [CategoryController],
-    providers: [CategoryResolver, CategoryService, CategoryRepository, CategoryCrawler],
+    providers: [CategoryResolver, CategoryService, CategoryRepository],
     exports: [CategoryRepository],
 })
 export class CategoryModule {}
