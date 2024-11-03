@@ -44,7 +44,7 @@ async function bootstrap() {
     app.useGlobalFilters(new ProblemDetailsFilter(logger));
 
     const globalPrefix = 'api';
-    app.setGlobalPrefix(globalPrefix, { exclude: ['/', 'ping'] });
+    app.setGlobalPrefix(globalPrefix);
     const port = process.env.PORT || 3000;
 
     const swaggerDocumentConfig = new DocumentBuilder()
