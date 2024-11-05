@@ -4,6 +4,7 @@ import { HydratedDocument, Types } from 'mongoose';
 import { Movie as OPhimMovie, ServerData as OPhimServerData } from 'ophim-js';
 
 import { AbstractDocument } from '../../libs/abstract/abstract.schema';
+import { SearchService } from './search.service';
 
 export type MovieDocument = HydratedDocument<Movie>;
 
@@ -209,21 +210,21 @@ MovieSchema.pre('findOneAndUpdate', function () {
 });
 
 MovieSchema.post('save', async function (doc) {
-    const searchService = global.searchService;
+    const searchService = global.searchService as SearchService;
     if (searchService) {
         await searchService.indexMovie(doc);
     }
 });
 
 MovieSchema.post('updateOne', async function (doc) {
-    const searchService = global.searchService;
+    const searchService = global.searchService as SearchService;
     if (searchService && doc) {
         await searchService.indexMovie(doc);
     }
 });
 
 MovieSchema.post('findOneAndUpdate', async function (doc) {
-    const searchService = global.searchService;
+    const searchService = global.searchService as SearchService;
     if (searchService && doc) {
         await searchService.indexMovie(doc);
     }
