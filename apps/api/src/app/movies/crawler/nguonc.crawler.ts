@@ -37,7 +37,7 @@ import { MovieTypeEnum } from '../movie.constant';
 export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
     private readonly NGUONC_CRON: string = '0 6 * * *';
     private readonly RETRY_DELAY = 5000;
-    private readonly NGUONC_FORCE_UPDATE: boolean = true;
+    private readonly NGUONC_FORCE_UPDATE: boolean = false;
     private readonly NGUONC_HOST: string = 'https://phim.nguonc.com/api';
     private readonly logger = new Logger(NguoncCrawler.name);
     private readonly REVALIDATION_BATCH_SIZE = 40;
