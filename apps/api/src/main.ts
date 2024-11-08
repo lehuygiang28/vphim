@@ -15,7 +15,7 @@ import * as swaggerStats from 'swagger-stats';
 import { AppModule } from './app/app.module';
 import { ProblemDetails } from './libs/dtos';
 import { ProblemDetailsFilter } from './libs/filters';
-import { isNullOrUndefined, isProduction } from './libs/utils/common';
+import { isNullOrUndefined } from './libs/utils/common';
 import { openApiSwagger } from './open-api.swagger';
 
 async function bootstrap() {
@@ -26,9 +26,30 @@ async function bootstrap() {
     const logger = app.get(Logger);
     app.useLogger(logger);
 
-    if (isProduction(configService)) {
-        app.use(helmet());
-    }
+    app.use(
+        helmet({
+            crossOriginEmbedderPolicy: false,
+            contentSecurityPolicy: {
+                directives: {
+                    imgSrc: [
+                        `'self'`,
+                        'data:',
+                        'apollo-server-landing-page.cdn.apollographql.com',
+                        `cdn.jsdelivr.net`,
+                    ],
+                    scriptSrc: [
+                        `'self'`,
+                        `https: 'unsafe-inline'`,
+                        'cdn.jsdelivr.net',
+                        'static.cloudflareinsights.com',
+                    ],
+                    manifestSrc: [`'self'`, 'apollo-server-landing-page.cdn.apollographql.com'],
+                    frameSrc: [`'self'`, 'sandbox.embed.apollographql.com'],
+                    fontSrc: [`'self'`, 'fonts.gstatic.com', 'data:'],
+                },
+            },
+        }),
+    );
 
     app.enableCors();
     app.enableShutdownHooks();
