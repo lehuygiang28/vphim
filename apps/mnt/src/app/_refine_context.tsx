@@ -19,13 +19,11 @@ import {
     VideoCameraOutlined,
     TeamOutlined,
 } from '@ant-design/icons';
-import { DevtoolsProvider, DevtoolsPanel } from '@refinedev/devtools';
 
 import { ColorModeContextProvider } from '~fe/contexts/color-mode';
 import { graphqlDataProvider, restfulDataProvider } from '~fe/providers/data-provider';
 import { useAxiosAuth } from '~fe/hooks/useAxiosAuth';
 import { authProvider } from '~fe/providers/auth-provider';
-import { isProduction } from '~fe/libs/utils/common';
 
 type RefineContextProps = {
     defaultMode?: string;
@@ -53,123 +51,105 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
 
     const defaultMode = props?.defaultMode;
 
-    const DevtoolWrapper = ({ children }: { children: React.ReactNode }) => {
-        if (!isProduction()) {
-            return (
-                <DevtoolsProvider url={'http://localhost:5001'}>
-                    {children}
-                    <DevtoolsPanel />
-                </DevtoolsProvider>
-            );
-        }
-        return <>{children}</>;
-    };
-
     return (
         <>
             <RefineKbarProvider>
                 <AntdRegistry>
                     <ColorModeContextProvider defaultMode={defaultMode}>
-                        <DevtoolWrapper>
-                            <Refine
-                                routerProvider={routerProvider}
-                                dataProvider={{
-                                    default: restfulDataProvider(
-                                        axiosAuth,
-                                    ) as unknown as DataProvider,
-                                    graphql: graphqlDataProvider(
-                                        axiosAuth,
-                                    ) as unknown as DataProvider,
-                                }}
-                                notificationProvider={useNotificationProvider}
-                                authProvider={authProvider(undefined, axiosAuth)}
-                                resources={[
-                                    {
-                                        name: 'movies',
-                                        meta: {
-                                            icon: <PlaySquareOutlined />,
-                                            canDelete: true,
-                                        },
+                        <Refine
+                            routerProvider={routerProvider}
+                            dataProvider={{
+                                default: restfulDataProvider(axiosAuth) as unknown as DataProvider,
+                                graphql: graphqlDataProvider(axiosAuth) as unknown as DataProvider,
+                            }}
+                            notificationProvider={useNotificationProvider}
+                            authProvider={authProvider(undefined, axiosAuth)}
+                            resources={[
+                                {
+                                    name: 'movies',
+                                    meta: {
+                                        icon: <PlaySquareOutlined />,
+                                        canDelete: true,
                                     },
-                                    {
-                                        name: 'movie list',
-                                        list: '/movies',
-                                        create: '/movies/create',
-                                        show: '/movies/show/:id',
-                                        edit: '/movies/edit/:id',
-                                        meta: {
-                                            icon: <UnorderedListOutlined />,
-                                            canDelete: true,
-                                            parent: 'movies',
-                                        },
+                                },
+                                {
+                                    name: 'movie list',
+                                    list: '/movies',
+                                    create: '/movies/create',
+                                    show: '/movies/show/:id',
+                                    edit: '/movies/edit/:id',
+                                    meta: {
+                                        icon: <UnorderedListOutlined />,
+                                        canDelete: true,
+                                        parent: 'movies',
                                     },
-                                    {
-                                        name: 'recycle-bin',
-                                        list: '/recycle-bin',
-                                        meta: {
-                                            canDelete: true,
-                                            icon: <DeleteFilled />,
-                                            parent: 'movies',
-                                        },
+                                },
+                                {
+                                    name: 'recycle-bin',
+                                    list: '/recycle-bin',
+                                    meta: {
+                                        canDelete: true,
+                                        icon: <DeleteFilled />,
+                                        parent: 'movies',
                                     },
-                                    {
-                                        name: 'categories',
-                                        list: '/categories',
-                                        edit: '/categories/edit/:id',
-                                        show: '/categories/show/:id',
-                                        meta: {
-                                            icon: <TagOutlined />,
-                                        },
+                                },
+                                {
+                                    name: 'categories',
+                                    list: '/categories',
+                                    edit: '/categories/edit/:id',
+                                    show: '/categories/show/:id',
+                                    meta: {
+                                        icon: <TagOutlined />,
                                     },
-                                    {
-                                        name: 'countries',
-                                        list: '/countries',
-                                        edit: '/countries/edit/:id',
-                                        show: '/countries/show/:id',
-                                        meta: {
-                                            icon: <GlobalOutlined />,
-                                        },
+                                },
+                                {
+                                    name: 'countries',
+                                    list: '/countries',
+                                    edit: '/countries/edit/:id',
+                                    show: '/countries/show/:id',
+                                    meta: {
+                                        icon: <GlobalOutlined />,
                                     },
-                                    {
-                                        name: 'directors',
-                                        list: '/directors',
-                                        edit: '/directors/edit/:id',
-                                        show: '/directors/show/:id',
-                                        meta: {
-                                            icon: <VideoCameraOutlined />,
-                                        },
+                                },
+                                {
+                                    name: 'directors',
+                                    list: '/directors',
+                                    edit: '/directors/edit/:id',
+                                    show: '/directors/show/:id',
+                                    meta: {
+                                        icon: <VideoCameraOutlined />,
                                     },
-                                    {
-                                        name: 'actors',
-                                        list: '/actors',
-                                        edit: '/actors/edit/:id',
-                                        show: '/actors/show/:id',
-                                        meta: {
-                                            icon: <TeamOutlined />,
-                                        },
+                                },
+                                {
+                                    name: 'actors',
+                                    list: '/actors',
+                                    edit: '/actors/edit/:id',
+                                    show: '/actors/show/:id',
+                                    meta: {
+                                        icon: <TeamOutlined />,
                                     },
-                                    {
-                                        name: 'users',
-                                        list: '/users',
-                                        edit: '/users/edit/:id',
-                                        show: '/users/show/:id',
-                                        meta: {
-                                            icon: <UserOutlined />,
-                                        },
+                                },
+                                {
+                                    name: 'users',
+                                    list: '/users',
+                                    edit: '/users/edit/:id',
+                                    show: '/users/show/:id',
+                                    meta: {
+                                        icon: <UserOutlined />,
                                     },
-                                ]}
-                                options={{
-                                    syncWithLocation: true,
-                                    warnWhenUnsavedChanges: true,
-                                    useNewQueryKeys: true,
-                                    projectId: 'NJcdqz-Mcj2uR-iCRTib',
-                                    disableTelemetry: true,
-                                }}
-                            >
-                                {props.children}
-                                <RefineKbar />
-                            </Refine>
-                        </DevtoolWrapper>
+                                },
+                            ]}
+                            options={{
+                                syncWithLocation: true,
+                                warnWhenUnsavedChanges: true,
+                                useNewQueryKeys: true,
+                                projectId: 'NJcdqz-Mcj2uR-iCRTib',
+                                disableTelemetry: true,
+                            }}
+                        >
+                            {props.children}
+                            <RefineKbar />
+                        </Refine>
                     </ColorModeContextProvider>
                 </AntdRegistry>
             </RefineKbarProvider>
