@@ -29,7 +29,8 @@ export const graphqlDataProvider = (
     axios: AxiosInstance,
     { publicApiUrl = '' }: { publicApiUrl?: string } = {},
 ) => {
-    const baseUrl = `${publicApiUrl ?? process.env.NEXT_PUBLIC_API_URL}/graphql`;
+    const baseUrl = publicApiUrl ?? process.env.NEXT_PUBLIC_API_URL;
+    const graphqlApiUrl = `${baseUrl}/graphql`;
 
     const updateFn = async ({ resource, id, variables, meta }) => {
         const singularResource = pluralize.singular(resource) as string;
@@ -40,7 +41,7 @@ export const graphqlDataProvider = (
 
         const {
             data: { data: res },
-        } = await (axios as AxiosInstance).post<any>(baseUrl, {
+        } = await axios.post<any>(graphqlApiUrl, {
             query: print((meta?.gqlMutation || meta?.gqlQuery) as any),
             variables: { input },
         });
@@ -48,6 +49,9 @@ export const graphqlDataProvider = (
     };
 
     return {
+        getApiUrl: () => {
+            return baseUrl;
+        },
         create: ({ resource, variables, meta }) =>
             updateFn({ resource, variables: variables, meta, id: '' }),
         getList: async ({
@@ -71,7 +75,7 @@ export const graphqlDataProvider = (
             const {
                 data: { data: res },
             } = await axios.post<any>(
-                baseUrl,
+                graphqlApiUrl,
                 JSON.stringify({
                     query: print(meta?.gqlQuery as any),
                     variables: {
@@ -107,7 +111,7 @@ export const graphqlDataProvider = (
 
             const {
                 data: { data: res },
-            } = await axios.post<any>(baseUrl, {
+            } = await axios.post<any>(graphqlApiUrl, {
                 query: print(meta?.gqlQuery as any),
                 variables,
             });
@@ -128,7 +132,7 @@ export const graphqlDataProvider = (
             const {
                 data: { data: res },
             } = await axios.post<any>(
-                baseUrl,
+                graphqlApiUrl,
                 JSON.stringify({
                     query: print(meta?.gqlQuery as any),
                     variables: {

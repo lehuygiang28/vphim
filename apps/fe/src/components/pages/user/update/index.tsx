@@ -79,7 +79,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
         formData.append('images', file);
 
         try {
-            const response = await axios.post(`${apiUrl}/images`, formData, {
+            const response = await axios.post(`${apiUrl}/api/images`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
