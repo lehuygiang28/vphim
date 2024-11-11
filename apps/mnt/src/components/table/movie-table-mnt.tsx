@@ -8,7 +8,6 @@ import { useDebouncedCallback } from 'use-debounce';
 import {
     Table,
     Space,
-    Tag,
     Input,
     Select,
     Form,
@@ -23,24 +22,22 @@ import {
     Tooltip,
     Badge,
 } from 'antd';
-import {
-    SearchOutlined,
-    FilterOutlined,
-    EyeOutlined,
-    EditOutlined,
-    DeleteOutlined,
-} from '@ant-design/icons';
+import { SearchOutlined, FilterOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
+import { createRegex } from '@vn-utils/text';
 
-import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
+import { MovieTypeEnum, MovieStatusEnum } from '~api/app/movies/movie.constant';
 import type { MovieType } from '~api/app/movies/movie.type';
+import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
+import { CATEGORIES_LIST_QUERY } from '~fe/queries/categories';
+import { REGIONS_LIST_QUERY } from '~fe/queries/regions';
+
 import { MNT_MOVIE_LIST_QUERY, MUTATION_UPDATE_MOVIE } from '~mnt/queries/movie.query';
 import { RestoreButton } from '../button/restore-button';
 import { DeleteMovieButton } from '../button/delete-movie-button';
 import { RefreshMovieButton } from '../button/refresh-movie-button';
 import { EditMovieButton } from '../button/edit-movie-button';
-import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
-import { REGIONS_LIST_QUERY } from '@/queries/regions';
-import { createRegex } from '@vn-utils/text';
+import MovieStatusTag, { movieStatusOptions } from '../tag/movie-status-tag';
+import MovieTypeTag, { movieTypeOptions } from '../tag/movie-type-tag';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -48,34 +45,6 @@ const { Option } = Select;
 export type MovieTableMntProps = {
     type: 'show' | 'recycle-bin';
 };
-
-enum MovieStatus {
-    ONGOING = 'ongoing',
-    TRAILER = 'trailer',
-    UPDATING = 'updating',
-    COMPLETED = 'completed',
-}
-
-enum MovieTypeEnum {
-    HOATHINH = 'hoathinh',
-    TVSHOWS = 'tvshows',
-    SERIES = 'series',
-    SINGLE = 'single',
-}
-
-const statusOptions = [
-    { value: MovieStatus.TRAILER, label: 'Trailer' },
-    { value: MovieStatus.COMPLETED, label: 'Completed' },
-    { value: MovieStatus.ONGOING, label: 'Ongoing' },
-    { value: MovieStatus.UPDATING, label: 'Updating' },
-];
-
-const typeOptions = [
-    { value: MovieTypeEnum.HOATHINH, label: 'Hoạt hình' },
-    { value: MovieTypeEnum.TVSHOWS, label: 'TV Shows' },
-    { value: MovieTypeEnum.SERIES, label: 'Series' },
-    { value: MovieTypeEnum.SINGLE, label: 'Single' },
-];
 
 export default function MovieTableMnt({ type }: MovieTableMntProps) {
     const router = useRouter();
@@ -87,7 +56,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i);
 
-    const { tableProps, searchFormProps, sorters, filters, setFilters } = useTable<MovieType>({
+    const { tableProps, sorters, filters, setFilters } = useTable<MovieType>({
         resource: 'movies',
         dataProviderName: 'graphql',
         meta: {
@@ -98,7 +67,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
         },
         filters: {
             mode: 'server',
-            defaultBehavior: 'merge',
+            defaultBehavior: 'replace',
             ...(type === 'recycle-bin'
                 ? {
                       permanent: [
@@ -146,8 +115,21 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
 
     useEffect(() => {
         // Synchronize filters from useTable hook with localFilters
-        setLocalFilters(filters || []);
-        setFilterCount(filters?.length || 0);
+        // Update localFilters and filterCount based on the current filters
+        const updatedFilters = filters || [];
+        setLocalFilters(updatedFilters);
+
+        // Count only non-empty filters
+        const activeFilterCount = updatedFilters.filter((filter) => {
+            const logicalFilter = filter as LogicalFilter;
+            return (
+                logicalFilter.value !== undefined &&
+                logicalFilter.value !== null &&
+                logicalFilter.value.toString().trim() !== ''
+            );
+        }).length;
+
+        setFilterCount(activeFilterCount);
 
         // Update yearRange if 'years' filter exists
         const yearsFilter = filters?.find((f) => (f as LogicalFilter).field === 'years');
@@ -221,7 +203,28 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         )?.value
                     }
                 >
-                    {typeOptions.map((option) => (
+                    {movieTypeOptions.map((option) => (
+                        <Option key={option.value} value={option.value}>
+                            {option.label}
+                        </Option>
+                    ))}
+                </Select>
+            </Form.Item>
+            <Form.Item label="Status">
+                <Select
+                    style={{ width: '100%' }}
+                    placeholder="Select status"
+                    onChange={(value) => handleFilterChange('status', value)}
+                    allowClear
+                    value={
+                        (
+                            localFilters.find(
+                                (f) => (f as LogicalFilter).field === 'status',
+                            ) as LogicalFilter
+                        )?.value
+                    }
+                >
+                    {movieStatusOptions.map((option) => (
                         <Option key={option.value} value={option.value}>
                             {option.label}
                         </Option>
@@ -265,6 +268,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
             <Form.Item label="Category">
                 <Select
                     {...categorySelectProps}
+                    allowClear
                     mode="multiple"
                     style={{ width: '100%' }}
                     placeholder="Select category"
@@ -287,6 +291,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
             <Form.Item label="Country">
                 <Select
                     {...regionSelectProps}
+                    allowClear
                     mode="multiple"
                     style={{ width: '100%' }}
                     placeholder="Select country"
@@ -305,27 +310,6 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         );
                     }}
                 />
-            </Form.Item>
-            <Form.Item label="Status">
-                <Select
-                    style={{ width: '100%' }}
-                    placeholder="Select status"
-                    onChange={(value) => handleFilterChange('status', value)}
-                    allowClear
-                    value={
-                        (
-                            localFilters.find(
-                                (f) => (f as LogicalFilter).field === 'status',
-                            ) as LogicalFilter
-                        )?.value
-                    }
-                >
-                    {statusOptions.map((option) => (
-                        <Option key={option.value} value={option.value}>
-                            {option.label}
-                        </Option>
-                    ))}
-                </Select>
             </Form.Item>
             <Form.Item>
                 <Checkbox
@@ -482,11 +466,16 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         dataIndex: 'type',
                         key: 'type',
                         width: 100,
-                        render: (type: MovieTypeEnum) => (
-                            <Tag color={type === MovieTypeEnum.SINGLE ? 'blue' : 'green'}>
-                                {typeOptions.find((option) => option.value === type)?.label || type}
-                            </Tag>
-                        ),
+                        render: (type: MovieTypeEnum) => <MovieTypeTag type={type} />,
+                    },
+                    {
+                        title: 'Status',
+                        dataIndex: 'status',
+                        key: 'status',
+                        width: 120,
+                        render: (status: MovieStatusEnum) => {
+                            return <MovieStatusTag status={status} />;
+                        },
                     },
                     {
                         title: 'Year',
@@ -495,29 +484,6 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         width: 80,
                         sorter: true,
                         defaultSortOrder: getDefaultSortOrder('year', sorters),
-                    },
-                    {
-                        title: 'Status',
-                        dataIndex: 'status',
-                        key: 'status',
-                        width: 120,
-                        render: (status: MovieStatus) => {
-                            const color =
-                                status === MovieStatus.COMPLETED
-                                    ? 'green'
-                                    : status === MovieStatus.ONGOING
-                                    ? 'blue'
-                                    : 'orange';
-                            return (
-                                <Badge
-                                    status={color as any}
-                                    text={
-                                        statusOptions.find((o) => o.value === status)?.label ||
-                                        status
-                                    }
-                                />
-                            );
-                        },
                     },
                     {
                         title: 'Current Episode',
