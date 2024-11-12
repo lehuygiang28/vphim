@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { HttpError, useInvalidate } from '@refinedev/core';
 import { List, useTable, RefreshButton, ShowButton } from '@refinedev/antd';
@@ -8,8 +9,8 @@ import { ColumnsType } from 'antd/lib/table';
 import { noop } from 'antd/lib/_util/warning';
 
 import { type UserType } from '~api/app/users/user.type';
+import { UserRoleEnum } from '~api/app/users/users.enum';
 import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
-import { useCallback } from 'react';
 
 export default function UserList() {
     const router = useRouter();
@@ -127,7 +128,33 @@ export default function UserList() {
             onFilter: (value, record) => record.role.indexOf(value.toString()) === 0,
             sorter: (a, b) => a.role.localeCompare(b.role),
             sortDirections: ['descend', 'ascend'],
-            render: (value) => <Tag color={value === 'admin' ? 'geekblue' : 'green'}>{value}</Tag>,
+            render: (value) => (
+                <Tag color={value === UserRoleEnum.Admin ? 'geekblue' : 'green'}>{value}</Tag>
+            ),
+        },
+        {
+            key: 'status',
+            dataIndex: ['block', 'isBlocked'],
+            title: 'Status',
+            filters: [
+                { text: 'Blocked', value: true },
+                { text: 'Not Blocked', value: false },
+            ],
+            onFilter: (value, record) => {
+                const isBlocked = record.block?.isBlocked || false;
+                return isBlocked === value;
+            },
+            sorter: (a, b) => {
+                const statusA = a.block?.isBlocked || false;
+                const statusB = b.block?.isBlocked || false;
+                return statusA === statusB ? 0 : statusA ? -1 : 1; // Blocked users first
+            },
+            sortDirections: ['ascend', 'descend'],
+            render: (isBlocked) => {
+                const status = isBlocked ? 'Blocked' : 'Not Blocked';
+                const color = isBlocked ? 'red' : 'green';
+                return <Tag color={color}>{status}</Tag>;
+            },
         },
         {
             key: 'actions',
