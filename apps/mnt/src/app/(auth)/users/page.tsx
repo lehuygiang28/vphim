@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { HttpError, useInvalidate } from '@refinedev/core';
 import { List, useTable, RefreshButton, ShowButton } from '@refinedev/antd';
-import { Image, Space, Table, Tag, Tooltip } from 'antd';
+import { Space, Table, Tag, Tooltip, Avatar } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 
 import { type UserType } from '~api/app/users/user.type';
@@ -36,19 +36,22 @@ export default function UserList() {
             title: 'Avatar',
             render: (url, record) => (
                 <Tooltip title={record.fullName}>
-                    <Image
-                        src={getOptimizedImageUrl(url, {
-                            width: 50,
-                            height: 50,
-                            quality: 70,
-                        })}
+                    <Avatar
+                        src={
+                            url &&
+                            getOptimizedImageUrl(url, {
+                                width: 50,
+                                height: 50,
+                                quality: 70,
+                            })
+                        }
+                        size={'default'}
                         alt={record.fullName}
-                        width={50}
-                        height={50}
-                        preview={false}
                         onClick={() => router.push(`/users/show/${record._id?.toString()}`)}
                         style={{ cursor: 'pointer' }}
-                    />
+                    >
+                        {!url && record?.fullName[0]?.toUpperCase()}
+                    </Avatar>
                 </Tooltip>
             ),
         },
