@@ -3,6 +3,7 @@
 
 import { GetListResponse, GetListParams, BaseRecord, DeleteOneParams } from '@refinedev/core';
 import { AxiosInstance } from 'axios';
+import simpleRestProvider from '@refinedev/simple-rest';
 
 import type { Movie } from 'apps/api/src/app/movies/movie.schema';
 
@@ -12,6 +13,7 @@ export const restfulDataProvider = (axios: AxiosInstance) => {
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
     return {
+        ...simpleRestProvider(apiUrl, axios),
         update: async ({ resource, id, variables, meta }) => {
             const url = `${apiUrl}/${resource}/${id}`;
 
