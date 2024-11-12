@@ -3,17 +3,24 @@
 import { useRouter } from 'next/navigation';
 import { HttpError, useInvalidate } from '@refinedev/core';
 import { List, useTable, RefreshButton, ShowButton } from '@refinedev/antd';
-import { Space, Table, Tag, Tooltip, Avatar } from 'antd';
+import { Space, Table, Tag, Tooltip, Avatar, Form, Input } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import { noop } from 'antd/lib/_util/warning';
 
 import { type UserType } from '~api/app/users/user.type';
 import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
+import { useCallback } from 'react';
 
 export default function UserList() {
     const router = useRouter();
-    const { tableProps } = useTable<UserType, HttpError>({
+    const invalidate = useInvalidate();
+    const { tableProps, searchFormProps, setFilters } = useTable<UserType, HttpError>({
         resource: 'users',
         syncWithLocation: true,
+        filters: {
+            mode: 'server',
+            initial: [],
+        },
         pagination: {
             mode: 'server',
         },
@@ -26,8 +33,31 @@ export default function UserList() {
                 },
             ],
         },
+        onSearch: (values) => {
+            return [
+                {
+                    field: 'keywords',
+                    operator: 'contains',
+                    value: values,
+                },
+            ];
+        },
     });
-    const invalidate = useInvalidate();
+    const handleSearch = useCallback(
+        (value: string) => {
+            if (!value) {
+                setFilters([]);
+            }
+            setFilters([
+                {
+                    field: 'keywords',
+                    operator: 'contains',
+                    value,
+                },
+            ]);
+        },
+        [setFilters],
+    );
 
     const columns: ColumnsType<UserType> = [
         {
@@ -126,11 +156,23 @@ export default function UserList() {
                 </>
             )}
         >
-            <Table<UserType>
-                {...tableProps}
-                columns={columns}
-                rowKey={(record) => record._id.toString()}
-            />
+            <Space direction="vertical" style={{ width: '100%' }}>
+                <Form {...searchFormProps} layout="inline" onFinish={noop}>
+                    <Form.Item name="keywords">
+                        <Input.Search
+                            placeholder={`Search users`}
+                            onSearch={handleSearch}
+                            allowClear
+                            autoComplete="off"
+                        />
+                    </Form.Item>
+                </Form>
+                <Table<UserType>
+                    {...tableProps}
+                    columns={columns}
+                    rowKey={(record) => record._id.toString()}
+                />
+            </Space>
         </List>
     );
 }
