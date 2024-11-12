@@ -1,13 +1,16 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { HttpError, useInvalidate } from '@refinedev/core';
 import { List, useTable, RefreshButton, ShowButton } from '@refinedev/antd';
-import { Space, Table, Tag } from 'antd';
+import { Image, Space, Table, Tag, Tooltip } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 
 import { type UserType } from '~api/app/users/user.type';
+import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
 
 export default function UserList() {
+    const router = useRouter();
     const { tableProps } = useTable<UserType, HttpError>({
         resource: 'users',
         syncWithLocation: true,
@@ -27,6 +30,28 @@ export default function UserList() {
     const invalidate = useInvalidate();
 
     const columns: ColumnsType<UserType> = [
+        {
+            key: 'avatar',
+            dataIndex: ['avatar', 'url'],
+            title: 'Avatar',
+            render: (url, record) => (
+                <Tooltip title={record.fullName}>
+                    <Image
+                        src={getOptimizedImageUrl(url, {
+                            width: 50,
+                            height: 50,
+                            quality: 70,
+                        })}
+                        alt={record.fullName}
+                        width={50}
+                        height={50}
+                        preview={false}
+                        onClick={() => router.push(`/users/show/${record._id?.toString()}`)}
+                        style={{ cursor: 'pointer' }}
+                    />
+                </Tooltip>
+            ),
+        },
         {
             key: '_id',
             dataIndex: '_id',
