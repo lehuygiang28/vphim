@@ -73,7 +73,9 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
             operation: 'actors',
         },
         pagination: {
-            pageSize: 20,
+            mode: 'server',
+            current: 1,
+            pageSize: 500,
         },
         debounce: 500,
         onSearch: (value) => [
@@ -95,7 +97,9 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
             operation: 'categories',
         },
         pagination: {
-            pageSize: 200,
+            mode: 'server',
+            current: 1,
+            pageSize: 500,
         },
         debounce: 500,
         onSearch: (value) => [
@@ -117,7 +121,9 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
             operation: 'regions',
         },
         pagination: {
-            pageSize: 200,
+            mode: 'server',
+            current: 1,
+            pageSize: 500,
         },
         debounce: 500,
         onSearch: (value) => [
@@ -139,7 +145,9 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
             operation: 'directors',
         },
         pagination: {
-            pageSize: 20,
+            mode: 'server',
+            current: 1,
+            pageSize: 500,
         },
         debounce: 500,
         onSearch: (value) => [

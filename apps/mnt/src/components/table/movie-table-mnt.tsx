@@ -98,6 +98,11 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
             gqlQuery: CATEGORIES_LIST_QUERY,
             operation: 'categories',
         },
+        pagination: {
+            mode: 'server',
+            current: 1,
+            pageSize: 500,
+        },
         optionLabel: 'name',
         optionValue: 'slug',
     });
@@ -108,6 +113,11 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
         meta: {
             gqlQuery: REGIONS_LIST_QUERY,
             operation: 'regions',
+        },
+        pagination: {
+            mode: 'server',
+            current: 1,
+            pageSize: 500,
         },
         optionLabel: 'name',
         optionValue: 'slug',
