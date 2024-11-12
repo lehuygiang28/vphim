@@ -1,5 +1,5 @@
 import { ApiPropertyOptional, IntersectionType, PartialType, PickType } from '@nestjs/swagger';
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 import { PaginationRequestDto } from '../../../libs/dtos';
 import { UserDto } from './user.dto';
@@ -18,4 +18,9 @@ export class GetUsersDto extends IntersectionType(
     @IsOptional()
     @IsEnum(UserRoleEnum, { each: true })
     roles?: UserRoleEnum[];
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    keywords?: string;
 }

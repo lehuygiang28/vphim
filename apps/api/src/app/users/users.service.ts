@@ -5,7 +5,7 @@ import {
     Logger,
     UnprocessableEntityException,
 } from '@nestjs/common';
-import { FilterQuery, ProjectionType, QueryOptions, Types } from 'mongoose';
+import { FilterQuery, ProjectionType, QueryOptions, Types, isValidObjectId } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
 import type { NullableType } from '../../libs/types';
@@ -26,6 +26,7 @@ import { UserJwt } from '../auth';
 import { ConfigService } from '@nestjs/config';
 import { BlockActivityLog } from './schemas/block.schema';
 import { MovieService } from '../movies/movie.service';
+import { createRegex } from '@vn-utils/text';
 
 @Injectable()
 export class UsersService {
@@ -204,6 +205,15 @@ export class UsersService {
 
         if (query?.roles?.length > 0) {
             filter.role = { $in: query.roles };
+        }
+
+        if (query?.keywords) {
+            if (isValidObjectId(query.keywords)) {
+                filter._id = convertToObjectId(query.keywords);
+            } else {
+                const regex = createRegex(query.keywords);
+                filter.$or = [{ email: regex }, { fullName: regex }];
+            }
         }
 
         const [users, total] = await Promise.all([
