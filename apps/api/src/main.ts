@@ -6,6 +6,7 @@ import {
     SwaggerDocumentOptions,
     SwaggerModule,
 } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -15,11 +16,11 @@ import * as swaggerStats from 'swagger-stats';
 import { AppModule } from './app/app.module';
 import { ProblemDetails } from './libs/dtos';
 import { ProblemDetailsFilter } from './libs/filters';
-import { isNullOrUndefined } from './libs/utils/common';
+import { isNullOrUndefined, isTrue } from './libs/utils/common';
 import { openApiSwagger } from './open-api.swagger';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule, { bufferLogs: true });
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
 
     const configService = app.get(ConfigService);
 
@@ -53,6 +54,11 @@ async function bootstrap() {
 
     app.enableCors();
     app.enableShutdownHooks();
+
+    if (isTrue(configService.get('IS_BEHIND_PROXY'))) {
+        app.set('trust proxy', 'loopback'); // Trust requests from the loopback address
+        logger.log('Application is behind a proxy, trust the loopback address');
+    }
 
     if (
         !isNullOrUndefined(configService.get('COMPRESS_LEVEL')) &&
