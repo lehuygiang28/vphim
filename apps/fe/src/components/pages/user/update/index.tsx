@@ -18,12 +18,51 @@ const { Title, Text } = Typography;
 
 export type UserUpdateComponentProps = {
     onBack?: () => void;
+    language?: 'en' | 'vi';
 };
 
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
+const translations = {
+    en: {
+        updateInfo: 'Update Information',
+        changeInfo: 'Change your information',
+        avatar: 'Avatar',
+        chooseImage: 'Choose Image',
+        name: 'Name',
+        nameRequired: 'Name is required',
+        displayName: 'Display Name',
+        email: 'Email',
+        saveChanges: 'Save Changes',
+        profileUpdated: 'Profile updated successfully',
+        uploadFailed: 'Image upload failed, please try again later!',
+        updateFailed: 'Failed to update information, please try again later!',
+        updateSuccess: 'Information updated successfully!',
+        invalidFormat: 'Invalid image format (JPG/PNG/GIF/WebP)',
+        fileTooLarge: 'Image size is too large (max 10MB)',
+    },
+    vi: {
+        updateInfo: 'Cập nhật thông tin',
+        changeInfo: 'Thay đổi thông tin của bạn',
+        avatar: 'Ảnh đại diện',
+        chooseImage: 'Chọn ảnh',
+        name: 'Tên',
+        nameRequired: 'Tên không được để trống',
+        displayName: 'Tên hiển thị',
+        email: 'Email',
+        saveChanges: 'Lưu thay đổi',
+        profileUpdated: 'Cập nhật thông tin thành công',
+        uploadFailed: 'Tải ảnh thất bại, vui lòng thử lại sau!',
+        updateFailed: 'Cập nhật thông tin thất bạn, vui lòng thử lại sau!',
+        updateSuccess: 'Cập nhật thông tin thành công!',
+        invalidFormat: 'Định dạng ảnh chưa hợp lệ (JPG/PNG/GIF/WebP)',
+        fileTooLarge: 'Kích thước ảnh quá lớn (tối đa 10MB)',
+    },
+};
+
+export function UserUpdateComponent({ onBack, language = 'vi' }: UserUpdateComponentProps) {
+    const t = translations[language];
     const apiUrl = useApiUrl();
     const { data: user } = useGetIdentity<LoginResponseDto>();
     const { open } = useNotification();
@@ -53,13 +92,13 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
             onMutationSuccess: () => {
                 open({
                     type: 'success',
-                    message: 'Profile updated successfully',
+                    message: t.profileUpdated,
                 });
             },
             onMutationError: () => {
                 open({
                     type: 'error',
-                    message: 'Failed to update profile',
+                    message: t.updateFailed,
                 });
             },
         },
@@ -93,7 +132,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
             }
         } catch (error) {
             onError({ error });
-            message.error('Tải ảnh thất bại, vui lòng thử lại sau!');
+            message.error(t.uploadFailed);
         } finally {
             setIsAvatarLoading(false);
         }
@@ -124,11 +163,11 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
             },
             errorNotification: {
                 type: 'error',
-                message: 'Cập nhật thông tin thất bạn, vui lòng thử lại sau!',
+                message: t.updateFailed,
             },
             successNotification: {
                 type: 'success',
-                message: 'Cập nhật thông tin thành công!',
+                message: t.updateSuccess,
             },
         });
         queryClient.invalidateQueries({ queryKey: ['auth', 'identity'] });
@@ -137,11 +176,11 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
     const beforeUpload = (file: File) => {
         const isAllowedType = ALLOWED_FILE_TYPES.includes(file.type);
         if (!isAllowedType) {
-            message.error('Định dạng ảnh chưa hợp lệ (JPG/PNG/GIF/WebP)');
+            message.error(t.invalidFormat);
         }
         const isLessThan10MB = file.size <= MAX_FILE_SIZE;
         if (!isLessThan10MB) {
-            message.error('Kích thước ảnh quá lớn (tối đa 10MB)');
+            message.error(t.fileTooLarge);
         }
         return isAllowedType && isLessThan10MB;
     };
@@ -158,13 +197,13 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
                 <div style={{ textAlign: 'center' }}>
                     <Title level={3} style={{ marginBottom: '4px' }}>
-                        Cập nhật thông tin
+                        {t.updateInfo}
                     </Title>
-                    <Text>Thay đổi thông tin của bạn</Text>
+                    <Text>{t.changeInfo}</Text>
                 </div>
 
                 <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
-                    <Form.Item label="Ảnh đại diện" style={{ textAlign: 'center' }}>
+                    <Form.Item label={t.avatar} style={{ textAlign: 'center' }}>
                         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                             <div style={{ position: 'relative', display: 'inline-block' }}>
                                 {isAvatarLoading ? (
@@ -189,7 +228,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
                                         }}
                                         accept={ALLOWED_FILE_TYPES.join(',')}
                                     >
-                                        <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+                                        <Button icon={<UploadOutlined />}>{t.chooseImage}</Button>
                                     </Upload>
                                 )}
                             />
@@ -197,28 +236,28 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
                     </Form.Item>
 
                     <Form.Item
-                        label="Tên"
+                        label={t.name}
                         validateStatus={errors?.fullName ? 'error' : 'validating'}
                         help={errors?.fullName?.message}
                     >
                         <Controller
                             control={control}
                             name="fullName"
-                            rules={{ required: 'Tên không được để trống' }}
+                            rules={{ required: t.nameRequired }}
                             render={({ field }) => (
                                 <Input
                                     {...field}
                                     prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-                                    placeholder="Tên hiển thị"
+                                    placeholder={t.displayName}
                                 />
                             )}
                         />
                     </Form.Item>
 
-                    <Form.Item label="Email">
+                    <Form.Item label={t.email}>
                         <Input
                             prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-                            placeholder="Email"
+                            placeholder={t.email}
                             value={user?.email}
                             disabled
                         />
@@ -233,7 +272,7 @@ export function UserUpdateComponent({ onBack }: UserUpdateComponentProps) {
                             loading={formLoading}
                             disabled={formLoading}
                         >
-                            Lưu thay đổi
+                            {t.saveChanges}
                         </Button>
                     </Form.Item>
                 </Form>
