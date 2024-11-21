@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import React, { Suspense } from 'react';
+import React, { Suspense, PropsWithChildren } from 'react';
 import { RefineContext } from './_refine_context';
 
 export const metadata: Metadata = {
@@ -11,11 +11,7 @@ export const metadata: Metadata = {
     },
 };
 
-export default function DefaultNoLayoutStyle({
-    children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
+export default function DefaultNoLayoutStyle({ children }: Readonly<PropsWithChildren>) {
     const cookieStore = cookies();
     const theme = cookieStore.get('theme');
     const defaultMode = theme?.value === 'light' ? 'light' : 'dark';
