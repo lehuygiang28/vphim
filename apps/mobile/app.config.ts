@@ -12,6 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
+    newArchEnabled: false,
     splash: {
         image: './assets/splash.png',
         resizeMode: 'contain',
@@ -23,6 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     assetBundlePatterns: ['**/*'],
     ios: {
         supportsTablet: true,
+        newArchEnabled: false,
     },
     android: {
         package: 'com.lehuygiang28.vephim',
@@ -30,6 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             foregroundImage: './assets/adaptive-icon.png',
             backgroundColor: '#FFFFFF',
         },
+        newArchEnabled: false,
     },
     web: {
         favicon: './assets/favicon.png',
@@ -46,6 +49,17 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             'expo-secure-store',
             {
                 faceIDPermission: 'Allow $(PRODUCT_NAME) to access your Face ID biometric data.',
+            },
+        ],
+        [
+            'expo-build-properties',
+            {
+                android: {
+                    newArchEnabled: false,
+                },
+                ios: {
+                    newArchEnabled: false,
+                },
             },
         ],
     ],

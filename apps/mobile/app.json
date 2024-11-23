@@ -16,14 +16,16 @@
         },
         "assetBundlePatterns": ["**/*"],
         "ios": {
-            "supportsTablet": true
+            "supportsTablet": true,
+            "newArchEnabled": false
         },
         "android": {
             "package": "com.lehuygiang28.vephim",
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
                 "backgroundColor": "#FFFFFF"
-            }
+            },
+            "newArchEnabled": false
         },
         "web": {
             "favicon": "./assets/favicon.png",
@@ -40,6 +42,17 @@
                 "expo-secure-store",
                 {
                     "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+                }
+            ],
+            [
+                "expo-build-properties",
+                {
+                    "android": {
+                        "newArchEnabled": false
+                    },
+                    "ios": {
+                        "newArchEnabled": false
+                    }
                 }
             ]
         ]
