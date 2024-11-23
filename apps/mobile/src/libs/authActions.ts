@@ -1,4 +1,3 @@
-// authActions.ts
 import { print } from 'graphql/language/printer';
 
 import { GET_ME_QUERY } from '~fe/queries/users';
@@ -50,6 +49,7 @@ export const refreshSession = async (): Promise<void> => {
     } catch (error) {
         console.error('Failed to refresh session:', error);
         authStore.getState().clearSession();
+        authStore.getState().setIsLoading(false);
     } finally {
         authStore.getState().setIsLoading(false);
     }

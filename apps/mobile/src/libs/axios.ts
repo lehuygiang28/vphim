@@ -67,6 +67,7 @@ axiosInstance.interceptors.response.use(undefined, async (error) => {
         if (!isRefreshing) {
             isRefreshing = true;
 
+            authStore.getState().setIsLoading(true);
             try {
                 const refreshToken = authStore.getState().getRefreshToken();
                 const response = await axiosInstance.post<LoginResponseDto>('/api/auth/refresh', {
@@ -87,15 +88,25 @@ axiosInstance.interceptors.response.use(undefined, async (error) => {
                     resolve(axiosInstance(updatedRequest));
                 }
             } catch (refreshError) {
-                // Handle refresh token error
-                for (const { reject } of requestsQueue) {
-                    reject(error);
+                // Check if the refresh token request resulted in a 401 or 403 error
+                if (
+                    refreshError instanceof AxiosError &&
+                    (refreshError.response?.status === 401 || refreshError.response?.status === 403)
+                ) {
+                    console.error('Refresh token expired or invalid. Logging out user.');
+                    authStore.getState().setSession(null); // Clear the session on refresh failure
+                } else {
+                    // Handle other refresh token errors
+                    for (const { reject } of requestsQueue) {
+                        reject(error);
+                    }
+                    console.error('Failed to refresh token:', refreshError);
+                    authStore.getState().setSession(null); // Clear the session on refresh failure
                 }
-                console.error('Failed to refresh token:', refreshError);
-                authStore.getState().setSession(null); // Clear the session on refresh failure
             } finally {
                 requestsQueue.length = 0;
                 isRefreshing = false;
+                authStore.getState().setIsLoading(false);
             }
         }
 

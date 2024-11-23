@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     StyleSheet,
     ScrollView,
@@ -17,7 +17,7 @@ import authStore from '~mb/stores/authStore';
 import { refreshSession } from '~mb/libs/authActions';
 
 export default function AccountScreen() {
-    const { session, isLoading, clearSession } = authStore();
+    const { session, isLoading, clearSession, setIsLoading } = authStore();
     const [refreshing, setRefreshing] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const theme = useTheme();
@@ -58,6 +58,11 @@ export default function AccountScreen() {
             { cancelable: false },
         );
     }, [clearSession]);
+
+    useEffect(() => {
+        setIsLoading(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (isLoading && !refreshing) {
         return (

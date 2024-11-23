@@ -17,7 +17,12 @@ import { Mail, ArrowLeft, Check } from 'lucide-react-native';
 import authStore from '~mb/stores/authStore';
 
 export default function AuthScreen() {
-    const { session, setSession: updateSession, isLoading: sessionLoading } = authStore();
+    const {
+        session,
+        setSession: updateSession,
+        isLoading: sessionLoading,
+        setIsLoading: setSessionLoading,
+    } = authStore();
 
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +40,11 @@ export default function AuthScreen() {
             router.back();
         }
     }, [session]);
+
+    useEffect(() => {
+        setSessionLoading(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         const keyboardWillShow = Keyboard.addListener('keyboardWillShow', (e) => {
@@ -222,17 +232,19 @@ export default function AuthScreen() {
                         placeholder="Email"
                         value={email}
                         onChangeText={handleEmailChange}
-                        accessoryLeft={(props) => (
-                            <Mail {...props} color={theme['text-basic-color']} />
-                        )}
-                        accessoryRight={(props) =>
-                            isValid ? (
-                                <Check {...props} color={theme['color-success-500']} />
+                        accessoryLeft={(props) => {
+                            const { style, ...p } = props || {};
+                            return <Mail {...p} color={theme['text-basic-color']} />;
+                        }}
+                        accessoryRight={(props) => {
+                            const { style, ...p } = props || {};
+                            return isValid ? (
+                                <Check {...p} color={theme['color-success-500']} />
                             ) : (
                                 // eslint-disable-next-line react/jsx-no-useless-fragment
                                 <></>
-                            )
-                        }
+                            );
+                        }}
                         disabled={showOTP || isLoading}
                         style={styles.input}
                         status={error ? 'danger' : isValid ? 'success' : 'basic'}
@@ -273,7 +285,12 @@ export default function AuthScreen() {
                         onPress={showOTP ? handleOTPSubmit : handleAuth}
                         disabled={isLoading || (!showOTP && !isValid)}
                         accessoryLeft={
-                            isLoading ? (props) => <Spinner {...props} size="small" /> : undefined
+                            isLoading
+                                ? (props) => {
+                                      const { style, ...p } = props || {};
+                                      return <Spinner {...p} size="small" />;
+                                  }
+                                : undefined
                         }
                     >
                         {isLoading
@@ -288,14 +305,17 @@ export default function AuthScreen() {
                     <Button
                         onPress={handleGoogleAuth}
                         appearance="outline"
-                        accessoryLeft={(props) => (
-                            <AntDesign
-                                {...props}
-                                name="google"
-                                size={20}
-                                color={theme['text-basic-color']}
-                            />
-                        )}
+                        accessoryLeft={(props) => {
+                            const { style, ...p } = props || {};
+                            return (
+                                <AntDesign
+                                    {...p}
+                                    name="google"
+                                    size={20}
+                                    color={theme['text-basic-color']}
+                                />
+                            );
+                        }}
                         style={styles.googleButton}
                     >
                         Tiếp tục với Google

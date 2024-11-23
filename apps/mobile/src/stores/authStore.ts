@@ -31,7 +31,7 @@ interface AuthState {
 const authStore = create<AuthState>()(
     persist(
         (set, get) => ({
-            isLoading: false,
+            isLoading: true,
             session: null,
             setSession: (session: { user: LoginResponseDto } | null) =>
                 set({ session, isLoading: false }),
