@@ -83,11 +83,13 @@ jobs:
             - name: 'Prepare env for fe and mnt'
               run: |
                   echo "NEXT_PUBLIC_API_URL='https://api.vephim.online'" >> ./apps/fe/.env
+                  echo "NEXT_PUBLIC_IMAGES_URL='https://img.vephim.online'" >> ./apps/fe/.env
                   echo "NEXT_SHARP_PATH='/usr/src/app/node_modules/sharp'" >> ./apps/fe/.env
                   echo "NEXT_PUBLIC_TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}" >> ./apps/fe/.env
                   echo "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID }}" >> ./apps/fe/.env
 
                   echo "NEXT_PUBLIC_API_URL='https://api.vephim.online'" >> ./apps/mnt/.env
+                  echo "NEXT_PUBLIC_IMAGES_URL='https://img.vephim.online'" >> ./apps/mnt/.env
                   echo "NEXT_SHARP_PATH='/usr/src/app/node_modules/sharp'" >> ./apps/mnt/.env
                   echo "NEXT_PUBLIC_FE_URL='https://vephim.online'" >> ./apps/mnt/.env
 

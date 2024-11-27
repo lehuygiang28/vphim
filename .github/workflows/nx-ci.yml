@@ -37,6 +37,7 @@ jobs:
             - name: Create .env file
               run: |
                   echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> apps/fe/.env
+                  echo "NEXT_PUBLIC_IMAGES_URL=${{ secrets.NEXT_PUBLIC_IMAGES_URL }}" >> apps/fe/.env
                   echo "REVALIDATE_API_KEY=${{ secrets.REVALIDATE_API_KEY }}" >> apps/fe/.env
               shell: bash
 

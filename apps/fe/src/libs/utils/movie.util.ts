@@ -53,12 +53,22 @@ export function getOptimizedImageUrl(
         height: number | string;
         quality?: number | string;
         baseUrl?: string;
+        useApi: boolean;
     },
 ) {
-    const { width, height, quality = 60, baseUrl = process.env.NEXT_PUBLIC_API_URL } = option;
-    return `${baseUrl}/api/images/optimize?url=${encodeURIComponent(
-        url,
-    )}&width=${width}&height=${height}&quality=${quality}`;
+    const {
+        width,
+        height,
+        quality = 60,
+        baseUrl = process.env.NEXT_PUBLIC_API_URL,
+        useApi = false,
+    } = option;
+    const imageSever = process.env.NEXT_PUBLIC_IMAGES_URL;
+    const queryParams = `url=${encodeURIComponent(url)}&w=${width}&h=${height}&q=${quality}`;
+    if (!useApi) {
+        return `${imageSever}/?${queryParams}`;
+    }
+    return `${baseUrl}/api/images/optimize?${queryParams}`;
 }
 
 export function slugifyVietnamese(str: string) {
