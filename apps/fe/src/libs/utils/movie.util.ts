@@ -66,7 +66,7 @@ export function getOptimizedImageUrl(
     const imageSever = process.env.NEXT_PUBLIC_IMAGES_URL;
     const queryParams = `url=${encodeURIComponent(url)}&w=${width}&h=${height}&q=${quality}`;
     if (!useApi) {
-        return `${imageSever}/?${queryParams}`;
+        return `${imageSever}/?${queryParams}&output=webp`;
     }
     return `${baseUrl}/api/images/optimize?${queryParams}`;
 }
