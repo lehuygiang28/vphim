@@ -8565,6 +8565,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:4.6.0"
     expo: "npm:^52.0.11"
     expo-blur: "npm:~14.0.1"
+    expo-build-properties: "npm:~0.13.1"
     expo-image: "npm:~2.0.2"
     expo-linear-gradient: "npm:~14.0.1"
     expo-linking: "npm:~7.0.3"
@@ -9098,7 +9099,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv@npm:^8.0.0, ajv@npm:^8.12.0, ajv@npm:^8.9.0":
+"ajv@npm:^8.0.0, ajv@npm:^8.11.0, ajv@npm:^8.12.0, ajv@npm:^8.9.0":
   version: 8.17.1
   resolution: "ajv@npm:8.17.1"
   dependencies:
@@ -13312,6 +13313,18 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/c4e72872efbf8c58f1731926690157a9dd64a08eb5e5c10f0bb5dc88be357e9ab1207f89a0d1a837caaa315bd289ad4a6b69b9314851473636833209eeca0922
+  languageName: node
+  linkType: hard
+
+"expo-build-properties@npm:~0.13.1":
+  version: 0.13.1
+  resolution: "expo-build-properties@npm:0.13.1"
+  dependencies:
+    ajv: "npm:^8.11.0"
+    semver: "npm:^7.6.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/b565f6f995371ce0be526dcab45dba504f82934d8fffdf38ce2f46d1e7497e25df80d38e0fa4e4e7203a6d557bc4190a840e9eb8c94a5c205b0285777945c8fd
   languageName: node
   linkType: hard
 
