@@ -41,7 +41,7 @@ export class ImagesService {
     }
 
     async optimizeImage(data: OptimizeImageDTO, res: Response) {
-        const { url, width, height, quality = 75 } = data;
+        const { url, w: width, h: height, q: quality = 75 } = data;
         const cacheKey = `${url}:${width}:${height}:${quality}`;
 
         try {

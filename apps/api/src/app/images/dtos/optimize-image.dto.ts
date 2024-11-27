@@ -10,25 +10,34 @@ export class OptimizeImageDTO {
     @IsNotEmpty()
     url: string;
 
+    /**
+     * Width
+     */
     @ApiProperty({
         description: 'Width',
     })
     @IsNumber()
     @IsNotEmpty()
-    width: number;
+    w: number;
 
+    /**
+     * Height
+     */
     @ApiProperty({
         description: 'Height',
     })
     @IsNumber()
     @IsNotEmpty()
-    height: number;
+    h: number;
 
+    /**
+     * Quality
+     */
     @ApiPropertyOptional({
         description: 'Quality',
     })
     @IsOptional()
     @IsNumber()
     @IsNotEmpty()
-    quality = 75;
+    q = 75;
 }
