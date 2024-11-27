@@ -53,7 +53,7 @@ export function getOptimizedImageUrl(
         height: number | string;
         quality?: number | string;
         baseUrl?: string;
-        useApi: boolean;
+        useApi?: boolean;
     },
 ) {
     const {
