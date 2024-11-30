@@ -23,6 +23,7 @@ import { MovieResolver } from './movie.resolver';
 import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
 import { SearchService } from './search.service';
 import { MovieCrawlerModule } from './crawler';
+import { isNullOrUndefined } from '../../libs/utils';
 
 @Global()
 @Module({
@@ -32,13 +33,20 @@ import { MovieCrawlerModule } from './crawler';
         ElasticsearchModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-                node: configService.getOrThrow('ELASTIC_URL'),
-                auth: {
-                    username: 'elastic',
-                    password: configService.getOrThrow('ELASTIC_PASSWORD'),
-                },
-            }),
+            useFactory: (configService: ConfigService) => {
+                const isElasticAuthEnabled = !isNullOrUndefined(
+                    configService.get('ELASTIC_PASSWORD'),
+                );
+                return {
+                    node: configService.getOrThrow('ELASTIC_URL'),
+                    ...(isElasticAuthEnabled && {
+                        auth: {
+                            username: 'elastic',
+                            password: configService.getOrThrow('ELASTIC_PASSWORD'),
+                        },
+                    }),
+                };
+            },
         }),
         MongooseModule.forFeatureAsync([
             {
