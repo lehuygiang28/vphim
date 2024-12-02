@@ -47,6 +47,7 @@ import MovieRatings from '~mb/components/card/movie-ratings';
 import MovieContent from '~mb/components/text/movie-content';
 import { MovieRelated } from '~mb/components/list/movie-related';
 import { MovieComments } from '~mb/components/comment';
+import { removeStyleProperty } from '~mb/libs/utils';
 
 const { width, height } = Dimensions.get('window');
 
@@ -199,7 +200,9 @@ export default function MovieScreen() {
 
     const renderBackAction = () => (
         <TopNavigationAction
-            icon={(props) => <ArrowLeft {...props} color={theme['text-basic-color']} />}
+            icon={(props) => (
+                <ArrowLeft {...removeStyleProperty(props)} color={theme['text-basic-color']} />
+            )}
             onPress={() => navigation.goBack()}
         />
     );
@@ -283,7 +286,9 @@ export default function MovieScreen() {
                             {isPlaying && !error && (
                                 <View style={styles.controls}>
                                     <Button
-                                        accessoryLeft={(props) => <ChevronLeft {...props} />}
+                                        accessoryLeft={(props) => (
+                                            <ChevronLeft {...removeStyleProperty(props)} />
+                                        )}
                                         onPress={() => {
                                             if (selectedEpisodeIndex.row > 0) {
                                                 handleEpisodeChange(
@@ -295,7 +300,9 @@ export default function MovieScreen() {
                                         disabled={selectedEpisodeIndex.row === 0}
                                     />
                                     <Button
-                                        accessoryRight={(props) => <ChevronRight {...props} />}
+                                        accessoryRight={(props) => (
+                                            <ChevronRight {...removeStyleProperty(props)} />
+                                        )}
                                         onPress={() => {
                                             const currentServer =
                                                 movie?.data?.episode?.[selectedServerIndex.row];
@@ -352,7 +359,10 @@ export default function MovieScreen() {
                                         appearance="ghost"
                                         status="basic"
                                         accessoryLeft={(props) => (
-                                            <Calendar {...props} color={theme['text-hint-color']} />
+                                            <Calendar
+                                                {...removeStyleProperty(props)}
+                                                color={theme['text-hint-color']}
+                                            />
                                         )}
                                         size="small"
                                     >
@@ -362,7 +372,10 @@ export default function MovieScreen() {
                                         appearance="ghost"
                                         status="basic"
                                         accessoryLeft={(props) => (
-                                            <Clock {...props} color={theme['text-hint-color']} />
+                                            <Clock
+                                                {...removeStyleProperty(props)}
+                                                color={theme['text-hint-color']}
+                                            />
                                         )}
                                         size="small"
                                     >
@@ -374,7 +387,7 @@ export default function MovieScreen() {
                                             status="warning"
                                             accessoryLeft={(props) => (
                                                 <Star
-                                                    {...props}
+                                                    {...removeStyleProperty(props)}
                                                     color={theme['color-warning-500']}
                                                 />
                                             )}

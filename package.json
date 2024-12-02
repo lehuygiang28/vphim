@@ -84,7 +84,7 @@
         "js-cookie": "^3.0.5",
         "jsonwebtoken": "^9.0.2",
         "lodash.debounce": "^4.0.8",
-        "lucide-react-native": "^0.446.0",
+        "lucide-react-native": "^0.468.0",
         "media-icons": "^1.1.5",
         "mongoose": "^8.5.4",
         "ms": "^2.1.3",

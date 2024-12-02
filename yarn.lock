@@ -8585,7 +8585,7 @@ __metadata:
     js-cookie: "npm:^3.0.5"
     jsonwebtoken: "npm:^9.0.2"
     lodash.debounce: "npm:^4.0.8"
-    lucide-react-native: "npm:^0.446.0"
+    lucide-react-native: "npm:^0.468.0"
     media-icons: "npm:^1.1.5"
     mongoose: "npm:^8.5.4"
     ms: "npm:^2.1.3"
@@ -18061,14 +18061,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react-native@npm:^0.446.0":
-  version: 0.446.0
-  resolution: "lucide-react-native@npm:0.446.0"
+"lucide-react-native@npm:^0.468.0":
+  version: 0.468.0
+  resolution: "lucide-react-native@npm:0.468.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
     react-native: "*"
     react-native-svg: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0
-  checksum: 10c0/035d246cd3736793a94fe822fc27e8ccf817cfed1743d2b57edce85250aa58c03da89629fb66478079f3870b87f42cc7d2ce1ed9a10aced4f443a661766f4f9e
+  checksum: 10c0/34c5f44d6ad6c11c738b8fb0cac3b521ccf55ae4582b9dd389d6f5c74e4b4c5ad8b8a08053118deec6c4596fcbb344b75f30dd6463ecf583b423ed29f11699a2
   languageName: node
   linkType: hard
 
