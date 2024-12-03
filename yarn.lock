@@ -8573,6 +8573,7 @@ __metadata:
     expo-secure-store: "npm:~14.0.0"
     expo-splash-screen: "npm:~0.29.13"
     expo-status-bar: "npm:~2.0.0"
+    expo-video: "npm:^2.0.2"
     google-auth-library: "npm:^9.14.0"
     graphql: "npm:^16.9.0"
     graphql-tag: "npm:^2.12.6"
@@ -13504,6 +13505,17 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/d2d80f6ef86be7ac7270407ae6016e501fa99986bd517039c0fddd2628f0ae34655ca855a1cfd9e5e4a3da1229b08fc24834a4077f135276e7af84cb3368bfff
+  languageName: node
+  linkType: hard
+
+"expo-video@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "expo-video@npm:2.0.2"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/2db8d529472d279afcba11d9b9aa7da29db6712d33e44510ba4fa2ea567c861b5d04f1845164a6f72eeede3a53f32801ac74a75e93255f0da8112a99618a54d2
   languageName: node
   linkType: hard
 

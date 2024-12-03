@@ -76,6 +76,7 @@
         "expo-secure-store": "~14.0.0",
         "expo-splash-screen": "~0.29.13",
         "expo-status-bar": "~2.0.0",
+        "expo-video": "^2.0.2",
         "google-auth-library": "^9.14.0",
         "graphql": "^16.9.0",
         "graphql-tag": "^2.12.6",
