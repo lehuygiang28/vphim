@@ -13,6 +13,8 @@ interface VideoPlayerProps {
     onVideoError: () => void;
     onNextEpisode: () => void;
     onPreviousEpisode: () => void;
+    isFirstEpisode: boolean;
+    isLastEpisode: boolean;
 }
 
 export default function VideoPlayer({
@@ -23,6 +25,8 @@ export default function VideoPlayer({
     onVideoError,
     onNextEpisode,
     onPreviousEpisode,
+    isFirstEpisode,
+    isLastEpisode,
 }: VideoPlayerProps) {
     const [videoUrl, setVideoUrl] = useState<string>('');
 
@@ -57,7 +61,13 @@ export default function VideoPlayer({
 
     return (
         <Layout style={styles.playerContainer} level="2">
-            <ExpoVideoPlayer uri={videoUrl} onNext={onNextEpisode} onPrevious={onPreviousEpisode} />
+            <ExpoVideoPlayer
+                uri={videoUrl}
+                onNext={onNextEpisode}
+                onPrevious={onPreviousEpisode}
+                isFirstEpisode={isFirstEpisode}
+                isLastEpisode={isLastEpisode}
+            />
         </Layout>
     );
 }

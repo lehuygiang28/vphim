@@ -1,17 +1,27 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { Button, Text, Toggle, Layout } from '@ui-kitten/components';
+import { Button, Text, Toggle, Layout, useTheme } from '@ui-kitten/components';
 import { SkipBack, SkipForward } from 'lucide-react-native';
+
 import { removeStyleProperty } from '~mb/libs/utils';
 
 interface ExpoVideoPlayerProps {
     uri: string;
     onNext?: () => void;
     onPrevious?: () => void;
+    isFirstEpisode: boolean;
+    isLastEpisode: boolean;
 }
 
-export default function ExpoVideoPlayer({ uri, onNext, onPrevious }: ExpoVideoPlayerProps) {
+export default function ExpoVideoPlayer({
+    uri,
+    onNext,
+    onPrevious,
+    isFirstEpisode,
+    isLastEpisode,
+}: ExpoVideoPlayerProps) {
+    const theme = useTheme();
     const player = useVideoPlayer({ uri });
     const [autoPlay, setAutoPlay] = useState(true);
     const videoViewRef = useRef<VideoView>(null);
@@ -49,7 +59,10 @@ export default function ExpoVideoPlayer({ uri, onNext, onPrevious }: ExpoVideoPl
     }, [autoPlay, player]);
 
     return (
-        <Layout style={styles.container} level="1">
+        <Layout
+            style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
+            level="1"
+        >
             <VideoView
                 ref={videoViewRef}
                 player={player}
@@ -57,32 +70,52 @@ export default function ExpoVideoPlayer({ uri, onNext, onPrevious }: ExpoVideoPl
                 contentFit="contain"
                 nativeControls
             />
-            <View style={styles.controls}>
+            <View style={[styles.controls, { backgroundColor: theme['background-basic-color-4'] }]}>
                 <Button
                     appearance="ghost"
                     status="control"
-                    accessoryLeft={(props) => <SkipBack {...removeStyleProperty(props)} />}
-                    onPress={onPrevious}
-                    disabled={!onPrevious}
-                />
-                <Toggle
-                    checked={autoPlay}
-                    onChange={handleAutoPlayToggle}
-                    style={styles.autoPlayToggle}
-                >
-                    {(evaProps) => (
-                        <Text {...evaProps} style={styles.autoPlayText}>
-                            {' '}
-                            Tự động phát
-                        </Text>
+                    accessoryLeft={(props) => (
+                        <SkipBack
+                            {...removeStyleProperty(props)}
+                            color={
+                                isFirstEpisode || !onPrevious
+                                    ? theme['text-disabled-color']
+                                    : theme['text-basic-color']
+                            }
+                            size={24}
+                        />
                     )}
-                </Toggle>
+                    onPress={onPrevious}
+                    disabled={isFirstEpisode || !onPrevious}
+                    size="small"
+                />
+                <View style={styles.autoPlayContainer}>
+                    <Toggle
+                        checked={autoPlay}
+                        onChange={handleAutoPlayToggle}
+                        style={styles.autoPlayToggle}
+                    />
+                    <Text style={[styles.autoPlayText, { color: theme['text-basic-color'] }]}>
+                        Tự động phát
+                    </Text>
+                </View>
                 <Button
                     appearance="ghost"
                     status="control"
-                    accessoryLeft={(props) => <SkipForward {...removeStyleProperty(props)} />}
+                    accessoryLeft={(props) => (
+                        <SkipForward
+                            {...removeStyleProperty(props)}
+                            color={
+                                isLastEpisode || !onNext
+                                    ? theme['text-disabled-color']
+                                    : theme['text-basic-color']
+                            }
+                            size={24}
+                        />
+                    )}
                     onPress={onNext}
-                    disabled={!onNext}
+                    disabled={isLastEpisode || !onNext}
+                    size="small"
                 />
             </View>
         </Layout>
@@ -104,12 +137,17 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: 'black',
+        paddingHorizontal: 10,
+    },
+    autoPlayContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     autoPlayToggle: {
-        transform: [{ scale: 0.8 }],
+        transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
     },
     autoPlayText: {
-        color: 'white',
         fontSize: 12,
+        marginLeft: 8,
     },
 });

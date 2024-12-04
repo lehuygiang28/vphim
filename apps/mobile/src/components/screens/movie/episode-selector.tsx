@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 8,
-        paddingHorizontal: 8,
+        marginHorizontal: 12,
     },
     button: {
         flex: 1,

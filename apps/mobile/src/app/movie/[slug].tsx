@@ -25,6 +25,8 @@ export default function MovieScreen() {
     const [error, setError] = useState<string | null>(null);
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [playerHeight, setPlayerHeight] = useState(0);
+    const [isFirstEpisode, setIsFirstEpisode] = useState(true);
+    const [isLastEpisode, setIsLastEpisode] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
 
     const { data: movie, isLoading } = useOne<MovieType>({
@@ -39,12 +41,15 @@ export default function MovieScreen() {
     });
 
     useEffect(() => {
-        if (movie?.data?.episode && movie.data.episode.length > 0) {
-            const firstServer = movie.data.episode[0];
+        const episodes = movie?.data?.episode ?? [];
+        if (episodes.length > 0) {
+            const firstServer = episodes[0];
             if (firstServer.serverData && firstServer.serverData.length > 0) {
                 setSelectedEpisode(firstServer.serverData[0]);
                 setSelectedServerIndex(0);
                 setSelectedEpisodeIndex(0);
+                setIsFirstEpisode(true);
+                setIsLastEpisode(firstServer.serverData.length === 1);
             }
         }
     }, [movie]);
@@ -74,8 +79,16 @@ export default function MovieScreen() {
             setSelectedEpisodeIndex(episodeIndex);
             setIsPlaying(true);
             setError(null);
+
+            const episodes = movie?.data?.episode ?? [];
+            const currentServer = episodes[serverIndex];
+            setIsFirstEpisode(serverIndex === 0 && episodeIndex === 0);
+            setIsLastEpisode(
+                serverIndex === episodes.length - 1 &&
+                    episodeIndex === (currentServer?.serverData.length ?? 0) - 1,
+            );
         },
-        [],
+        [movie],
     );
 
     const handleVideoError = useCallback(() => {
@@ -85,36 +98,33 @@ export default function MovieScreen() {
     }, []);
 
     const handleNextEpisode = useCallback(() => {
-        if (movie?.data?.episode) {
-            const currentServer = movie.data.episode[selectedServerIndex];
-            if (selectedEpisodeIndex < currentServer.serverData.length - 1) {
-                handleEpisodeSelect(
-                    currentServer.serverData[selectedEpisodeIndex + 1],
-                    selectedServerIndex,
-                    selectedEpisodeIndex + 1,
-                );
-            } else if (selectedServerIndex < movie.data.episode.length - 1) {
-                const nextServer = movie.data.episode[selectedServerIndex + 1];
+        const episodes = movie?.data?.episode ?? [];
+        if (episodes.length > 0) {
+            const currentServer = episodes[selectedServerIndex];
+            if (selectedEpisodeIndex < (currentServer?.serverData.length ?? 0) - 1) {
+                const nextEpisode = currentServer.serverData[selectedEpisodeIndex + 1];
+                handleEpisodeSelect(nextEpisode, selectedServerIndex, selectedEpisodeIndex + 1);
+            } else if (selectedServerIndex < episodes.length - 1) {
+                const nextServer = episodes[selectedServerIndex + 1];
                 handleEpisodeSelect(nextServer.serverData[0], selectedServerIndex + 1, 0);
             }
         }
     }, [movie, selectedServerIndex, selectedEpisodeIndex, handleEpisodeSelect]);
 
     const handlePreviousEpisode = useCallback(() => {
-        if (movie?.data?.episode) {
+        const episodes = movie?.data?.episode ?? [];
+        if (episodes.length > 0) {
             if (selectedEpisodeIndex > 0) {
-                const currentServer = movie.data.episode[selectedServerIndex];
-                handleEpisodeSelect(
-                    currentServer.serverData[selectedEpisodeIndex - 1],
-                    selectedServerIndex,
-                    selectedEpisodeIndex - 1,
-                );
+                const currentServer = episodes[selectedServerIndex];
+                const previousEpisode = currentServer.serverData[selectedEpisodeIndex - 1];
+                handleEpisodeSelect(previousEpisode, selectedServerIndex, selectedEpisodeIndex - 1);
             } else if (selectedServerIndex > 0) {
-                const previousServer = movie.data.episode[selectedServerIndex - 1];
+                const previousServer = episodes[selectedServerIndex - 1];
+                const lastEpisodeIndex = (previousServer.serverData.length ?? 0) - 1;
                 handleEpisodeSelect(
-                    previousServer.serverData[previousServer.serverData.length - 1],
+                    previousServer.serverData[lastEpisodeIndex],
                     selectedServerIndex - 1,
-                    previousServer.serverData.length - 1,
+                    lastEpisodeIndex,
                 );
             }
         }
@@ -142,6 +152,8 @@ export default function MovieScreen() {
                         onVideoError={handleVideoError}
                         onNextEpisode={handleNextEpisode}
                         onPreviousEpisode={handlePreviousEpisode}
+                        isFirstEpisode={isFirstEpisode}
+                        isLastEpisode={isLastEpisode}
                     />
                 </View>
                 <ScrollView
