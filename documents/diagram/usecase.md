@@ -15,6 +15,9 @@ skinparam usecase {
 skinparam packageStyle rectangle
 skinparam linetype ortho
 
+skinparam nodesep 40
+skinparam ranksep 40
+
 left to right direction
 
 actor Guest
@@ -22,7 +25,7 @@ actor Member
 
 Guest <|- Member
 
-rectangle "VePhim" {
+' rectangle "VePhim" {
   package "Guest Features" {
     usecase "Search/Find Movies" as UC1
     usecase "Watch Movies" as UC2
@@ -37,7 +40,7 @@ rectangle "VePhim" {
     usecase "View User Profile" as UC8
     usecase "Update User Profile" as UC9
   }
-}
+' }
 
 Guest --> UC1
 Guest --> UC2
@@ -56,6 +59,10 @@ UC6 ..> UC3 : <<include>>
 UC7 ..> UC3 : <<include>>
 UC9 ..> UC8 : <<include>>
 
+UC6 ..> UC4 : <<include>>
+UC7 ..> UC4 : <<include>>
+UC8 ..> UC4 : <<include>>
+UC9 ..> UC4 : <<include>>
 @enduml
 ```
 
