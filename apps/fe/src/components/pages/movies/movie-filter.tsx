@@ -368,6 +368,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         allowClear
                         value={keywordsInput}
                         onChange={(e) => setKeywordsInput(e.target.value)}
+                        onBlur={() => handleFilterChange('keywords', keywordsInput)}
                         onSearch={async (value) => {
                             const newFilters = handleFilterChange('keywords', value || undefined);
                             applySearch({ ...query, filters: newFilters });
