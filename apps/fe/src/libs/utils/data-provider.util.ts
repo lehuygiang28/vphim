@@ -56,7 +56,11 @@ export function handleFilterQuery(
         ? filters
               .filter((filter) => filter['field'])
               .reduce((acc, filter) => {
-                  if (filter['field'] === 'cinemaRelease' || filter['field'] === 'isCopyright') {
+                  if (
+                      filter['field'] === 'cinemaRelease' ||
+                      filter['field'] === 'isCopyright' ||
+                      filter['field'] === 'useAI'
+                  ) {
                       acc[filter['field']] = filter?.value === 'true' || filter?.value === true;
                   } else {
                       acc[filter['field']] = filter?.value ?? '';

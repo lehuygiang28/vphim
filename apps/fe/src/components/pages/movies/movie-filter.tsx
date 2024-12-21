@@ -1,9 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Row, Col, Select, Button, Input, Space, Drawer, Tag, Checkbox, Grid } from 'antd';
+import { Row, Col, Select, Button, Input, Space, Drawer, Tag, Checkbox, Grid, Tooltip } from 'antd';
 import { LogicalFilter, useList } from '@refinedev/core';
-import { SearchOutlined, FilterOutlined, CloseOutlined } from '@ant-design/icons';
+import {
+    SearchOutlined,
+    FilterOutlined,
+    CloseOutlined,
+    QuestionCircleOutlined,
+} from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
 
 import type { Category } from 'apps/api/src/app/categories/category.schema';
@@ -217,9 +222,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             <Space direction="horizontal" size="middle" style={{ width: '100%' }}>
                 <Checkbox
                     checked={getFilterValue('cinemaRelease')?.[0]?.toString() === 'true'}
-                    onChange={(checked) =>
-                        handleFilterChange('cinemaRelease', checked.target.checked)
-                    }
+                    onChange={(e) => handleFilterChange('cinemaRelease', e.target.checked)}
                 >
                     Phim chiếu rạp
                 </Checkbox>
@@ -227,9 +230,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             <Space direction="horizontal" size="middle" style={{ width: '100%' }}>
                 <Checkbox
                     checked={getFilterValue('isCopyright')?.[0]?.toString() === 'true'}
-                    onChange={(checked) =>
-                        handleFilterChange('isCopyright', checked.target.checked)
-                    }
+                    onChange={(e) => handleFilterChange('isCopyright', e.target.checked)}
                 >
                     Phim bản quyền
                 </Checkbox>
@@ -264,6 +265,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             'years',
             'cinemaRelease',
             'isCopyright',
+            'useAI',
             'status',
         ];
 
@@ -309,6 +311,10 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                             break;
                         case 'isCopyright':
                             label = 'Bản quyền';
+                            displayValue = value?.toString() === 'true' ? 'Có' : 'Không';
+                            break;
+                        case 'useAI':
+                            label = 'Phim AI';
                             displayValue = value?.toString() === 'true' ? 'Có' : 'Không';
                             break;
                         case 'status':
@@ -409,6 +415,19 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     >
                         Bộ lọc
                     </Button>
+                </Col>
+            </Row>
+            <Row gutter={[16, 16]} align="middle" style={{ marginTop: 8 }}>
+                <Col>
+                    <Checkbox
+                        checked={getFilterValue('useAI')?.[0]?.toString() === 'true'}
+                        onChange={(e) => handleFilterChange('useAI', e.target.checked)}
+                    >
+                        Tìm kiếm với AI
+                        <Tooltip title="Tìm kiếm phim nâng cao sử dụng trí tuệ nhân tạo, điền vào ô tìm kiếm nội dung, từ khóa của phim mà bạn muốn tìm.">
+                            <QuestionCircleOutlined style={{ marginLeft: 8, cursor: 'pointer' }} />
+                        </Tooltip>
+                    </Checkbox>
                 </Col>
             </Row>
             {renderFilterTags().length > 0 && (
