@@ -288,6 +288,7 @@ input GetMoviesInput {
   type: String
   years: String
   status: String
+  useAI: Boolean
 }
 
 input GetMoviesAdminInput {
@@ -305,6 +306,7 @@ input GetMoviesAdminInput {
   type: String
   years: String
   status: String
+  useAI: Boolean
   resetCache: Boolean
   isDeleted: Boolean
   bypassCache: Boolean

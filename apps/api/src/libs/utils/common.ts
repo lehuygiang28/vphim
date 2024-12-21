@@ -133,3 +133,29 @@ export function randomString(length: number, { onlyLetters = false } = {}): stri
 export const slugifyVietnamese = (str: string, options?: Parameters<typeof slug>[1]) => {
     return slug(removeDiacritics(removeTone(str)), options);
 };
+
+export function isEmptyObject(obj: object): boolean {
+    return Object.keys(obj)?.length === 0;
+}
+
+export function extractJSON(text: string): object {
+    try {
+        // Find the first opening brace '{' and the last closing brace '}'
+        const startIndex = text.indexOf('{');
+        const endIndex = text.lastIndexOf('}');
+
+        // Ensure both braces are found and extract the content between them
+        if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+            text = text.substring(startIndex, endIndex + 1);
+        } else {
+            // If braces are not found or invalid, log an error and return an empty object
+            this.logger.error('Failed to locate a valid JSON object in the response');
+            return {};
+        }
+
+        // Return the cleaned JSON string
+        return JSON.parse(text.trim());
+    } catch (error) {
+        return {};
+    }
+}

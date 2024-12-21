@@ -7,6 +7,7 @@ import {
     SearchTotalHits,
     SortCombinations,
 } from '@elastic/elasticsearch/lib/api/types';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 import { MovieRepository } from './movie.repository';
 import { MovieResponseDto } from './dtos';
@@ -16,6 +17,8 @@ import {
     isNullOrUndefined,
     isTrue,
     sortedStringify,
+    isEmptyObject,
+    extractJSON,
 } from '../../libs/utils/common';
 import { RedisService } from '../../libs/modules/redis/services';
 import { MovieType } from './movie.type';
@@ -26,11 +29,13 @@ import { GetMoviesInput } from './inputs/get-movies.input';
 import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.input';
 import { CreateMovieInput } from './inputs/create-movie.input';
 import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
+import { systemInstruction } from './ai-movie.prompt';
 
 @Injectable()
 export class MovieService {
     private readonly logger: Logger;
     private readonly EXCLUDE_MOVIE_SRC: ('ophim' | 'kkphim' | 'nguonc')[] = [];
+    private readonly genAI: GoogleGenerativeAI;
 
     constructor(
         private readonly configService: ConfigService,
@@ -48,6 +53,7 @@ export class MovieService {
             | 'kkphim'
             | 'nguonc'
         )[];
+        this.genAI = new GoogleGenerativeAI(this.configService.get<string>('GOOGLE_API_KEY'));
     }
 
     async createMovie(input: CreateMovieInput): Promise<MovieType> {
@@ -108,20 +114,50 @@ export class MovieService {
 
     async getMoviesEs(dto: GetMoviesAdminInput | GetMoviesInput, isRestful = false) {
         const {
+            keywords,
+            useAI = false,
             resetCache = false,
             bypassCache = false,
+            page = 1,
+            limit = 10,
+            categories,
+            countries,
+            years,
             ...restDto
         } = { resetCache: false, bypassCache: false, isDeleted: false, ...dto };
-        const cacheKey = `CACHED:MOVIES:ES:${sortedStringify(restDto)}`;
+
+        const keywordsEncoded = encodeURIComponent(keywords);
+        const cacheKey = `CACHED:MOVIES:ES:${sortedStringify({
+            ...restDto,
+            useAI,
+            keywords: keywordsEncoded,
+            page,
+            limit,
+            categories,
+            countries,
+            years,
+        })}`;
+        const aiFilterCacheKey = `CACHED:AI_FILTER:${sortedStringify({
+            ...restDto,
+            useAI,
+            keywords: keywordsEncoded,
+            categories,
+            countries,
+            years,
+        })}`;
 
         if (isTrue(resetCache)) {
-            await this.redisService.del(cacheKey);
-        } else if (!isTrue(bypassCache)) {
+            await Promise.all([
+                this.redisService.del(cacheKey),
+                this.redisService.del(aiFilterCacheKey),
+            ]);
+        }
+        if (!isTrue(bypassCache)) {
             const fromCache = await this.redisService.get<{ data: MovieType[]; total: number }>(
                 cacheKey,
             );
             if (fromCache) {
-                this.logger.debug(`CACHE: ${cacheKey}`);
+                this.logger.log(`HIT: ${cacheKey}`);
                 return {
                     data: fromCache.data.map((movie) => new MovieType(movie)),
                     total: fromCache.total,
@@ -129,8 +165,74 @@ export class MovieService {
             }
         }
 
-        this.logger.debug(`ES: ${cacheKey}`);
+        this.logger.log(`MISS: ${cacheKey}`);
 
+        let aiFilter: QueryDslQueryContainer | null = null;
+
+        const analyzeAiAndSetToRedis = async () => {
+            const aiAnalysis = await this.analyzeSearchQuery(keywords);
+            if (aiAnalysis && !isEmptyObject(aiAnalysis)) {
+                aiFilter = await this.getAIFilter(aiAnalysis, { categories, countries, years });
+
+                await this.redisService.set(
+                    aiFilterCacheKey,
+                    JSON.stringify(aiFilter),
+                    1000 * 60 * 30,
+                );
+            }
+        };
+
+        if (useAI && keywords) {
+            try {
+                const aiFilterFromCached = await this.redisService.get<string>(aiFilterCacheKey);
+                aiFilter =
+                    typeof aiFilterFromCached === 'string'
+                        ? JSON.parse(aiFilterFromCached)
+                        : aiFilterFromCached;
+
+                if (!aiFilter) {
+                    this.logger.log(`[AI] Analyzing: ${keywords}`);
+                    await analyzeAiAndSetToRedis();
+                }
+            } catch (error) {
+                this.logger.error(`[AI] Failed to analyze search query: ${error}}`);
+                aiFilter = null;
+            }
+        }
+
+        const query = aiFilter || (await this.buildTraditionalQuery(dto));
+        const { data, total } = await this.executeSearch(query, dto, isRestful);
+
+        const res = { data, total, count: data?.length || 0 };
+        await this.redisService.set(cacheKey, res, 1000 * 30);
+
+        return res;
+    }
+
+    private processYearFilter(years: string | undefined): QueryDslQueryContainer[] {
+        const filter: QueryDslQueryContainer[] = [];
+        if (!isNullOrUndefined(years)) {
+            if (years.includes('-')) {
+                const [startYear, endYear] = years.split('-').map(Number);
+                filter.push({
+                    range: {
+                        year: {
+                            gte: startYear,
+                            lte: endYear,
+                        },
+                    },
+                });
+            } else {
+                const yearList = years.split(',').map(Number).filter(Boolean);
+                filter.push({ terms: { year: yearList } });
+            }
+        }
+        return filter;
+    }
+
+    private async buildTraditionalQuery(
+        dto: GetMoviesAdminInput | GetMoviesInput,
+    ): Promise<QueryDslQueryContainer> {
         const {
             keywords,
             cinemaRelease,
@@ -139,10 +241,6 @@ export class MovieService {
             years,
             categories,
             countries,
-            limit = 10,
-            page = 1,
-            sortBy = 'year',
-            sortOrder = 'desc',
             status,
             isDeleted = false,
         } = { isDeleted: false, ...dto };
@@ -150,10 +248,9 @@ export class MovieService {
         const must: QueryDslQueryContainer['bool']['must'] = [];
         const mustNot: QueryDslQueryContainer['bool']['must_not'] = [];
         const filter: QueryDslQueryContainer[] = [];
-        let keywordQuery: QueryDslQueryContainer | null = null;
 
         if (keywords) {
-            keywordQuery = {
+            must.push({
                 bool: {
                     should: [
                         // Stage 1: Exact phrase match in name and originName
@@ -197,38 +294,15 @@ export class MovieService {
                     ],
                     minimum_should_match: 1,
                 },
-            };
+            });
         }
 
         if (!isNullOrUndefined(cinemaRelease)) filter.push({ term: { cinemaRelease } });
         if (!isNullOrUndefined(isCopyright)) filter.push({ term: { isCopyright } });
         if (!isNullOrUndefined(type)) filter.push({ term: { type } });
         if (!isNullOrUndefined(status)) filter.push({ term: { status } });
-        if (!isNullOrUndefined(years)) {
-            if (years.includes('-')) {
-                const [startYear, endYear] = years.split('-');
-                const yearsArray = [];
 
-                for (let year = Number(startYear); year <= Number(endYear); year++) {
-                    yearsArray.push(year);
-                }
-
-                filter.push({
-                    terms: {
-                        year: yearsArray,
-                    },
-                });
-            } else {
-                filter.push({
-                    terms: {
-                        year: years
-                            .split(',')
-                            .map((year) => Number(year.trim()))
-                            .filter(Boolean),
-                    },
-                });
-            }
-        }
+        filter.push(...this.processYearFilter(years));
 
         if (!isNullOrUndefined(categories)) {
             const categorySlugs = categories
@@ -280,18 +354,221 @@ export class MovieService {
             });
         }
 
-        const query: QueryDslQueryContainer = {
+        return {
             bool: {
-                must: [...must, ...(keywordQuery ? [keywordQuery] : [])],
+                must,
                 must_not: mustNot,
-                filter: filter,
+                filter,
             },
         };
-        if (must?.length === 0 && filter?.length === 0 && !keywordQuery) {
-            (query.bool.must as QueryDslQueryContainer[]).push({
-                match_all: {},
+    }
+
+    private async getAIFilter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        aiAnalysis: Record<string, any>,
+        userFilters: {
+            categories?: string;
+            countries?: string;
+            years?: string;
+        },
+    ): Promise<QueryDslQueryContainer> {
+        const { categories, countries, years } = userFilters;
+        const should: QueryDslQueryContainer[] = [];
+        const filter: QueryDslQueryContainer[] = [];
+        const mustNot: QueryDslQueryContainer[] = [];
+
+        // Handle categories
+        if (categories) {
+            const categorySlugs = categories
+                .split(',')
+                .filter((c) => !isNullOrUndefined(c))
+                .map((c) => c.trim());
+            should.push({
+                terms: {
+                    'categories.slug.keyword': categorySlugs,
+                    boost: 2,
+                },
+            });
+            if (!categorySlugs.includes('phim-18')) {
+                mustNot.push({
+                    term: {
+                        'categories.slug.keyword': 'phim-18',
+                    },
+                });
+            }
+        } else if (aiAnalysis.categories?.length) {
+            should.push({
+                terms: {
+                    'categories.slug.keyword': aiAnalysis.categories,
+                    boost: 1.5,
+                },
+            });
+            if (!aiAnalysis.categories.includes('phim-18')) {
+                mustNot.push({
+                    term: {
+                        'categories.slug.keyword': 'phim-18',
+                    },
+                });
+            }
+        }
+
+        // Handle countries
+        if (countries) {
+            should.push({
+                terms: {
+                    'countries.slug.keyword': countries
+                        .split(',')
+                        .filter((c) => !isNullOrUndefined(c))
+                        .map((c) => c.trim()),
+                    boost: 2,
+                },
+            });
+        } else if (aiAnalysis.countries?.length) {
+            should.push({
+                terms: {
+                    'countries.slug.keyword': aiAnalysis.countries,
+                    boost: 1.3,
+                },
             });
         }
+
+        filter.push(...this.processYearFilter(years));
+
+        if (!years && aiAnalysis.yearRange) {
+            const yearRange: { gte?: number; lte?: number } = {};
+            if (aiAnalysis.yearRange.min) yearRange.gte = aiAnalysis.yearRange.min;
+            if (aiAnalysis.yearRange.max) yearRange.lte = aiAnalysis.yearRange.max;
+            if (Object.keys(yearRange).length) {
+                filter.push({ range: { year: yearRange } });
+            }
+        }
+
+        // Add other AI-generated filters
+        if (aiAnalysis.must) {
+            if (aiAnalysis.must.name?.length) {
+                should.push({
+                    multi_match: {
+                        query: aiAnalysis.must.name.join(' '),
+                        fields: ['name^3', 'originName^2'],
+                        type: 'best_fields',
+                        operator: 'or',
+                        boost: 2,
+                    },
+                });
+            }
+
+            if (aiAnalysis.must.content?.length) {
+                should.push({
+                    match: {
+                        content: {
+                            query: aiAnalysis.must.content.join(' '),
+                            operator: 'or',
+                            minimum_should_match: '50%',
+                            boost: 1.5,
+                        },
+                    },
+                });
+            }
+
+            if (aiAnalysis.must.actors?.length) {
+                should.push({
+                    terms: {
+                        'actors.name.keyword': aiAnalysis.must.actors,
+                        boost: 1.2,
+                    },
+                });
+            }
+
+            if (aiAnalysis.must.directors?.length) {
+                should.push({
+                    terms: {
+                        'directors.name.keyword': aiAnalysis.must.directors,
+                        boost: 1.2,
+                    },
+                });
+            }
+        }
+
+        if (aiAnalysis.should) {
+            if (aiAnalysis.should.name?.length) {
+                should.push({
+                    multi_match: {
+                        query: aiAnalysis.should.name.join(' '),
+                        fields: ['name^2', 'originName^1.5'],
+                        type: 'best_fields',
+                        operator: 'or',
+                    },
+                });
+            }
+
+            if (aiAnalysis.should.content?.length) {
+                should.push({
+                    match: {
+                        content: {
+                            query: aiAnalysis.should.content.join(' '),
+                            operator: 'or',
+                            minimum_should_match: '30%',
+                            boost: 1.2,
+                        },
+                    },
+                });
+            }
+
+            if (aiAnalysis.should.actors?.length) {
+                should.push({
+                    terms: {
+                        'actors.name.keyword': aiAnalysis.should.actors,
+                        boost: 1.1,
+                    },
+                });
+            }
+
+            if (aiAnalysis.should.directors?.length) {
+                should.push({
+                    terms: {
+                        'directors.name.keyword': aiAnalysis.should.directors,
+                        boost: 1.1,
+                    },
+                });
+            }
+        }
+
+        if (aiAnalysis.keywords?.length) {
+            should.push({
+                multi_match: {
+                    query: aiAnalysis.keywords.join(' '),
+                    fields: [
+                        'name^3',
+                        'originName^2',
+                        'content^1.5',
+                        'actors.name^1.2',
+                        'directors.name^1.2',
+                        'categories.name',
+                        'countries.name',
+                    ],
+                    type: 'best_fields',
+                    operator: 'or',
+                    minimum_should_match: '30%',
+                },
+            });
+        }
+
+        return {
+            bool: {
+                should,
+                filter,
+                must_not: mustNot,
+                minimum_should_match: 1,
+            },
+        };
+    }
+
+    private async executeSearch(
+        query: QueryDslQueryContainer,
+        dto: GetMoviesAdminInput | GetMoviesInput,
+        isRestful: boolean,
+    ): Promise<{ data: MovieType[]; total: number }> {
+        const { limit = 10, page = 1, sortBy = 'year', sortOrder = 'desc', keywords } = dto;
 
         const sortFields = sortBy.split(',');
         const sortOrders = sortOrder.split(',');
@@ -323,6 +600,7 @@ export class MovieService {
         ] as SortCombinations[];
 
         const minScore = keywords ? 0.5 : undefined;
+        this.logger.log({ query, sort });
         const body = await this.elasticsearchService.search({
             index: 'movies',
             body: {
@@ -355,7 +633,7 @@ export class MovieService {
                         lastSyncModified: movie?.lastSyncModified,
                         createdAt: movie?.createdAt,
                         updatedAt: movie?.updatedAt,
-                    } as any),
+                    } as MovieType),
             );
         }
 
@@ -364,7 +642,6 @@ export class MovieService {
             total,
             count: movies?.length || 0,
         };
-        await this.redisService.set(cacheKey, res, 1000 * 30);
 
         return res;
     }
@@ -432,5 +709,40 @@ export class MovieService {
             this.searchService.deleteMovie({ _id: convertToObjectId(input._id) }),
         ]);
         return 1;
+    }
+
+    private async analyzeSearchQuery(query: string) {
+        const model = this.genAI.getGenerativeModel({
+            model: 'models/gemini-2.0-flash-thinking-exp-1219', // good as i want
+            // model: 'models/gemini-2.0-flash-thinking-exp',
+            // model: 'models/gemini-2.0-flash-exp',
+            // model: 'models/gemini-1.5-flash-8b',
+            // model: 'models/gemini-1.5-flash',
+            generationConfig: {
+                temperature: 0.3,
+                topK: 35,
+                topP: 0.8,
+            },
+        });
+
+        const result = await model.generateContent({
+            systemInstruction: systemInstruction,
+            contents: [
+                {
+                    role: 'user',
+                    parts: [{ text: `The query of user: "${query?.trim()}"` }],
+                },
+            ],
+        });
+        const text = result.response.text();
+        this.logger.log(text);
+
+        try {
+            return extractJSON(text);
+        } catch (error) {
+            this.logger.error('Failed to parse AI response', error);
+            this.logger.error('Raw response:', text);
+            return null;
+        }
     }
 }
