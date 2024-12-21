@@ -53,7 +53,13 @@ export class MovieService {
             | 'kkphim'
             | 'nguonc'
         )[];
-        this.genAI = new GoogleGenerativeAI(this.configService.get<string>('GOOGLE_API_KEY'));
+        const googleApiKey = this.configService.get<string>('GOOGLE_API_KEY');
+        if (googleApiKey) {
+            this.genAI = new GoogleGenerativeAI(googleApiKey);
+            this.logger.log('[AI] Gemini AI initialized');
+        } else {
+            this.logger.warn('[AI] Google API Key not provided. AI disabled.');
+        }
     }
 
     async createMovie(input: CreateMovieInput): Promise<MovieType> {
@@ -182,7 +188,7 @@ export class MovieService {
             }
         };
 
-        if (useAI && keywords) {
+        if (useAI && keywords && this.genAI) {
             try {
                 const aiFilterFromCached = await this.redisService.get<string>(aiFilterCacheKey);
                 aiFilter =
@@ -712,12 +718,13 @@ export class MovieService {
     }
 
     private async analyzeSearchQuery(query: string) {
+        if (!this.genAI) {
+            this.logger.warn('Google API Key not provided. Skipping AI analysis.');
+            return null;
+        }
+
         const model = this.genAI.getGenerativeModel({
-            model: 'models/gemini-2.0-flash-thinking-exp-1219', // good as i want
-            // model: 'models/gemini-2.0-flash-thinking-exp',
-            // model: 'models/gemini-2.0-flash-exp',
-            // model: 'models/gemini-1.5-flash-8b',
-            // model: 'models/gemini-1.5-flash',
+            model: 'models/gemini-2.0-flash-thinking-exp-1219',
             generationConfig: {
                 temperature: 0.3,
                 topK: 35,
