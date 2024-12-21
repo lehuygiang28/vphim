@@ -33,7 +33,9 @@ LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>
 
 # Install Redis and Supervisor
 RUN apk update && \
-	apk add --no-cache supervisor=4.2.5-r5 redis=7.2.5-r1
+	apk add --no-cache supervisor redis
+
+# COPY --from=redis:7-alpine3.20 /usr/local/bin/redis-cli /usr/local/bin/redis-cli
 
 WORKDIR /usr/src/app
 
