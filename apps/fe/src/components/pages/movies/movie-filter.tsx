@@ -44,8 +44,8 @@ interface MovieFiltersProps {
 }
 
 const sortOptions = [
-    { value: 'view,desc', label: 'Phổ biến nhất' },
     { value: 'bestMatch,asc', label: 'Phù hợp nhất' },
+    { value: 'view,desc', label: 'Phổ biến nhất' },
     { value: 'year,desc', label: 'Mới nhất' },
     { value: 'year,asc', label: 'Cũ nhất' },
     { value: 'updatedAt,desc', label: 'Cập nhật gần đây' },
@@ -378,6 +378,16 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         onSearch={async (value) => {
                             const newFilters = handleFilterChange('keywords', value || undefined);
                             applySearch({ ...query, filters: newFilters });
+                        }}
+                        onPressEnter={() => {
+                            const newFilters = handleFilterChange('keywords', keywordsInput);
+                            applySearch({ ...query, filters: newFilters });
+                        }}
+                        onKeyDown={(e: React.KeyboardEvent) => {
+                            if (e.key === 'Enter') {
+                                const newFilters = handleFilterChange('keywords', keywordsInput);
+                                applySearch({ ...query, filters: newFilters });
+                            }
                         }}
                         enterButton={
                             <Button
