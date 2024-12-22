@@ -36,6 +36,12 @@ export class MovieService {
     private readonly logger: Logger;
     private readonly EXCLUDE_MOVIE_SRC: ('ophim' | 'kkphim' | 'nguonc')[] = [];
     private readonly genAI: GoogleGenerativeAI;
+    private readonly AI_MODELS: string[] = [
+        'models/gemini-2.0-flash-thinking-exp-1219',
+        'models/gemini-2.0-flash-exp',
+        'models/gemini-1.5-flash-8b',
+        'models/gemini-1.5-flash',
+    ];
 
     constructor(
         private readonly configService: ConfigService,
@@ -723,33 +729,45 @@ export class MovieService {
             return null;
         }
 
-        const model = this.genAI.getGenerativeModel({
-            model: 'models/gemini-2.0-flash-thinking-exp-1219',
-            generationConfig: {
-                temperature: 0.3,
-                topK: 35,
-                topP: 0.8,
-            },
-        });
+        for (const modelName of this.AI_MODELS) {
+            try {
+                const model = this.genAI.getGenerativeModel({
+                    model: modelName,
+                    systemInstruction: systemInstruction,
+                    generationConfig: {
+                        temperature: 0.3,
+                        topK: 35,
+                        topP: 0.8,
+                    },
+                });
 
-        const result = await model.generateContent({
-            systemInstruction: systemInstruction,
-            contents: [
-                {
-                    role: 'user',
-                    parts: [{ text: `The query of user: "${query?.trim()}"` }],
-                },
-            ],
-        });
-        const text = result.response.text();
-        this.logger.log(text);
+                const result = await model.generateContent({
+                    contents: [
+                        {
+                            role: 'user',
+                            parts: [{ text: `The query of user: "${query?.trim()}"` }],
+                        },
+                    ],
+                });
+                const text = result.response.text();
+                this.logger.log(`[AI] response from model ${modelName}: ${text}`);
 
-        try {
-            return extractJSON(text);
-        } catch (error) {
-            this.logger.error('Failed to parse AI response', error);
-            this.logger.error('Raw response:', text);
-            return null;
+                try {
+                    return extractJSON(text);
+                } catch (error) {
+                    this.logger.error(
+                        `Failed to parse AI response from model ${modelName}: ${error}`,
+                    );
+                    this.logger.error(`Raw response: ${text}`);
+                    // Continue to the next model if JSON parsing fails
+                }
+            } catch (error) {
+                this.logger.error(`Error with model ${modelName}: ${error}`);
+                // Continue to the next model if there's an error
+            }
         }
+
+        this.logger.error('[AI] All AI models failed. Returning null.');
+        return null;
     }
 }
