@@ -1,7 +1,20 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Row, Col, Select, Button, Input, Space, Drawer, Tag, Checkbox, Grid, Tooltip } from 'antd';
+import {
+    Row,
+    Col,
+    Select,
+    Button,
+    Input,
+    Space,
+    Drawer,
+    Tag,
+    Checkbox,
+    Grid,
+    Tooltip,
+    Typography,
+} from 'antd';
 import { LogicalFilter, useList } from '@refinedev/core';
 import {
     SearchOutlined,
@@ -19,6 +32,7 @@ import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 import { REGIONS_LIST_QUERY } from '@/queries/regions';
 import { LocalQuery } from './index';
 
+const { Text } = Typography;
 const { Option } = Select;
 const { useBreakpoint } = Grid;
 
@@ -241,22 +255,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
     const renderFilterTags = () => {
         const tags: React.ReactNode[] = [];
 
-        // Keywords always first
-        if (keywordsInput) {
-            tags.push(
-                <Tag
-                    key="keywords"
-                    closable
-                    onClose={() => {
-                        setKeywordsInput('');
-                        handleFilterChange('keywords', undefined);
-                    }}
-                >
-                    Từ khóa: {keywordsInput}
-                </Tag>,
-            );
-        }
-
         // Define the order of filters
         const filterOrder = [
             'type',
@@ -265,7 +263,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             'years',
             'cinemaRelease',
             'isCopyright',
-            'useAI',
             'status',
         ];
 
@@ -278,7 +275,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
 
         sortedFilters?.forEach((_filter) => {
             const filter = _filter as LogicalFilter;
-            if (filter.field !== 'keywords') {
+            if (filter.field !== 'keywords' && filter.field !== 'useAI') {
                 const values = filter.value.toString().split(',');
                 values.forEach((value: string) => {
                     let label = '';
@@ -311,10 +308,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                             break;
                         case 'isCopyright':
                             label = 'Bản quyền';
-                            displayValue = value?.toString() === 'true' ? 'Có' : 'Không';
-                            break;
-                        case 'useAI':
-                            label = 'Phim AI';
                             displayValue = value?.toString() === 'true' ? 'Có' : 'Không';
                             break;
                         case 'status':
@@ -364,7 +357,11 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             <Row gutter={[16, 16]} align="middle">
                 <Col xs={24} md={12} lg={12}>
                     <Input.Search
-                        placeholder="Tìm phim theo tên phim, diễn viên, đạo diễn hoặc nội dung"
+                        placeholder={
+                            getFilterValue('useAI')?.[0]?.toString() === 'true'
+                                ? 'Mô tả chi tiết phim bạn muốn tìm (ví dụ: phim về phép thuật)'
+                                : 'Tìm phim theo tên phim, diễn viên, đạo diễn hoặc nội dung'
+                        }
                         allowClear
                         value={keywordsInput}
                         onChange={(e) => setKeywordsInput(e.target.value)}
@@ -420,15 +417,17 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             </Row>
             <Row gutter={[16, 16]} align="middle" style={{ marginTop: 8 }}>
                 <Col>
-                    <Checkbox
-                        checked={getFilterValue('useAI')?.[0]?.toString() === 'true'}
-                        onChange={(e) => handleFilterChange('useAI', e.target.checked)}
-                    >
-                        Tìm kiếm với AI
-                        <Tooltip title="Tìm kiếm phim nâng cao sử dụng trí tuệ nhân tạo, điền vào ô tìm kiếm nội dung, từ khóa của phim mà bạn muốn tìm.">
-                            <QuestionCircleOutlined style={{ marginLeft: 8, cursor: 'pointer' }} />
+                    <Space align={'center'} size={'small'}>
+                        <Checkbox
+                            checked={getFilterValue('useAI')?.[0]?.toString() === 'true'}
+                            onChange={(e) => handleFilterChange('useAI', e.target.checked)}
+                        >
+                            <Text>Tìm kiếm với AI</Text>
+                        </Checkbox>
+                        <Tooltip title="Nhập mô tả chi tiết về nội dung, cảnh phim hoặc cảm xúc bạn muốn tìm. AI sẽ giúp bạn tìm những bộ phim phù hợp.">
+                            <QuestionCircleOutlined style={{ cursor: 'pointer' }} />
                         </Tooltip>
-                    </Checkbox>
+                    </Space>
                 </Col>
             </Row>
             {renderFilterTags().length > 0 && (
