@@ -385,6 +385,7 @@ export class MovieService {
         },
     ): Promise<QueryDslQueryContainer> {
         const { categories, countries, years } = userFilters;
+        const must: QueryDslQueryContainer[] = [];
         const should: QueryDslQueryContainer[] = [];
         const filter: QueryDslQueryContainer[] = [];
         const mustNot: QueryDslQueryContainer[] = [];
@@ -395,7 +396,7 @@ export class MovieService {
                 .split(',')
                 .filter((c) => !isNullOrUndefined(c))
                 .map((c) => c.trim());
-            should.push({
+            must.push({
                 terms: {
                     'categories.slug.keyword': categorySlugs,
                     boost: 2,
@@ -426,7 +427,7 @@ export class MovieService {
 
         // Handle countries
         if (countries) {
-            should.push({
+            must.push({
                 terms: {
                     'countries.slug.keyword': countries
                         .split(',')
@@ -567,6 +568,7 @@ export class MovieService {
 
         return {
             bool: {
+                must,
                 should,
                 filter,
                 must_not: mustNot,
