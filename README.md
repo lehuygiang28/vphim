@@ -6,7 +6,9 @@ VePhim is a website where you can watch movies online for free. It's like a gian
 
 ## How does it work?
 
-VePhim doesn't store movies on its own servers. Instead, it finds movies from other places on the internet and streams them to you. This way, you get to watch a huge variety of movies without buffering or waiting.
+VePhim doesn't store movies on its own servers. Instead, it finds movies from other places on the internet and streams them to you. This way, you get to watch a huge variety of movies without buffering or waiting. It's like having a library of movies in your own home.
+
+VePhim is built with a combination of React, Next.js, and Nest.js. It uses GraphQL for its API and MongoDB for its database. The website is designed to be user-friendly and easy to navigate, with a clean and modern interface. You can search for movies by title, genre, or actor, and save your favorites for later. VePhim also has an AI-powered search feature that helps you find the perfect movie based on your preferences.
 
 ## What's special about VePhim?
 
