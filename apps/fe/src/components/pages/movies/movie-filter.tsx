@@ -129,17 +129,26 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 },
             ];
         }
-        setQuery((prev) => ({ ...prev, filters: newFilters }));
+        // Reset pagination to first page when filters change
+        setQuery((prev) => ({
+            ...prev,
+            filters: newFilters,
+            pagination: { ...prev?.pagination, current: 1 },
+        }));
         return newFilters;
     };
 
     const handleSorterChange = (value: string) => {
         const [val, ord] = value?.split(',') || [];
         if (value !== null || value !== undefined) {
-            setQuery((prev) => ({
-                ...prev,
+            const newQuery: LocalQuery = {
+                ...query,
                 sorters: [{ field: val, order: ord === 'asc' ? 'asc' : 'desc' }],
-            }));
+                pagination: { ...query?.pagination, current: 1 },
+            };
+            setQuery(newQuery);
+            // Trigger search immediately when sort changes
+            applySearch(newQuery);
         }
     };
 
