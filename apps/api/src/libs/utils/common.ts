@@ -108,14 +108,26 @@ export function sortedStringify(arg: unknown): string {
     }
 
     if (Array.isArray(arg)) {
-        return '[' + arg.map(sortedStringify).join(',') + ']';
+        return (
+            '[' +
+            arg
+                .filter((item) => item !== null && item !== undefined)
+                .map(sortedStringify)
+                .join(',') +
+            ']'
+        );
     }
 
     const keys = Object.keys(arg as object).sort((a, b) => a.localeCompare(b));
-    const keyValuePairs = keys.map((key) => {
-        const value = sortedStringify((arg as { [key: string]: unknown })[key]);
-        return '"' + key + '":' + value;
-    });
+    const keyValuePairs = keys
+        .map((key) => {
+            const value = (arg as { [key: string]: unknown })[key];
+            if (value === null || value === undefined) {
+                return null;
+            }
+            return '"' + key + '":' + sortedStringify(value);
+        })
+        .filter((pair) => pair !== null);
     return '{' + keyValuePairs.join(',') + '}';
 }
 
