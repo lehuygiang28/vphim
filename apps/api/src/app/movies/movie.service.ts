@@ -181,19 +181,6 @@ export class MovieService {
 
         let aiFilter: QueryDslQueryContainer | null = null;
 
-        const analyzeAiAndSetToRedis = async () => {
-            const aiAnalysis = await this.analyzeSearchQuery(keywords);
-            if (aiAnalysis && !isEmptyObject(aiAnalysis)) {
-                aiFilter = await this.getAIFilter(aiAnalysis, { categories, countries, years });
-
-                await this.redisService.set(
-                    aiFilterCacheKey,
-                    JSON.stringify(aiFilter),
-                    1000 * 60 * 30,
-                );
-            }
-        };
-
         if (useAI && keywords && this.genAI) {
             try {
                 const aiFilterFromCached = await this.redisService.get<string>(aiFilterCacheKey);
@@ -204,7 +191,26 @@ export class MovieService {
 
                 if (!aiFilter) {
                     this.logger.log(`[AI] Analyzing: ${keywords}`);
-                    await analyzeAiAndSetToRedis();
+
+                    const aiAnalysis = await this.analyzeSearchQuery({
+                        keywords,
+                        categories,
+                        countries,
+                        years,
+                    });
+                    if (aiAnalysis && !isEmptyObject(aiAnalysis)) {
+                        aiFilter = await this.getAIFilter(aiAnalysis, {
+                            categories,
+                            countries,
+                            years,
+                        });
+
+                        await this.redisService.set(
+                            aiFilterCacheKey,
+                            JSON.stringify(aiFilter),
+                            1000 * 60 * 30,
+                        );
+                    }
                 }
             } catch (error) {
                 this.logger.error(`[AI] Failed to analyze search query: ${error}}`);
@@ -725,7 +731,24 @@ export class MovieService {
         return 1;
     }
 
-    private async analyzeSearchQuery(query: string) {
+    /**
+     * Analyze the search query using Google's Generative AI models.
+     * @param query The search query to be analyzed.
+     * @returns The analyzed result as a JSON object, or null if all models failed.
+     * @throws if the Google API Key is not provided.
+     * @private
+     */
+    private async analyzeSearchQuery({
+        keywords,
+        categories,
+        countries,
+        years,
+    }: {
+        keywords: string;
+        categories?: string;
+        countries?: string;
+        years?: string;
+    }) {
         if (!this.genAI) {
             this.logger.warn('Google API Key not provided. Skipping AI analysis.');
             return null;
@@ -743,11 +766,22 @@ export class MovieService {
                     },
                 });
 
+                let content = `Query: "${keywords?.trim()}".`;
+                if (categories) {
+                    content += ` Categories: "${categories?.trim()}".`;
+                }
+                if (countries) {
+                    content += ` Countries: "${countries?.trim()}".`;
+                }
+                if (years) {
+                    content += ` Years: "${years?.trim()}".`;
+                }
+
                 const result = await model.generateContent({
                     contents: [
                         {
                             role: 'user',
-                            parts: [{ text: `The query of user: "${query?.trim()}"` }],
+                            parts: [{ text: content }],
                         },
                     ],
                 });
