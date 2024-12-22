@@ -10,10 +10,11 @@ VePhim doesn't store movies on its own servers. Instead, it finds movies from ot
 
 ## What's special about VePhim?
 
-- **It's free!** You don't need to pay anything to watch movies on VePhim.
-- **It's fast!** VePhim uses special technology (HLS) to ensure movies play smoothly without interruptions.
-- **It's easy to use!** You can easily find movies by browsing through different categories or searching for them.
-- **You can save your favorites!** Create a free account to save the movies you love and watch them later.
+- **AI-Powered Search:** Let our AI help you find the perfect movie effortlessly.
+- **Free Access:** Enjoy unlimited movie streaming without any cost.
+- **Fast Streaming:** Experience smooth playback with our advanced HLS technology.
+- **User-Friendly:** Easily browse and search for movies across various categories.
+- **Favorites:** Create a free account to save and revisit your favorite movies.
 
 ## Project Structure with Nx
 
