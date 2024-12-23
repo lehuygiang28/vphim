@@ -1,39 +1,24 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import {
-    StyleSheet,
-    ScrollView,
-    Dimensions,
-    SafeAreaView,
-    RefreshControl,
-    View,
-    Animated,
-} from 'react-native';
+import React from 'react';
+import { StyleSheet, ScrollView, Dimensions, SafeAreaView, View, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useList } from '@refinedev/core';
 import { useTheme, Spinner } from '@ui-kitten/components';
 
 import { MOVIES_LIST_QUERY, MOVIES_LIST_FOR_SWIPER_QUERY } from '~fe/queries/movies';
 import { type MovieType } from '~api/app/movies/movie.type';
-
 import ImmersiveMovieSwiper from '~mb/components/swiper/movie-swiper';
 import { MovieSection } from '~mb/components/list/movie-section';
 import { ShimmerPlaceholder } from '~mb/components/animation/shimmer-placeholder';
 import { FadeInView } from '~mb/components/animation/fade-in';
+import { useRefreshControl } from '~mb/hooks/use-refresh-control';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
     const theme = useTheme();
     const router = useRouter();
-    const [refreshing, setRefreshing] = useState(false);
-    const fadeAnim = useRef(new Animated.Value(1)).current;
-    const [isLoading, setIsLoading] = useState(false);
 
-    const {
-        data: mostViewed,
-        isLoading: mostViewedLoading,
-        refetch: refetchMostViewed,
-    } = useList<MovieType>({
+    const { data: mostViewed, refetch: refetchMostViewed } = useList<MovieType>({
         dataProviderName: 'graphql',
         meta: { gqlQuery: MOVIES_LIST_FOR_SWIPER_QUERY, operation: 'movies' },
         resource: 'movies',
@@ -56,48 +41,19 @@ export default function HomeScreen() {
         sorters: [{ field: 'year', order: 'desc' }],
     });
 
-    const onMoviePress = (movie: MovieType) => {
-        router.push(`/movie/${movie.slug}`);
-    };
-
-    const onRefresh = useCallback(async () => {
-        setRefreshing(true);
-        setIsLoading(true);
-        try {
+    const { isLoading, fadeAnim, overlayStyle, RefreshControl } = useRefreshControl({
+        onRefresh: async () => {
             await Promise.allSettled([
                 refetchMostViewed(),
                 refetchNewMovies(),
                 refetchActionMovies(),
             ]);
-        } finally {
-            setRefreshing(false);
-            // Fade out
-            Animated.timing(fadeAnim, {
-                toValue: 0.5,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                // Fade in
-                Animated.timing(fadeAnim, {
-                    toValue: 1,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start(() => {
-                    setIsLoading(false);
-                });
-            });
-        }
-    }, [refetchMostViewed, refetchNewMovies, refetchActionMovies, fadeAnim]);
+        },
+    });
 
-    useEffect(() => {
-        if (!mostViewedLoading) {
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 500,
-                useNativeDriver: true,
-            }).start();
-        }
-    }, [fadeAnim, mostViewedLoading]);
+    const onMoviePress = (movie: MovieType) => {
+        router.push(`/movie/${movie.slug}`);
+    };
 
     const renderContent = () => (
         <Animated.View style={{ opacity: fadeAnim }}>
@@ -136,20 +92,12 @@ export default function HomeScreen() {
             <ScrollView
                 style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
                 contentContainerStyle={styles.contentContainer}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        colors={[theme['color-primary-500']]}
-                        tintColor={theme['color-primary-500']}
-                        progressViewOffset={20}
-                    />
-                }
+                refreshControl={RefreshControl}
             >
                 {renderContent()}
             </ScrollView>
             {isLoading && (
-                <View style={[StyleSheet.absoluteFill, styles.loadingOverlay]}>
+                <View style={overlayStyle}>
                     <Spinner size="large" status="primary" />
                 </View>
             )}
@@ -163,54 +111,5 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingBottom: 20,
-    },
-    loadingOverlay: {
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    shimmerSpace: {
-        height: 20,
-    },
-    section: {
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        marginLeft: 16,
-        marginBottom: 12,
-    },
-    swiperContainer: {
-        height: 300,
-        marginBottom: 20,
-    },
-    swiper: {
-        height: 300,
-    },
-    swiperSlide: {
-        flex: 1,
-        justifyContent: 'flex-end',
-    },
-    swiperImage: {
-        width: width,
-        height: 300,
-    },
-    swiperContent: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: 16,
-    },
-    swiperTitle: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    swiperSubtitle: {
-        color: 'white',
-        marginBottom: 8,
-    },
-    swiperMetadata: {
-        flexDirection: 'row',
-        gap: 8,
     },
 });

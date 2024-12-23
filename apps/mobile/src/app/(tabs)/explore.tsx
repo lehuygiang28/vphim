@@ -1,6 +1,13 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { FlatList, View, StyleSheet } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import {
+    FlatList,
+    View,
+    StyleSheet,
+    RefreshControl as RefreshControlRN,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+} from 'react-native';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Input, Text, useTheme, Spinner } from '@ui-kitten/components';
 import { useInfiniteList, CrudFilters, CrudSort, LogicalFilter } from '@refinedev/core';
 import { Search } from 'lucide-react-native';
@@ -10,6 +17,8 @@ import { MOVIES_LIST_QUERY } from '~fe/queries/movies';
 import { MovieType } from '~api/app/movies/movie.type';
 
 import { MovieCard } from '~mb/components/card/movie-card';
+import { removeStyleProperty } from '~mb/libs/utils';
+import { useRefreshControl } from '~mb/hooks/use-refresh-control';
 
 const ExploreScreen = () => {
     const theme = useTheme();
@@ -19,9 +28,10 @@ const ExploreScreen = () => {
     const [appliedFilters, setAppliedFilters] = useState<CrudFilters>([]);
     const [appliedSorter, setAppliedSorter] = useState<CrudSort | null>(null);
     const [isSearching, setIsSearching] = useState(false);
+    const [isAtTop, setIsAtTop] = useState(true);
     const flatListRef = useRef<FlatList>(null);
 
-    const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage, refetch } =
         useInfiniteList<MovieType>({
             resource: 'movies',
             dataProviderName: 'graphql',
@@ -36,6 +46,30 @@ const ExploreScreen = () => {
             errorNotification: false,
             successNotification: false,
         });
+
+    const { refreshControlProps } = useRefreshControl({
+        onRefresh: refetch,
+        fadeAnimation: true,
+    });
+
+    const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        setIsAtTop(offsetY <= 0);
+    }, []);
+
+    const scrollToTop = useCallback(() => {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!isAtTop) {
+                scrollToTop();
+            } else {
+                refreshControlProps.onRefresh();
+            }
+        }, [isAtTop, scrollToTop, refreshControlProps]),
+    );
 
     const debouncedSearch = useDebouncedCallback((query: string) => {
         setIsSearching(true);
@@ -91,7 +125,11 @@ const ExploreScreen = () => {
                 value={searchQuery}
                 onChangeText={handleSearch}
                 accessoryLeft={(props) => (
-                    <Search {...props} size={20} color={theme['text-basic-color']} />
+                    <Search
+                        {...removeStyleProperty(props)}
+                        size={20}
+                        color={theme['text-basic-color']}
+                    />
                 )}
                 style={styles.searchBar}
             />
@@ -114,6 +152,18 @@ const ExploreScreen = () => {
                     }}
                     onEndReachedThreshold={0.5}
                     ListFooterComponent={renderFooter}
+                    refreshControl={
+                        <RefreshControlRN
+                            {...refreshControlProps}
+                            refreshing={refreshControlProps.refreshing}
+                            onRefresh={() => {
+                                refreshControlProps.onRefresh();
+                                scrollToTop();
+                            }}
+                        />
+                    }
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
                 />
             )}
         </View>
