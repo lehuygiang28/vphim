@@ -1,21 +1,14 @@
 import React, { useState, useCallback, useRef } from 'react';
-import {
-    FlatList,
-    View,
-    StyleSheet,
-    RefreshControl,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-} from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { FlatList, View, StyleSheet, RefreshControl } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Text, useTheme, Spinner } from '@ui-kitten/components';
 import { useInfiniteList, CrudSort, LogicalFilter } from '@refinedev/core';
 
 import { MOVIES_LIST_QUERY } from '~fe/queries/movies';
 import { MovieCard } from '~mb/components/card/movie-card';
 import { useRefreshControl } from '~mb/hooks/use-refresh-control';
-
 import type { MovieType } from '~api/app/movies/movie.type';
+
 import { MovieFilters } from './explore-filter';
 
 const ExploreScreen = () => {
@@ -27,7 +20,6 @@ const ExploreScreen = () => {
         pagination: { current: 1, pageSize: 20 },
     });
     const [isSearching, setIsSearching] = useState(false);
-    const [isAtTop, setIsAtTop] = useState(true);
     const flatListRef = useRef<FlatList>(null);
 
     const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage, refetch } =
@@ -46,24 +38,9 @@ const ExploreScreen = () => {
         onRefresh: refetch,
     });
 
-    const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
-        setIsAtTop(offsetY <= 0);
-    }, []);
-
     const scrollToTop = useCallback(() => {
         flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     }, []);
-
-    useFocusEffect(
-        useCallback(() => {
-            if (!isAtTop) {
-                scrollToTop();
-            } else {
-                refetch();
-            }
-        }, [isAtTop, scrollToTop, refetch]),
-    );
 
     const applySearch = useCallback(
         (
@@ -145,7 +122,6 @@ const ExploreScreen = () => {
                             }}
                         />
                     }
-                    onScroll={handleScroll}
                     scrollEventThrottle={16}
                 />
             )}
