@@ -67,17 +67,17 @@ const ExploreScreen = () => {
 
     const applySearch = useCallback(
         (
-            newQuery: React.SetStateAction<{
+            newQuery?: React.SetStateAction<{
                 filters: LogicalFilter[];
                 sorters: CrudSort[];
                 pagination: { current: number; pageSize: number };
             }>,
         ) => {
             setIsSearching(true);
-            setQuery(newQuery);
+            setQuery(newQuery || query);
             refetch().finally(() => setIsSearching(false));
         },
-        [refetch],
+        [refetch, query],
     );
 
     const renderMovieItem = useCallback(
