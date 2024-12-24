@@ -116,11 +116,16 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         });
     };
 
-    const debouncedSearch = useDebouncedCallback((value: string) => {
-        handleFilterChange('keywords', value);
-        applySearch({ ...query, filters: localFilters });
-    }, debounceDelay);
-
+    const handleSorterChange = (value: string) => {
+        const [val, ord] = value?.split(',') || [];
+        if (value !== null || value !== undefined) {
+            setQuery({
+                ...query,
+                sorters: [{ field: val, order: ord === 'asc' ? 'asc' : 'desc' }],
+                pagination: { ...query?.pagination, current: 1 },
+            });
+        }
+    };
     const handleApplyFilters = () => {
         setQuery((prev) => ({
             ...prev,
@@ -130,6 +135,11 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         setModalVisible(false);
         applySearch({ ...query, filters: localFilters });
     };
+
+    const debouncedSearch = useDebouncedCallback((value: string) => {
+        handleFilterChange('keywords', value);
+        handleApplyFilters();
+    }, debounceDelay);
 
     const handleClearAllFilters = () => {
         setLocalFilters([]);
@@ -349,6 +359,11 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     accessoryLeft={(props) => <Search {...removeStyleProperty(props)} />}
                     onChangeText={debouncedSearch}
                     style={styles.searchInput}
+                    onKeyPress={(e) => {
+                        if (e.nativeEvent.key === 'Enter') {
+                            handleApplyFilters();
+                        }
+                    }}
                 />
                 {renderAIButton()}
             </View>
@@ -357,17 +372,8 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     placeholder="Sort by"
                     onSelect={(index) => {
                         const selectedIndex = (index as IndexPath).row;
-                        const [field, _order] = sortOptions[selectedIndex].value.split(',');
-                        const order = _order?.toString()?.toLowerCase() === 'asc' ? 'asc' : 'desc';
-                        setQuery((prev) => ({
-                            ...prev,
-                            sorters: [{ field, order }],
-                            pagination: { ...prev.pagination, current: 1 },
-                        }));
-                        applySearch({
-                            ...query,
-                            sorters: [{ field, order }],
-                        });
+                        handleSorterChange(sortOptions[selectedIndex].value);
+                        handleApplyFilters();
                     }}
                     style={styles.sortSelect}
                 >
