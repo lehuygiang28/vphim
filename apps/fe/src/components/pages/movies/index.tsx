@@ -29,6 +29,8 @@ export type MoviePageProps = {
     breadcrumbs: { label: string | ReactNode; url?: string }[];
 };
 
+const PAGE_SIZE = 24;
+
 export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     const router = useRouter();
     const { md } = useBreakpoint();
@@ -45,7 +47,6 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         setFilters,
         current,
         setCurrent,
-        pageSize,
     } = useTable<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
@@ -64,7 +65,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         pagination: {
             mode: 'server',
             current: parsedQuery?.pagination.current || 1,
-            pageSize: Math.min(parsedQuery?.pagination.pageSize || 24, 24),
+            pageSize: PAGE_SIZE,
         },
         sorters: {
             mode: 'server',
@@ -79,7 +80,10 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         if (search) {
             const parsed = parseTableParams(search?.toString());
             if (sortedStringify(parsed) !== sortedStringify(parsedQuery)) {
-                setParsedQuery(parsed);
+                setParsedQuery({
+                    ...parsed,
+                    pagination: { ...parsed?.pagination, pageSize: PAGE_SIZE },
+                });
                 setFilters(parsed?.filters || []);
                 setSorters(parsed?.sorters || []);
                 setCurrent(Number(parsed?.pagination?.current) || 1);
@@ -92,14 +96,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         if (current) {
             setQuery((prev) => ({
                 ...prev,
-                pagination: { ...prev?.pagination, current: current },
-            }));
-        }
-
-        if (pageSize) {
-            setQuery((prev) => ({
-                ...prev,
-                pagination: { ...prev?.pagination, pageSize: pageSize },
+                pagination: { ...prev?.pagination, current: current, pageSize: PAGE_SIZE },
             }));
         }
 
@@ -110,7 +107,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         if (sorters) {
             setQuery((prev) => ({ ...prev, sorters: sorters }));
         }
-    }, [filters, sorters, current, pageSize]);
+    }, [filters, sorters, current]);
 
     const handleVisibleContentCard = (index: number | null) => {
         setSelectedIndex(index === selectedIndex ? null : index);
@@ -192,7 +189,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                             : {
                                   style: { marginTop: '4rem' },
                                   current: current,
-                                  pageSize: pageSize,
+                                  pageSize: PAGE_SIZE,
                                   total: data?.total ?? data?.data?.length,
                                   showSizeChanger: false,
                                   onChange: (page) => setCurrent(page),
