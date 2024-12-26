@@ -8,8 +8,8 @@
                 "buildType": "apk"
             },
             "env": {
-                "EXPO_PUBLIC_BASE_API_URL": "https://vphim-api.giaang.id.vn",
-                "EXPO_PUBLIC_BASE_PLAYER_URL": "https://vephim.vercel.app"
+                "EXPO_PUBLIC_BASE_API_URL": "https://api.vephim.online",
+                "EXPO_PUBLIC_IMAGES_URL": "https://img.vephim.online"
             }
         },
         "development": {
@@ -26,7 +26,7 @@
             },
             "env": {
                 "EXPO_PUBLIC_BASE_API_URL": "https://vphim-api.giaang.id.vn",
-                "EXPO_PUBLIC_BASE_PLAYER_URL": "https://vephim.vercel.app"
+                "EXPO_PUBLIC_IMAGES_URL": "https://img.vephim.online"
             }
         }
     },
