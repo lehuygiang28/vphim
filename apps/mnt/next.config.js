@@ -14,9 +14,6 @@ const nextConfig = {
         svgr: false,
     },
     transpilePackages: ['@refinedev/antd'],
-    env: {
-        NEXT_PUBLIC_FE_URL: process?.env?.NEXT_PUBLIC_FE_URL,
-    },
     images: {
         remotePatterns: [
             {

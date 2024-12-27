@@ -92,7 +92,6 @@ jobs:
                   echo "NEXT_PUBLIC_API_URL='https://api.vephim.online'" >> ./apps/mnt/.env
                   echo "NEXT_PUBLIC_IMAGES_URL='https://img.vephim.online'" >> ./apps/mnt/.env
                   echo "NEXT_SHARP_PATH='/usr/src/app/node_modules/sharp'" >> ./apps/mnt/.env
-                  echo "NEXT_PUBLIC_FE_URL='https://vephim.online'" >> ./apps/mnt/.env
 
             - name: Set COMPOSE_TAG as short commit SHA
               id: set_compose_tag
