@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useSelect } from '@refinedev/antd';
 import {
     Form,
@@ -61,7 +61,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
     const router = useRouter();
     const apiUrl = useApiUrl();
     const axios = useAxiosAuth();
-    const pathname = usePathname();
+    const movie = query?.data?.data;
 
     const { selectProps: actorSelectProps } = useSelect<ActorType>({
         dataProviderName: 'graphql',
@@ -340,41 +340,43 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
     };
 
     useEffect(() => {
+        console.log(formProps.form?.getFieldsValue());
+
         const formData = {
-            actors: Array.isArray(query?.data?.data?.actors)
-                ? query.data.data.actors.map((actor: ActorType) =>
+            actors: Array.isArray(movie?.actors)
+                ? movie.actors.map((actor: ActorType) =>
                       typeof actor === 'object' && actor._id ? actor?._id?.toString() : actor,
                   )
                 : [],
-            categories: Array.isArray(query?.data?.data?.categories)
-                ? query.data.data.categories.map((category: CategoryType) =>
+            categories: Array.isArray(movie?.categories)
+                ? movie.categories.map((category: CategoryType) =>
                       typeof category === 'object' && category._id
                           ? category?._id?.toString()
                           : category,
                   )
                 : [],
-            countries: Array.isArray(query?.data?.data?.countries)
-                ? query.data.data.countries.map((country: RegionType) =>
+            countries: Array.isArray(movie?.countries)
+                ? movie.countries.map((country: RegionType) =>
                       typeof country === 'object' && country._id
                           ? country?._id?.toString()
                           : country,
                   )
                 : [],
-            directors: Array.isArray(query?.data?.data?.directors)
-                ? query.data.data.directors.map((director: DirectorType) =>
+            directors: Array.isArray(movie?.directors)
+                ? movie.directors.map((director: DirectorType) =>
                       typeof director === 'object' && director._id
                           ? director?._id?.toString()
                           : director,
                   )
                 : [],
         };
-
         Object.entries(formData).forEach(([key, value]) => {
             if (value) {
                 formProps?.form.setFieldsValue({ [key]: value });
             }
         });
-    }, [query?.data?.data, formProps?.form, pathname]);
+        console.log(formProps.form?.getFieldsValue());
+    }, [movie, formProps?.form]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleFormSubmit = (values: any) => {
@@ -544,7 +546,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     <Select
                                         {...actorSelectProps}
                                         options={[
-                                            ...(query?.data?.data?.actors?.map(({ name, _id }) => ({
+                                            ...(movie?.actors?.map(({ name, _id }) => ({
                                                 label: name,
                                                 value: _id?.toString(),
                                             })) || []),
@@ -569,12 +571,10 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     <Select
                                         {...directorSelectProps}
                                         options={[
-                                            ...(query?.data?.data?.directors?.map(
-                                                ({ name, _id }) => ({
-                                                    label: name,
-                                                    value: _id?.toString(),
-                                                }),
-                                            ) || []),
+                                            ...(movie?.directors?.map(({ name, _id }) => ({
+                                                label: name,
+                                                value: _id?.toString(),
+                                            })) || []),
                                             ...(directorSelectProps?.options || []),
                                         ].filter(
                                             (director, index, self) =>
@@ -598,12 +598,10 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     <Select
                                         {...categorySelectProps}
                                         options={[
-                                            ...(query?.data?.data?.categories?.map(
-                                                ({ name, _id }) => ({
-                                                    label: name,
-                                                    value: _id?.toString(),
-                                                }),
-                                            ) || []),
+                                            ...(movie?.categories?.map(({ name, _id }) => ({
+                                                label: name,
+                                                value: _id?.toString(),
+                                            })) || []),
                                             ...(categorySelectProps?.options || []),
                                         ].filter(
                                             (category, index, self) =>
@@ -625,12 +623,10 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     <Select
                                         {...countrySelectProps}
                                         options={[
-                                            ...(query?.data?.data?.countries?.map(
-                                                ({ name, _id }) => ({
-                                                    label: name,
-                                                    value: _id?.toString(),
-                                                }),
-                                            ) || []),
+                                            ...(movie?.countries?.map(({ name, _id }) => ({
+                                                label: name,
+                                                value: _id?.toString(),
+                                            })) || []),
                                             ...(countrySelectProps?.options || []),
                                         ].filter(
                                             (country, index, self) =>

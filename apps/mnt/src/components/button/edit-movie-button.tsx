@@ -12,7 +12,7 @@ export type EditMovieButtonProps = {
 
 export function EditMovieButton({ id, hideText = false, size = 'middle' }: EditMovieButtonProps) {
     return (
-        <Link href={`/movies/edit/${id}?r=${new Date().getTime()?.toString()?.slice(-4)}`}>
+        <Link href={`/movies/edit/${id}`}>
             <Button type="default" icon={<EditOutlined />} size={size}>
                 {!hideText && 'Edit'}
             </Button>
