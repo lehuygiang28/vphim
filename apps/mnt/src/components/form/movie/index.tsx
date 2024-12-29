@@ -340,8 +340,6 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
     };
 
     useEffect(() => {
-        console.log(formProps.form?.getFieldsValue());
-
         const formData = {
             actors: Array.isArray(movie?.actors)
                 ? movie.actors.map((actor: ActorType) =>
@@ -375,7 +373,6 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                 formProps?.form.setFieldsValue({ [key]: value });
             }
         });
-        console.log(formProps.form?.getFieldsValue());
     }, [movie, formProps?.form]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
