@@ -21,7 +21,13 @@ const HOME_MOVIES_LIST_ASSET: {
 }[] = [
     {
         title: 'PHIM MỚI',
-        filters: [{ field: 'years', value: `${new Date().getFullYear()}`, operator: 'eq' }],
+        filters: [
+            {
+                field: 'years',
+                value: `${new Date().getFullYear()},${new Date().getFullYear() - 1}`,
+                operator: 'eq',
+            },
+        ],
         sorters: [{ field: 'year', order: 'asc' }],
         pagination: { current: 1, pageSize: 12 },
     },
