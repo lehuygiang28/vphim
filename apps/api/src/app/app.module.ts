@@ -18,6 +18,7 @@ import { RegionsModule } from './regions';
 import { UsersModule } from './users';
 import { ImagesModule } from './images';
 import { CommentsModule } from './comments/comments.module';
+import { CopilotkitModule } from './copilotkit/copilotkit.module';
 
 @Module({
     imports: [
@@ -60,6 +61,7 @@ import { CommentsModule } from './comments/comments.module';
         ActorModule,
         DirectorModule,
         CommentsModule,
+        CopilotkitModule,
     ],
     controllers: [AppController],
     providers: [],
