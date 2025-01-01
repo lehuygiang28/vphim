@@ -5,6 +5,7 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { CopilotKit } from '@copilotkit/react-core';
 
 import { RefineContext } from './_refine_context';
 import { customFont } from '@/fonts';
@@ -129,13 +130,15 @@ export default function DefaultNoLayoutStyle({
             <body>
                 <AntdRegistry ssrInline defaultCache>
                     <Suspense>
-                        <RefineContext defaultMode={defaultMode}>
-                            <>
+                        <CopilotKit
+                            runtimeUrl={`${process.env.NEXT_PUBLIC_API_URL}/api/copilotkit`}
+                        >
+                            <RefineContext defaultMode={defaultMode}>
                                 {children}
                                 {auth}
                                 {noauth}
-                            </>
-                        </RefineContext>
+                            </RefineContext>
+                        </CopilotKit>
                     </Suspense>
                 </AntdRegistry>
                 <Analytics />
