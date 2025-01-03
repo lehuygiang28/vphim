@@ -18,3 +18,5 @@ export enum MovieQualityEnum {
     SD = 'sd',
     CAM = 'cam',
 }
+
+export const KEYWORDS_MAX_LENGTH = 700;

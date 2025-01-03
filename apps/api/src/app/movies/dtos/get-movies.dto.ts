@@ -1,10 +1,11 @@
 import { ApiPropertyOptional, IntersectionType, PartialType, PickType } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 import { PaginationRequestDto } from 'apps/api/src/libs/dtos';
-import { Movie } from '../movie.schema';
-import { Transform } from 'class-transformer';
 import { isTrue } from 'apps/api/src/libs/utils/common';
+import { Movie } from '../movie.schema';
+import { KEYWORDS_MAX_LENGTH } from '../movie.constant';
 
 export class GetMoviesDto extends IntersectionType(
     PaginationRequestDto,
@@ -13,6 +14,7 @@ export class GetMoviesDto extends IntersectionType(
     @ApiPropertyOptional({ example: 'One piece' })
     @IsOptional()
     @IsString()
+    @MaxLength(KEYWORDS_MAX_LENGTH)
     keywords?: string;
 
     @ApiPropertyOptional({ type: String, example: 'hanh-dong, hoat-hinh' })
