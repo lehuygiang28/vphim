@@ -62,6 +62,7 @@ export const ColorModeContextProvider: React.FC<
                         colorBgBase: 'rgba(17 19 25)',
                         fontFamily: customFont.style.fontFamily,
                     },
+                    cssVar: true,
                 }}
             >
                 <AntdApp>{children}</AntdApp>

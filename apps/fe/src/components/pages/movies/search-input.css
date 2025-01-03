@@ -1,0 +1,151 @@
+:root {
+    --base-size: 1rem;
+    --textarea-min: 3rem;
+    --textarea-max: 9rem;
+    --button-height: 2.5rem;
+    --button-margin: 0.5rem;
+}
+
+.search-input-container {
+    position: relative;
+    width: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-input-container.loading {
+    opacity: 0.7;
+}
+
+.search-input-layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.search-input-layer.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.textarea-wrapper {
+    position: relative;
+    flex: 1;
+    min-height: var(--textarea-min);
+    max-height: var(--textarea-max);
+    border: 1px solid var(--ant-color-border);
+    border-radius: var(--ant-border-radius);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent horizontal scroll */
+}
+
+.textarea-wrapper:focus-within {
+    border-color: var(--ant-color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--ant-primary-rgb), 0.2);
+}
+
+.copilot-textarea {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    padding: 4px 11px;
+    padding-bottom: var(--button-height);
+    padding-right: 1rem; /* Prevent text from going under scrollbar */
+    line-height: 1.5715;
+    border: none;
+    background: transparent;
+    overflow-y: auto;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    word-wrap: break-word; /* Ensure long words break */
+    white-space: pre-wrap; /* Preserve line breaks but wrap text */
+}
+
+.copilot-textarea:focus {
+    outline: none;
+}
+
+/* Custom scrollbar for better visibility */
+.copilot-textarea::-webkit-scrollbar {
+    width: 0.2rem;
+}
+
+.copilot-textarea::-webkit-scrollbar-track {
+    background: var(--ant-color-border-secondary);
+    border-radius: 0.25rem;
+}
+
+.copilot-textarea::-webkit-scrollbar-thumb {
+    background: var(--ant-color-border);
+    border-radius: 0.25rem;
+}
+
+.copilot-textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--ant-color-border-secondary);
+}
+
+.copilot-textarea > div > span > span > div {
+    max-width: 93% !important;
+}
+
+.search-button-wrapper {
+    position: absolute;
+    right: var(--button-margin);
+    bottom: 0;
+    padding: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+    height: var(--button-height);
+}
+
+.search-button-wrapper .ant-btn {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap; /* Prevent button text from wrapping */
+}
+
+.search-button-wrapper .ant-btn:hover {
+    transform: translateY(-0.125rem);
+}
+
+.ant-input-search {
+    height: 100%;
+}
+
+.ant-input-search .ant-input {
+    font-size: 1rem;
+    height: var(--input-height);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .copilot-textarea {
+        --textarea-min: 8rem;
+        --textarea-max: 13rem;
+    }
+
+    .copilot-textarea::-webkit-scrollbar {
+        width: 0.4rem;
+    }
+
+    .search-button-wrapper {
+        --button-height: 2rem;
+    }
+}
+
+/* Animation keyframes for smooth height transitions */
+@keyframes expandHeight {
+    from {
+        height: var(--initial-height);
+    }
+    to {
+        height: var(--target-height);
+    }
+}
+
+.height-animation {
+    animation: expandHeight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}

@@ -1,4 +1,6 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { MaxLength } from 'class-validator';
+import { KEYWORDS_MAX_LENGTH } from '../movie.constant';
 
 @InputType()
 export class GetMoviesInput {
@@ -18,6 +20,7 @@ export class GetMoviesInput {
     isCopyright?: boolean;
 
     @Field({ nullable: true })
+    @MaxLength(KEYWORDS_MAX_LENGTH)
     keywords?: string;
 
     @Field({ nullable: true })

@@ -6,7 +6,6 @@ import {
     Col,
     Select,
     Button,
-    Input,
     Space,
     Drawer,
     Tag,
@@ -16,13 +15,9 @@ import {
     Typography,
 } from 'antd';
 import { LogicalFilter, useList } from '@refinedev/core';
-import {
-    SearchOutlined,
-    FilterOutlined,
-    CloseOutlined,
-    QuestionCircleOutlined,
-} from '@ant-design/icons';
+import { FilterOutlined, CloseOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
+import { useCopilotReadable } from '@copilotkit/react-core';
 
 import type { Category } from 'apps/api/src/app/categories/category.schema';
 import type { Region } from 'apps/api/src/app/regions/region.schema';
@@ -30,7 +25,9 @@ import type { Region } from 'apps/api/src/app/regions/region.schema';
 import { movieTypeTranslations } from '@/constants/translation-enum';
 import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
 import { REGIONS_LIST_QUERY } from '@/queries/regions';
+
 import { LocalQuery } from './index';
+import { SearchInput } from './search-input';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -361,48 +358,97 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         setKeywordsInput('');
     };
 
+    useCopilotReadable({
+        value: getFilterValue('keywords')[0] || '',
+        description: 'Search terms for movie titles, actors, directors, or content',
+        categories: ['search-terms', 'user-input'],
+        parentId: 'movie-search',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('type')[0] || '',
+        description: 'Movie format type (series, movie, show, etc.)',
+        categories: ['format', 'movie-metadata'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('categories'),
+        description: 'Movie genres and themes that categorize the content',
+        categories: ['genres', 'content-classification'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('countries'),
+        description: 'Countries where the movie was produced or originated from',
+        categories: ['geographical-data', 'production-info'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('years'),
+        description: 'Release years of the movies, used for temporal filtering',
+        categories: ['temporal-data', 'release-info'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('status')[0] || '',
+        description: 'Current airing or production status of the movie',
+        categories: ['status', 'availability'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('cinemaRelease')[0] === 'true',
+        description: 'Whether the movie had a theatrical/cinema release',
+        categories: ['release-type', 'distribution'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('isCopyright')[0] === 'true',
+        description: 'Whether the movie is officially licensed/copyrighted content',
+        categories: ['licensing', 'legal-status'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('categories').map(
+            (slug) => categories?.data?.find((cat) => cat.slug === slug)?.name || slug,
+        ),
+        description: 'Full names of selected movie categories/genres',
+        categories: ['display-names', 'genres'],
+        parentId: 'movie-display',
+        convert: (description, value) => (Array.isArray(value) ? value.join(', ') : String(value)),
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('countries').map(
+            (slug) => regions?.data?.find((reg) => reg.slug === slug)?.name || slug,
+        ),
+        description: 'Full names of selected countries/regions',
+        categories: ['display-names', 'geographical-data'],
+        parentId: 'movie-display',
+        convert: (description, value) => (Array.isArray(value) ? value.join(', ') : String(value)),
+    });
+
     return (
         <>
             <Row gutter={[16, 16]} align="middle">
                 <Col xs={24} md={12} lg={12}>
-                    <Input.Search
-                        placeholder={
-                            getFilterValue('useAI')?.[0]?.toString() === 'true'
-                                ? 'Mô tả chi tiết phim bạn muốn tìm (ví dụ: phim về phép thuật)'
-                                : 'Tìm phim theo tên phim, diễn viên, đạo diễn hoặc nội dung'
-                        }
-                        allowClear
+                    <SearchInput
                         value={keywordsInput}
-                        onChange={(e) => setKeywordsInput(e.target.value)}
-                        onBlur={() => handleFilterChange('keywords', keywordsInput)}
-                        onSearch={async (value) => {
+                        onChange={setKeywordsInput}
+                        onSearch={(value) => {
                             const newFilters = handleFilterChange('keywords', value || undefined);
                             applySearch({ ...query, filters: newFilters });
                         }}
-                        onPressEnter={() => {
-                            const newFilters = handleFilterChange('keywords', keywordsInput);
-                            applySearch({ ...query, filters: newFilters });
-                        }}
-                        onKeyDown={(e: React.KeyboardEvent) => {
-                            if (e.key === 'Enter') {
-                                const newFilters = handleFilterChange('keywords', keywordsInput);
-                                applySearch({ ...query, filters: newFilters });
-                            }
-                        }}
-                        enterButton={
-                            <Button
-                                icon={<SearchOutlined />}
-                                type="primary"
-                                loading={isSearching}
-                                disabled={isSearching}
-                            >
-                                {md ? <>{isSearching ? 'Đang tìm...' : 'Tìm kiếm'}</> : ''}
-                            </Button>
-                        }
-                        inputMode="search"
-                        autoComplete="off"
-                        disabled={isSearching}
+                        isAIMode={getFilterValue('useAI')?.[0]?.toString() === 'true'}
                         loading={isSearching}
+                        placeholder="Tìm phim theo tên phim, diễn viên, đạo diễn hoặc nội dung"
+                        aiPlaceholder="Mô tả chi tiết phim bạn muốn tìm (ví dụ: phim về phép thuật)"
                     />
                 </Col>
                 <Col xs={14} md={4} lg={3}>

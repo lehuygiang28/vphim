@@ -30,6 +30,7 @@ import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.in
 import { CreateMovieInput } from './inputs/create-movie.input';
 import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
 import { systemInstruction } from './ai-movie.prompt';
+import { KEYWORDS_MAX_LENGTH } from './movie.constant';
 
 @Injectable()
 export class MovieService {
@@ -126,7 +127,6 @@ export class MovieService {
 
     async getMoviesEs(dto: GetMoviesAdminInput | GetMoviesInput, isRestful = false) {
         const {
-            keywords,
             useAI = false,
             resetCache = false,
             bypassCache = false,
@@ -137,6 +137,11 @@ export class MovieService {
             years,
             ...restDto
         } = { resetCache: false, bypassCache: false, isDeleted: false, ...dto };
+
+        let keywords = dto?.keywords;
+        if (!isNullOrUndefined(keywords) && keywords.trim()?.length > KEYWORDS_MAX_LENGTH) {
+            keywords = keywords.trim().slice(0, KEYWORDS_MAX_LENGTH);
+        }
 
         const keywordsEncoded = encodeURIComponent(keywords);
         const cacheKey = `CACHED:MOVIES:ES:${sortedStringify({
