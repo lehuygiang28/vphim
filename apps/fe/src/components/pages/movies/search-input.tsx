@@ -32,7 +32,7 @@ export function SearchInput({
     aiPlaceholder = "Describe what you're looking for...",
 }: SearchInputProps) {
     const { md } = useBreakpoint();
-    const [containerHeight, setContainerHeight] = useState(isAIMode ? '6rem' : '2.5rem');
+    const [containerHeight, setContainerHeight] = useState(isAIMode ? '6rem' : '2rem');
     const containerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -67,9 +67,9 @@ export function SearchInput({
         } else {
             if (containerRef.current) {
                 containerRef.current.style.setProperty('--initial-height', containerHeight);
-                containerRef.current.style.setProperty('--target-height', '2.5rem');
+                containerRef.current.style.setProperty('--target-height', '2rem');
                 containerRef.current.classList.add('height-animation');
-                setContainerHeight('2.5rem');
+                setContainerHeight('2rem');
             }
         }
     }, 150);

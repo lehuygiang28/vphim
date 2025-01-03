@@ -2,7 +2,7 @@
     --base-size: 1rem;
     --textarea-min: 3rem;
     --textarea-max: 9rem;
-    --button-height: 2.5rem;
+    --button-height: 2rem;
     --button-margin: 0.5rem;
 }
 
@@ -95,7 +95,7 @@
 .search-button-wrapper {
     position: absolute;
     right: var(--button-margin);
-    bottom: 0;
+    bottom: var(--button-margin);
     padding: 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
@@ -111,15 +111,6 @@
     transform: translateY(-0.125rem);
 }
 
-.ant-input-search {
-    height: 100%;
-}
-
-.ant-input-search .ant-input {
-    font-size: 1rem;
-    height: var(--input-height);
-}
-
 /* Responsive adjustments */
 @media screen and (max-width: 768px) {
     .copilot-textarea {
@@ -132,7 +123,7 @@
     }
 
     .search-button-wrapper {
-        --button-height: 2rem;
+        bottom: 0;
     }
 }
 
