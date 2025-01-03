@@ -8,6 +8,8 @@ import { SearchOutlined } from '@ant-design/icons';
 import { CopilotTextarea } from '@copilotkit/react-textarea';
 import { useDebouncedCallback } from 'use-debounce';
 
+import { KEYWORDS_MAX_LENGTH } from 'apps/api/src/app/movies/movie.constant';
+
 const { useBreakpoint } = Grid;
 
 interface SearchInputProps {
@@ -33,6 +35,14 @@ export function SearchInput({
     const [containerHeight, setContainerHeight] = useState(isAIMode ? '6rem' : '2.5rem');
     const containerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const maxLength = isAIMode ? KEYWORDS_MAX_LENGTH : 400;
+
+    const handleChange = (newValue: string) => {
+        // Truncate the value if it exceeds maxLength
+        const truncatedValue = newValue.slice(0, maxLength);
+        onChange?.(truncatedValue);
+    };
 
     const updateHeight = useDebouncedCallback(() => {
         if (isAIMode && textareaRef.current) {
@@ -98,12 +108,13 @@ export function SearchInput({
                         placeholder={aiPlaceholder}
                         value={value}
                         onChange={(e) => {
-                            onChange?.(e.target.value);
+                            handleChange(e.target.value);
                             updateHeight();
                         }}
                         disabled={loading}
                         disableBranding
                         autoFocus={false}
+                        maxLength={maxLength}
                         autosuggestionsConfig={{
                             textareaPurpose: `Vietnamese language preferred. The description should be detailed or specific about movie content, scenes, or emotions you are looking for.`,
                             chatApiConfigs: {
@@ -134,8 +145,9 @@ export function SearchInput({
                     placeholder={placeholder}
                     allowClear
                     value={value}
-                    onChange={(e) => onChange?.(e.target.value)}
+                    onChange={(e) => handleChange(e.target.value)}
                     onSearch={(value) => onSearch?.(value)}
+                    maxLength={maxLength}
                     enterButton={
                         <Button
                             icon={<SearchOutlined />}
