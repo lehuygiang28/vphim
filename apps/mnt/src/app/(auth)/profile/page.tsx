@@ -28,11 +28,7 @@ export default function ProfileParallelPage() {
             okButtonProps={{ hidden: true }}
             centered
         >
-            {isLoadingAuth ? (
-                <LoadingSpinner />
-            ) : (
-                <UserUpdateComponent onBack={handleClose} language="en" />
-            )}
+            {isLoadingAuth ? <LoadingSpinner /> : <UserUpdateComponent onBack={handleClose} />}
         </Modal>
     );
 }

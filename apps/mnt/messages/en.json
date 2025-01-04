@@ -1,0 +1,20 @@
+{
+    "changeUserInfo": {
+        "//__not_translate_this": "This will be use for the shared component named: `UserUpdateComponent`",
+        "updateInfo": "Update Information",
+        "changeInfo": "Change your information",
+        "avatar": "Avatar",
+        "chooseImage": "Choose Image",
+        "name": "Name",
+        "nameRequired": "Name is required",
+        "displayName": "Display Name",
+        "email": "Email",
+        "saveChanges": "Save Changes",
+        "profileUpdated": "Profile updated successfully",
+        "uploadFailed": "Image upload failed, please try again later!",
+        "updateFailed": "Failed to update information, please try again later!",
+        "updateSuccess": "Information updated successfully!",
+        "invalidFormat": "Invalid image format (#{{validFormats}})",
+        "fileTooLarge": "Image size is too large (max #{{size}})"
+    }
+}
