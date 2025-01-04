@@ -28,9 +28,7 @@ export default async function DefaultNoLayoutStyle({ children }: Readonly<PropsW
             <body>
                 <Suspense>
                     <NextIntlClientProvider messages={messages} locale={locale}>
-                        <RefineContext defaultMode={defaultMode}>
-                            <>{children}</>
-                        </RefineContext>
+                        <RefineContext defaultMode={defaultMode}>{children}</RefineContext>
                     </NextIntlClientProvider>
                 </Suspense>
             </body>
