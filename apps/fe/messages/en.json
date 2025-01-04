@@ -169,7 +169,6 @@
         "displayName": "Display Name",
         "email": "Email",
         "saveChanges": "Save Changes",
-        "profileUpdated": "Profile updated successfully",
         "uploadFailed": "Image upload failed, please try again later!",
         "updateFailed": "Failed to update information, please try again later!",
         "updateSuccess": "Information updated successfully!",

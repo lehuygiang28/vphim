@@ -170,7 +170,7 @@
         "email": "Email",
         "saveChanges": "Lưu thay đổi",
         "uploadFailed": "Tải ảnh thất bại, vui lòng thử lại sau!",
-        "updateFailed": "Cập nhật thông tin thất bạn, vui lòng thử lại sau!",
+        "updateFailed": "Cập nhật thông tin thất bại, vui lòng thử lại sau!",
         "updateSuccess": "Cập nhật thông tin thành công!",
         "invalidFormat": "Định dạng ảnh chưa hợp lệ (#{{validFormats}})",
         "fileTooLarge": "Kích thước ảnh quá lớn (tối đa #{{size}})"
