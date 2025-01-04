@@ -1,0 +1,178 @@
+{
+    "refineUI": {
+        "pages": {
+            "login": {
+                "title": "Đăng nhập vào tài khoản của bạn",
+                "signin": "Đăng nhập",
+                "signup": "Đăng ký",
+                "divider": "hoặc",
+                "fields": {
+                    "email": "Email",
+                    "password": "Mật khẩu"
+                },
+                "errors": {
+                    "validEmail": "Địa chỉ email không hợp lệ",
+                    "requiredEmail": "Email là bắt buộc",
+                    "requiredPassword": "Mật khẩu là bắt buộc"
+                },
+                "buttons": {
+                    "submit": "Đăng nhập",
+                    "forgotPassword": "Quên mật khẩu?",
+                    "noAccount": "Chưa có tài khoản?",
+                    "rememberMe": "Ghi nhớ đăng nhập"
+                }
+            },
+            "forgotPassword": {
+                "title": "Quên mật khẩu?",
+                "fields": {
+                    "email": "Email"
+                },
+                "errors": {
+                    "validEmail": "Địa chỉ email không hợp lệ",
+                    "requiredEmail": "Email là bắt buộc"
+                },
+                "buttons": {
+                    "submit": "Gửi hướng dẫn đặt lại mật khẩu"
+                }
+            },
+            "register": {
+                "title": "Đăng ký tài khoản",
+                "fields": {
+                    "email": "Email",
+                    "password": "Mật khẩu"
+                },
+                "errors": {
+                    "validEmail": "Địa chỉ email không hợp lệ",
+                    "requiredEmail": "Email là bắt buộc",
+                    "requiredPassword": "Mật khẩu là bắt buộc"
+                },
+                "buttons": {
+                    "submit": "Đăng ký",
+                    "haveAccount": "Đã có tài khoản?"
+                }
+            },
+            "updatePassword": {
+                "title": "Cập nhật mật khẩu",
+                "fields": {
+                    "password": "Mật khẩu mới",
+                    "confirmPassword": "Xác nhận mật khẩu mới"
+                },
+                "errors": {
+                    "confirmPasswordNotMatch": "Mật khẩu không khớp",
+                    "requiredPassword": "Mật khẩu là bắt buộc",
+                    "requiredConfirmPassword": "Xác nhận mật khẩu là bắt buộc"
+                },
+                "buttons": {
+                    "submit": "Cập nhật"
+                }
+            },
+            "error": {
+                "info": "Có thể bạn đã quên thêm thành phần {{action}} vào tài nguyên {{resource}}.",
+                "404": "Xin lỗi, trang bạn truy cập không tồn tại.",
+                "resource404": "Bạn có chắc đã tạo tài nguyên {{resource}}.",
+                "backHome": "Trở về trang chủ"
+            }
+        },
+        "actions": {
+            "list": "Danh sách",
+            "create": "Tạo mới",
+            "edit": "Chỉnh sửa",
+            "show": "Hiển thị"
+        },
+        "buttons": {
+            "create": "Tạo mới",
+            "save": "Lưu",
+            "logout": "Đăng xuất",
+            "delete": "Xóa",
+            "edit": "Sửa",
+            "cancel": "Hủy",
+            "confirm": "Bạn có chắc chắn?",
+            "filter": "Lọc",
+            "clear": "Xóa bộ lọc",
+            "refresh": "Làm mới",
+            "show": "Hiển thị",
+            "undo": "Hoàn tác",
+            "import": "Nhập",
+            "clone": "Sao chép",
+            "notAccessTitle": "Bạn không có quyền truy cập"
+        },
+        "warnWhenUnsavedChanges": "Bạn có chắc muốn rời đi? Các thay đổi chưa được lưu.",
+        "notifications": {
+            "success": "Thành công",
+            "error": "Lỗi (mã trạng thái: {{statusCode}})",
+            "undoable": "Bạn có {{seconds}} giây để hoàn tác",
+            "createSuccess": "Tạo {{resource}} thành công",
+            "createError": "Có lỗi khi tạo {{resource}} (mã trạng thái: {{statusCode}})",
+            "deleteSuccess": "Xóa {{resource}} thành công",
+            "deleteError": "Có lỗi khi xóa {{resource}} (mã trạng thái: {{statusCode}})",
+            "editSuccess": "Chỉnh sửa {{resource}} thành công",
+            "editError": "Có lỗi khi chỉnh sửa {{resource}} (mã trạng thái: {{statusCode}})",
+            "importProgress": "Đang nhập: {{processed}}/{{total}}"
+        },
+        "loading": "Đang tải",
+        "tags": {
+            "clone": "Sao chép"
+        },
+        "dashboard": {
+            "title": "Bảng điều khiển"
+        },
+        "posts": {
+            "posts": "Bài viết",
+            "fields": {
+                "id": "Id",
+                "title": "Tiêu đề",
+                "category": "Danh mục",
+                "status": {
+                    "title": "Trạng thái",
+                    "published": "Đã xuất bản",
+                    "draft": "Bản nháp",
+                    "rejected": "Đã từ chối"
+                },
+                "content": "Nội dung",
+                "createdAt": "Ngày tạo"
+            },
+            "titles": {
+                "create": "Tạo bài viết",
+                "edit": "Sửa bài viết",
+                "list": "Danh sách bài viết",
+                "show": "Chi tiết bài viết"
+            }
+        },
+        "table": {
+            "actions": "Thao tác"
+        },
+        "documentTitle": {
+            "default": "vephim",
+            "suffix": " | Vephim",
+            "post": {
+                "list": "Bài viết | Vephim",
+                "show": "#{{id}} Chi tiết bài viết | Vephim",
+                "edit": "#{{id}} Sửa bài viết | Vephim",
+                "create": "Tạo bài viết mới | Vephim",
+                "clone": "#{{id}} Sao chép bài viết | Vephim"
+            }
+        },
+        "autoSave": {
+            "success": "đã lưu",
+            "error": "lỗi tự động lưu",
+            "loading": "đang lưu...",
+            "idle": "đang chờ thay đổi"
+        }
+    },
+    "changeUserInfo": {
+        "updateInfo": "Cập nhật thông tin",
+        "changeInfo": "Thay đổi thông tin của bạn",
+        "avatar": "Ảnh đại diện",
+        "chooseImage": "Chọn ảnh",
+        "name": "Tên",
+        "nameRequired": "Tên không được để trống",
+        "displayName": "Tên hiển thị",
+        "email": "Email",
+        "saveChanges": "Lưu thay đổi",
+        "uploadFailed": "Tải ảnh thất bại, vui lòng thử lại sau!",
+        "updateFailed": "Cập nhật thông tin thất bạn, vui lòng thử lại sau!",
+        "updateSuccess": "Cập nhật thông tin thành công!",
+        "invalidFormat": "Định dạng ảnh chưa hợp lệ (#{{validFormats}})",
+        "fileTooLarge": "Kích thước ảnh quá lớn (tối đa #{{size}})"
+    }
+}
