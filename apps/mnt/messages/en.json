@@ -1,6 +1,6 @@
 {
     "changeUserInfo": {
-        "//__not_translate_this": "This will be use for the shared component named: `UserUpdateComponent`",
+        "@comment": "This will be used for the shared component named: `UserUpdateComponent`",
         "updateInfo": "Update Information",
         "changeInfo": "Change your information",
         "avatar": "Avatar",
