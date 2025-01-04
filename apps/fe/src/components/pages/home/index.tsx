@@ -28,7 +28,7 @@ const HOME_MOVIES_LIST_ASSET: {
                 operator: 'eq',
             },
         ],
-        sorters: [{ field: 'year', order: 'asc' }],
+        sorters: [{ field: 'year', order: 'desc' }],
         pagination: { current: 1, pageSize: 12 },
     },
     {
