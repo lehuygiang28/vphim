@@ -21,18 +21,12 @@ jobs:
             - name: Disable Corepack
               run: corepack disable
 
-            - name: Install Yarn 1
-              run: npm install -g yarn@1.22.22
-
             - name: Remove Yarn 2+ configurations
               run: |
                   rm -f .yarnrc.yml
                   rm -f yarn.lock
                   rm -rf .yarn
                   jq 'del(.packageManager)' package.json > temp.json && mv temp.json package.json
-
-            - name: Clear Yarn cache
-              run: yarn cache clean
 
             - name: Set up JDK 17
               uses: actions/setup-java@v4
@@ -50,16 +44,19 @@ jobs:
                   eas-version: latest
                   token: ${{ secrets.EXPO_TOKEN }}
 
+            - name: Install Bun
+              run: npm install -g bun
+
             - name: Install dependencies in root
-              run: yarn install
+              run: bun install
 
             - name: Trigger EAS Build
               run: |
-                  yarn nx build mobile -- --platform android --non-interactive --no-wait
+                  npx nx build mobile -- --platform android --non-interactive --no-wait
 
             - name: Build Android app
               run: |
-                  yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
+                  npx nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
             - name: Upload APK artifact
               uses: actions/upload-artifact@v4

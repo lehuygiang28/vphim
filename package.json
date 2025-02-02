@@ -4,11 +4,11 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "api": "yarn nx serve api --configuration=development",
-        "fe": "yarn nx run fe:dev",
-        "mnt": "yarn nx run mnt:dev -- -p 4000",
-        "adr": "yarn nx run-android mobile -- --non-interactive=true",
-        "mb": "yarn nx start mobile",
+        "api": "npx nx serve api --configuration=development",
+        "fe": "npx nx run fe:dev",
+        "mnt": "npx nx run mnt:dev -- -p 4000",
+        "adr": "npx nx run-android mobile -- --non-interactive=true",
+        "mb": "npx nx start mobile",
         "postinstall": "npx patch-package"
     },
     "dependencies": {
@@ -40,7 +40,7 @@
         "@nestjs/mongoose": "^10.0.10",
         "@nestjs/passport": "^10.0.3",
         "@nestjs/platform-express": "^10.0.2",
-        "@nestjs/schedule": "^4.1.0",
+        "@nestjs/schedule": "4.1.0",
         "@nestjs/swagger": "^7.4.0",
         "@nestjs/throttler": "^6.2.1",
         "@next/third-parties": "^15.0.2",
@@ -68,7 +68,7 @@
         "class-validator": "^0.14.1",
         "cloudinary": "^2.4.0",
         "compression": "^1.7.4",
-        "cron": "^3.1.7",
+        "cron": "3.1.7",
         "dayjs": "^1.11.13",
         "expo": "^52.0.11",
         "expo-blur": "~14.0.1",
@@ -204,7 +204,6 @@
         "typescript": "~5.5.2",
         "webpack-cli": "^5.1.4"
     },
-    "packageManager": "yarn@4.4.1",
     "refine": {
         "projectId": "NJcdqz-Mcj2uR-iCRTib"
     }

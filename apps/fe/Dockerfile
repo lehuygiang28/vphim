@@ -9,15 +9,15 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /usr/src/app
 
-COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn ./.yarn
+RUN npm install -g bun
+COPY package.json bun.lock ./
 
-RUN yarn workspaces focus --all
+RUN bun install
 
 COPY . .
 
 ENV NEXT_SHARP_PATH "/usr/src/app/node_modules/sharp"
-RUN yarn nx build fe --skip-nx-cache
+RUN npx nx build fe --skip-nx-cache
 
 FROM base AS production
 

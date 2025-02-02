@@ -5,24 +5,25 @@ FROM node:20-alpine AS base
 FROM base AS build-stage
 WORKDIR /usr/src/app
 
-COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn ./.yarn
+RUN npm install -g bun
+COPY package.json bun.lock ./
 
-RUN yarn workspaces focus --all
+RUN bun install
 
 COPY . .
 
-RUN yarn nx build api
+RUN npx nx build api
 
 # Production dependencies stage
 FROM base AS production-deps
 WORKDIR /usr/src/app
 
-COPY --chown=node:node package.json yarn.lock .yarnrc.yml ./
-COPY --chown=node:node .yarn ./.yarn
+COPY --chown=node:node --from=build-stage /usr/src/app/bun.lock ./bun.lock
+
+# Using a generated package.json by webpack that contains only production dependencies used by NestJS
 COPY --chown=node:node --from=build-stage /usr/src/app/dist/apps/api/package.json ./package.json
 
-RUN yarn workspaces focus --production && yarn cache clean --all
+RUN bun install --production
 
 # Final production stage
 FROM base AS production
@@ -33,7 +34,7 @@ LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>
 
 # Install Redis and Supervisor
 RUN apk update && \
-  apk add --no-cache supervisor redis
+	apk add --no-cache supervisor redis
 
 WORKDIR /usr/src/app
 
@@ -63,7 +64,7 @@ ENV NODE_ENV production
 
 # Set proper permissions
 RUN chown node:node /usr/src/app/supervisord.conf && \
-  chmod 755 /usr/src/app/supervisord.conf
+	chmod 755 /usr/src/app/supervisord.conf
 
 USER node
 

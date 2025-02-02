@@ -4,14 +4,14 @@ FROM base AS build-stage
 
 WORKDIR /usr/src/app
 
-COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn ./.yarn
+RUN npm install -g bun
+COPY package.json bun.lock ./
 
-RUN yarn workspaces focus --all
+RUN bun install
 
 COPY . .
 
-RUN yarn nx build api
+RUN npx nx build api
 
 ### Production dependencies stage
 FROM base AS production-deps
@@ -20,14 +20,12 @@ USER node
 WORKDIR /usr/src/app
 
 COPY --chown=node --from=build-stage /usr/src/app/dist ./dist
-COPY --chown=node --from=build-stage /usr/src/app/.yarn ./.yarn
-COPY --chown=node --from=build-stage /usr/src/app/.yarnrc.yml ./.yarnrc.yml
-COPY --chown=node --from=build-stage /usr/src/app/yarn.lock ./yarn.lock
+COPY --chown=node --from=build-stage /usr/src/app/bun.lock ./bun.lock
 
 # Using a generated package.json by webpack that contains only production dependencies used by NestJS
 COPY --chown=node --from=build-stage /usr/src/app/dist/apps/api/package.json ./package.json
 
-RUN yarn workspaces focus --production && yarn cache clean --all
+RUN bun install --production
 
 ### Production stage, copies all the build files and removes the development dependencies
 FROM base AS production
