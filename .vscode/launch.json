@@ -34,7 +34,7 @@
             "type": "node",
             "request": "launch",
             "name": "Debug NestJS in NX",
-            "runtimeExecutable": "yarn",
+            "runtimeExecutable": "npx",
             "runtimeArgs": ["nx", "serve", "api", "--configuration=debug"],
             "console": "internalConsole",
             "restart": true,
