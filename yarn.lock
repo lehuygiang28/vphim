@@ -5848,7 +5848,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/schedule@npm:^4.1.0":
+"@nestjs/schedule@npm:4.1.0":
   version: 4.1.0
   resolution: "@nestjs/schedule@npm:4.1.0"
   dependencies:
@@ -10132,7 +10132,7 @@ __metadata:
     "@nestjs/mongoose": "npm:^10.0.10"
     "@nestjs/passport": "npm:^10.0.3"
     "@nestjs/platform-express": "npm:^10.0.2"
-    "@nestjs/schedule": "npm:^4.1.0"
+    "@nestjs/schedule": "npm:4.1.0"
     "@nestjs/schematics": "npm:^10.0.1"
     "@nestjs/swagger": "npm:^7.4.0"
     "@nestjs/testing": "npm:^10.0.2"
@@ -10206,7 +10206,7 @@ __metadata:
     compression: "npm:^1.7.4"
     copy-webpack-plugin: "npm:^12.0.2"
     critters: "npm:^0.0.25"
-    cron: "npm:^3.1.7"
+    cron: "npm:3.1.7"
     dayjs: "npm:^1.11.13"
     eslint: "npm:~8.57.0"
     eslint-config-next: "npm:14.2.3"
@@ -12166,17 +12166,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001579, caniuse-lite@npm:^1.0.30001646":
-  version: 1.0.30001653
-  resolution: "caniuse-lite@npm:1.0.30001653"
-  checksum: 10c0/7aedf037541c93744148f599daea93d46d1f93ab4347997189efa2d1f003af8eadd7e1e05347ef09261ac1dc635ce375b8c6c00796245fffb4120a124824a14f
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001669":
-  version: 1.0.30001683
-  resolution: "caniuse-lite@npm:1.0.30001683"
-  checksum: 10c0/0ca7f4f2fbd0c71fde5a14ca2e29bb1dcb84c095d7a3d88e47371e062f276f1dc31da3f10931ec134ef7fb096259c0d67c9ffb843a9ec4a040a85eb2fea0bdec
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001579, caniuse-lite@npm:^1.0.30001646, caniuse-lite@npm:^1.0.30001669":
+  version: 1.0.30001696
+  resolution: "caniuse-lite@npm:1.0.30001696"
+  checksum: 10c0/8060584c612b2bc232995a6e31153432de7946b5417d3b3505a3ab76e632e5568ccc7bae38f1a977f21d4fc214f9e64be829213f810694172c9109e258cb5be8
   languageName: node
   linkType: hard
 
@@ -13116,7 +13109,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron@npm:3.1.7, cron@npm:^3.1.7":
+"cron@npm:3.1.7":
   version: 3.1.7
   resolution: "cron@npm:3.1.7"
   dependencies:
