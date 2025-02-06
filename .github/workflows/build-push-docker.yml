@@ -99,12 +99,12 @@ jobs:
 
             - name: Build and push images with short commit SHA tag
               id: build_push_images
-              run: docker compose -f docker-compose.yml build && docker compose -f docker-compose.yml push
+              run: DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml build && docker compose -f docker-compose.yml push
 
             - name: Build and push bundle images
               id: build_push_bundle
               if: ${{ success() && steps.build_push_images.outcome == 'success' }}
-              run: docker compose -f docker-compose.bundle.yml build && docker compose -f docker-compose.bundle.yml push
+              run: DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.bundle.yml build && docker compose -f docker-compose.bundle.yml push
 
             - name: Set COMPOSE_TAG as latest
               if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
@@ -112,11 +112,11 @@ jobs:
 
             - name: Build and push images with latest tag
               if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
-              run: docker compose -f docker-compose.yml build && docker compose -f docker-compose.yml push
+              run: DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml build && docker compose -f docker-compose.yml push
 
             - name: Build and push bundle images with latest tag
               if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
-              run: docker compose -f docker-compose.bundle.yml build && docker compose -f docker-compose.bundle.yml push
+              run: DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.bundle.yml build && docker compose -f docker-compose.bundle.yml push
 
             - name: Remove .env file
               run: rm .env
