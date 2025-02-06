@@ -203,12 +203,6 @@ type GetMoviesOutput {
   total: Float!
 }
 
-type GetCommentsOutput {
-  data: [CommentType!]!
-  total: Float!
-  count: Float!
-}
-
 type UserCommentType {
   _id: ID!
   fullName: String!
@@ -218,12 +212,29 @@ type UserCommentType {
 type CommentType {
   _id: ID!
   user: UserCommentType!
-  movie: ID!
+  movieId: ID!
   content: String!
   parentComment: ID
-  replies: GetCommentsOutput
+  replyCount: Float
   createdAt: DateTime!
   updatedAt: DateTime!
+  editedAt: Float
+}
+
+type GetCommentsOutput {
+  data: [CommentType!]!
+  total: Float!
+  count: Float!
+  hasMore: Boolean!
+  currentPage: Float!
+}
+
+type GetCommentRepliesOutput {
+  data: [CommentType!]!
+  total: Float!
+  count: Float!
+  hasMore: Boolean!
+  currentPage: Float!
 }
 
 input EpisodeServerDataInputType {
@@ -265,7 +276,20 @@ type Query {
   director(input: GetDirectorInput!): Director!
   regions(input: GetRegionsInput!): GetRegionsOutput!
   region(input: GetRegionInput!): Region!
-  movieComments(input: GetCommentsInput!): GetCommentsOutput!
+
+  """Get paginated comments for a movie"""
+  movieComments(
+    """Input containing movieId and pagination parameters (page, limit)"""
+    input: GetCommentsInput!
+  ): GetCommentsOutput!
+
+  """Get paginated replies for a specific comment"""
+  commentReplies(
+    """
+    Input containing parentCommentId and pagination parameters (page, limit)
+    """
+    input: GetCommentRepliesInput!
+  ): GetCommentRepliesOutput!
 }
 
 input GetMovieInput {
@@ -364,6 +388,13 @@ input GetCommentsInput {
   movieId: ID!
   replyPage: Float = 1
   replyLimit: Float = 5
+}
+
+input GetCommentRepliesInput {
+  limit: Float = 10
+  page: Float = 1
+  parentCommentId: ID!
+  movieId: ID!
 }
 
 type Mutation {

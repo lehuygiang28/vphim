@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { CommentType } from '../comment.type';
 
 @ObjectType()
-export class GetCommentsOutput {
+export class GetCommentRepliesOutput {
     @Field(() => [CommentType])
     data: CommentType[];
 

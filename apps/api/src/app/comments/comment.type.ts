@@ -1,7 +1,6 @@
 import { ObjectType, Field, ID, PickType } from '@nestjs/graphql';
 import { Types } from 'mongoose';
 import { UserType } from '../users/user.type';
-import { GetCommentsOutput } from './outputs/get-movie-comments.output';
 
 @ObjectType()
 export class UserCommentType extends PickType(UserType, ['_id', 'fullName', 'avatar']) {}
@@ -15,20 +14,23 @@ export class CommentType {
     user: UserCommentType;
 
     @Field(() => ID)
-    movie: Types.ObjectId;
+    movieId: Types.ObjectId;
 
     @Field()
     content: string;
 
     @Field(() => ID, { nullable: true })
-    parentComment?: Types.ObjectId;
+    parentComment?: Types.ObjectId | null;
 
-    @Field(() => GetCommentsOutput, { nullable: true })
-    replies?: GetCommentsOutput;
+    @Field(() => Number, { nullable: true })
+    replyCount?: number | null;
 
     @Field(() => Date)
     createdAt: Date;
 
     @Field(() => Date)
     updatedAt: Date;
+
+    @Field(() => Number, { nullable: true, defaultValue: null })
+    editedAt?: number | null;
 }

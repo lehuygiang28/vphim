@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation';
 import { Button, List, Space, Typography, Input, Card, Divider } from 'antd';
 import { SendOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useCreate, useInfiniteList, useGetIdentity } from '@refinedev/core';
-import { useDebouncedCallback } from 'use-debounce';
 
 import type { CommentType } from 'apps/api/src/app/comments/comment.type';
 import type { UserType } from 'apps/api/src/app/users/user.type';
@@ -25,25 +24,31 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
     const commentInputRef = useRef<HTMLTextAreaElement>(null);
     const router = useRouter();
 
-    const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-        useInfiniteList<CommentType>({
-            dataProviderName: 'graphql',
-            resource: 'comments',
-            meta: {
-                gqlQuery: COMMENT_LIST_QUERY,
-                operation: 'movieComments',
+    const {
+        data,
+        isLoading,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        refetch,
+    } = useInfiniteList<CommentType>({
+        resource: 'comments',
+        dataProviderName: 'graphql',
+        meta: {
+            gqlQuery: COMMENT_LIST_QUERY,
+            operation: 'movieComments',
+        },
+        filters: [
+            {
+                field: 'movieId',
+                operator: 'eq',
+                value: movieId,
             },
-            filters: [
-                {
-                    field: 'movieId',
-                    operator: 'eq',
-                    value: movieId,
-                },
-            ],
-            pagination: {
-                pageSize: 6,
-            },
-        });
+        ],
+        pagination: {
+            pageSize: 10,
+        }
+    });
 
     const { mutate: createComment, isLoading: createLoading } = useCreate({
         dataProviderName: 'graphql',
@@ -52,6 +57,16 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
             gqlMutation: CREATE_COMMENT_MUTATION,
             operation: 'createComment',
         },
+        successNotification: () => ({
+            message: 'Thành công',
+            description: 'Bình luận đã được gửi',
+            type: 'success',
+        }),
+        errorNotification: () => ({
+            message: 'Lỗi hệ thống',
+            description: 'Không thể gửi bình luận. Vui lòng thử lại sau!',
+            type: 'error',
+        }),
     });
 
     const allComments = useMemo(() => {
@@ -79,6 +94,7 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
             {
                 onSuccess: () => {
                     setCommentInput('');
+                    // Force a fresh fetch to get the latest comments
                     refetch();
                     if (commentInputRef.current) {
                         commentInputRef.current.blur();
@@ -88,16 +104,11 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
         );
     }, [createComment, movieId, commentInput, refetch]);
 
-    const debouncedSetCommentInput = useDebouncedCallback(
-        (value: string) => setCommentInput(value),
-        300,
-    );
-
     const handleLoadMore = useCallback(() => {
-        if (hasNextPage) {
+        if (hasNextPage && !isFetchingNextPage) {
             fetchNextPage();
         }
-    }, [hasNextPage, fetchNextPage]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     return (
         <Card
@@ -125,10 +136,12 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
                                 ref={commentInputRef}
                                 rows={4}
                                 placeholder="Để lại bình luận..."
-                                defaultValue={commentInput}
-                                onChange={(e) => debouncedSetCommentInput(e.target.value)}
-                                onPressEnter={(e) => {
-                                    if (e.ctrlKey || e.metaKey) {
+                                value={commentInput}
+                                onChange={(e) => setCommentInput(e.target.value)}
+                                maxLength={1000}
+                                showCount
+                                onKeyDown={(e) => {
+                                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                                         handleCreateComment();
                                     }
                                 }}
@@ -197,20 +210,26 @@ export const MovieComments: React.FC<MovieCommentsProps> = ({ movieId }) => {
                             />
                         </List.Item>
                     )}
-                    loadMore={
-                        hasNextPage && (
-                            <div style={{ textAlign: 'center', marginTop: 16 }}>
-                                <Button onClick={handleLoadMore} disabled={isFetchingNextPage}>
-                                    {isFetchingNextPage ? (
-                                        <LoadingOutlined />
-                                    ) : (
-                                        'Tải thêm bình luận'
-                                    )}
-                                </Button>
-                            </div>
-                        )
-                    }
                 />
+
+                {/* Load more trigger */}
+                {(hasNextPage) && (
+                    <div
+                        style={{
+                            textAlign: 'center',
+                            marginTop: 16,
+                            padding: '8px 0',
+                        }}
+                    >
+                        <Button onClick={handleLoadMore} disabled={isFetchingNextPage}>
+                            {isFetchingNextPage ? (
+                                <LoadingOutlined />
+                            ) : (
+                                'Tải thêm bình luận'
+                            )}
+                        </Button>
+                    </div>
+                )}
             </Space>
         </Card>
     );

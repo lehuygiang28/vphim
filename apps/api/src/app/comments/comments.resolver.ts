@@ -10,6 +10,8 @@ import {
 import { RequiredRoles } from '../auth/guards/auth.guard';
 import { CurrentUser, UserJwt } from '../auth';
 import { GetCommentsOutput } from './outputs/get-movie-comments.output';
+import { GetCommentRepliesOutput } from './outputs/get-comment-replies.output';
+import { GetCommentRepliesInput } from './inputs/get-comment-replies.input';
 
 @Resolver(() => CommentType)
 export class CommentResolver {
@@ -33,8 +35,39 @@ export class CommentResolver {
         return this.commentService.deleteComment(query?._id, actor);
     }
 
-    @Query(() => GetCommentsOutput, { name: 'movieComments' })
-    getMovieComments(@Args('input') query: GetCommentsInput) {
-        return this.commentService.getMovieComments(query);
+    /**
+     * Get paginated comments for a movie
+     * @param query GetCommentsInput containing movieId and pagination parameters
+     * @returns GetCommentsOutput containing paginated comments
+     */
+    @Query(() => GetCommentsOutput, {
+        name: 'movieComments',
+        description: 'Get paginated comments for a movie',
+    })
+    getMovieComments(
+        @Args('input', {
+            description: 'Input containing movieId and pagination parameters (page, limit)',
+        })
+        query: GetCommentsInput,
+    ) {
+        return this.commentService.getTopLevelComments(query);
+    }
+
+    /**
+     * Get paginated replies for a specific comment
+     * @param query GetCommentRepliesInput containing parentCommentId and pagination parameters
+     * @returns GetCommentRepliesOutput containing paginated replies
+     */
+    @Query(() => GetCommentRepliesOutput, {
+        name: 'commentReplies',
+        description: 'Get paginated replies for a specific comment',
+    })
+    getCommentReplies(
+        @Args('input', {
+            description: 'Input containing parentCommentId and pagination parameters (page, limit)',
+        })
+        query: GetCommentRepliesInput,
+    ) {
+        return this.commentService.getCommentReplies(query);
     }
 }
