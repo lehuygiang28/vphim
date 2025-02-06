@@ -8,7 +8,7 @@ import { Request, Response } from 'express';
 
 @Controller()
 export class CopilotkitController {
-    private readonly AI_MODELS: string[] = ['gemini-1.5-flash-8b', 'gemini-1.5-flash'];
+    private readonly AI_MODELS: string[] = ['gemini-2.0-flash-lite-preview-02-05', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
 
     @All('/copilotkit')
     copilotkit(@Req() req: Request, @Res() res: Response) {
