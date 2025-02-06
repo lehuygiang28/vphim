@@ -95,13 +95,13 @@ jobs:
 
                   # Build and push with short SHA tag
                   dotenvx set --plain COMPOSE_TAG ${{ steps.set_short_sha.outputs.SHORT_SHA }}
-                  build_and_push "docker-compose.yml"
+                  # build_and_push "docker-compose.yml"
                   build_and_push "docker-compose.bundle.yml"
 
                   # Build and push with latest tag if specified
                   if [[ "${{ needs.check-skip.outputs.commit_message }}" =~ "[docker-latest]" ]]; then
                     dotenvx set --plain COMPOSE_TAG latest
-                    build_and_push "docker-compose.yml"
+                    # build_and_push "docker-compose.yml"
                     build_and_push "docker-compose.bundle.yml"
                   fi
 

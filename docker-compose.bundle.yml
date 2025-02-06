@@ -29,20 +29,20 @@ services:
     #         - vphim_net
     #     restart: unless-stopped
 
-    vphim_api_redis_es:
-        container_name: vphim_api_redis_es
-        hostname: vphim_api_redis_es
-        build:
-            context: ./
-            dockerfile: ./containers/be-redis-es/Dockerfile
-        image: lehuygiang28/vphim_api_redis_es:${COMPOSE_TAG:-latest}
-        env_file:
-            - ./containers/be-redis-es/.env
-        ports:
-            - 8000:${API_PORT:-8000}
-        networks:
-            - vphim_net
-        restart: unless-stopped
+    # vphim_api_redis_es:
+    #     container_name: vphim_api_redis_es
+    #     hostname: vphim_api_redis_es
+    #     build:
+    #         context: ./
+    #         dockerfile: ./containers/be-redis-es/Dockerfile
+    #     image: lehuygiang28/vphim_api_redis_es:${COMPOSE_TAG:-latest}
+    #     env_file:
+    #         - ./containers/be-redis-es/.env
+    #     ports:
+    #         - 8000:${API_PORT:-8000}
+    #     networks:
+    #         - vphim_net
+    #     restart: unless-stopped
 
 networks:
     vphim_net:
