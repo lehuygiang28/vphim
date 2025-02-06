@@ -11,6 +11,7 @@ on:
 env:
     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+    DOCKER_DEFAULT_PLATFORM: linux/amd64
 
 jobs:
     check-skip:
@@ -68,54 +69,42 @@ jobs:
               id: set_short_sha
               run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c 1-7)" >> $GITHUB_OUTPUT
 
-            - name: Create .env file
+            - name: Create .env files
               run: |
-                  touch .env
-                  echo "# .env created" >> .env
-                  echo "# .env created" >> ./apps/fe/.env
-                  echo "# .env created" >> ./apps/mnt/.env
-                  echo "# .env created" >> ./apps/api/.env
-                  echo "# .env created" >> ./containers/be-with-redis/.env
-                  echo "# .env created" >> ./containers/be-redis-pm2/.env
-                  echo "# .env created" >> ./containers/be-redis-es/.env
-                  cat .env
+                  for dir in "." "apps/fe" "apps/mnt" "apps/api" "containers/be-with-redis" "containers/be-redis-pm2" "containers/be-redis-es"; do
+                    echo "# .env created" > "$dir/.env"
+                  done
 
             - name: Prepare env for fe and mnt
               run: |
-                  echo "NEXT_PUBLIC_API_URL='https://api.vephim.online'" >> ./apps/fe/.env
-                  echo "NEXT_PUBLIC_IMAGES_URL='https://img.vephim.online'" >> ./apps/fe/.env
-                  echo "NEXT_SHARP_PATH='/usr/src/app/node_modules/sharp'" >> ./apps/fe/.env
+                  for dir in "apps/fe" "apps/mnt"; do
+                    echo "NEXT_PUBLIC_API_URL='https://api.vephim.online'" >> "$dir/.env"
+                    echo "NEXT_PUBLIC_IMAGES_URL='https://img.vephim.online'" >> "$dir/.env"
+                    echo "NEXT_SHARP_PATH='/usr/src/app/node_modules/sharp'" >> "$dir/.env"
+                  done
                   echo "NEXT_PUBLIC_TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}" >> ./apps/fe/.env
                   echo "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID }}" >> ./apps/fe/.env
 
-                  echo "NEXT_PUBLIC_API_URL='https://api.vephim.online'" >> ./apps/mnt/.env
-                  echo "NEXT_PUBLIC_IMAGES_URL='https://img.vephim.online'" >> ./apps/mnt/.env
-                  echo "NEXT_SHARP_PATH='/usr/src/app/node_modules/sharp'" >> ./apps/mnt/.env
+            - name: Build and push Docker images
+              id: docker_build_push
+              run: |
+                function build_and_push() {
+                  local compose_file="$1"
+                  $DOCKER_DEFAULT_PLATFORM docker compose -f "$compose_file" build
+                  $DOCKER_DEFAULT_PLATFORM docker compose -f "$compose_file" push
+                }
 
-            - name: Set COMPOSE_TAG as short commit SHA
-              id: set_compose_tag
-              run: dotenvx set --plain COMPOSE_TAG ${{ steps.set_short_sha.outputs.SHORT_SHA }}
+                # Build and push with short SHA tag
+                dotenvx set --plain COMPOSE_TAG ${{ steps.set_short_sha.outputs.SHORT_SHA }}
+                build_and_push "docker-compose.yml"
+                build_and_push "docker-compose.bundle.yml"
 
-            - name: Build and push images with short commit SHA tag
-              id: build_push_images
-              run: DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml build && DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml push
-
-            - name: Build and push bundle images
-              id: build_push_bundle
-              if: ${{ success() && steps.build_push_images.outcome == 'success' }}
-              run: DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.bundle.yml build && DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.bundle.yml push
-
-            - name: Set COMPOSE_TAG as latest
-              if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
-              run: dotenvx set --plain COMPOSE_TAG latest
-
-            - name: Build and push images with latest tag
-              if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
-              run: DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml build && DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml push
-
-            - name: Build and push bundle images with latest tag
-              if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
-              run: DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.bundle.yml build && DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.bundle.yml push
+                # Build and push with latest tag if specified
+                if [[ "${{ needs.check-skip.outputs.commit_message }}" =~ "[docker-latest]" ]]; then
+                  dotenvx set --plain COMPOSE_TAG latest
+                  build_and_push "docker-compose.yml"
+                  build_and_push "docker-compose.bundle.yml"
+                fi
 
             - name: Remove .env file
               run: rm .env
