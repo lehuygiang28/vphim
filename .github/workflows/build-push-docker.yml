@@ -16,7 +16,7 @@ env:
 jobs:
     check-skip:
         # if: ${{ github.event.workflow_run.conclusion == 'success' }}
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         outputs:
             commit_message: ${{ steps.get_commit_message.outputs.commit_message }}
             skip_docker: ${{ steps.check_skip_docker.outputs.skip_docker }}
@@ -46,7 +46,7 @@ jobs:
     build:
         needs: [check-skip]
         if: ${{ needs.check-skip.outputs.skip_docker != 'true' }}
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -59,8 +59,8 @@ jobs:
                   username: ${{ env.DOCKERHUB_USERNAME }}
                   password: ${{ env.DOCKERHUB_PASSWORD }}
 
-            - name: Free disk space up
-              run: rm -rf /opt/hostedtoolcache
+            # - name: Free disk space up
+            #   run: rm -rf /opt/hostedtoolcache
 
             - name: Install dotenvx
               run: curl -sfS https://dotenvx.sh/install.sh | sh
