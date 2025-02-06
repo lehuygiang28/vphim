@@ -6,7 +6,7 @@ on:
     #     types: completed
     #     branches: [main]
     push:
-        branches: ['main', 'fix/docker-with-actions']
+        branches: ['main']
 
 env:
     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -15,7 +15,7 @@ env:
 jobs:
     check-skip:
         # if: ${{ github.event.workflow_run.conclusion == 'success' }}
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-22.04
         outputs:
             commit_message: ${{ steps.get_commit_message.outputs.commit_message }}
             skip_docker: ${{ steps.check_skip_docker.outputs.skip_docker }}
@@ -45,7 +45,7 @@ jobs:
     build:
         needs: [check-skip]
         if: ${{ needs.check-skip.outputs.skip_docker != 'true' }}
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-22.04
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
