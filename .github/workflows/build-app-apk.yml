@@ -7,7 +7,7 @@ on:
 
 jobs:
     build:
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-20.04
         if: contains(github.event.head_commit.message, '[apk]')
         steps:
             - name: Setup repo
