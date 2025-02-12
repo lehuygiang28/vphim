@@ -34,20 +34,48 @@ import {
 } from './mapping-data';
 import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
 
+/**
+ * Crawler implementation for OPhim movie source.
+ * Handles fetching and updating movies from ophim1.com.
+ *
+ * Features:
+ * - Fetches latest movies from OPhim API
+ * - Updates movie details including episodes and servers
+ * - Handles pagination and rate limiting
+ * - Supports force update mode
+ *
+ * Configuration (via environment variables):
+ * - OPHIM_HOST: Base URL for OPhim API (default: https://ophim1.com)
+ * - OPHIM_CRON: Cron schedule for updates (default: 0 4 * * *)
+ * - OPHIM_FORCE_UPDATE: Whether to force update existing movies (default: false)
+ * - OPHIM_MAX_RETRIES: Maximum number of retry attempts (default: 3)
+ */
 @Injectable()
 export class OphimCrawler extends BaseCrawler {
     private readonly ophim: Ophim;
 
+    /**
+     * Constructor for OphimCrawler
+     * @param configService ConfigService instance
+     * @param schedulerRegistry SchedulerRegistry instance
+     * @param redisService RedisService instance
+     * @param httpService HttpService instance
+     * @param movieRepo MovieRepository instance
+     * @param actorRepo ActorRepository instance
+     * @param categoryRepo CategoryRepository instance
+     * @param directorRepo DirectorRepository instance
+     * @param regionRepo RegionRepository instance
+     */
     constructor(
         configService: ConfigService,
         schedulerRegistry: SchedulerRegistry,
         redisService: RedisService,
+        httpService: HttpService,
         movieRepo: MovieRepository,
         actorRepo: ActorRepository,
         categoryRepo: CategoryRepository,
         directorRepo: DirectorRepository,
         regionRepo: RegionRepository,
-        httpService: HttpService,
     ) {
         const config: ICrawlerConfig = {
             name: 'OphimCrawler',
@@ -77,29 +105,57 @@ export class OphimCrawler extends BaseCrawler {
         });
     }
 
+    /**
+     * Override of base method to check if this crawler should be enabled
+     * @returns true if the crawler should be enabled
+     */
     protected shouldEnable(): boolean {
         // Only enable if OPHIM_HOST is set or not set to 'false'
         const ophimHost = this.configService.get<string>('OPHIM_HOST');
         return !!ophimHost || ophimHost === 'false';
     }
 
+    /**
+     * Main crawl method called by the cron job
+     */
     protected async crawlMovies(): Promise<void> {
         this.logger.log('Crawling movie from Ophim ...');
         await this.crawl();
     }
 
+    /**
+     * Fetches the newest movies from a specific page
+     * @param page Page number to fetch
+     * @returns Promise with the movie list response
+     */
     protected async getNewestMovies(page: number): Promise<any> {
         return this.ophim.getNewestMovies({ page });
     }
 
+    /**
+     * Gets the total number of pages from a response
+     * @param response Response from getNewestMovies
+     * @returns Total number of pages
+     */
     protected getTotalPages(response: any): number {
         return response.pagination.totalPages;
     }
 
+    /**
+     * Gets the movie items from a response
+     * @param response Response from getNewestMovies
+     * @returns Array of movie items
+     */
     protected getMovieItems(response: any): any[] {
         return response.items;
     }
 
+    /**
+     * Fetches and saves details for a specific movie
+     * @param slug Movie slug to fetch
+     * @param retryCount Current retry attempt number
+     * @returns Promise<boolean> - true if movie was updated, false if skipped
+     */
     protected async fetchAndSaveMovieDetail(slug: string, retryCount = 0): Promise<boolean> {
         slug = slugifyVietnamese(slug);
 
@@ -131,6 +187,11 @@ export class OphimCrawler extends BaseCrawler {
         }
     }
 
+    /**
+     * Saves or updates movie details in the database
+     * @param input Movie details from OPhim API
+     * @returns Promise<boolean> - true if movie was updated, false if skipped
+     */
     protected async saveMovieDetail(
         input: OPhimResponseSingle<
             OPhimMovie & {
@@ -272,6 +333,11 @@ export class OphimCrawler extends BaseCrawler {
         }
     }
 
+    /**
+     * Process categories and countries for a movie
+     * @param movieDetail Movie details from OPhim API
+     * @returns Promise with categories and countries
+     */
     protected async processCategoriesAndCountries(
         movieDetail: any,
     ): Promise<{ categories: any[]; countries: any[] }> {
@@ -325,6 +391,11 @@ export class OphimCrawler extends BaseCrawler {
         };
     }
 
+    /**
+     * Process actor names into Actor documents
+     * @param actors Comma-separated list of actor names
+     * @returns Promise with array of actor ObjectIds
+     */
     protected async processActors(actors: string[]): Promise<any[]> {
         if (!actors?.length) return [];
 
@@ -354,6 +425,11 @@ export class OphimCrawler extends BaseCrawler {
         return actorIds.filter((id) => id !== null);
     }
 
+    /**
+     * Process director names into Director documents
+     * @param directors Comma-separated list of director names
+     * @returns Promise with array of director ObjectIds
+     */
     protected async processDirectors(directors: string[]): Promise<any[]> {
         if (!directors?.length) return [];
 
@@ -383,6 +459,11 @@ export class OphimCrawler extends BaseCrawler {
         return directorIds.filter((id) => id !== null);
     }
 
+    /**
+     * Process episodes for a movie
+     * @param episodes Episodes from OPhim API
+     * @returns Array of episode objects
+     */
     protected processEpisodes(episodes: OPhimServerData[]): any[] {
         if (!episodes?.length) return [];
 

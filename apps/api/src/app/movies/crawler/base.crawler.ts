@@ -293,7 +293,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         this.continuousSkips = 0;
 
         const today = new Date().toISOString().slice(0, 10);
-        const crawlKey = `crawled-pages:${this.config.host}:${today}`;
+        const crawlKey = `crawled-pages:${this.config.host.replace('https://', '')}:${today}`;
 
         try {
             const latestMovies = await this.enqueueRequest(() => this.getNewestMovies(1));
@@ -414,9 +414,10 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
 
     protected async addToFailedCrawls(slug: string) {
         try {
-            await this.redisService.getClient.sadd(`failed-movie-crawls-${this.config.host}`, slug);
+            const hostStr = this.config.host.replace('https://', '');
+            await this.redisService.getClient.sadd(`failed-movie-crawls:${hostStr}`, slug);
             await this.redisService.getClient.expire(
-                `failed-movie-crawls-${this.config.host}`,
+                `failed-movie-crawls:${hostStr}`,
                 60 * 60 * 12,
             );
         } catch (error) {
@@ -427,7 +428,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     protected async retryFailedCrawls() {
         try {
             const failedSlugs = await this.redisService.getClient.smembers(
-                `failed-movie-crawls-${this.config.host}`,
+                `failed-movie-crawls:${this.config.host.replace('https://', '')}`,
             );
             if (failedSlugs?.length === 0) {
                 return;
@@ -437,7 +438,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                 try {
                     await this.fetchAndSaveMovieDetail(slug);
                     await this.redisService.getClient.srem(
-                        `failed-movie-crawls-${this.config.host}`,
+                        `failed-movie-crawls:${this.config.host.replace('https://', '')}`,
                         slug,
                     );
                 } catch (error) {

@@ -27,6 +27,24 @@ import { AbstractRepository } from 'apps/api/src/libs/abstract/abstract.reposito
 import { MovieTypeEnum } from '../movie.constant';
 import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
 
+/**
+ * Crawler implementation for NguonC movie source.
+ * Handles fetching and updating movies from NguonC's API.
+ *
+ * Features:
+ * - Fetches latest movies from NguonC API
+ * - Updates movie details including episodes and servers
+ * - Handles pagination and rate limiting
+ * - Supports force update mode
+ * - Handles Vietnamese slug conversion
+ * - Supports custom episode naming and slugs
+ *
+ * Configuration (via environment variables):
+ * - NGUONC_HOST: Base URL for NguonC API
+ * - NGUONC_CRON: Cron schedule for updates (default: 0 6 * * *)
+ * - NGUONC_FORCE_UPDATE: Whether to force update existing movies (default: false)
+ * - NGUONC_MAX_RETRIES: Maximum number of retry attempts (default: 3)
+ */
 @Injectable()
 export class NguoncCrawler extends BaseCrawler {
     constructor(
@@ -65,17 +83,29 @@ export class NguoncCrawler extends BaseCrawler {
         super(dependencies);
     }
 
+    /**
+     * Override of base method to check if this crawler should be enabled
+     * @returns true if the crawler should be enabled
+     */
     protected shouldEnable(): boolean {
         // Only enable if KKPHIM_HOST is set or not set to 'false'
         const nguoncHost = this.configService.get<string>('NGUONC_HOST');
         return !!nguoncHost || nguoncHost === 'false';
     }
 
+    /**
+     * Main crawl method called by the cron job
+     */
     protected async crawlMovies(): Promise<void> {
         this.logger.log('Crawling movie from Nguonc ...');
         await this.crawl();
     }
 
+    /**
+     * Fetches the newest movies from a specific page
+     * @param page Page number to fetch
+     * @returns Promise with the movie list response
+     */
     protected async getNewestMovies(page: number): Promise<any> {
         const response = await this.httpService.axiosRef.get(
             `${this.config.host}/films/phim-moi-cap-nhat?page=${page}`,
@@ -83,6 +113,30 @@ export class NguoncCrawler extends BaseCrawler {
         return response.data;
     }
 
+    /**
+     * Gets the total number of pages from a response
+     * @param response Response from getNewestMovies
+     * @returns Total number of pages
+     */
+    protected getTotalPages(response: any): number {
+        return response.paginate.total_page;
+    }
+
+    /**
+     * Gets the movie items from a response
+     * @param response Response from getNewestMovies
+     * @returns Array of movie items
+     */
+    protected getMovieItems(response: any): any[] {
+        return response.items;
+    }
+
+    /**
+     * Fetches and saves details for a specific movie
+     * @param slug Movie slug to fetch
+     * @param retryCount Current retry attempt number
+     * @returns Promise<boolean> - true if movie was updated, false if skipped
+     */
     protected async fetchAndSaveMovieDetail(slug: string, retryCount = 0): Promise<boolean> {
         slug = slugifyVietnamese(slug);
 
@@ -117,6 +171,11 @@ export class NguoncCrawler extends BaseCrawler {
         }
     }
 
+    /**
+     * Saves or updates movie details in the database
+     * @param movieDetail Movie details from NguonC API
+     * @returns Promise<boolean> - true if movie was updated, false if skipped
+     */
     protected async saveMovieDetail(movieDetail: any): Promise<boolean> {
         const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
 
@@ -225,14 +284,11 @@ export class NguoncCrawler extends BaseCrawler {
         }
     }
 
-    protected getTotalPages(response: any): number {
-        return response.paginate.total_page;
-    }
-
-    protected getMovieItems(response: any): any[] {
-        return response.items;
-    }
-
+    /**
+     * Process movie status from NguonC API
+     * @param movieDetail Movie detail object
+     * @returns Movie status string
+     */
     protected processMovieStatus(movieDetail: any): string | null {
         const currentEpisode: string = movieDetail?.current_episode;
         if (
@@ -250,6 +306,11 @@ export class NguoncCrawler extends BaseCrawler {
         return null;
     }
 
+    /**
+     * Process movie type from NguonC API
+     * @param movieDetail Movie detail object
+     * @returns Movie type string
+     */
     protected processMovieType(movieDetail: any): MovieTypeEnum {
         const movieTypeCate = (Object.values(movieDetail.category || {}) as any[]).find(
             (group: any) => group?.group?.name?.toLowerCase() === 'định dạng',
@@ -273,6 +334,11 @@ export class NguoncCrawler extends BaseCrawler {
         return movieType;
     }
 
+    /**
+     * Process categories and countries from NguonC API
+     * @param category Category object
+     * @returns Promise with categories and countries arrays
+     */
     protected async processCategoriesAndCountries(
         category: any,
     ): Promise<{ categories: any[]; countries: any[] }> {
@@ -296,6 +362,11 @@ export class NguoncCrawler extends BaseCrawler {
         return { categories, countries };
     }
 
+    /**
+     * Process actors from NguonC API
+     * @param casts Comma-separated list of actor names
+     * @returns Promise with array of actor ObjectIds
+     */
     protected async processActors(casts: string): Promise<any[]> {
         const actorNames = (casts || '')
             .split(',')
@@ -304,6 +375,11 @@ export class NguoncCrawler extends BaseCrawler {
         return this.processEntities(actorNames || [], this.actorRepo);
     }
 
+    /**
+     * Process directors from NguonC API
+     * @param directors Comma-separated list of director names
+     * @returns Promise with array of director ObjectIds
+     */
     protected async processDirectors(directors: string): Promise<any[]> {
         const directorNames = (directors || '')
             .split(',')
@@ -312,6 +388,12 @@ export class NguoncCrawler extends BaseCrawler {
         return this.processEntities(directorNames || [], this.directorRepo);
     }
 
+    /**
+     * Process entities (actors, directors, categories, regions) from NguonC API
+     * @param names Array of entity names
+     * @param repo Repository for the entity type
+     * @returns Promise with array of entity ObjectIds
+     */
     protected async processEntities(
         names: string[],
         repo: AbstractRepository<any>,
@@ -338,6 +420,12 @@ export class NguoncCrawler extends BaseCrawler {
         return entities.filter((val) => !isNullOrUndefined(val) && !!val);
     }
 
+    /**
+     * Process episodes from NguonC API
+     * @param newEpisodes Array of episode objects
+     * @param existingEpisodes Array of existing episode objects
+     * @returns Array of processed episode objects
+     */
     protected processEpisodes(newEpisodes: any[], existingEpisodes: Episode[] = []): Episode[] {
         const processedEpisodes: Episode[] = [...existingEpisodes];
         const existingServers = new Map(
@@ -393,43 +481,10 @@ export class NguoncCrawler extends BaseCrawler {
         return processedEpisodes;
     }
 
-    protected async addToFailedCrawls(slug: string): Promise<void> {
-        try {
-            await this.redisService.getClient.sadd(`failed-movie-crawls-${this.config.host}`, slug);
-            await this.redisService.getClient.expire(
-                `failed-movie-crawls-${this.config.host}`,
-                60 * 60 * 12,
-            );
-        } catch (error) {
-            this.logger.error(`Error adding slug ${slug} to failed crawls: ${error}`);
-        }
-    }
-
-    protected async retryFailedCrawls(): Promise<void> {
-        try {
-            const failedSlugs = await this.redisService.getClient.smembers(
-                `failed-movie-crawls-${this.config.host}`,
-            );
-            if (failedSlugs?.length === 0) {
-                return;
-            }
-
-            for (const slug of failedSlugs) {
-                try {
-                    await this.fetchAndSaveMovieDetail(slug);
-                    await this.redisService.getClient.srem(
-                        `failed-movie-crawls-${this.config.host}`,
-                        slug,
-                    );
-                } catch (error) {
-                    this.logger.error(`Error retrying crawl for slug ${slug}: ${error}`);
-                }
-            }
-        } catch (error) {
-            this.logger.error(`Error during retryFailedCrawls: ${error}`);
-        }
-    }
-
+    /**
+     * Revalidates movies on the frontend
+     * @returns Promise<void>
+     */
     protected async revalidateMovies(): Promise<void> {
         try {
             const res = await this.httpService.axiosRef.post(
@@ -457,6 +512,11 @@ export class NguoncCrawler extends BaseCrawler {
         }
     }
 
+    /**
+     * Calculates the backoff delay for retries
+     * @param retryCount Current retry attempt number
+     * @returns Backoff delay in milliseconds
+     */
     protected calculateBackoff(retryCount: number): number {
         // Exponential backoff with jitter
         const baseDelay = 1000; // 1 second
