@@ -47,7 +47,7 @@ export class OphimCrawler extends BaseCrawler {
             name: 'OphimCrawler',
             host: configService.getOrThrow<string>('OPHIM_HOST', 'https://ophim1.com'),
             cronSchedule: configService.getOrThrow<string>('OPHIM_CRON', '0 4 * * *'),
-            forceUpdate: configService.getOrThrow<boolean>('OPHIM_FORCE_UPDATE', false),
+            forceUpdate: configService.getOrThrow<string>('OPHIM_FORCE_UPDATE', 'false') === 'true',
         };
 
         const dependencies: ICrawlerDependencies = {
@@ -68,6 +68,12 @@ export class OphimCrawler extends BaseCrawler {
         this.ophim = new Ophim({
             host: config.host,
         });
+    }
+
+    protected shouldEnable(): boolean {
+        // Only enable if OPHIM_HOST is set or not set to 'false'
+        const ophimHost = this.configService.get<string>('OPHIM_HOST');
+        return !!ophimHost || ophimHost === 'false';
     }
 
     protected async crawlMovies(): Promise<void> {

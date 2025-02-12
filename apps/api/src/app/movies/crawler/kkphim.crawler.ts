@@ -47,7 +47,8 @@ export class KKPhimCrawler extends BaseCrawler {
             name: 'KKPhimCrawler',
             host: configService.getOrThrow<string>('KKPHIM_HOST', 'https://kkphim1.com'),
             cronSchedule: configService.getOrThrow<string>('KKPHIM_CRON', '0 5 * * *'),
-            forceUpdate: configService.getOrThrow<boolean>('KKPHIM_FORCE_UPDATE', false),
+            forceUpdate:
+                configService.getOrThrow<string>('KKPHIM_FORCE_UPDATE', 'false') === 'true',
         };
 
         const dependencies: ICrawlerDependencies = {
@@ -66,6 +67,12 @@ export class KKPhimCrawler extends BaseCrawler {
         super(dependencies);
 
         this.kkphim = new Ophim({ host: this.config.host });
+    }
+
+    protected shouldEnable(): boolean {
+        // Only enable if KKPHIM_HOST is set or not set to 'false'
+        const ophimHost = this.configService.get<string>('KKPHIM_HOST');
+        return !!ophimHost || ophimHost === 'false';
     }
 
     protected async crawlMovies(): Promise<void> {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {  Injectable, } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
@@ -49,7 +49,8 @@ export class NguoncCrawler extends BaseCrawler {
             name: 'NguoncCrawler',
             host: configService.getOrThrow<string>('NGUONC_HOST', 'https://phim.nguonc.com/api'),
             cronSchedule: configService.getOrThrow<string>('NGUONC_CRON', '0 6 * * *'),
-            forceUpdate: configService.getOrThrow<boolean>('NGUONC_FORCE_UPDATE', false),
+            forceUpdate:
+                configService.getOrThrow<string>('NGUONC_FORCE_UPDATE', 'false') === 'true',
         };
 
         const dependencies: ICrawlerDependencies = {
@@ -66,6 +67,12 @@ export class NguoncCrawler extends BaseCrawler {
         };
 
         super(dependencies);
+    }
+
+    protected shouldEnable(): boolean {
+        // Only enable if KKPHIM_HOST is set or not set to 'false'
+        const nguoncHost = this.configService.get<string>('NGUONC_HOST');
+        return !!nguoncHost || nguoncHost === 'false';
     }
 
     protected async crawlMovies(): Promise<void> {

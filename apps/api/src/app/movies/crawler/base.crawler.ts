@@ -21,6 +21,9 @@ export interface ICrawlerConfig {
     cronSchedule: string;
     forceUpdate: boolean;
     imgHost?: string;
+    maxRetries?: number;
+    rateLimitDelay?: number;
+    maxConcurrentRequests?: number;
 }
 
 export interface ICrawlerDependencies {
@@ -34,6 +37,18 @@ export interface ICrawlerDependencies {
     categoryRepo: CategoryRepository;
     directorRepo: DirectorRepository;
     regionRepo: RegionRepository;
+}
+
+export interface ICrawlerStatus {
+    isRunning: boolean;
+    lastRun?: Date;
+    currentPage?: number;
+    totalPages?: number;
+    processedItems: number;
+    failedItems: number;
+    startTime?: Date;
+    endTime?: Date;
+    error?: string;
 }
 
 export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
@@ -53,8 +68,26 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     protected readonly directorRepo: DirectorRepository;
     protected readonly regionRepo: RegionRepository;
 
+    private crawlerJob: CronJob;
+    private isCrawling = false;
+    private status: ICrawlerStatus = {
+        isRunning: false,
+        processedItems: 0,
+        failedItems: 0,
+    };
+    private requestQueue: Promise<void>[] = [];
+    private activeRequests = 0;
+
     constructor(protected readonly dependencies: ICrawlerDependencies) {
-        this.config = dependencies.config;
+        this.validateConfig(dependencies.config);
+
+        this.config = {
+            maxRetries: 3,
+            rateLimitDelay: 1000,
+            maxConcurrentRequests: 3,
+            ...dependencies.config,
+        };
+
         this.configService = dependencies.configService;
         this.schedulerRegistry = dependencies.schedulerRegistry;
         this.redisService = dependencies.redisService;
@@ -67,23 +100,147 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
 
         this.logger = new Logger(this.config.name);
         this.logger.log({
+            host: this.config.host,
             cron: this.config.cronSchedule,
-            tz: process.env.TZ,
+            forceUpdate: this.config.forceUpdate,
+            timeZone: process.env.TZ,
             tzOffset: new Date().getTimezoneOffset(),
         });
     }
 
-    onModuleInit() {
-        const crawMovieJob = new CronJob(this.config.cronSchedule, this.crawlMovies.bind(this));
-        this.schedulerRegistry.addCronJob(
-            `${this.crawlMovies.name}_${this.config.name}`,
-            crawMovieJob,
+    private validateConfig(config: ICrawlerConfig) {
+        if (!config.name) throw new Error('Crawler name is required');
+        if (!config.host) throw new Error('Crawler host is required');
+        if (!config.cronSchedule) throw new Error('Crawler cron schedule is required');
+        if (typeof config.forceUpdate !== 'boolean')
+            throw new Error('forceUpdate must be a boolean');
+    }
+
+    private get jobName(): string {
+        return `${this.crawlMovies.name}_${this.config.name}`;
+    }
+
+    private async enqueueRequest<T>(request: () => Promise<T>): Promise<T> {
+        while (this.activeRequests >= this.config.maxConcurrentRequests) {
+            await sleep(100);
+        }
+
+        this.activeRequests++;
+        try {
+            await sleep(this.config.rateLimitDelay);
+            return await request();
+        } finally {
+            this.activeRequests--;
+        }
+    }
+
+    /**
+     * Check if this crawler is enabled based on configuration.
+     * Override this method to implement custom enable/disable logic.
+     * By default, checks:
+     * 1. Global DISABLE_CRAWL flag
+     * 2. EXCLUDE_MOVIE_SRC list
+     * 3. Crawler-specific disable flag (DISABLE_[NAME]_CRAWL)
+     */
+    protected isEnabled(): boolean {
+        // Check global crawler disable flag
+        const disableCrawl = this.configService.get<string>('DISABLE_CRAWL');
+        if (disableCrawl === 'true') {
+            return false;
+        }
+
+        // Check excluded movie sources
+        const excludedSources = this.configService.get<string>('EXCLUDE_MOVIE_SRC');
+        if (excludedSources) {
+            const excludedList = excludedSources.split(',').map((s) => s.trim().toLowerCase());
+            if (excludedList.includes(this.config.name.toLowerCase())) {
+                return false;
+            }
+        }
+
+        // Check specific crawler disable flag
+        const specificDisableFlag = this.configService.get<string>(
+            `DISABLE_${this.config.name.toUpperCase()}_CRAWL`,
         );
-        crawMovieJob.start();
+        if (specificDisableFlag === 'true') {
+            return false;
+        }
+
+        return this.shouldEnable();
+    }
+
+    /**
+     * Override this method to implement custom enable/disable logic for specific crawlers.
+     * This will be called after checking the standard disable flags.
+     * @returns boolean - true if the crawler should be enabled, false otherwise
+     */
+    protected abstract shouldEnable(): boolean;
+
+    onModuleInit() {
+        if (!this.isEnabled()) {
+            this.logger.warn(`Crawler ${this.config.name} is disabled by configuration`);
+            return;
+        }
+
+        this.crawlerJob = new CronJob(this.config.cronSchedule, this.crawlMovies.bind(this));
+        this.schedulerRegistry.addCronJob(this.jobName, this.crawlerJob);
+        this.crawlerJob.start();
     }
 
     onModuleDestroy() {
-        this.schedulerRegistry.deleteCronJob(`${this.crawlMovies.name}_${this.config.name}`);
+        if (this.schedulerRegistry.doesExist('cron', this.jobName)) {
+            this.schedulerRegistry.deleteCronJob(this.jobName);
+        }
+    }
+
+    /**
+     * Manually trigger a crawl operation
+     * @returns Promise that resolves when crawling is complete
+     */
+    public async triggerCrawl(): Promise<void> {
+        if (!this.isEnabled()) {
+            this.logger.warn(
+                `Cannot trigger crawl: Crawler ${this.config.name} is disabled by configuration`,
+            );
+            return;
+        }
+
+        if (this.isCrawling) {
+            this.logger.warn('Crawler is already running');
+            return;
+        }
+        return this.crawl();
+    }
+
+    /**
+     * Stop the crawler's cron job
+     */
+    public stopCrawler(): void {
+        if (this.crawlerJob) {
+            this.crawlerJob.stop();
+            this.logger.log('Crawler stopped');
+        }
+    }
+
+    /**
+     * Resume the crawler's cron job
+     */
+    public resumeCrawler(): void {
+        if (this.crawlerJob && !this.crawlerJob.running) {
+            this.crawlerJob.start();
+            this.logger.log('Crawler resumed');
+        }
+    }
+
+    /**
+     * Get the crawler's current status
+     */
+    public getStatus(): ICrawlerStatus {
+        return {
+            ...this.status,
+            isRunning: this.isCrawling,
+            lastRun: this.crawlerJob?.lastDate(),
+        };
     }
 
     protected abstract crawlMovies(): Promise<void>;
@@ -93,17 +250,27 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     protected abstract getTotalPages(response: any): number;
     protected abstract getMovieItems(response: any): any[];
 
-    public async triggerCrawl() {
-        return this.crawl();
-    }
-
     protected async crawl() {
+        if (this.isCrawling) {
+            this.logger.warn('Crawler is already running');
+            return;
+        }
+
+        this.isCrawling = true;
+        this.status = {
+            isRunning: true,
+            processedItems: 0,
+            failedItems: 0,
+            startTime: new Date(),
+        };
+
         const today = new Date().toISOString().slice(0, 10);
         const crawlKey = `crawled-pages:${this.config.host}:${today}`;
 
         try {
-            const latestMovies = await this.getNewestMovies(1);
+            const latestMovies = await this.enqueueRequest(() => this.getNewestMovies(1));
             const totalPages = this.getTotalPages(latestMovies);
+            this.status.totalPages = totalPages;
 
             let lastCrawledPage = 0;
             try {
@@ -113,6 +280,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             }
 
             for (let i = lastCrawledPage; i <= totalPages; i++) {
+                this.status.currentPage = i;
                 await this.crawlPage(i);
                 await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
 
@@ -124,7 +292,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                 }
             }
 
-            for (let retryAttempt = 0; retryAttempt < 3; retryAttempt++) {
+            for (let retryAttempt = 0; retryAttempt < this.config.maxRetries; retryAttempt++) {
                 await this.retryFailedCrawls();
             }
 
@@ -133,18 +301,32 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             }
         } catch (error) {
             this.logger.error(`Error crawling movies: ${error}`);
+            this.status.error = error.message;
+        } finally {
+            this.isCrawling = false;
+            this.status.isRunning = false;
+            this.status.endTime = new Date();
         }
     }
 
     protected async crawlPage(page: number) {
         try {
-            const movies = await this.getNewestMovies(page);
+            const movies = await this.enqueueRequest(() => this.getNewestMovies(page));
             const items = this.getMovieItems(movies);
-            for (const movie of items) {
-                if (movie?.slug) {
-                    await this.fetchAndSaveMovieDetail(movie.slug);
-                }
-            }
+
+            await Promise.all(
+                items.map(async (movie) => {
+                    if (movie?.slug) {
+                        try {
+                            await this.fetchAndSaveMovieDetail(movie.slug);
+                            this.status.processedItems++;
+                        } catch (error) {
+                            this.status.failedItems++;
+                            throw error;
+                        }
+                    }
+                }),
+            );
         } catch (error) {
             this.logger.error(`Error crawling page ${page}: ${error}`);
             await sleep(this.RETRY_DELAY);
