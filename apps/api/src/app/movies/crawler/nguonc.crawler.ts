@@ -9,12 +9,7 @@ import { removeDiacritics, removeTone } from '@vn-utils/text';
 
 import { EpisodeServerData, Movie, Episode } from './../movie.schema';
 import { MovieRepository } from './../movie.repository';
-import {
-    convertToObjectId,
-    isNullOrUndefined,
-    sleep,
-    slugifyVietnamese,
-} from '../../../libs/utils/common';
+import { isNullOrUndefined, sleep, slugifyVietnamese } from '../../../libs/utils/common';
 import { ActorRepository } from '../../actors';
 import { RedisService } from '../../../libs/modules/redis';
 import { CategoryRepository } from '../../categories';
@@ -51,6 +46,7 @@ export class NguoncCrawler extends BaseCrawler {
             cronSchedule: configService.getOrThrow<string>('NGUONC_CRON', '0 6 * * *'),
             forceUpdate:
                 configService.getOrThrow<string>('NGUONC_FORCE_UPDATE', 'false') === 'true',
+            maxRetries: configService.getOrThrow<number>('NGUONC_MAX_RETRIES', 3),
         };
 
         const dependencies: ICrawlerDependencies = {
@@ -87,78 +83,68 @@ export class NguoncCrawler extends BaseCrawler {
         return response.data;
     }
 
-    protected async fetchAndSaveMovieDetail(slug: string, retryCount = 0): Promise<void> {
+    protected async fetchAndSaveMovieDetail(slug: string, retryCount = 0): Promise<boolean> {
+        slug = slugifyVietnamese(slug);
+
         try {
             const response = await this.httpService.axiosRef.get(
                 `${this.config.host}/film/${slug}`,
             );
             const movieDetail = response.data.movie;
-            if (movieDetail) {
-                await this.saveMovieDetail(movieDetail);
+            if (!movieDetail) {
+                return false;
             }
+
+            // saveMovieDetail returns true if movie was updated, false if skipped
+            const wasUpdated = await this.saveMovieDetail(movieDetail);
+            if (wasUpdated) {
+                this.logger.log(`Successfully saved movie: ${slug}`);
+            } else {
+                this.logger.debug(`Movie ${slug} was skipped (no updates needed)`);
+            }
+            return wasUpdated;
         } catch (error) {
-            if (error.response && error.response.status === 429 && retryCount < 5) {
-                const delay = this.calculateBackoff(retryCount);
-                this.logger.warn(`Rate limited for slug ${slug}. Retrying in ${delay}ms...`);
-                await sleep(delay);
+            if (retryCount < this.config.maxRetries) {
+                this.logger.warn(
+                    `Error fetching movie detail for ${slug}, retrying (${retryCount + 1}/${
+                        this.config.maxRetries
+                    }): ${error.message}`,
+                );
+                await sleep(this.RETRY_DELAY);
                 return this.fetchAndSaveMovieDetail(slug, retryCount + 1);
             }
-            this.logger.error(`Error fetching movie detail for slug ${slug}: ${error}`);
-            await this.addToFailedCrawls(slug);
+            throw error;
         }
     }
 
-    protected async saveMovieDetail(movieDetail: any): Promise<void> {
+    protected async saveMovieDetail(movieDetail: any): Promise<boolean> {
         const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
+
         try {
             const existingMovie = await this.movieRepo.findOne({
                 filterQuery: { slug: movieSlug },
             });
-            const lastModified = new Date(movieDetail?.modified || Date.now());
+
+            const lastModified = new Date(movieDetail?.modified || 0);
             if (
-                !this.config.forceUpdate &&
                 existingMovie &&
-                existingMovie.lastSyncModified &&
+                !this.config.forceUpdate &&
                 lastModified <= existingMovie?.lastSyncModified
             ) {
-                this.logger.log(`Movie "${movieDetail?.slug}" is up to date. Skipping...`);
-                return;
+                return false;
             }
+
             const [{ categories, countries }, actorIds, directorIds] = await Promise.all([
                 this.processCategoriesAndCountries(movieDetail.category),
                 this.processActors(movieDetail.casts),
                 this.processDirectors(movieDetail.director),
             ]);
-            const yearCategory = (Object.values(movieDetail.category || {}) as any[]).find(
-                (group: any) => group?.group?.name?.toLowerCase() === 'năm',
+
+            const processedEpisodes = this.processEpisodes(
+                movieDetail.episodes,
+                existingMovie?.episode || [],
             );
-            const year =
-                existingMovie?.year ||
-                (yearCategory?.list?.[0]?.name ? parseInt(yearCategory.list[0].name) : null);
-            const {
-                id,
-                name,
-                slug,
-                original_name,
-                thumb_url,
-                poster_url,
-                description,
-                total_episodes,
-                current_episode,
-                modified,
-                episodes,
-            } = movieDetail;
-            let correctId: Types.ObjectId;
-            try {
-                correctId = convertToObjectId(id);
-            } catch (error) {
-                correctId = new Types.ObjectId();
-            }
-            const processedEpisodes = this.processEpisodes(episodes, existingMovie?.episode || []);
-            const processedSlug =
-                existingMovie?.slug ||
-                slugifyVietnamese(slug?.toString() || '', { lower: true }) ||
-                slugifyVietnamese(name?.toString() || '', { lower: true });
+
             const movieData: Partial<Movie> = {
                 ...(existingMovie || {}),
                 type:
@@ -170,17 +156,20 @@ export class NguoncCrawler extends BaseCrawler {
                 status: mapStatus(existingMovie?.status || this.processMovieStatus(movieDetail)),
                 lastSyncModified: new Date(
                     Math.max(
-                        modified ? new Date(modified).getTime() : 0,
+                        movieDetail?.modified ? new Date(movieDetail.modified).getTime() : 0,
                         !isNullOrUndefined(existingMovie?.lastSyncModified)
                             ? new Date(existingMovie.lastSyncModified).getTime()
                             : 0,
                         0,
                     ),
                 ),
-                _id: correctId,
-                slug: processedSlug,
-                content: description
-                    ? stripHtml(description.toString()).result
+                _id: existingMovie?._id || new Types.ObjectId(),
+                slug:
+                    existingMovie?.slug ||
+                    slugifyVietnamese(movieDetail.slug?.toString() || '', { lower: true }) ||
+                    slugifyVietnamese(movieDetail.name?.toString() || '', { lower: true }),
+                content: movieDetail?.content
+                    ? stripHtml(movieDetail.content.toString()).result
                     : existingMovie?.content || '',
                 actors: actorIds.length > 0 ? actorIds : existingMovie?.actors || [],
                 categories: categories.length > 0 ? categories : existingMovie?.categories || [],
@@ -189,14 +178,25 @@ export class NguoncCrawler extends BaseCrawler {
                     directorIds && directorIds?.length > 0
                         ? directorIds
                         : existingMovie?.directors || [],
-                thumbUrl: existingMovie?.thumbUrl || thumb_url || '',
-                posterUrl: existingMovie?.posterUrl || poster_url || '',
+                thumbUrl: existingMovie?.thumbUrl || movieDetail.thumb_url || '',
+                posterUrl: existingMovie?.posterUrl || movieDetail.poster_url || '',
 
-                name: existingMovie?.name || name || '',
-                originName: existingMovie?.originName || original_name || '',
-                episodeTotal: existingMovie?.episodeTotal || total_episodes?.toString() || '',
-                episodeCurrent: existingMovie?.episodeCurrent || current_episode || '',
-                year: existingMovie?.year || year || null,
+                name: existingMovie?.name || movieDetail.name || '',
+                originName: existingMovie?.originName || movieDetail.origin_name || '',
+                episodeTotal:
+                    existingMovie?.episodeTotal || movieDetail.episode_total?.toString() || '',
+                episodeCurrent: existingMovie?.episodeCurrent || movieDetail.episode_current || '',
+                year:
+                    existingMovie?.year ||
+                    (Object.values(movieDetail.category || {}) as any[]).find(
+                        (group: any) => group?.group?.name?.toLowerCase() === 'năm',
+                    )?.list?.[0]?.name
+                        ? parseInt(
+                              (Object.values(movieDetail.category || {}) as any[]).find(
+                                  (group: any) => group?.group?.name?.toLowerCase() === 'năm',
+                              )?.list?.[0]?.name,
+                          )
+                        : null,
                 episode:
                     processedEpisodes.length > 0 ? processedEpisodes : existingMovie?.episode || [],
             };
@@ -218,8 +218,10 @@ export class NguoncCrawler extends BaseCrawler {
                 await this.movieRepo.create({ document: movieData as Movie });
                 this.logger.log(`Saved movie: "${movieSlug}"`);
             }
+            return true;
         } catch (error) {
             this.logger.error(`Error saving movie detail for ${movieSlug}: ${error}`);
+            return false;
         }
     }
 

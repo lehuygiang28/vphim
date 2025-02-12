@@ -5,7 +5,6 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js';
-import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
@@ -20,7 +19,13 @@ import {
 
 import { EpisodeServerData, Movie } from './../movie.schema';
 import { MovieRepository } from './../movie.repository';
-import { convertToObjectId, isNullOrUndefined, resolveUrl } from '../../../libs/utils/common';
+import {
+    convertToObjectId,
+    isNullOrUndefined,
+    resolveUrl,
+    sleep,
+    slugifyVietnamese,
+} from '../../../libs/utils/common';
 import { ActorRepository } from '../../actors';
 import { RedisService } from '../../../libs/modules/redis';
 import { CategoryRepository } from '../../categories';
@@ -49,6 +54,7 @@ export class KKPhimCrawler extends BaseCrawler {
             cronSchedule: configService.getOrThrow<string>('KKPHIM_CRON', '0 5 * * *'),
             forceUpdate:
                 configService.getOrThrow<string>('KKPHIM_FORCE_UPDATE', 'false') === 'true',
+            maxRetries: configService.getOrThrow<number>('KKPHIM_MAX_RETRIES', 3),
         };
 
         const dependencies: ICrawlerDependencies = {
@@ -92,41 +98,59 @@ export class KKPhimCrawler extends BaseCrawler {
         return response.items;
     }
 
-    protected async fetchAndSaveMovieDetail(slug: string): Promise<void> {
+    protected async fetchAndSaveMovieDetail(slug: string, retryCount = 0): Promise<boolean> {
+        slug = slugifyVietnamese(slug);
+
         try {
             const movieDetail = await this.kkphim.getMovieDetail({ slug });
-            if (movieDetail) {
-                await this.saveMovieDetail(movieDetail);
+            if (!movieDetail) {
+                return false;
             }
+
+            // saveMovieDetail returns true if movie was updated, false if skipped
+            const wasUpdated = await this.saveMovieDetail(movieDetail);
+            if (wasUpdated) {
+                this.logger.log(`Successfully saved movie: ${slug}`);
+            } else {
+                this.logger.debug(`Movie ${slug} was skipped (no updates needed)`);
+            }
+            return wasUpdated;
         } catch (error) {
-            this.logger.error(`Error fetching movie detail for slug ${slug}: ${error}`);
-            await this.addToFailedCrawls(slug);
+            if (retryCount < this.config.maxRetries) {
+                this.logger.warn(
+                    `Error fetching movie detail for ${slug}, retrying (${retryCount + 1}/${
+                        this.config.maxRetries
+                    }): ${error.message}`,
+                );
+                await sleep(this.RETRY_DELAY);
+                return this.fetchAndSaveMovieDetail(slug, retryCount + 1);
+            }
+            throw error;
         }
     }
 
-    protected async saveMovieDetail(
-        input: OPhimResponseSingle<
-            OPhimMovie & {
+    protected async saveMovieDetail(input: {
+        data?: {
+            item?: OPhimMovie & {
                 episodes?: OPhimServerData[];
-            }
-        >,
-    ): Promise<void> {
+            };
+        };
+    }): Promise<boolean> {
         const { data: { item: movieDetail } = {} } = input;
-        const movieSlug = removeDiacritics(removeTone(movieDetail?.slug || ''));
+        const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
 
         try {
             const existingMovie = await this.movieRepo.findOne({
                 filterQuery: { slug: movieSlug },
             });
 
-            const lastModified = new Date(movieDetail.modified.time);
+            const lastModified = new Date(movieDetail?.modified.time);
             if (
-                !this.config.forceUpdate &&
                 existingMovie &&
+                !this.config.forceUpdate &&
                 lastModified <= existingMovie?.lastSyncModified
             ) {
-                this.logger.log(`Movie "${movieDetail?.slug}" is up to date. Skipping...`);
-                return;
+                return false;
             }
 
             const [{ categories: categoryIds, countries: countryIds }, actorIds, directorIds] =
@@ -243,8 +267,10 @@ export class KKPhimCrawler extends BaseCrawler {
                 });
                 this.logger.log(`Saved movie: "${movieSlug}"`);
             }
+            return true;
         } catch (error) {
             this.logger.error(`Error saving movie detail for ${movieSlug}: ${error}`);
+            return false;
         }
     }
 

@@ -12,7 +12,7 @@ import { CategoryRepository } from '../../categories';
 import { DirectorRepository } from '../../directors';
 import { RegionRepository } from '../../regions/region.repository';
 import { Episode, EpisodeServerData } from '../movie.schema';
-import { sleep } from '../../../libs/utils/common';
+import { sleep, slugifyVietnamese } from '../../../libs/utils/common';
 import { mappingNameSlugEpisode } from './mapping-data';
 
 export interface ICrawlerConfig {
@@ -24,6 +24,7 @@ export interface ICrawlerConfig {
     maxRetries?: number;
     rateLimitDelay?: number;
     maxConcurrentRequests?: number;
+    maxContinuousSkips?: number;
 }
 
 export interface ICrawlerDependencies {
@@ -77,6 +78,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     };
     private requestQueue: Promise<void>[] = [];
     private activeRequests = 0;
+    private continuousSkips = 0;
 
     constructor(protected readonly dependencies: ICrawlerDependencies) {
         this.validateConfig(dependencies.config);
@@ -85,6 +87,9 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             maxRetries: 3,
             rateLimitDelay: 1000,
             maxConcurrentRequests: 3,
+            maxContinuousSkips: parseInt(
+                dependencies.configService.get('MAX_CONTINUOUS_SKIPS') || '100',
+            ),
             ...dependencies.config,
         };
 
@@ -105,6 +110,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             forceUpdate: this.config.forceUpdate,
             timeZone: process.env.TZ,
             tzOffset: new Date().getTimezoneOffset(),
+            maxContinuousSkips: this.config.maxContinuousSkips,
         });
     }
 
@@ -182,9 +188,32 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             return;
         }
 
-        this.crawlerJob = new CronJob(this.config.cronSchedule, this.crawlMovies.bind(this));
-        this.schedulerRegistry.addCronJob(this.jobName, this.crawlerJob);
-        this.crawlerJob.start();
+        // Check if the crawler was auto-stopped due to continuous skips
+        const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
+        this.redisService.get(autoStopKey).then((lastStopTime) => {
+            if (lastStopTime) {
+                const stopTime = new Date(lastStopTime);
+                const hoursSinceStop =
+                    (new Date().getTime() - stopTime.getTime()) / (1000 * 60 * 60);
+
+                // If it's been less than 24 hours since auto-stop, don't restart
+                if (hoursSinceStop < 24) {
+                    this.logger.warn(
+                        `Crawler ${this.config.name} was auto-stopped ${Math.round(
+                            hoursSinceStop,
+                        )} hours ago due to no updates. Will not restart until 24 hours have passed.`,
+                    );
+                    return;
+                } else {
+                    // Clear the auto-stop flag and start normally
+                    this.redisService.del(autoStopKey);
+                }
+            }
+
+            this.crawlerJob = new CronJob(this.config.cronSchedule, this.crawlMovies.bind(this));
+            this.schedulerRegistry.addCronJob(this.jobName, this.crawlerJob);
+            this.crawlerJob.start();
+        });
     }
 
     onModuleDestroy() {
@@ -223,32 +252,30 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
-     * Resume the crawler's cron job
+     * Resume the crawler's cron job, clearing any auto-stop state
      */
-    public resumeCrawler(): void {
-        if (this.crawlerJob && !this.crawlerJob.running) {
+    public async resumeCrawler(): Promise<void> {
+        if (!this.isEnabled()) {
+            this.logger.warn(
+                `Cannot resume: Crawler ${this.config.name} is disabled by configuration`,
+            );
+            return;
+        }
+
+        // Clear the auto-stop flag
+        const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
+        await this.redisService.del(autoStopKey);
+
+        if (!this.crawlerJob) {
+            this.crawlerJob = new CronJob(this.config.cronSchedule, this.crawlMovies.bind(this));
+            this.schedulerRegistry.addCronJob(this.jobName, this.crawlerJob);
+        }
+
+        if (!this.crawlerJob.running) {
             this.crawlerJob.start();
             this.logger.log('Crawler resumed');
         }
     }
-
-    /**
-     * Get the crawler's current status
-     */
-    public getStatus(): ICrawlerStatus {
-        return {
-            ...this.status,
-            isRunning: this.isCrawling,
-            lastRun: this.crawlerJob?.lastDate(),
-        };
-    }
-
-    protected abstract crawlMovies(): Promise<void>;
-    protected abstract getNewestMovies(page: number): Promise<any>;
-    protected abstract fetchAndSaveMovieDetail(slug: string, retryCount?: number): Promise<void>;
-    protected abstract saveMovieDetail(movieDetail: any): Promise<void>;
-    protected abstract getTotalPages(response: any): number;
-    protected abstract getMovieItems(response: any): any[];
 
     protected async crawl() {
         if (this.isCrawling) {
@@ -263,6 +290,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             failedItems: 0,
             startTime: new Date(),
         };
+        this.continuousSkips = 0;
 
         const today = new Date().toISOString().slice(0, 10);
         const crawlKey = `crawled-pages:${this.config.host}:${today}`;
@@ -283,6 +311,23 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                 this.status.currentPage = i;
                 await this.crawlPage(i);
                 await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
+
+                if (this.continuousSkips >= this.config.maxContinuousSkips) {
+                    this.logger.warn(
+                        `Stopping crawler: ${this.continuousSkips} movies skipped continuously without updates`,
+                    );
+
+                    // Stop the cron job
+                    if (this.crawlerJob && this.schedulerRegistry.doesExist('cron', this.jobName)) {
+                        this.crawlerJob.stop();
+                        this.logger.log(`Stopped cron job ${this.jobName}`);
+
+                        // Set a Redis key to remember that this crawler was auto-stopped
+                        const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
+                        await this.redisService.set(autoStopKey, new Date().toISOString());
+                    }
+                    break;
+                }
 
                 if (
                     this.moviesToRevalidate.length > 0 &&
@@ -309,21 +354,46 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         }
     }
 
+    protected abstract crawlMovies(): Promise<void>;
+    protected abstract getNewestMovies(page: number): Promise<any>;
+    protected abstract fetchAndSaveMovieDetail(slug: string, retryCount?: number): Promise<boolean>;
+    /**
+     * Save movie details to the database
+     * @param movieDetail The movie details to save
+     * @returns boolean - true if the movie was updated/created, false if skipped
+     */
+    protected abstract saveMovieDetail(movieDetail: any): Promise<boolean>;
+    protected abstract getTotalPages(response: any): number;
+    protected abstract getMovieItems(response: any): any[];
+
     protected async crawlPage(page: number) {
         try {
             const movies = await this.enqueueRequest(() => this.getNewestMovies(page));
-            const items = this.getMovieItems(movies);
+            const items = this.getMovieItems(movies).map((m) => ({
+                ...m,
+                slug: slugifyVietnamese(m.slug),
+            }));
 
             await Promise.all(
                 items.map(async (movie) => {
                     if (movie?.slug) {
                         try {
-                            await this.fetchAndSaveMovieDetail(movie.slug);
-                            this.status.processedItems++;
+                            const wasUpdated = await this.fetchAndSaveMovieDetail(movie.slug);
+                            if (wasUpdated) {
+                                this.status.processedItems++;
+                                // Reset continuous skips when a movie is updated
+                                this.resetSkipCount();
+                            } else {
+                                // Only increment skip count if movie was not updated
+                                this.incrementSkipCount();
+                            }
                         } catch (error) {
                             this.status.failedItems++;
                             throw error;
                         }
+                    } else {
+                        // Invalid movie (no slug), count as skip
+                        this.incrementSkipCount();
                     }
                 }),
             );
@@ -459,5 +529,25 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         });
 
         return processedEpisodes;
+    }
+
+    /**
+     * Call this method when a movie is skipped due to no updates needed
+     */
+    protected incrementSkipCount(): void {
+        this.continuousSkips++;
+        this.logger.debug(
+            `Continuous skips: ${this.continuousSkips}/${this.config.maxContinuousSkips}`,
+        );
+    }
+
+    /**
+     * Call this method when a movie is successfully updated
+     */
+    protected resetSkipCount(): void {
+        if (this.continuousSkips > 0) {
+            this.logger.debug(`Reset continuous skips counter from ${this.continuousSkips} to 0`);
+        }
+        this.continuousSkips = 0;
     }
 }

@@ -12,7 +12,13 @@ import { removeDiacritics, removeTone } from '@vn-utils/text';
 
 import { EpisodeServerData, Movie } from '../movie.schema';
 import { MovieRepository } from '../movie.repository';
-import { convertToObjectId, isNullOrUndefined, resolveUrl } from '../../../libs/utils/common';
+import {
+    convertToObjectId,
+    isNullOrUndefined,
+    resolveUrl,
+    sleep,
+    slugifyVietnamese,
+} from '../../../libs/utils/common';
 import { ActorRepository } from '../../actors';
 import { RedisService } from '../../../libs/modules/redis';
 import { CategoryRepository } from '../../categories';
@@ -48,6 +54,7 @@ export class OphimCrawler extends BaseCrawler {
             host: configService.getOrThrow<string>('OPHIM_HOST', 'https://ophim1.com'),
             cronSchedule: configService.getOrThrow<string>('OPHIM_CRON', '0 4 * * *'),
             forceUpdate: configService.getOrThrow<string>('OPHIM_FORCE_UPDATE', 'false') === 'true',
+            maxRetries: configService.getOrThrow<number>('OPHIM_MAX_RETRIES', 3),
         };
 
         const dependencies: ICrawlerDependencies = {
@@ -93,15 +100,34 @@ export class OphimCrawler extends BaseCrawler {
         return response.items;
     }
 
-    protected async fetchAndSaveMovieDetail(slug: string): Promise<void> {
+    protected async fetchAndSaveMovieDetail(slug: string, retryCount = 0): Promise<boolean> {
+        slug = slugifyVietnamese(slug);
+
         try {
             const movieDetail = await this.ophim.getMovieDetail({ slug });
-            if (movieDetail) {
-                await this.saveMovieDetail(movieDetail);
+            if (!movieDetail) {
+                return false;
             }
+
+            // saveMovieDetail returns true if movie was updated, false if skipped
+            const wasUpdated = await this.saveMovieDetail(movieDetail);
+            if (wasUpdated) {
+                this.logger.log(`Successfully saved movie: ${slug}`);
+            } else {
+                this.logger.debug(`Movie ${slug} was skipped (no updates needed)`);
+            }
+            return wasUpdated;
         } catch (error) {
-            this.logger.error(`Error fetching movie detail for slug ${slug}: ${error}`);
-            await this.addToFailedCrawls(slug);
+            if (retryCount < this.config.maxRetries) {
+                this.logger.warn(
+                    `Error fetching movie detail for ${slug}, retrying (${retryCount + 1}/${
+                        this.config.maxRetries
+                    }): ${error.message}`,
+                );
+                await sleep(this.RETRY_DELAY);
+                return this.fetchAndSaveMovieDetail(slug, retryCount + 1);
+            }
+            throw error;
         }
     }
 
@@ -111,7 +137,7 @@ export class OphimCrawler extends BaseCrawler {
                 episodes?: OPhimServerData[];
             }
         >,
-    ): Promise<void> {
+    ): Promise<boolean> {
         const { data: { item: movieDetail } = {} } = input;
         const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
 
@@ -126,8 +152,7 @@ export class OphimCrawler extends BaseCrawler {
                 existingMovie &&
                 lastModified <= existingMovie?.lastSyncModified
             ) {
-                this.logger.log(`Movie "${movieDetail?.slug}" is up to date. Skipping...`);
-                return;
+                return false;
             }
 
             const [{ categories: categoryIds, countries: countryIds }, actorIds, directorIds] =
@@ -240,8 +265,10 @@ export class OphimCrawler extends BaseCrawler {
                 });
                 this.logger.log(`Saved movie: "${movieSlug}"`);
             }
+            return true;
         } catch (error) {
             this.logger.error(`Error saving movie detail for ${movieSlug}: ${error}`);
+            return false;
         }
     }
 
