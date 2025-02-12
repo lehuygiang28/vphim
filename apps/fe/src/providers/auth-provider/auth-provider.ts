@@ -257,12 +257,17 @@ export const authProvider = (
 
             const {
                 data: { data: res },
-            } = await authAxios.post<any>(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
-                query: print(GET_ME_QUERY),
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
+            } = await authAxios.post<any>(
+                `${process.env.NEXT_PUBLIC_API_URL}/graphql`,
+                {
+                    query: print(GET_ME_QUERY),
                 },
-            });
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                },
+            );
             const getMe = res?.['getMe'];
             if (!getMe) {
                 return null;
