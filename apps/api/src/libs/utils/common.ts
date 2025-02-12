@@ -142,8 +142,17 @@ export function randomString(length: number, { onlyLetters = false } = {}): stri
     return result;
 }
 
-export const slugifyVietnamese = (str: string, options?: Parameters<typeof slug>[1]) => {
-    return slug(removeDiacritics(removeTone(str)), options);
+export const slugifyVietnamese = (
+    input: string,
+    slugOptions?: Parameters<typeof slug>[1],
+    moreOptions?: { keepLastHyphen?: boolean },
+) => {
+    const { keepLastHyphen = true } = moreOptions || {};
+    const slugifiedInput = slug(removeDiacritics(removeTone(input)), slugOptions);
+    if (input[input.length - 1] === '-' && keepLastHyphen) {
+        return slugifiedInput + '-';
+    }
+    return slugifiedInput;
 };
 
 export function isEmptyObject(obj: object): boolean {

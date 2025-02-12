@@ -88,9 +88,9 @@ export class NguoncCrawler extends BaseCrawler {
      * @returns true if the crawler should be enabled
      */
     protected shouldEnable(): boolean {
-        // Only enable if KKPHIM_HOST is set or not set to 'false'
+        // Only enable if NGUONC_HOST is set and not 'false'
         const nguoncHost = this.configService.get<string>('NGUONC_HOST');
-        return !!nguoncHost || nguoncHost === 'false';
+        return !!nguoncHost && nguoncHost !== 'false';
     }
 
     /**

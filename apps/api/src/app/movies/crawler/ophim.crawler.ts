@@ -110,9 +110,9 @@ export class OphimCrawler extends BaseCrawler {
      * @returns true if the crawler should be enabled
      */
     protected shouldEnable(): boolean {
-        // Only enable if OPHIM_HOST is set or not set to 'false'
+        // Only enable if OPHIM_HOST is set and not 'false'
         const ophimHost = this.configService.get<string>('OPHIM_HOST');
-        return !!ophimHost || ophimHost === 'false';
+        return !!ophimHost && ophimHost !== 'false';
     }
 
     /**

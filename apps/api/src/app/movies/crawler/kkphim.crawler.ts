@@ -76,13 +76,14 @@ export class KKPhimCrawler extends BaseCrawler {
     }
 
     protected shouldEnable(): boolean {
-        // Only enable if KKPHIM_HOST is set or not set to 'false'
-        const ophimHost = this.configService.get<string>('KKPHIM_HOST');
-        return !!ophimHost || ophimHost === 'false';
+        // Only enable if KKPHIM_HOST is set and not 'false'
+        const kkphimHost = this.configService.get<string>('KKPHIM_HOST');
+        return !!kkphimHost && kkphimHost !== 'false';
     }
 
     protected async crawlMovies(): Promise<void> {
-        this.logger.log('Crawling movie from KKPhim ...');
+        this.logger.log('Crawling movies from KKPhim...');
+        // Call base class crawl() which handles skip detection and auto-stop
         await this.crawl();
     }
 

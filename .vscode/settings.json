@@ -43,6 +43,7 @@
         "showtimes",
         "Sider",
         "skinparam",
+        "slugified",
         "slugtify",
         "smembers",
         "srem",
