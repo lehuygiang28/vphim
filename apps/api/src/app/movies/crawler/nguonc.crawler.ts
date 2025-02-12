@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { HttpException, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {  Injectable, } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
-import { CronJob } from 'cron';
 import { stripHtml } from 'string-strip-html';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
 
@@ -13,7 +12,6 @@ import { MovieRepository } from './../movie.repository';
 import {
     convertToObjectId,
     isNullOrUndefined,
-    isTrue,
     sleep,
     slugifyVietnamese,
 } from '../../../libs/utils/common';
@@ -32,174 +30,86 @@ import {
 } from './mapping-data';
 import { AbstractRepository } from 'apps/api/src/libs/abstract/abstract.repository';
 import { MovieTypeEnum } from '../movie.constant';
+import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
 
 @Injectable()
-export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
-    private readonly NGUONC_CRON: string = '0 6 * * *';
-    private readonly RETRY_DELAY = 5000;
-    private readonly NGUONC_FORCE_UPDATE: boolean = false;
-    private readonly NGUONC_HOST: string = 'https://phim.nguonc.com/api';
-    private readonly logger = new Logger(NguoncCrawler.name);
-    private readonly REVALIDATION_BATCH_SIZE = 40;
-    private moviesToRevalidate: string[] = [];
-
+export class NguoncCrawler extends BaseCrawler {
     constructor(
-        private readonly configService: ConfigService,
-        private readonly schedulerRegistry: SchedulerRegistry,
-        private readonly redisService: RedisService,
-        private readonly httpService: HttpService,
-        private readonly movieRepo: MovieRepository,
-        private readonly actorRepo: ActorRepository,
-        private readonly categoryRepo: CategoryRepository,
-        private readonly directorRepo: DirectorRepository,
-        private readonly regionRepo: RegionRepository,
+        configService: ConfigService,
+        schedulerRegistry: SchedulerRegistry,
+        redisService: RedisService,
+        httpService: HttpService,
+        movieRepo: MovieRepository,
+        actorRepo: ActorRepository,
+        categoryRepo: CategoryRepository,
+        directorRepo: DirectorRepository,
+        regionRepo: RegionRepository,
     ) {
-        if (!isNullOrUndefined(this.configService.get('NGUONC_CRON'))) {
-            this.NGUONC_CRON = this.configService.getOrThrow<string>('NGUONC_CRON');
-        }
+        const config: ICrawlerConfig = {
+            name: 'NguoncCrawler',
+            host: configService.getOrThrow<string>('NGUONC_HOST', 'https://phim.nguonc.com/api'),
+            cronSchedule: configService.getOrThrow<string>('NGUONC_CRON', '0 6 * * *'),
+            forceUpdate: configService.getOrThrow<boolean>('NGUONC_FORCE_UPDATE', false),
+        };
 
-        if (!isNullOrUndefined(this.configService.get('NGUONC_FORCE_UPDATE'))) {
-            this.NGUONC_FORCE_UPDATE = isTrue(
-                this.configService.getOrThrow<boolean>('NGUONC_FORCE_UPDATE'),
-            );
-        }
+        const dependencies: ICrawlerDependencies = {
+            config,
+            configService,
+            schedulerRegistry,
+            redisService,
+            httpService,
+            movieRepo,
+            actorRepo,
+            categoryRepo,
+            directorRepo,
+            regionRepo,
+        };
 
-        this.logger.log({
-            nguonc_cron: this.NGUONC_CRON,
-            tz: process.env.TZ,
-            tzOffset: new Date().getTimezoneOffset(),
-        });
+        super(dependencies);
     }
 
-    onModuleInit() {
-        const crawMovieJob = new CronJob(this.NGUONC_CRON, this.crawMovieFromNguonc.bind(this));
-        this.schedulerRegistry.addCronJob(this.crawMovieFromNguonc.name, crawMovieJob);
-        crawMovieJob.start();
-    }
-
-    onModuleDestroy() {
-        this.schedulerRegistry.deleteCronJob(this.crawMovieFromNguonc.name);
-    }
-
-    async crawMovieFromNguonc() {
+    protected async crawlMovies(): Promise<void> {
         this.logger.log('Crawling movie from Nguonc ...');
-        return this.crawl();
+        await this.crawl();
     }
 
-    async crawl() {
-        const today = new Date().toISOString().slice(0, 10);
-        const crawlKey = `crawled-pages:${this.NGUONC_HOST}:${today}`;
-
-        try {
-            const latestMovies = await this.getNewestMovies(1);
-            const totalPages = latestMovies.paginate.total_page;
-
-            let lastCrawledPage = 0;
-            try {
-                lastCrawledPage = parseInt(await this.redisService.get(crawlKey)) || 0;
-            } catch (error) {
-                this.logger.error(`Error getting last crawled page from Redis: ${error}`);
-            }
-
-            for (let i = lastCrawledPage; i <= totalPages; i++) {
-                await this.crawlPage(i);
-                await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
-
-                // Revalidate all updated movies at once
-                if (
-                    this.moviesToRevalidate.length > 0 &&
-                    this.moviesToRevalidate.length >= this.REVALIDATION_BATCH_SIZE
-                ) {
-                    await this.revalidateMovies();
-                }
-            }
-
-            for (let retryAttempt = 0; retryAttempt < 3; retryAttempt++) {
-                await this.retryFailedCrawls();
-            }
-
-            // Revalidate all updated movies at once when all pages are crawled
-            if (this.moviesToRevalidate.length > 0) {
-                await this.revalidateMovies();
-            }
-        } catch (error) {
-            this.logger.error(`Error crawling movies: ${error}`);
-        }
-    }
-
-    private async crawlPage(page: number) {
-        try {
-            const latestMovies = await this.getNewestMovies(page);
-            for (const movie of latestMovies.items) {
-                if (movie?.slug) {
-                    await this.fetchAndSaveMovieDetail(removeTone(removeDiacritics(movie?.slug)));
-                }
-            }
-        } catch (error) {
-            this.logger.error(`Error crawling page ${page}: ${error}`);
-            await sleep(this.RETRY_DELAY);
-            return this.crawlPage(page);
-        }
-    }
-
-    private async getNewestMovies(page: number) {
+    protected async getNewestMovies(page: number): Promise<any> {
         const response = await this.httpService.axiosRef.get(
-            `${this.NGUONC_HOST}/films/phim-moi-cap-nhat?page=${page}`,
+            `${this.config.host}/films/phim-moi-cap-nhat?page=${page}`,
         );
         return response.data;
     }
 
-    private async fetchAndSaveMovieDetail(slug: string, retryCount = 0) {
+    protected async fetchAndSaveMovieDetail(slug: string, retryCount = 0): Promise<void> {
         try {
             const response = await this.httpService.axiosRef.get(
-                `${this.NGUONC_HOST}/film/${slug}`,
+                `${this.config.host}/film/${slug}`,
             );
             const movieDetail = response.data.movie;
             if (movieDetail) {
                 await this.saveMovieDetail(movieDetail);
             }
         } catch (error) {
-            if (error.response && error.response.status === 429) {
-                if (retryCount < 5) {
-                    // Max 5 retries
-                    const delay = this.calculateBackoff(retryCount);
-                    this.logger.warn(`Rate limited for slug ${slug}. Retrying in ${delay}ms...`);
-                    await sleep(delay);
-                    return this.fetchAndSaveMovieDetail(slug, retryCount + 1);
-                } else {
-                    this.logger.error(`Max retries reached for slug ${slug}`);
-                }
+            if (error.response && error.response.status === 429 && retryCount < 5) {
+                const delay = this.calculateBackoff(retryCount);
+                this.logger.warn(`Rate limited for slug ${slug}. Retrying in ${delay}ms...`);
+                await sleep(delay);
+                return this.fetchAndSaveMovieDetail(slug, retryCount + 1);
             }
-            if (error instanceof HttpException) {
-                this.logger.error(
-                    `HTTP error fetching movie detail for slug ${slug}: ${error.message}`,
-                );
-            } else {
-                this.logger.error(`Error fetching movie detail for slug ${slug}: ${error}`);
-            }
-            return this.addToFailedCrawls(slug);
+            this.logger.error(`Error fetching movie detail for slug ${slug}: ${error}`);
+            await this.addToFailedCrawls(slug);
         }
     }
 
-    private calculateBackoff(retryCount: number): number {
-        // Exponential backoff with jitter
-        const baseDelay = 1000; // 1 second
-        const maxDelay = 60000; // 1 minute
-        const exponentialDelay = Math.min(maxDelay, baseDelay * Math.pow(2, retryCount));
-        const jitter = Math.random() * 1000; // Add up to 1 second of random jitter
-        return exponentialDelay + jitter;
-    }
-
-    private async saveMovieDetail(movieDetail: any) {
+    protected async saveMovieDetail(movieDetail: any): Promise<void> {
         const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
         try {
             const existingMovie = await this.movieRepo.findOne({
                 filterQuery: { slug: movieSlug },
             });
-
             const lastModified = new Date(movieDetail?.modified || Date.now());
             if (
-                !this.NGUONC_FORCE_UPDATE &&
+                !this.config.forceUpdate &&
                 existingMovie &&
                 existingMovie.lastSyncModified &&
                 lastModified <= existingMovie?.lastSyncModified
@@ -207,20 +117,17 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 this.logger.log(`Movie "${movieDetail?.slug}" is up to date. Skipping...`);
                 return;
             }
-
             const [{ categories, countries }, actorIds, directorIds] = await Promise.all([
                 this.processCategoriesAndCountries(movieDetail.category),
                 this.processActors(movieDetail.casts),
                 this.processDirectors(movieDetail.director),
             ]);
-
             const yearCategory = (Object.values(movieDetail.category || {}) as any[]).find(
                 (group: any) => group?.group?.name?.toLowerCase() === 'năm',
             );
             const year =
                 existingMovie?.year ||
                 (yearCategory?.list?.[0]?.name ? parseInt(yearCategory.list[0].name) : null);
-
             const {
                 id,
                 name,
@@ -233,32 +140,20 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 current_episode,
                 modified,
                 episodes,
-
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                time,
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                quality,
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                language,
             } = movieDetail;
-
             let correctId: Types.ObjectId;
             try {
                 correctId = convertToObjectId(id);
             } catch (error) {
                 correctId = new Types.ObjectId();
             }
-
             const processedEpisodes = this.processEpisodes(episodes, existingMovie?.episode || []);
-
             const processedSlug =
                 existingMovie?.slug ||
                 slugifyVietnamese(slug?.toString() || '', { lower: true }) ||
                 slugifyVietnamese(name?.toString() || '', { lower: true });
             const movieData: Partial<Movie> = {
                 ...(existingMovie || {}),
-
-                // Mapping data
                 type:
                     MOVIE_TYPE_MAP[this.processMovieType(movieDetail) || existingMovie?.type] ||
                     'N/A',
@@ -266,9 +161,6 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
                 status: mapStatus(existingMovie?.status || this.processMovieStatus(movieDetail)),
-                // nguonc not provide view
-                // view: Math.max(view, existingMovie?.view || 0, 0),
-
                 lastSyncModified: new Date(
                     Math.max(
                         modified ? new Date(modified).getTime() : 0,
@@ -278,7 +170,6 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                         0,
                     ),
                 ),
-
                 _id: correctId,
                 slug: processedSlug,
                 content: description
@@ -310,7 +201,6 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                         updateQuery[key] = value;
                     }
                 }
-
                 await this.movieRepo.findOneAndUpdate({
                     filterQuery: { slug: movieSlug },
                     updateQuery,
@@ -318,9 +208,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 this.moviesToRevalidate.push(movieSlug);
                 this.logger.log(`Updated movie: "${movieSlug}"`);
             } else {
-                await this.movieRepo.create({
-                    document: movieData as Movie,
-                });
+                await this.movieRepo.create({ document: movieData as Movie });
                 this.logger.log(`Saved movie: "${movieSlug}"`);
             }
         } catch (error) {
@@ -328,7 +216,15 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    private processMovieStatus(movieDetail: any) {
+    protected getTotalPages(response: any): number {
+        return response.paginate.total_page;
+    }
+
+    protected getMovieItems(response: any): any[] {
+        return response.items;
+    }
+
+    protected processMovieStatus(movieDetail: any): string | null {
         const currentEpisode: string = movieDetail?.current_episode;
         if (
             currentEpisode?.includes('Hoàn tất') ||
@@ -345,7 +241,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         return null;
     }
 
-    private processMovieType(movieDetail: any): MovieTypeEnum {
+    protected processMovieType(movieDetail: any): MovieTypeEnum {
         const movieTypeCate = (Object.values(movieDetail.category || {}) as any[]).find(
             (group: any) => group?.group?.name?.toLowerCase() === 'định dạng',
         );
@@ -368,7 +264,9 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         return movieType;
     }
 
-    private async processCategoriesAndCountries(category: any) {
+    protected async processCategoriesAndCountries(
+        category: any,
+    ): Promise<{ categories: any[]; countries: any[] }> {
         let categories = [];
         let countries = [];
 
@@ -389,7 +287,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         return { categories, countries };
     }
 
-    private async processActors(casts: string) {
+    protected async processActors(casts: string): Promise<any[]> {
         const actorNames = (casts || '')
             .split(',')
             ?.map((name) => name?.toString()?.trim())
@@ -397,7 +295,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         return this.processEntities(actorNames || [], this.actorRepo);
     }
 
-    private async processDirectors(directors: string) {
+    protected async processDirectors(directors: string): Promise<any[]> {
         const directorNames = (directors || '')
             .split(',')
             ?.map((name) => name?.toString()?.trim())
@@ -405,14 +303,16 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         return this.processEntities(directorNames || [], this.directorRepo);
     }
 
-    private async processEntities(names: string[], repo: AbstractRepository<any>) {
+    protected async processEntities(
+        names: string[],
+        repo: AbstractRepository<any>,
+    ): Promise<any[]> {
         if (isNullOrUndefined(names) || !names?.length) {
             return [];
         }
         const entities = await Promise.all(
             names?.map(async (name) => {
                 name = name?.toString()?.trim();
-                // Ensure name is a string and not empty
                 if (isNullOrUndefined(name) || typeof name !== 'string' || name === '') {
                     return null;
                 }
@@ -429,7 +329,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         return entities.filter((val) => !isNullOrUndefined(val) && !!val);
     }
 
-    private processEpisodes(newEpisodes: any[], existingEpisodes: Episode[] = []): Episode[] {
+    protected processEpisodes(newEpisodes: any[], existingEpisodes: Episode[] = []): Episode[] {
         const processedEpisodes: Episode[] = [...existingEpisodes];
         const existingServers = new Map(
             existingEpisodes?.map((ep) => [`${ep.serverName}-${ep.originSrc}`, ep]),
@@ -484,11 +384,11 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         return processedEpisodes;
     }
 
-    private async addToFailedCrawls(slug: string) {
+    protected async addToFailedCrawls(slug: string): Promise<void> {
         try {
-            await this.redisService.getClient.sadd(`failed-movie-crawls-${this.NGUONC_HOST}`, slug);
+            await this.redisService.getClient.sadd(`failed-movie-crawls-${this.config.host}`, slug);
             await this.redisService.getClient.expire(
-                `failed-movie-crawls-${this.NGUONC_HOST}`,
+                `failed-movie-crawls-${this.config.host}`,
                 60 * 60 * 12,
             );
         } catch (error) {
@@ -496,10 +396,10 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    private async retryFailedCrawls() {
+    protected async retryFailedCrawls(): Promise<void> {
         try {
             const failedSlugs = await this.redisService.getClient.smembers(
-                `failed-movie-crawls-${this.NGUONC_HOST}`,
+                `failed-movie-crawls-${this.config.host}`,
             );
             if (failedSlugs?.length === 0) {
                 return;
@@ -509,7 +409,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
                 try {
                     await this.fetchAndSaveMovieDetail(slug);
                     await this.redisService.getClient.srem(
-                        `failed-movie-crawls-${this.NGUONC_HOST}`,
+                        `failed-movie-crawls-${this.config.host}`,
                         slug,
                     );
                 } catch (error) {
@@ -521,7 +421,7 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    private async revalidateMovies() {
+    protected async revalidateMovies(): Promise<void> {
         try {
             const res = await this.httpService.axiosRef.post(
                 this.configService.getOrThrow<string>('REVALIDATE_WEBHOOK_URL'),
@@ -546,5 +446,14 @@ export class NguoncCrawler implements OnModuleInit, OnModuleDestroy {
         } catch (error) {
             this.logger.error(`Error during revalidateMovies: ${error}`);
         }
+    }
+
+    protected calculateBackoff(retryCount: number): number {
+        // Exponential backoff with jitter
+        const baseDelay = 1000; // 1 second
+        const maxDelay = 60000; // 1 minute
+        const exponentialDelay = Math.min(maxDelay, baseDelay * Math.pow(2, retryCount));
+        const jitter = Math.random() * 1000; // Add up to 1 second of random jitter
+        return exponentialDelay + jitter;
     }
 }

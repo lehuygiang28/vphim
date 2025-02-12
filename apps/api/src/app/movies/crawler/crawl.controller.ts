@@ -68,11 +68,11 @@ export class CrawlController {
         }
 
         if (slug === 'kkphim') {
-            this.kkphim.crawl();
+            this.kkphim.triggerCrawl();
         } else if (slug === 'ophim') {
-            this.ophim.crawl();
+            this.ophim.triggerCrawl();
         } else if (slug === 'nguonc') {
-            this.nguonc.crawl();
+            this.nguonc.triggerCrawl();
         } else {
             return 'Invalid slug';
         }
