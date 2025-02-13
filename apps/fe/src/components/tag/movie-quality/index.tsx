@@ -19,7 +19,7 @@ export function MovieQualityTag({ quality, style, children }: MovieQualityTagPro
             color = 'green';
             break;
         case MovieQualityEnum.HD:
-            color = 'red';
+            color = 'blue';
             break;
         case MovieQualityEnum.SD:
             color = 'cyan';
