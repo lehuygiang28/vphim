@@ -106,54 +106,71 @@ export function MovieEpisode({
         [movie, activeEpisodeSlug, onServerChange, hasValidEpisodes, findEpisodeInServer, router],
     );
 
-    const renderEpisodes = (serverIndex: number) => {
-        if (!hasValidEpisodes && !movie?.trailerUrl) {
+    const renderEpisodes = useCallback(
+        (serverIndex: number) => {
+            if (!hasValidEpisodes && !movie?.trailerUrl) {
+                return (
+                    <Alert
+                        message="Phim đang cập nhật..."
+                        description="Tập phim đang cập nhật, vui lòng quay lại sau."
+                        type="info"
+                        showIcon
+                    />
+                );
+            }
+
+            const episodes = hasValidEpisodes ? movie.episode[serverIndex].serverData : [];
+            const currentIndex = episodes.findIndex((ep) => ep.slug === activeEpisodeSlug) || 0;
+
+            // Pre-calculate episodes to prefetch
+            const episodesToPrefetch = new Set();
+            if (currentIndex !== -1) {
+                for (
+                    let i = Math.max(0, currentIndex - 10);
+                    i <= Math.min(episodes.length - 1, currentIndex + 10);
+                    i++
+                ) {
+                    episodesToPrefetch.add(i);
+                }
+            }
+
             return (
-                <Alert
-                    message="Phim đang cập nhật..."
-                    description="Tập phim đang cập nhật, vui lòng quay lại sau."
-                    type="info"
-                    showIcon
-                />
-            );
-        }
-
-        const episodes = hasValidEpisodes ? movie.episode[serverIndex].serverData : [];
-
-        return (
-            <div
-                ref={episodeListRef}
-                style={{ maxHeight: '20rem', overflowY: 'auto', padding: '0.5rem' }}
-            >
-                {showTrailerAsFirstEpisode && movie.trailerUrl && (
-                    <Link
-                        href={`/phim/${movie.slug}/trailer`}
-                        ref={activeEpisodeSlug === 'trailer' ? activeEpisodeRef : null}
-                    >
-                        <Button type={activeEpisodeSlug === 'trailer' ? 'primary' : 'default'}>
-                            Trailer
-                        </Button>
-                    </Link>
-                )}
-                {episodes.map((item, index) => (
-                    <Link
-                        key={`serverData-${item.slug}-${index}`}
-                        href={`/phim/${movie.slug}/${item.slug}${
-                            serverIndex && serverIndex > 0 ? `?server=${serverIndex}` : ''
-                        }`}
-                        ref={activeEpisodeSlug === item.slug ? activeEpisodeRef : null}
-                    >
-                        <Button
-                            type={activeEpisodeSlug === item.slug ? 'primary' : 'default'}
-                            style={{ margin: '0.3rem' }}
+                <div
+                    ref={episodeListRef}
+                    style={{ maxHeight: '20rem', overflowY: 'auto', padding: '0.5rem' }}
+                >
+                    {showTrailerAsFirstEpisode && movie.trailerUrl && (
+                        <Link
+                            href={`/phim/${movie.slug}/trailer`}
+                            ref={activeEpisodeSlug === 'trailer' ? activeEpisodeRef : null}
                         >
-                            {item.name}
-                        </Button>
-                    </Link>
-                ))}
-            </div>
-        );
-    };
+                            <Button type={activeEpisodeSlug === 'trailer' ? 'primary' : 'default'}>
+                                Trailer
+                            </Button>
+                        </Link>
+                    )}
+                    {episodes.map((item, index) => (
+                        <Link
+                            key={`serverData-${item.slug}-${index}`}
+                            href={`/phim/${movie.slug}/${item.slug}${
+                                serverIndex && serverIndex > 0 ? `?server=${serverIndex}` : ''
+                            }`}
+                            ref={activeEpisodeSlug === item.slug ? activeEpisodeRef : null}
+                            prefetch={episodesToPrefetch.has(index) ? true : false}
+                        >
+                            <Button
+                                type={activeEpisodeSlug === item.slug ? 'primary' : 'default'}
+                                style={{ margin: '0.3rem' }}
+                            >
+                                {item.name}
+                            </Button>
+                        </Link>
+                    ))}
+                </div>
+            );
+        },
+        [hasValidEpisodes, movie, activeEpisodeSlug, showTrailerAsFirstEpisode, episodeListRef],
+    );
 
     const renderContent = () => {
         if (!showServers || !hasValidEpisodes) {
