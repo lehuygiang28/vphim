@@ -196,12 +196,12 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                 const hoursSinceStop =
                     (new Date().getTime() - stopTime.getTime()) / (1000 * 60 * 60);
 
-                // If it's been less than 24 hours since auto-stop, don't restart
-                if (hoursSinceStop < 24) {
+                // If it's been less than 20 hours since auto-stop, don't restart
+                if (hoursSinceStop < 20) {
                     this.logger.warn(
                         `Crawler ${this.config.name} was auto-stopped ${Math.round(
                             hoursSinceStop,
-                        )} hours ago due to no updates. Will not restart until 24 hours have passed.`,
+                        )} hours ago due to no updates. Will not restart until 20 hours have passed.`,
                     );
                     return;
                 } else {
