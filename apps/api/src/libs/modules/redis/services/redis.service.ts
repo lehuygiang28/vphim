@@ -29,7 +29,12 @@ export class RedisService implements OnModuleDestroy {
             return null;
         }
         const value = await this.redisClient.get(key);
-        return value ? (JSON.parse(value) as T) : null;
+        try {
+            const res = value ? (JSON.parse(value) as T) : null;
+            return res;
+        } catch (error) {
+            return value as T;
+        }
     }
 
     /**
