@@ -17,10 +17,11 @@ export const mapQuality = (quality: string): MovieQualityEnum | string => {
     switch (quality.toLowerCase()) {
         case '4k':
             return MovieQualityEnum._4K;
-        case 'hd':
         case 'fhd':
         case 'full hd':
         case 'fullhd':
+            return MovieQualityEnum.FHD;
+        case 'hd':
         case 'hd 720p':
         case '^hd':
             return MovieQualityEnum.HD;

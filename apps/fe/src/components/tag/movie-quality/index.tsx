@@ -1,5 +1,7 @@
 import React, { CSSProperties, PropsWithChildren } from 'react';
-import { Tag } from 'antd';
+import { Tag, TagProps } from 'antd';
+
+import { MovieQualityEnum } from 'apps/api/src/app/movies/movie.constant';
 
 export type MovieQualityTagProps = {
     quality: string;
@@ -7,26 +9,23 @@ export type MovieQualityTagProps = {
 } & PropsWithChildren;
 
 export function MovieQualityTag({ quality, style, children }: MovieQualityTagProps) {
-    let color;
+    let color: TagProps['color'] = 'gray';
 
-    switch (quality.toUpperCase()) {
-        case 'HD':
-        case 'FHD':
-        case 'FULL HD':
-        case 'FULLHD':
-        case 'HD 720P':
-        case '^HD':
-            color = 'green';
-            break;
-        case 'SD':
-            color = 'blue';
-            break;
-        case '4K':
+    switch (quality.toLowerCase()) {
+        case MovieQualityEnum._4K:
             color = 'red';
             break;
-        case 'CAM':
-        case '360p':
-            color = 'orange';
+        case MovieQualityEnum.FHD:
+            color = 'green';
+            break;
+        case MovieQualityEnum.HD:
+            color = 'red';
+            break;
+        case MovieQualityEnum.SD:
+            color = 'cyan';
+            break;
+        case MovieQualityEnum.CAM:
+            color = 'lime';
             break;
         default:
             color = 'gray';

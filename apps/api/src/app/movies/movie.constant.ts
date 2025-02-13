@@ -13,8 +13,9 @@ export enum MovieStatusEnum {
 }
 
 export enum MovieQualityEnum {
-    HD = 'hd',
     _4K = '4k',
+    FHD = 'fhd',
+    HD = 'hd',
     SD = 'sd',
     CAM = 'cam',
 }
