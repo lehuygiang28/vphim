@@ -179,6 +179,7 @@ export class KKPhimCrawler extends BaseCrawler {
                 modified,
             } = movieDetail;
 
+            // kkphim's `_id` is not ObjectId, from it we will create a new ObjectId
             let correctId: Types.ObjectId;
             try {
                 correctId = convertToObjectId(_id);
@@ -194,7 +195,11 @@ export class KKPhimCrawler extends BaseCrawler {
                 // Mapping data
                 type: MOVIE_TYPE_MAP[movieDetail?.type] || 'N/A',
                 time: convertToVietnameseTime(movieDetail?.time || existingMovie?.time),
-                quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
+                // Keep the best quality
+                quality: this.getBestQuality(
+                    existingMovie?.quality,
+                    mapQuality(movieDetail?.quality),
+                ),
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
                 status: mapStatus(movieDetail?.status || existingMovie?.status),
 
@@ -267,7 +272,7 @@ export class KKPhimCrawler extends BaseCrawler {
                 await this.movieRepo.create({
                     document: movieData,
                 });
-                this.logger.log(`Saved movie: "${movieSlug}"`);
+                this.logger.log(`Saved new movie: "${movieSlug}"`);
             }
             return true;
         } catch (error) {

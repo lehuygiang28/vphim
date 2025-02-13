@@ -210,7 +210,11 @@ export class NguoncCrawler extends BaseCrawler {
                     MOVIE_TYPE_MAP[this.processMovieType(movieDetail) || existingMovie?.type] ||
                     'N/A',
                 time: convertToVietnameseTime(movieDetail?.time || existingMovie?.time),
-                quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
+                // Keep the best quality
+                quality: this.getBestQuality(
+                    existingMovie?.quality,
+                    mapQuality(movieDetail?.quality),
+                ),
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
                 status: mapStatus(existingMovie?.status || this.processMovieStatus(movieDetail)),
                 lastSyncModified: new Date(
@@ -275,7 +279,7 @@ export class NguoncCrawler extends BaseCrawler {
                 this.logger.log(`Updated movie: "${movieSlug}"`);
             } else {
                 await this.movieRepo.create({ document: movieData as Movie });
-                this.logger.log(`Saved movie: "${movieSlug}"`);
+                this.logger.log(`Saved new movie: "${movieSlug}"`);
             }
             return true;
         } catch (error) {

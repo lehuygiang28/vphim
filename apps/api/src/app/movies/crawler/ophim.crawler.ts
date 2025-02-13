@@ -259,7 +259,11 @@ export class OphimCrawler extends BaseCrawler {
                 // Mapping data
                 type: MOVIE_TYPE_MAP[movieDetail?.type] || 'N/A',
                 time: convertToVietnameseTime(movieDetail?.time || existingMovie?.time),
-                quality: mapQuality(movieDetail?.quality || existingMovie?.quality),
+                // Keep the best quality
+                quality: this.getBestQuality(
+                    existingMovie?.quality,
+                    mapQuality(movieDetail?.quality),
+                ),
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
                 status: mapStatus(movieDetail?.status || existingMovie?.status),
                 view: Math.max(view, existingMovie?.view || 0, 0),
@@ -328,7 +332,7 @@ export class OphimCrawler extends BaseCrawler {
                 await this.movieRepo.create({
                     document: movieData,
                 });
-                this.logger.log(`Saved movie: "${movieSlug}"`);
+                this.logger.log(`Saved new movie: "${movieSlug}"`);
             }
             return true;
         } catch (error) {

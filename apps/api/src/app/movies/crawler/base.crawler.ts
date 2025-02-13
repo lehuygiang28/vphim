@@ -651,4 +651,33 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         }
         this.continuousSkips = 0;
     }
+
+    /**
+     * Compares two quality values and returns true if newQuality is better than currentQuality
+     */
+    protected isQualityBetter(newQuality: string, currentQuality: string): boolean {
+        const qualityRank = {
+            '4k': 5,
+            fhd: 4,
+            fullhd: 4,
+            hd: 3,
+            sd: 2,
+            cam: 1,
+        };
+
+        const newRank = qualityRank[newQuality?.toLowerCase()] || 0;
+        const currentRank = qualityRank[currentQuality?.toLowerCase()] || 0;
+
+        return newRank > currentRank;
+    }
+
+    /**
+     * Gets the best quality between existing and new quality
+     */
+    protected getBestQuality(existingQuality: string, newQuality: string): string {
+        if (!existingQuality) return newQuality;
+        if (!newQuality) return existingQuality;
+
+        return this.isQualityBetter(newQuality, existingQuality) ? newQuality : existingQuality;
+    }
 }
