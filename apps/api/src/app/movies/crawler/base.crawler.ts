@@ -337,9 +337,9 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                 }
             }
 
-            for (let retryAttempt = 0; retryAttempt < this.config.maxRetries; retryAttempt++) {
-                await this.retryFailedCrawls();
-            }
+            // Retry failed movies and pages
+            await this.retryFailedCrawls();
+            await this.retryFailedPages();
 
             if (this.moviesToRevalidate.length > 0) {
                 await this.revalidateMovies();
@@ -389,7 +389,9 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                             }
                         } catch (error) {
                             this.status.failedItems++;
-                            throw error;
+                            this.logger.error(`Error processing movie ${movie.slug}: ${error}`);
+                            await this.addToFailedCrawls(movie.slug, error.message);
+                            // Continue with next movie instead of throwing
                         }
                     } else {
                         // Invalid movie (no slug), count as skip
@@ -399,8 +401,8 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             );
         } catch (error) {
             this.logger.error(`Error crawling page ${page}: ${error}`);
-            await sleep(this.RETRY_DELAY);
-            return this.crawlPage(page);
+            await this.addToFailedPages(page, error.message);
+            // Don't retry immediately, let the retry mechanism handle it
         }
     }
 
@@ -412,41 +414,139 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         return exponentialDelay + jitter;
     }
 
-    protected async addToFailedCrawls(slug: string) {
+    protected async addToFailedCrawls(slug: string, error: string) {
         try {
             const hostStr = this.config.host.replace('https://', '');
-            await this.redisService.getClient.sadd(`failed-movie-crawls:${hostStr}`, slug);
-            await this.redisService.getClient.expire(
-                `failed-movie-crawls:${hostStr}`,
-                60 * 60 * 12,
+            const key = `failed-movie-crawls:${hostStr}`;
+            await this.redisService.getClient.hset(
+                key,
+                slug,
+                JSON.stringify({
+                    error,
+                    retryCount: 0,
+                    lastAttempt: new Date().toISOString(),
+                }),
             );
+            await this.redisService.getClient.expire(key, 60 * 60 * 24); // 24 hours expiry
         } catch (error) {
             this.logger.error(`Error adding slug ${slug} to failed crawls: ${error}`);
         }
     }
 
+    protected async addToFailedPages(page: number, error: string) {
+        try {
+            const hostStr = this.config.host.replace('https://', '');
+            const key = `failed-pages:${hostStr}`;
+            await this.redisService.getClient.hset(
+                key,
+                page.toString(),
+                JSON.stringify({
+                    error,
+                    retryCount: 0,
+                    lastAttempt: new Date().toISOString(),
+                }),
+            );
+            await this.redisService.getClient.expire(key, 60 * 60 * 24); // 24 hours expiry
+        } catch (error) {
+            this.logger.error(`Error adding page ${page} to failed pages: ${error}`);
+        }
+    }
+
     protected async retryFailedCrawls() {
         try {
-            const failedSlugs = await this.redisService.getClient.smembers(
-                `failed-movie-crawls:${this.config.host.replace('https://', '')}`,
-            );
-            if (failedSlugs?.length === 0) {
-                return;
-            }
+            const hostStr = this.config.host.replace('https://', '');
+            const failedMoviesKey = `failed-movie-crawls:${hostStr}`;
 
-            for (const slug of failedSlugs) {
+            // Get all failed movies
+            const failedMovies = await this.redisService.getClient.hgetall(failedMoviesKey);
+            if (!failedMovies) return;
+
+            for (const [slug, dataStr] of Object.entries(failedMovies)) {
                 try {
-                    await this.fetchAndSaveMovieDetail(slug);
-                    await this.redisService.getClient.srem(
-                        `failed-movie-crawls:${this.config.host.replace('https://', '')}`,
-                        slug,
-                    );
+                    const data = JSON.parse(dataStr);
+                    if (data.retryCount >= this.config.maxRetries) {
+                        this.logger.warn(`Max retries reached for movie ${slug}, skipping`);
+                        continue;
+                    }
+
+                    // Add exponential backoff delay
+                    const backoffDelay = this.calculateBackoff(data.retryCount);
+                    await sleep(backoffDelay);
+
+                    const success = await this.fetchAndSaveMovieDetail(slug);
+                    if (success) {
+                        await this.redisService.getClient.hdel(failedMoviesKey, slug);
+                        this.logger.log(`Successfully retried and saved movie: ${slug}`);
+                    } else {
+                        // Update retry count
+                        data.retryCount++;
+                        data.lastAttempt = new Date().toISOString();
+                        await this.redisService.getClient.hset(
+                            failedMoviesKey,
+                            slug,
+                            JSON.stringify(data),
+                        );
+                    }
                 } catch (error) {
-                    this.logger.error(`Error retrying crawl for slug ${slug}: ${error}`);
+                    this.logger.error(`Error retrying movie ${slug}: ${error}`);
+                    // Update retry count even on error
+                    const data = JSON.parse(dataStr);
+                    data.retryCount++;
+                    data.lastAttempt = new Date().toISOString();
+                    data.error = error.message;
+                    await this.redisService.getClient.hset(
+                        failedMoviesKey,
+                        slug,
+                        JSON.stringify(data),
+                    );
                 }
             }
         } catch (error) {
             this.logger.error(`Error during retryFailedCrawls: ${error}`);
+        }
+    }
+
+    protected async retryFailedPages() {
+        try {
+            const hostStr = this.config.host.replace('https://', '');
+            const failedPagesKey = `failed-pages:${hostStr}`;
+
+            // Get all failed pages
+            const failedPages = await this.redisService.getClient.hgetall(failedPagesKey);
+            if (!failedPages) return;
+
+            for (const [pageStr, dataStr] of Object.entries(failedPages)) {
+                try {
+                    const data = JSON.parse(dataStr);
+                    if (data.retryCount >= this.config.maxRetries) {
+                        this.logger.warn(`Max retries reached for page ${pageStr}, skipping`);
+                        continue;
+                    }
+
+                    // Add exponential backoff delay
+                    const backoffDelay = this.calculateBackoff(data.retryCount);
+                    await sleep(backoffDelay);
+
+                    const page = parseInt(pageStr);
+                    await this.crawlPage(page);
+                    await this.redisService.getClient.hdel(failedPagesKey, pageStr);
+                    this.logger.log(`Successfully retried page: ${page}`);
+                } catch (error) {
+                    this.logger.error(`Error retrying page ${pageStr}: ${error}`);
+                    // Update retry count
+                    const data = JSON.parse(dataStr);
+                    data.retryCount++;
+                    data.lastAttempt = new Date().toISOString();
+                    data.error = error.message;
+                    await this.redisService.getClient.hset(
+                        failedPagesKey,
+                        pageStr,
+                        JSON.stringify(data),
+                    );
+                }
+            }
+        } catch (error) {
+            this.logger.error(`Error during retryFailedPages: ${error}`);
         }
     }
 

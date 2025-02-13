@@ -99,7 +99,7 @@
         "next": "14.2.16",
         "next-auth": "^4.24.7",
         "nodemailer": "^6.9.14",
-        "ophim-js": "^0.0.5",
+        "ophim-js": "^0.0.6",
         "otplib": "^12.0.1",
         "passport": "^0.7.0",
         "passport-jwt": "^4.0.1",

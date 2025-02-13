@@ -10311,7 +10311,7 @@ __metadata:
     next-auth: "npm:^4.24.7"
     nodemailer: "npm:^6.9.14"
     nx: "npm:19.6.2"
-    ophim-js: "npm:^0.0.5"
+    ophim-js: "npm:^0.0.6"
     otplib: "npm:^12.0.1"
     passport: "npm:^0.7.0"
     passport-jwt: "npm:^4.0.1"
@@ -23450,10 +23450,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ophim-js@npm:^0.0.5":
-  version: 0.0.5
-  resolution: "ophim-js@npm:0.0.5"
-  checksum: 10c0/08f7f97b6460c548d95d8441839191cfdc1273e8aa80ef51555505fa2beca55290ffad51ae61d562a19935ba679163a0130a466f8a760391accaedd61260d32f
+"ophim-js@npm:^0.0.6":
+  version: 0.0.6
+  resolution: "ophim-js@npm:0.0.6"
+  checksum: 10c0/fa8cae8e62c983eab9980c6021eeb8401be91f1d474df7cbe28d7582b2f3f5a5ce53d83a59abd48a4c3d1a8077b026273c91d36f662cb376f7a0947d465462c4
   languageName: node
   linkType: hard
 
