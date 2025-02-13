@@ -50,7 +50,8 @@ export class KKPhimCrawler extends BaseCrawler {
     ) {
         const config: ICrawlerConfig = {
             name: 'KKPhimCrawler',
-            host: configService.getOrThrow<string>('KKPHIM_HOST', 'https://kkphim1.com'),
+            host: configService.getOrThrow<string>('KKPHIM_HOST', 'https://phimapi.com'),
+            imgHost: configService.getOrThrow<string>('KKPHIM_IMG_HOST', 'https://phimimg.com'),
             cronSchedule: configService.getOrThrow<string>('KKPHIM_CRON', '0 5 * * *'),
             forceUpdate:
                 configService.getOrThrow<string>('KKPHIM_FORCE_UPDATE', 'false') === 'true',

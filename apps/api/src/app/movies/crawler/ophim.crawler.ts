@@ -80,6 +80,10 @@ export class OphimCrawler extends BaseCrawler {
         const config: ICrawlerConfig = {
             name: 'OphimCrawler',
             host: configService.getOrThrow<string>('OPHIM_HOST', 'https://ophim1.com'),
+            imgHost: configService.getOrThrow<string>(
+                'OPHIM_IMG_HOST',
+                'https://img.ophim.live/uploads/movies',
+            ),
             cronSchedule: configService.getOrThrow<string>('OPHIM_CRON', '0 4 * * *'),
             forceUpdate: configService.getOrThrow<string>('OPHIM_FORCE_UPDATE', 'false') === 'true',
             maxRetries: configService.getOrThrow<number>('OPHIM_MAX_RETRIES', 3),
