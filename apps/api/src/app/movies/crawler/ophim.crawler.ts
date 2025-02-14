@@ -171,10 +171,8 @@ export class OphimCrawler extends BaseCrawler {
 
             // saveMovieDetail returns true if movie was updated, false if skipped
             const wasUpdated = await this.saveMovieDetail(movieDetail);
-            if (wasUpdated) {
-                this.logger.log(`Successfully saved movie: ${slug}`);
-            } else {
-                this.logger.debug(`Movie ${slug} was skipped (no updates needed)`);
+            if (!wasUpdated) {
+                this.logger.log(`Movie ${slug} was skipped (no updates needed)`);
             }
             return wasUpdated;
         } catch (error) {
