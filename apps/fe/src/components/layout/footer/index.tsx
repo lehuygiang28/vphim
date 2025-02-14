@@ -16,7 +16,7 @@ const { BackTop } = FloatButton;
 
 const helperLinks = [
     { label: 'Về chúng tôi', url: '#' },
-    { label: 'Liên hệ', url: '#' },
+    { label: 'Liên hệ', url: 'mailto:contact@vephim.online' },
     { label: 'Điều khoản', url: '#' },
     { label: 'Chính sách bảo mật', url: '#' },
 ];
@@ -169,7 +169,7 @@ export default function Component({ categories = [], regions = [] }: FooterCompo
                 <Row justify="center">
                     <Col>
                         <Text style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>
-                            © {new Date().getFullYear()} VePhim. Educational Project - Not for
+                            {new Date().getFullYear()} VePhim. Educational Project - Not for
                             Commercial Use.
                         </Text>
                     </Col>
@@ -199,11 +199,18 @@ export default function Component({ categories = [], regions = [] }: FooterCompo
                             displayed on this site is sourced from publicly available third-party
                             APIs and is not hosted or owned by us. We do not claim ownership of any
                             content shown here. This project is not intended for any commercial use.
-                            If you are a copyright owner and believe your content is displayed here
-                            without proper authorization, please contact us for its immediate
-                            removal. Users are advised to use this site at their own discretion and
-                            are responsible for complying with all applicable laws and regulations
-                            in their jurisdiction.
+                            If you believe you own the rights to any content displayed here and wish
+                            to claim ownership, please contact us at{' '}
+                            <a
+                                href="mailto:contact@vephim.online"
+                                style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                            >
+                                contact@vephim.online
+                            </a>
+                            .
+                            Users are advised to use this site at their own discretion and are
+                            responsible for complying with all applicable laws and regulations in
+                            their jurisdiction.
                         </Text>
                     </Col>
                 </Row>
