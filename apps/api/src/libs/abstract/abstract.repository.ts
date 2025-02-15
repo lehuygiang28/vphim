@@ -10,6 +10,7 @@ import {
     UpdateQuery,
     PipelineStage,
     AggregateOptions,
+    MongooseUpdateQueryOptions,
 } from 'mongoose';
 import { Logger, NotFoundException } from '@nestjs/common';
 
@@ -84,6 +85,26 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
         return document as unknown as TDocument;
     }
+    async updateOne({
+        filterQuery,
+        updateQuery,
+        queryOptions,
+        session,
+    }: {
+        filterQuery: FilterQuery<TDocument>;
+        updateQuery: UpdateQuery<TDocument>;
+        queryOptions?: Partial<MongooseUpdateQueryOptions<TDocument>>;
+
+        session?: ClientSession;
+    }): Promise<boolean> {
+        delete updateQuery?._id;
+
+        const document = await this.model.updateOne(filterQuery, updateQuery, {
+            ...queryOptions,
+            session,
+        });
+        return document.acknowledged;
+    }
 
     async findOneAndUpdate({
         filterQuery,
@@ -94,7 +115,6 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
         filterQuery: FilterQuery<TDocument>;
         updateQuery: UpdateQuery<TDocument>;
         queryOptions?: Partial<QueryOptions<TDocument>>;
-
         session?: ClientSession;
     }): Promise<NullableType<TDocument>> {
         delete updateQuery?._id;
