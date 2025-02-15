@@ -348,7 +348,7 @@ export class KKPhimCrawler extends BaseCrawler {
         if (externalData?.tmdbData?.id) {
             const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
 
-            if (creditData) {
+            if (creditData && creditData.cast?.length > 0) {
                 // First, try to find actors by TMDB ID
                 const tmdbSearchCriteria = creditData.cast.map((cast) => ({
                     tmdbPersonId: cast.id,
@@ -527,7 +527,7 @@ export class KKPhimCrawler extends BaseCrawler {
         if (externalData?.tmdbData?.id) {
             const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
 
-            if (creditData) {
+            if (creditData && creditData.crew?.length > 0) {
                 // Find the director (case insensitive job match)
                 const director = creditData.crew.find(
                     (crew) => crew.job.toLowerCase() === 'director',
