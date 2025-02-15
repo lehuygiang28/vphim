@@ -77,7 +77,7 @@ export async function generateMetadata(
             images: images[0],
         },
         other: {
-            'og:updated_time': new Date(movie?.lastSyncModified).toISOString(),
+            'og:updated_time': new Date(movie?.updatedAt).toISOString(),
             'og:image:alt': movie?.name,
             'og:video': movie?.trailerUrl,
             'og:video:type': 'video/mp4',
