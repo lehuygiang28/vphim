@@ -64,7 +64,7 @@ export class DirectorService {
         });
     }
 
-    async createDirector({ name, slug }: CreateDirectorInput) {
+    async createDirector({ name, slug, originalName }: CreateDirectorInput) {
         const exists = await this.directorRepo.findOne({ filterQuery: { slug } });
         if (exists) {
             throw new BadRequestException({
@@ -76,7 +76,11 @@ export class DirectorService {
         }
 
         return this.directorRepo.create({
-            document: { name, slug: removeDiacritics(removeTone(slug)) },
+            document: {
+                name,
+                originalName: originalName || name,
+                slug: removeDiacritics(removeTone(slug)),
+            },
         });
     }
 

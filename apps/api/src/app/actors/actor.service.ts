@@ -64,7 +64,7 @@ export class ActorService {
         });
     }
 
-    async createActor({ name, slug }: CreateActorInput) {
+    async createActor({ name, slug, originalName }: CreateActorInput) {
         const exists = await this.actorRepo.findOne({ filterQuery: { slug } });
         if (exists) {
             throw new BadRequestException({
@@ -76,7 +76,11 @@ export class ActorService {
         }
 
         return this.actorRepo.create({
-            document: { name, slug: removeDiacritics(removeTone(slug)) },
+            document: {
+                name,
+                originalName: originalName || name,
+                slug: removeDiacritics(removeTone(slug)),
+            },
         });
     }
 

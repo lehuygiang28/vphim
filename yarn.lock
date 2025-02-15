@@ -10303,6 +10303,7 @@ __metadata:
     lucide-react-native: "npm:^0.468.0"
     media-icons: "npm:^1.1.5"
     mongoose: "npm:^8.5.4"
+    moviedb-promise: "npm:^4.0.7"
     ms: "npm:^2.1.3"
     multer: "npm:^1.4.5-lts.1"
     nestjs-i18n: "npm:^10.4.5"
@@ -22473,6 +22474,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"moviedb-promise@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "moviedb-promise@npm:4.0.7"
+  dependencies:
+    axios: "npm:^1.4.0"
+    lodash: "npm:^4.17.21"
+    promise-throttle: "npm:^1.1.2"
+  checksum: 10c0/8359075320b69f01a4ed55d9dba5f82c6a8de6e4103dc7221035b8129555ec022cba6f04b2d6c5f608986b36adb7aaff0d21a8daa9b6c33534a0de8144186105
+  languageName: node
+  linkType: hard
+
 "mpath@npm:0.9.0":
   version: 0.9.0
   resolution: "mpath@npm:0.9.0"
@@ -24906,6 +24918,13 @@ __metadata:
     err-code: "npm:^2.0.2"
     retry: "npm:^0.12.0"
   checksum: 10c0/9c7045a1a2928094b5b9b15336dcd2a7b1c052f674550df63cc3f36cd44028e5080448175b6f6ca32b642de81150f5e7b1a98b728f15cb069f2dd60ac2616b96
+  languageName: node
+  linkType: hard
+
+"promise-throttle@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "promise-throttle@npm:1.1.2"
+  checksum: 10c0/1f9eab5140b0c2dbb11caba22f2fc7366366c55917067014dd9245c5376ec33568f57c67f33936de18eb8b12c41dea81646790b2b477f6eeed4160a4b7c233b8
   languageName: node
   linkType: hard
 

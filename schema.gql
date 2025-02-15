@@ -5,6 +5,8 @@
 type Actor {
   _id: ID!
   name: String!
+  originalName: String!
+  tmdbPersonId: Float
   slug: String!
   content: String
   thumbUrl: String
@@ -49,6 +51,8 @@ type Region {
 type Director {
   _id: ID!
   name: String!
+  originalName: String!
+  tmdbPersonId: Float
   slug: String!
   content: String
   thumbUrl: String
@@ -511,6 +515,7 @@ input UpdateActorInput {
 
 input CreateActorInput {
   name: String!
+  originalName: String
   slug: String!
 }
 
@@ -541,6 +546,7 @@ input UpdateDirectorInput {
 
 input CreateDirectorInput {
   name: String!
+  originalName: String
   slug: String!
 }
 
