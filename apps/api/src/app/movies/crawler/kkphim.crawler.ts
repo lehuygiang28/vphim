@@ -339,6 +339,11 @@ export class KKPhimCrawler extends BaseCrawler {
         actors?: string[],
         externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
     ): Promise<Types.ObjectId[]> {
+        // Find movie by IMDB ID if TMDB ID is not available
+        if (!externalData?.tmdbData?.id && externalData?.imdbData?.id) {
+            externalData.tmdbData = await this.tmdbService.findByImdbId(externalData.imdbData.id);
+        }
+
         // Handle TMDB data processing
         if (externalData?.tmdbData?.id) {
             const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
@@ -510,6 +515,11 @@ export class KKPhimCrawler extends BaseCrawler {
         directors?: string[],
         externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
     ): Promise<Types.ObjectId[]> {
+        // Find movie by IMDB ID if TMDB ID is not available
+        if (!externalData?.tmdbData?.id && externalData?.imdbData?.id) {
+            externalData.tmdbData = await this.tmdbService.findByImdbId(externalData.imdbData.id);
+        }
+
         // Handle TMDB data processing
         if (externalData?.tmdbData?.id) {
             const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);

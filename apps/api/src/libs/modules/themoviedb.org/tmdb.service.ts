@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TmdbType } from 'apps/api/src/app/movies/movie.type';
-import { MovieDb, CreditsResponse } from 'moviedb-promise';
+import { MovieDb, CreditsResponse, ExternalId } from 'moviedb-promise';
 
 @Injectable()
 export class TmdbService {
@@ -16,6 +16,27 @@ export class TmdbService {
                 'https://image.tmdb.org/t/p/original',
             ),
         };
+    }
+
+    public async findByImdbId(imdbId: string): Promise<TmdbType | null> {
+        const foundResult = await this.moviedb.find({
+            id: imdbId,
+            external_source: ExternalId.ImdbId,
+        });
+
+        if (!foundResult) {
+            return null;
+        }
+
+        if (foundResult?.movie_results?.length > 0 || foundResult?.tv_results?.length > 0) {
+            const res = foundResult.tv_results[0] || foundResult.movie_results[0];
+            return {
+                type: res.media_type,
+                id: res.id?.toString(),
+                voteAverage: res.vote_average,
+                voteCount: res.vote_count,
+            };
+        }
     }
 
     public async getCreditDetails(tmdbData: TmdbType): Promise<CreditsResponse | null> {
