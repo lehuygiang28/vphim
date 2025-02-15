@@ -46,10 +46,10 @@ VePhim is built using a combination of powerful technologies:
 ### Backend (behind-the-scenes)
 
 - **NestJS:** Manages user accounts, movie CRUD operations, and ensures smooth operation.
-- **Redis:** Speeds up load times by storing frequently accessed information.
 - **MongoDB:** Stores all information about movies, users, and related data.
-- **Elasticsearch:** Powers the search engine with efficient vector-based searches.
+- **Redis:** Speeds up load times by storing frequently accessed information.
 - **Gemini:** AI-driven search engine to find the perfect movie based on preferences.
+- **Elasticsearch:** Powers the search engine with efficient vector-based searches.
 - **GraphQL:** Simplifies user interactions with the backend through a flexible API.
 
 ### Frontend (user interface)
@@ -60,7 +60,7 @@ VePhim is built using a combination of powerful technologies:
 ### Mobile App
 
 - **Expo:** Allows VePhim to create apps for both Android and iOS devices.
-- **React Native Paper:** Makes the mobile app beautiful and easy to use.
+- **UI Kitten:** Makes the mobile app beautiful and easy to use.
 
 ## How to Run VePhim Locally
 
