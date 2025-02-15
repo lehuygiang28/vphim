@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { TmdbType } from 'apps/api/src/app/movies/movie.type';
 import { MovieDb, CreditsResponse, ExternalId } from 'moviedb-promise';
+
+import { TmdbType } from 'apps/api/src/app/movies/movie.type';
 
 @Injectable()
 export class TmdbService {
     public readonly moviedb: MovieDb;
     public readonly config: { imgHost: string };
+    private readonly logger = new Logger(TmdbService.name);
 
     constructor(private readonly configService: ConfigService) {
-        this.moviedb = new MovieDb(this.configService.get('TMDB_API_KEY'));
+        this.moviedb = new MovieDb(this.configService.getOrThrow('TMDB_API_KEY'));
         this.config = {
             imgHost: this.configService.getOrThrow(
                 'TMDB_IMG_HOST',
@@ -19,24 +21,29 @@ export class TmdbService {
     }
 
     public async findByImdbId(imdbId: string): Promise<TmdbType | null> {
-        const foundResult = await this.moviedb.find({
-            id: imdbId,
-            external_source: ExternalId.ImdbId,
-        });
+        try {
+            const foundResult = await this.moviedb.find({
+                id: imdbId,
+                external_source: ExternalId.ImdbId,
+            });
 
-        if (!foundResult) {
-            return null;
-        }
+            if (!foundResult) {
+                return null;
+            }
 
-        if (foundResult?.movie_results?.length > 0 || foundResult?.tv_results?.length > 0) {
-            const res = foundResult.tv_results[0] || foundResult.movie_results[0];
-            return {
-                type: res.media_type,
-                id: res.id?.toString(),
-                voteAverage: res.vote_average,
-                voteCount: res.vote_count,
-            };
+            if (foundResult?.movie_results?.length > 0 || foundResult?.tv_results?.length > 0) {
+                const res = foundResult.tv_results[0] || foundResult.movie_results[0];
+                return {
+                    type: res.media_type,
+                    id: res.id?.toString(),
+                    voteAverage: res.vote_average,
+                    voteCount: res.vote_count,
+                };
+            }
+        } catch (error) {
+            this.logger.error(`Failed to fetch TMDB data for IMDb ID ${imdbId}:`, error);
         }
+        return null;
     }
 
     public async getCreditDetails(tmdbData: TmdbType): Promise<CreditsResponse | null> {
