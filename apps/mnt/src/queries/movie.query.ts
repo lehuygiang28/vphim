@@ -66,11 +66,13 @@ export const GET_FULL_MOVIE_DETAIL_QUERY = gql`
                 _id
                 name
                 slug
+                thumbUrl
             }
             actors {
                 _id
                 name
                 slug
+                thumbUrl
             }
             categories {
                 _id
