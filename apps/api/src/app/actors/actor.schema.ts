@@ -21,7 +21,7 @@ export class Actor extends AbstractDocument {
     slug: string;
 
     @ApiProperty()
-    @Prop({ required: false, type: Number, default: null, unique: true })
+    @Prop({ required: false, type: Number, default: null })
     tmdbPersonId?: number | null;
 
     @ApiProperty()
