@@ -1,4 +1,4 @@
-import { Body, Controller, Logger, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Post } from '@nestjs/common';
 import { ApiBody, ApiExcludeController, ApiParam } from '@nestjs/swagger';
 
 import { KKPhimCrawler } from './kkphim.crawler';
@@ -79,4 +79,9 @@ export class CrawlController {
 
         return 'OK';
     }
+
+    // @Get('/test/:id')
+    // async test(@Param('id') id: string) {
+    //     return await this.ophim.fetchAndSaveMovieDetail(id);
+    // }
 }

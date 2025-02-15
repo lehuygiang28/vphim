@@ -11,6 +11,7 @@ import { ActorModule } from '../../actors';
 import { CategoryModule } from '../../categories';
 import { DirectorModule } from '../../directors';
 import { RegionsModule } from '../../regions';
+import { TmdbModule } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.module';
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import { RegionsModule } from '../../regions';
         CategoryModule,
         DirectorModule,
         RegionsModule,
+        TmdbModule,
     ],
     controllers: [CrawlController],
     providers: [OphimCrawler, KKPhimCrawler, NguoncCrawler],

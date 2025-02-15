@@ -32,6 +32,8 @@ import { CategoryRepository } from '../../categories';
 import { RegionRepository } from '../../regions/region.repository';
 import { DirectorRepository } from '../../directors';
 import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
+import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
+import { ImdbType, TmdbType } from '../movie.type';
 
 @Injectable()
 export class KKPhimCrawler extends BaseCrawler {
@@ -47,6 +49,7 @@ export class KKPhimCrawler extends BaseCrawler {
         directorRepo: DirectorRepository,
         regionRepo: RegionRepository,
         httpService: HttpService,
+        private tmdbService: TmdbService,
     ) {
         const config: ICrawlerConfig = {
             name: 'KKPhimCrawler',
@@ -104,7 +107,7 @@ export class KKPhimCrawler extends BaseCrawler {
         slug = slugifyVietnamese(slug);
 
         try {
-            const movieDetail = await this.kkphim.getMovieDetail({ slug });
+            const movieDetail = await this.kkphim.getMovieDetail({ slug: 'hai-muoi' });
             if (!movieDetail) {
                 return false;
             }
@@ -156,8 +159,8 @@ export class KKPhimCrawler extends BaseCrawler {
             const [{ categories: categoryIds, countries: countryIds }, actorIds, directorIds] =
                 await Promise.all([
                     this.processCategoriesAndCountries(movieDetail),
-                    this.processActors(movieDetail.actor),
-                    this.processDirectors(movieDetail.director),
+                    this.processActors(movieDetail.actor, { tmdbData: movieDetail.tmdb }),
+                    this.processDirectors(movieDetail.director, { tmdbData: movieDetail.tmdb }),
                 ]);
 
             const {
@@ -332,62 +335,302 @@ export class KKPhimCrawler extends BaseCrawler {
         };
     }
 
-    protected async processActors(actors: string[]): Promise<any[]> {
-        if (!actors?.length) return [];
+    protected async processActors(
+        actors?: string[],
+        externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
+    ): Promise<Types.ObjectId[]> {
+        // Handle TMDB data processing
+        if (externalData?.tmdbData?.id) {
+            const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
 
-        const actorIds = await Promise.all(
-            actors.map(async (actor) => {
-                if (isNullOrUndefined(actor) || !actor) {
-                    return null;
-                }
-                const slug = slugify(actor, { lower: true }) || actor;
-                const existingActor = await this.actorRepo.findOne({
-                    filterQuery: { slug },
+            if (creditData) {
+                // First, try to find actors by TMDB ID
+                const tmdbSearchCriteria = creditData.cast.map((cast) => ({
+                    tmdbPersonId: cast.id,
+                }));
+
+                const existingTmdbActors = await this.actorRepo.find({
+                    filterQuery: { $or: tmdbSearchCriteria },
                 });
-                if (existingActor) {
-                    return existingActor._id;
-                } else {
-                    const newActor = await this.actorRepo.create({
-                        document: {
-                            name: actor,
-                            slug,
-                        },
-                    });
-                    return newActor._id;
-                }
-            }),
-        );
 
-        return actorIds.filter((id) => id !== null);
+                // Create a map for quick lookup
+                const existingActorsMap = new Map(
+                    existingTmdbActors.map((actor) => [actor.tmdbPersonId, actor._id]),
+                );
+
+                // Get actors not found by TMDB ID
+                const remainingCast = creditData.cast.filter(
+                    (cast) => !existingActorsMap.has(cast.id),
+                );
+
+                // Try to find remaining actors by simple slug (without cast.id)
+                const simpleSlugSearchCriteria = remainingCast.map((cast) => ({
+                    slug: slugifyVietnamese(cast.name, { lower: true }),
+                }));
+
+                if (simpleSlugSearchCriteria.length > 0) {
+                    const existingSlugActors = await this.actorRepo.find({
+                        filterQuery: { $or: simpleSlugSearchCriteria },
+                    });
+
+                    // Create a map of existing slugs
+                    const existingSlugsMap = new Map(
+                        existingSlugActors.map((actor) => [actor.slug, actor]),
+                    );
+
+                    // Process remaining actors
+                    for (const cast of remainingCast) {
+                        const simpleSlug = slugifyVietnamese(cast.name, { lower: true });
+                        const existingActor = existingSlugsMap.get(simpleSlug);
+
+                        if (existingActor) {
+                            // If actor exists with simple slug but different TMDB ID,
+                            // create new actor with TMDB ID in slug
+                            if (
+                                existingActor.tmdbPersonId &&
+                                existingActor.tmdbPersonId !== cast.id
+                            ) {
+                                const formattedSlugWithCastId = `${simpleSlug}-t-${cast.id}`;
+                                const imgUrl = cast.profile_path
+                                    ? resolveUrl(cast.profile_path, this.tmdbService.config.imgHost)
+                                    : null;
+
+                                const newActor = await this.actorRepo.create({
+                                    document: {
+                                        name: cast.name,
+                                        originalName: cast.original_name,
+                                        slug: formattedSlugWithCastId,
+                                        tmdbPersonId: cast.id,
+                                        thumbUrl: imgUrl,
+                                        posterUrl: imgUrl,
+                                    },
+                                });
+                                existingActorsMap.set(cast.id, newActor._id);
+                            } else {
+                                // Update existing actor with TMDB data if it doesn't have it
+                                if (!existingActor.tmdbPersonId) {
+                                    const imgUrl = cast.profile_path
+                                        ? resolveUrl(
+                                              cast.profile_path,
+                                              this.tmdbService.config.imgHost,
+                                          )
+                                        : null;
+
+                                    await this.actorRepo.updateOne({
+                                        filterQuery: { _id: existingActor._id },
+                                        updateQuery: {
+                                            $set: {
+                                                tmdbPersonId: cast.id,
+                                                thumbUrl: imgUrl,
+                                                posterUrl: imgUrl,
+                                            },
+                                        },
+                                    });
+                                }
+                                existingActorsMap.set(cast.id, existingActor._id);
+                            }
+                        } else {
+                            // Create new actor with simple slug
+                            const imgUrl = cast.profile_path
+                                ? resolveUrl(cast.profile_path, this.tmdbService.config.imgHost)
+                                : null;
+
+                            const newActor = await this.actorRepo.create({
+                                document: {
+                                    name: cast.name,
+                                    originalName: cast.original_name,
+                                    slug: simpleSlug,
+                                    tmdbPersonId: cast.id,
+                                    thumbUrl: imgUrl,
+                                    posterUrl: imgUrl,
+                                },
+                            });
+                            existingActorsMap.set(cast.id, newActor._id);
+                        }
+                    }
+                }
+
+                // Return all actor IDs
+                return creditData.cast
+                    .map((cast) => existingActorsMap.get(cast.id))
+                    .filter((id) => id !== null);
+            }
+        }
+
+        // Handle manual actors list
+        if (actors?.length) {
+            // Generate slugs for all actors
+            const slugs = actors
+                .filter((actor) => !isNullOrUndefined(actor) && actor)
+                .map((actor) => slugifyVietnamese(actor, { lower: true }) || actor);
+
+            // Bulk find existing actors
+            const existingActors = await this.actorRepo.find({
+                filterQuery: { slug: { $in: slugs } },
+            });
+
+            // Create a map for quick lookup
+            const existingActorsMap = new Map(
+                existingActors.map((actor) => [actor.slug, actor._id]),
+            );
+
+            // Prepare actors to create
+            const actorsToCreate = actors
+                .filter((actor) => !isNullOrUndefined(actor) && actor)
+                .filter(
+                    (actor) =>
+                        !existingActorsMap.has(slugifyVietnamese(actor, { lower: true }) || actor),
+                )
+                .map((actor) => ({
+                    name: actor,
+                    originalName: actor,
+                    slug: slugifyVietnamese(actor, { lower: true }) || actor,
+                }));
+
+            // Bulk create new actors
+            if (actorsToCreate.length > 0) {
+                const newActors = await this.actorRepo.insertMany(actorsToCreate);
+
+                // Add new actors to the map
+                newActors.forEach((actor) => {
+                    existingActorsMap.set(actor.slug, actor._id);
+                });
+            }
+
+            // Map all actors to their IDs
+            return (
+                slugs.map((slug) => existingActorsMap.get(slug)).filter((id) => id !== null) || []
+            );
+        }
+
+        return [];
     }
 
-    protected async processDirectors(directors: string[]): Promise<any[]> {
-        if (!directors?.length) return [];
+    protected async processDirectors(
+        directors?: string[],
+        externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
+    ): Promise<Types.ObjectId[]> {
+        // Handle TMDB data processing
+        if (externalData?.tmdbData?.id) {
+            const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
 
-        const directorIds = await Promise.all(
-            directors.map(async (director) => {
-                if (isNullOrUndefined(director) || !director) {
-                    return null;
+            if (creditData) {
+                // Find the director (case insensitive job match)
+                const director = creditData.crew.find(
+                    (crew) => crew.job.toLowerCase() === 'director',
+                );
+
+                if (director) {
+                    // Try to find by TMDB ID first
+                    let existingDirector = await this.directorRepo.findOne({
+                        filterQuery: { tmdbPersonId: director.id },
+                    });
+
+                    if (!existingDirector) {
+                        // Try to find by simple slug
+                        const simpleSlug = slugifyVietnamese(director.name, { lower: true });
+                        existingDirector = await this.directorRepo.findOne({
+                            filterQuery: { slug: simpleSlug },
+                        });
+
+                        if (existingDirector) {
+                            if (
+                                existingDirector.tmdbPersonId &&
+                                existingDirector.tmdbPersonId !== director.id
+                            ) {
+                                // If exists with different TMDB ID, create new with ID in slug
+                                const formattedSlugWithDirectorId = `${simpleSlug}-t-${director.id}`;
+                                const imgUrl = director.profile_path
+                                    ? resolveUrl(
+                                          director.profile_path,
+                                          this.tmdbService.config.imgHost,
+                                      )
+                                    : null;
+
+                                existingDirector = await this.directorRepo.create({
+                                    document: {
+                                        name: director.name,
+                                        originalName: director.original_name,
+                                        slug: formattedSlugWithDirectorId,
+                                        tmdbPersonId: director.id,
+                                        thumbUrl: imgUrl,
+                                        posterUrl: imgUrl,
+                                    },
+                                });
+                            } else if (!existingDirector.tmdbPersonId) {
+                                // Update existing with TMDB data
+                                const imgUrl = director.profile_path
+                                    ? resolveUrl(
+                                          director.profile_path,
+                                          this.tmdbService.config.imgHost,
+                                      )
+                                    : null;
+
+                                await this.directorRepo.updateOne({
+                                    filterQuery: { _id: existingDirector._id },
+                                    updateQuery: {
+                                        $set: {
+                                            tmdbPersonId: director.id,
+                                            thumbUrl: imgUrl,
+                                            posterUrl: imgUrl,
+                                        },
+                                    },
+                                });
+                            }
+                        } else {
+                            // Create new director with simple slug
+                            const imgUrl = director.profile_path
+                                ? resolveUrl(director.profile_path, this.tmdbService.config.imgHost)
+                                : null;
+
+                            existingDirector = await this.directorRepo.create({
+                                document: {
+                                    name: director.name,
+                                    originalName: director.original_name,
+                                    slug: simpleSlug,
+                                    tmdbPersonId: director.id,
+                                    thumbUrl: imgUrl,
+                                    posterUrl: imgUrl,
+                                },
+                            });
+                        }
+                    }
+
+                    return existingDirector ? [existingDirector._id] : [];
                 }
-                const slug = slugify(director, { lower: true }) || director;
+            }
+        }
+
+        // Handle manual directors list
+        if (directors?.length) {
+            // Since we expect only one director, take the first valid one
+            const director = directors.find((d) => !isNullOrUndefined(d) && d);
+
+            if (director) {
+                const slug = slugifyVietnamese(director, { lower: true }) || director;
+
+                // Try to find existing director
                 const existingDirector = await this.directorRepo.findOne({
                     filterQuery: { slug },
                 });
+
                 if (existingDirector) {
-                    return existingDirector._id;
+                    return [existingDirector._id];
                 } else {
+                    // Create new director
                     const newDirector = await this.directorRepo.create({
                         document: {
                             name: director,
+                            originalName: director,
                             slug,
                         },
                     });
-                    return newDirector._id;
+                    return [newDirector._id];
                 }
-            }),
-        );
+            }
+        }
 
-        return directorIds.filter((id) => id !== null);
+        return [];
     }
 
     protected processEpisodes(episodes: OPhimServerData[]): any[] {
