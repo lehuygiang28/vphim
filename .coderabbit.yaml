@@ -1,60 +1,61 @@
 # yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
-language: "en-US"
+language: 'en-US'
 early_access: true
 reviews:
-  profile: assertive
-  request_changes_workflow: true
-  high_level_summary: true
-  high_level_summary_placeholder: "@coderabbitai summary"
-  auto_title_placeholder: "@coderabbitai"
-  review_status: true
-  poem: false
-  collapse_walkthrough: false
-  sequence_diagrams: true
-  changed_files_summary: true
-  abort_on_close: true
-  labeling_instructions:
-    - label: api
-      instructions: "Apply when the PR/MR contains changes to the backend (nodejs, nestjs) code."
-    - label: fe
-      instructions: "Apply when the PR/MR contains changes to the react (nextjs) components used on the frontend user interface."
-    - label: mnt
-      instructions: "Apply when the PR/MR contains changes to the react (nextjs) components used on the frontend admin interface."
-    - label: mobile
-      instructions: "Apply when the PR/MR contains changes to the react native code."
-  auto_review:
-    enabled: true
-    auto_incremental_review: true
-    drafts: false
-  path_instructions:
-    - path: "**/*.ts"
-      instructions: "Review the TypeScript code to ensure it adheres to the
-        NestJS coding standards and best practices. This includes proper use of modules,
-        services, controllers, and decorators. Also, ensure the code follows the Express.js
-        style guide. Pay attention to the use of middleware, routing, error handling, and
-        data validation. The code should also conform to the ESLint rules configured in the
-        codebase. Highlight any deviations and suggest appropriate corrections. Using repository
-        patterns is encouraged."
-    - path: "**/*.tsx"
-      instructions: "Ensure all components are functional components unless there is a specific need for class components.
-        Use TypeScript interfaces or types to define props and state. Use React hooks (useState, useEffect, etc.)
-        appropriately and avoid using them conditionally or inside loops. For global state management, use React Context
-        API or a state management library like Redux. Ensure JSX syntax is used correctly, following best practices such as
-        self-closing tags and proper indentation. Use CSS-in-JS libraries like styled-components for styling in React, and
-        StyleSheet for styling in React Native. For navigation, use React Router in React and React Navigation in React Native.
-        Ensure the code conforms to the ESLint rules configured in the codebase. Write unit tests for components using testing
-        libraries like Jest and React Testing Library for React, and Jest with React Native Testing Library for React Native.
-        Ensure accessibility best practices are followed, such as using semantic HTML elements in React and accessibility props
-        in React Native. Optimize performance by using techniques like memoization with React.memo and useMemo. Follow a
-        consistent folder structure and naming conventions for components, hooks, and other files. Document components and
-        functions using JSDoc or TypeScript comments. Use environment variables for configuration and sensitive data, ensuring
-        they are not hardcoded in the codebase. Ensure proper error handling and logging throughout the application. Regularly
-        update dependencies to keep the project secure and up-to-date."
+    profile: chill
+    request_changes_workflow: true
+    high_level_summary: true
+    high_level_summary_placeholder: '@coderabbitai summary'
+    auto_title_placeholder: '@coderabbitai'
+    review_status: true
+    poem: false
+    collapse_walkthrough: false
+    sequence_diagrams: true
+    changed_files_summary: true
+    abort_on_close: true
+    labeling_instructions:
+        - label: api
+          instructions: 'Apply when the PR/MR contains changes to the backend (nodejs, nestjs) code.'
+        - label: fe
+          instructions: 'Apply when the PR/MR contains changes to the react (nextjs) components used on the frontend user interface.'
+        - label: mnt
+          instructions: 'Apply when the PR/MR contains changes to the react (nextjs) components used on the frontend admin interface.'
+        - label: mobile
+          instructions: 'Apply when the PR/MR contains changes to the react native code.'
+    auto_review:
+        enabled: true
+        auto_incremental_review: true
+        drafts: false
+    path_instructions:
+        - path: '**/*.ts'
+          instructions: 'Review the TypeScript code to ensure it adheres to the
+              NestJS coding standards and best practices. This includes proper use of modules,
+              services, controllers, and decorators. Also, ensure the code follows the Express.js
+              style guide. Pay attention to the use of middleware, routing, error handling, and
+              data validation. The code should also conform to the ESLint rules configured in the
+              codebase. Highlight any deviations and suggest appropriate corrections. Using repository
+              patterns is encouraged.'
+        - path: '**/*.tsx'
+          instructions:
+              'Ensure all components are functional components unless there is a specific need for class components.
+              Use TypeScript interfaces or types to define props and state. Use React hooks (useState, useEffect, etc.)
+              appropriately and avoid using them conditionally or inside loops. For global state management, use React Context
+              API or a state management library like Redux. Ensure JSX syntax is used correctly, following best practices such as
+              self-closing tags and proper indentation. Use CSS-in-JS libraries like styled-components for styling in React, and
+              StyleSheet for styling in React Native. For navigation, use React Router in React and React Navigation in React Native.
+              Ensure the code conforms to the ESLint rules configured in the codebase. Write unit tests for components using testing
+              libraries like Jest and React Testing Library for React, and Jest with React Native Testing Library for React Native.
+              Ensure accessibility best practices are followed, such as using semantic HTML elements in React and accessibility props
+              in React Native. Optimize performance by using techniques like memoization with React.memo and useMemo. Follow a
+              consistent folder structure and naming conventions for components, hooks, and other files. Document components and
+              functions using JSDoc or TypeScript comments. Use environment variables for configuration and sensitive data, ensuring
+              they are not hardcoded in the codebase. Ensure proper error handling and logging throughout the application. Regularly
+              update dependencies to keep the project secure and up-to-date.'
 chat:
-  auto_reply: true
+    auto_reply: true
 
 knowledge_base:
-  opt_out: true
-  learnings:
-    scope: auto
+    opt_out: true
+    learnings:
+        scope: auto
 enable_free_tier: true
