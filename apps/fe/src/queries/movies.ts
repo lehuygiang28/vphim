@@ -12,7 +12,6 @@ export const GET_MOVIE_QUERY = gql`
             episodeTotal
             isCopyright
             lang
-            lastSyncModified
             notify
             originName
             posterUrl

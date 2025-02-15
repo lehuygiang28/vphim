@@ -151,7 +151,7 @@ export class KKPhimCrawler extends BaseCrawler {
             if (
                 existingMovie &&
                 !this.config.forceUpdate &&
-                lastModified <= existingMovie?.lastSyncModified
+                lastModified?.getTime() <= (existingMovie?.lastSyncModified?.kkphim || 0)
             ) {
                 return false;
             }
@@ -204,15 +204,19 @@ export class KKPhimCrawler extends BaseCrawler {
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
                 status: mapStatus(movieDetail?.status || existingMovie?.status),
 
-                lastSyncModified: new Date(
-                    Math.max(
-                        modified?.time ? new Date(modified?.time).getTime() : 0,
-                        !isNullOrUndefined(existingMovie?.lastSyncModified)
-                            ? new Date(existingMovie.lastSyncModified).getTime()
+                lastSyncModified: {
+                    ...existingMovie?.lastSyncModified,
+                    kkphim: Math.max(
+                        // Get modified time or default to 0
+                        modified?.time ? new Date(modified.time).getTime() : 0,
+                        // Get existing kkphim time or default to 0
+                        existingMovie?.lastSyncModified?.kkphim
+                            ? new Date(existingMovie.lastSyncModified.kkphim).getTime()
                             : 0,
+                        // Ensure at least 0
                         0,
                     ),
-                ),
+                },
 
                 _id: correctId,
                 name: movieDetail?.name,

@@ -38,12 +38,12 @@ export class MovieService {
     private readonly EXCLUDE_MOVIE_SRC: ('ophim' | 'kkphim' | 'nguonc')[] = [];
     private readonly genAI: GoogleGenerativeAI;
     private readonly AI_MODELS: string[] = [
-		'models/gemini-2.0-flash-thinking-exp-01-21',
+        'models/gemini-2.0-flash-thinking-exp-01-21',
         'models/gemini-2.0-flash-thinking-exp-1219',
         'models/gemini-2.0-pro-exp-02-05',
         'models/gemini-2.0-flash-exp',
         'models/gemini-1.5-pro',
-		'models/gemini-2.0-flash-lite-preview-02-05',
+        'models/gemini-2.0-flash-lite-preview-02-05',
         'models/gemini-1.5-flash',
         'models/gemini-1.5-flash-8b',
     ];
@@ -83,7 +83,7 @@ export class MovieService {
             categories: input.categories?.map((c) => convertToObjectId(c)),
             countries: input.countries?.map((c) => convertToObjectId(c)),
             directors: input.directors?.map((c) => convertToObjectId(c)),
-            lastSyncModified: new Date(),
+            lastSyncModified: {},
             createdAt: new Date(),
             updatedAt: new Date(),
         };

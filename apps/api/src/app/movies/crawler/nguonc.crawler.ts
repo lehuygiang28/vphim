@@ -186,7 +186,7 @@ export class NguoncCrawler extends BaseCrawler {
             if (
                 existingMovie &&
                 !this.config.forceUpdate &&
-                lastModified <= existingMovie?.lastSyncModified
+                lastModified?.getTime() <= (existingMovie?.lastSyncModified?.nguonc || 0)
             ) {
                 return false;
             }
@@ -215,15 +215,21 @@ export class NguoncCrawler extends BaseCrawler {
                 ),
                 lang: mapLanguage(movieDetail?.lang || existingMovie?.lang),
                 status: mapStatus(existingMovie?.status || this.processMovieStatus(movieDetail)),
-                lastSyncModified: new Date(
-                    Math.max(
-                        movieDetail?.modified ? new Date(movieDetail.modified).getTime() : 0,
-                        !isNullOrUndefined(existingMovie?.lastSyncModified)
-                            ? new Date(existingMovie.lastSyncModified).getTime()
+
+                lastSyncModified: {
+                    ...existingMovie?.lastSyncModified,
+                    nguonc: Math.max(
+                        // Get modified time or default to 0
+                        movieDetail.modified ? new Date(movieDetail.modified).getTime() : 0,
+                        // Get existing nguonc time or default to 0
+                        existingMovie?.lastSyncModified?.nguonc
+                            ? new Date(existingMovie.lastSyncModified.nguonc).getTime()
                             : 0,
+                        // Ensure at least 0
                         0,
                     ),
-                ),
+                },
+
                 _id: existingMovie?._id || new Types.ObjectId(),
                 slug:
                     existingMovie?.slug ||

@@ -87,6 +87,12 @@ type ImdbType {
   id: String
 }
 
+type LastSyncModifiedType {
+  ophim: Float
+  kkphim: Float
+  nguonc: Float
+}
+
 type Movie {
   _id: ID!
   name: String!
@@ -102,7 +108,7 @@ type Movie {
   episodeTotal: String
   isCopyright: Boolean
   lang: String
-  lastSyncModified: DateTime!
+  lastSyncModified: LastSyncModifiedType
   notify: String
   originName: String
   quality: String
@@ -155,7 +161,7 @@ type MovieFollowType {
   episodeTotal: String
   isCopyright: Boolean
   lang: String
-  lastSyncModified: DateTime!
+  lastSyncModified: LastSyncModifiedType
   notify: String
   originName: String
   quality: String
@@ -265,6 +271,12 @@ input TmdbInputType {
 
 input ImdbInputType {
   id: String
+}
+
+input LastSyncModifiedInputType {
+  ophim: Float
+  kkphim: Float
+  nguonc: Float
 }
 
 type Query {

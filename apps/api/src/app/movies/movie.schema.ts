@@ -58,6 +58,20 @@ export class ImdbSchema {
     id?: string;
 }
 
+export class LastSyncModified {
+    @ApiProperty()
+    @Prop({ type: Number, default: null })
+    ophim?: number;
+
+    @ApiProperty()
+    @Prop({ type: Number, default: null })
+    kkphim?: number;
+
+    @ApiProperty()
+    @Prop({ type: Number, default: null })
+    nguonc?: number;
+}
+
 @Schema({ timestamps: true, collection: 'movies' })
 export class Movie
     extends AbstractDocument
@@ -179,8 +193,8 @@ export class Movie
     episode?: Episode[];
 
     @ApiProperty()
-    @Prop({ type: Date, default: new Date() })
-    lastSyncModified: Date;
+    @Prop({ type: LastSyncModified, default: {}, required: false })
+    lastSyncModified?: LastSyncModified;
 
     @ApiProperty()
     @Prop({ type: TmdbSchema, default: null, required: false })

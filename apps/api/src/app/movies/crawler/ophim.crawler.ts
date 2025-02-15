@@ -216,7 +216,7 @@ export class OphimCrawler extends BaseCrawler {
             if (
                 !this.config.forceUpdate &&
                 existingMovie &&
-                lastModified <= existingMovie?.lastSyncModified
+                lastModified?.getTime() <= (existingMovie?.lastSyncModified?.ophim || 0)
             ) {
                 return false;
             }
@@ -269,15 +269,19 @@ export class OphimCrawler extends BaseCrawler {
                 status: mapStatus(movieDetail?.status || existingMovie?.status),
                 view: Math.max(view, existingMovie?.view || 0, 0),
 
-                lastSyncModified: new Date(
-                    Math.max(
-                        modified?.time ? new Date(modified?.time).getTime() : 0,
-                        !isNullOrUndefined(existingMovie?.lastSyncModified)
-                            ? new Date(existingMovie.lastSyncModified).getTime()
+                lastSyncModified: {
+                    ...existingMovie?.lastSyncModified,
+                    ophim: Math.max(
+                        // Get modified time or default to 0
+                        modified?.time ? new Date(modified.time).getTime() : 0,
+                        // Get existing ophim time or default to 0
+                        existingMovie?.lastSyncModified?.ophim
+                            ? new Date(existingMovie.lastSyncModified.ophim).getTime()
                             : 0,
+                        // Ensure at least 0
                         0,
                     ),
-                ),
+                },
 
                 _id: correctId,
                 name: movieDetail?.name,

@@ -1,7 +1,7 @@
 import { ObjectType, Field, ID, InputType } from '@nestjs/graphql';
 import { Types } from 'mongoose';
 
-import { Episode, EpisodeServerData, Movie } from './movie.schema';
+import { Episode, EpisodeServerData, LastSyncModified, Movie } from './movie.schema';
 import { ActorType } from '../actors';
 import { CategoryType } from '../categories';
 import { RegionType } from '../regions/region.type';
@@ -65,6 +65,19 @@ export class ImdbType {
     id?: string;
 }
 
+@InputType('LastSyncModifiedInputType')
+@ObjectType()
+export class LastSyncModifiedType implements LastSyncModified {
+    @Field({ nullable: true })
+    ophim?: number;
+
+    @Field({ nullable: true })
+    kkphim?: number;
+
+    @Field({ nullable: true })
+    nguonc?: number;
+}
+
 @ObjectType('Movie')
 export class MovieType
     implements Omit<Movie, 'actors' | 'categories' | 'countries' | 'directors' | 'tmdb' | 'imdb'>
@@ -73,7 +86,6 @@ export class MovieType
         Object.assign(this, movie);
         this.updatedAt = movie?.updatedAt ? new Date(movie?.updatedAt) : null;
         this.createdAt = movie?.createdAt ? new Date(movie?.createdAt) : null;
-        this.lastSyncModified = new Date(movie?.lastSyncModified);
         this.posterUrl = movie?.posterUrl || '';
     }
 
@@ -119,8 +131,8 @@ export class MovieType
     @Field({ nullable: true })
     lang?: string;
 
-    @Field(() => Date)
-    lastSyncModified: Date;
+    @Field(() => LastSyncModifiedType, { nullable: true })
+    lastSyncModified?: LastSyncModifiedType;
 
     @Field({ nullable: true })
     notify?: string;
