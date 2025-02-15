@@ -107,7 +107,7 @@ export class KKPhimCrawler extends BaseCrawler {
         slug = slugifyVietnamese(slug);
 
         try {
-            const movieDetail = await this.kkphim.getMovieDetail({ slug: 'hai-muoi' });
+            const movieDetail = await this.kkphim.getMovieDetail({ slug });
             if (!movieDetail) {
                 return false;
             }
