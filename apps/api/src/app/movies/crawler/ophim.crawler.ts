@@ -578,6 +578,9 @@ export class OphimCrawler extends BaseCrawler {
         directors?: string[],
         externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
     ): Promise<Types.ObjectId[]> {
+        // Use when tmdb can not find director, then fallback to manual director
+        let finalDirectorResult = [];
+
         // Find movie by IMDB ID if TMDB ID is not available
         if (!externalData?.tmdbData?.id && externalData?.imdbData?.id) {
             externalData.tmdbData = await this.tmdbService.findByImdbId(externalData.imdbData.id);
@@ -669,13 +672,13 @@ export class OphimCrawler extends BaseCrawler {
                         }
                     }
 
-                    return existingDirector ? [existingDirector._id] : [];
+                    finalDirectorResult = existingDirector ? [existingDirector._id] : [];
                 }
             }
         }
 
         // Handle manual directors list
-        if (directors?.length) {
+        if (directors?.length && finalDirectorResult?.length === 0) {
             // Since we expect only one director, take the first valid one
             const director = directors.find((d) => !isNullOrUndefined(d) && d);
 
@@ -688,7 +691,7 @@ export class OphimCrawler extends BaseCrawler {
                 });
 
                 if (existingDirector) {
-                    return [existingDirector._id];
+                    finalDirectorResult = [existingDirector._id];
                 } else {
                     // Create new director
                     const newDirector = await this.directorRepo.create({
@@ -698,12 +701,12 @@ export class OphimCrawler extends BaseCrawler {
                             slug,
                         },
                     });
-                    return [newDirector._id];
+                    finalDirectorResult = [newDirector._id];
                 }
             }
         }
 
-        return [];
+        return finalDirectorResult;
     }
 
     /**
