@@ -13,6 +13,14 @@ export class DirectorType implements Director {
     @Field()
     name: string;
 
+    @ApiProperty({ example: 'Andrew Garfield' })
+    @Field()
+    originalName: string;
+
+    @ApiPropertyOptional()
+    @Field({ nullable: true })
+    tmdbPersonId?: number;
+
     @ApiProperty()
     @Field()
     slug: string;

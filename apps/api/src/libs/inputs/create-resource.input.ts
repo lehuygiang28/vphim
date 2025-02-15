@@ -7,6 +7,9 @@ export class CreateResourceInput {
     @IsNotEmpty()
     name: string;
 
+    @Field({ nullable: true })
+    originalName?: string;
+
     @Field()
     @IsNotEmpty()
     @Matches(/^[a-z0-9-]+$/, {

@@ -14,6 +14,14 @@ export class ActorType implements Actor {
     @Field()
     name: string;
 
+    @ApiProperty({ example: 'Andrew Garfield' })
+    @Field()
+    originalName: string;
+
+    @ApiPropertyOptional()
+    @Field({ nullable: true })
+    tmdbPersonId?: number;
+
     @ApiProperty({ example: 'andrew-garfield' })
     @Field()
     slug: string;

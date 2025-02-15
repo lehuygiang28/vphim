@@ -13,8 +13,16 @@ export class Actor extends AbstractDocument {
     name: string;
 
     @ApiProperty()
-    @Prop({ required: true, type: String, unique: true })
+    @Prop({ required: true, type: String })
+    originalName: string;
+
+    @ApiProperty()
+    @Prop({ required: true, type: String })
     slug: string;
+
+    @ApiProperty()
+    @Prop({ required: false, type: Number, default: null, unique: true })
+    tmdbPersonId?: number | null;
 
     @ApiProperty()
     @Prop({ type: String, default: null })
