@@ -57,14 +57,14 @@ export class DirectorService {
         return result;
     }
 
-    async updateDirector({ _id, name }: UpdateDirectorInput) {
+    async updateDirector({ _id, name, originalName, posterUrl }: UpdateDirectorInput) {
         return this.directorRepo.findOneAndUpdateOrThrow({
             filterQuery: { _id: convertToObjectId(_id) },
-            updateQuery: { name: name },
+            updateQuery: { name, originalName, posterUrl },
         });
     }
 
-    async createDirector({ name, slug, originalName }: CreateDirectorInput) {
+    async createDirector({ name, slug, originalName, posterUrl }: CreateDirectorInput) {
         const exists = await this.directorRepo.findOne({ filterQuery: { slug } });
         if (exists) {
             throw new BadRequestException({
@@ -80,6 +80,7 @@ export class DirectorService {
                 name,
                 originalName: originalName || name,
                 slug: removeDiacritics(removeTone(slug)),
+                posterUrl,
             },
         });
     }

@@ -16,4 +16,7 @@ export class CreateResourceInput {
         message: 'Slug can only contain lowercase letters, numbers, and hyphens',
     })
     slug: string;
+
+    @Field({ nullable: true })
+    posterUrl?: string;
 }

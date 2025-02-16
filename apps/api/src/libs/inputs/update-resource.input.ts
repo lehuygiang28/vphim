@@ -13,4 +13,10 @@ export class UpdateResourceInput {
 
     @Field({ nullable: true })
     slug?: string;
+
+    @Field({ nullable: true })
+    originalName?: string;
+
+    @Field({ nullable: true })
+    posterUrl?: string;
 }

@@ -6,4 +6,5 @@ export class CreateActorInput extends PickType(CreateResourceInput, [
     'name',
     'slug',
     'originalName',
+    'posterUrl',
 ]) {}

@@ -523,12 +523,15 @@ input UpdateActorInput {
   _id: String!
   name: String!
   slug: String
+  originalName: String
+  posterUrl: String
 }
 
 input CreateActorInput {
   name: String!
   originalName: String
   slug: String!
+  posterUrl: String
 }
 
 input DeleteActorInput {
@@ -554,12 +557,15 @@ input UpdateDirectorInput {
   _id: String!
   name: String!
   slug: String
+  originalName: String
+  posterUrl: String
 }
 
 input CreateDirectorInput {
   name: String!
   originalName: String
   slug: String!
+  posterUrl: String
 }
 
 input DeleteDirectorInput {

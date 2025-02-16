@@ -57,14 +57,14 @@ export class ActorService {
         return result;
     }
 
-    async updateActor({ _id, name }: UpdateActorInput) {
+    async updateActor({ _id, name, originalName, posterUrl }: UpdateActorInput) {
         return this.actorRepo.findOneAndUpdateOrThrow({
             filterQuery: { _id: convertToObjectId(_id) },
-            updateQuery: { name: name },
+            updateQuery: { name, originalName, posterUrl },
         });
     }
 
-    async createActor({ name, slug, originalName }: CreateActorInput) {
+    async createActor({ name, slug, originalName, posterUrl }: CreateActorInput) {
         const exists = await this.actorRepo.findOne({ filterQuery: { slug } });
         if (exists) {
             throw new BadRequestException({
@@ -80,6 +80,7 @@ export class ActorService {
                 name,
                 originalName: originalName || name,
                 slug: removeDiacritics(removeTone(slug)),
+                posterUrl,
             },
         });
     }
