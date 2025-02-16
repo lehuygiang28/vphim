@@ -582,8 +582,7 @@ export class OphimCrawler extends BaseCrawler {
         directors?: string[],
         externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
     ): Promise<Types.ObjectId[]> {
-        // Use when tmdb can not find director, then fallback to manual director
-        let finalDirectorResult = [];
+        const finalDirectorResult: Types.ObjectId[] = [];
 
         // Find movie by IMDB ID if TMDB ID is not available
         if (!externalData?.tmdbData?.id && externalData?.imdbData?.id) {
@@ -595,12 +594,13 @@ export class OphimCrawler extends BaseCrawler {
             const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
 
             if (creditData && creditData.crew?.length > 0) {
-                // Find the director (case insensitive job match)
-                const director = creditData.crew.find(
+                // Find all directors (case insensitive job match)
+                const directors = creditData.crew.filter(
                     (crew) => crew.job.toLowerCase() === 'director',
                 );
 
-                if (director) {
+                // Process each director
+                for (const director of directors) {
                     // Try to find by TMDB ID first
                     let existingDirector = await this.directorRepo.findOne({
                         filterQuery: { tmdbPersonId: director.id },
@@ -676,17 +676,19 @@ export class OphimCrawler extends BaseCrawler {
                         }
                     }
 
-                    finalDirectorResult = existingDirector ? [existingDirector._id] : [];
+                    if (existingDirector) {
+                        finalDirectorResult.push(existingDirector._id);
+                    }
                 }
             }
         }
 
         // Handle manual directors list
-        if (directors?.length && finalDirectorResult?.length === 0) {
-            // Since we expect only one director, take the first valid one
-            const director = directors.find((d) => !isNullOrUndefined(d) && d);
+        if (directors?.length && finalDirectorResult.length === 0) {
+            // Process all valid directors from the manual list
+            const validDirectors = directors.filter((d) => !isNullOrUndefined(d) && d);
 
-            if (director) {
+            for (const director of validDirectors) {
                 const slug = slugifyVietnamese(director, { lower: true }) || director;
 
                 // Try to find existing director
@@ -695,7 +697,7 @@ export class OphimCrawler extends BaseCrawler {
                 });
 
                 if (existingDirector) {
-                    finalDirectorResult = [existingDirector._id];
+                    finalDirectorResult.push(existingDirector._id);
                 } else {
                     // Create new director
                     const newDirector = await this.directorRepo.create({
@@ -705,7 +707,7 @@ export class OphimCrawler extends BaseCrawler {
                             slug,
                         },
                     });
-                    finalDirectorResult = [newDirector._id];
+                    finalDirectorResult.push(newDirector._id);
                 }
             }
         }
