@@ -31,8 +31,8 @@ export default function EditActor({ params }: EditActorPageProps) {
             <ResourceForm
                 formProps={formProps}
                 gqlQuery={MNT_ACTOR_QUERY}
-                resource="actors',"
-                singularName="country"
+                resource="actors"
+                singularName="actor"
                 type="edit"
                 operation="actor"
             />

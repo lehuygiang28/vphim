@@ -31,8 +31,8 @@ export default function EditDirector({ params }: EditDirectorPageProps) {
             <ResourceForm
                 formProps={formProps}
                 gqlQuery={MNT_DIRECTOR_QUERY}
-                resource="directors',"
-                singularName="country"
+                resource="directors"
+                singularName="director"
                 type="edit"
                 operation="director"
             />
