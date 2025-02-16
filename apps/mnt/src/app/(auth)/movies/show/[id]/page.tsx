@@ -21,6 +21,7 @@ import {
     Alert,
     Image,
     Statistic,
+    Skeleton,
 } from 'antd';
 import {
     PlayCircleOutlined,
@@ -28,17 +29,21 @@ import {
     SearchOutlined,
     EyeOutlined,
     CalendarOutlined,
+    UserOutlined,
 } from '@ant-design/icons';
 import { MovieType, EpisodeType, EpisodeServerDataType } from '~api/app/movies/movie.type';
 import { ActorType } from '~api/app/actors/actor.type';
 import { CategoryType } from '~api/app/categories/category.type';
 import { GET_FULL_MOVIE_DETAIL_QUERY } from '~mnt/queries/movie.query';
 import { EditMovieButton } from '~mnt/components/button/edit-movie-button';
+import { DirectorType } from '~api/app/directors/director.type';
+import { useRouter } from 'next/navigation';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 export default function MovieShowPage({ params }: { params: { id: string } }) {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState('1');
     const [activeServerIndex, setActiveServerIndex] = useState(0);
     const [searchTexts, setSearchTexts] = useState<string[]>([]);
@@ -176,6 +181,83 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
         );
     };
 
+    const PeopleCard = ({
+        type,
+        people,
+    }:
+        | {
+              type: 'actors';
+              people: ActorType;
+          }
+        | {
+              type: 'directors';
+              people: DirectorType;
+          }) => {
+        return (
+            <Card
+                hoverable
+                className="h-full transition-all duration-300 hover:shadow-lg"
+                size="small"
+                styles={{
+                    body: {
+                        padding: '8px',
+                    },
+                }}
+                onClick={() => {
+                    router.push(`/${type}/edit/${people._id?.toString()}`);
+                }}
+            >
+                <div className="aspect-[3/4] relative w-full mb-2 max-w-[160px] mx-auto">
+                    {people.posterUrl ? (
+                        <Image
+                            alt={people.name}
+                            src={people.posterUrl}
+                            className="object-cover rounded-md"
+                            width={160}
+                            preview={{
+                                maskClassName: 'rounded-md',
+                                title: people.name,
+                            }}
+                            placeholder={
+                                <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
+                                    <Skeleton.Image active className="w-full h-full" />
+                                </div>
+                            }
+                            fallback="/api/placeholder/120/160"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
+                            <UserOutlined className="text-4xl text-gray-400" />
+                        </div>
+                    )}
+                </div>
+
+                <Space direction="vertical" className="w-full" size={0}>
+                    <Text strong className="text-base line-clamp-1" title={people.name}>
+                        {people.name}
+                    </Text>
+                    {people.originalName && (
+                        <Text
+                            type="secondary"
+                            className="text-xs line-clamp-1"
+                            title={people.originalName}
+                        >
+                            {people.originalName}
+                        </Text>
+                    )}
+                    {people.slug && (
+                        <Text
+                            className="text-xs text-gray-500 italic line-clamp-1"
+                            title={`${people.slug}`}
+                        >
+                            {people.slug}
+                        </Text>
+                    )}
+                </Space>
+            </Card>
+        );
+    };
+
     if (isError) {
         return <Alert message="Error loading movie data" type="error" />;
     }
@@ -219,6 +301,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                             description={
                                 <>
                                     <Paragraph>{record?.originName}</Paragraph>
+                                    <Paragraph>{record?.slug}</Paragraph>
                                     <Space wrap>
                                         {record?.year && <Tag color="blue">{record?.year}</Tag>}
                                         {record?.quality && (
@@ -344,26 +427,63 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                     {record?.content || 'No description available.'}
                                 </Paragraph>
                             </TabPane>
-                            <TabPane tab="Cast" key="2">
-                                <List
-                                    grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4 }}
-                                    dataSource={record?.actors || []}
-                                    renderItem={(actor: ActorType) => (
-                                        <List.Item>
-                                            <Card
-                                                hoverable
-                                                cover={
-                                                    <Image alt={actor.name} src={actor.thumbUrl} />
-                                                }
-                                            >
-                                                <Card.Meta
-                                                    title={actor.name}
-                                                    description={actor.slug}
-                                                />
-                                            </Card>
-                                        </List.Item>
-                                    )}
-                                />
+                            <TabPane tab="Credits" key="2">
+                                <div className="space-y-6">
+                                    {/* Directors Section */}
+                                    <div>
+                                        <Title level={5} className="mb-4">
+                                            Director
+                                        </Title>
+                                        {record?.directors && record.directors.length > 0 ? (
+                                            <List
+                                                grid={{ gutter: 16, xs: 2, sm: 3, md: 4, lg: 6 }}
+                                                dataSource={record.directors}
+                                                renderItem={(director: DirectorType) => (
+                                                    <List.Item>
+                                                        <PeopleCard
+                                                            type="directors"
+                                                            people={director}
+                                                        />
+                                                    </List.Item>
+                                                )}
+                                            />
+                                        ) : (
+                                            <div className="text-center py-4">
+                                                <Text type="secondary">
+                                                    No director information available
+                                                </Text>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Divider />
+
+                                    {/* Cast Section */}
+                                    <div>
+                                        <Title level={5} className="mb-4">
+                                            Casts
+                                        </Title>
+                                        <List
+                                            grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4 }}
+                                            dataSource={record?.actors || []}
+                                            renderItem={(actor: ActorType) => (
+                                                <List.Item>
+                                                    <PeopleCard type="actors" people={actor} />
+                                                </List.Item>
+                                            )}
+                                            locale={{
+                                                emptyText: (
+                                                    <div className="py-8 text-center">
+                                                        <UserOutlined className="text-4xl text-gray-300 mb-2" />
+                                                        <Text type="secondary">
+                                                            No cast members available
+                                                        </Text>
+                                                    </div>
+                                                ),
+                                            }}
+                                        />
+                                    </div>
+                                </div>
                             </TabPane>
                             <TabPane tab="Episodes" key="3">
                                 {record?.episode && record.episode.length > 0 ? (
