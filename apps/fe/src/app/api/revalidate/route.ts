@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Revalidate tags
-        if (tags && Array.isArray(tags)) {
+        if (tags && Array.isArray(tags) && tags?.length > 0) {
             for (const tag of tags) {
                 console.log(`[Next.js] Revalidating tag: ${tag}`);
                 revalidateTag(tag); // Assuming you want to use revalidateTag for tags

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
 import {
     QueryDslQueryContainer,
     SearchTotalHits,
@@ -54,6 +55,7 @@ export class MovieService {
         private readonly redisService: RedisService,
         private readonly searchService: SearchService,
         private readonly elasticsearchService: ElasticsearchService,
+        private readonly httpService: HttpService,
     ) {
         this.logger = new Logger(MovieService.name);
         this.EXCLUDE_MOVIE_SRC = (this.configService
@@ -714,7 +716,6 @@ export class MovieService {
             }
         }
 
-        this.logger.log(movieToUpdate);
         const updatedMovie = await this.movieRepo.findOneAndUpdateOrThrow({
             filterQuery: { _id: convertToObjectId(_id) },
             updateQuery: { $set: movieToUpdate },
@@ -728,15 +729,21 @@ export class MovieService {
                 ],
             },
         });
+        await this.revalidateMovies({ movieSlug: [updatedMovie.slug] });
 
         return new MovieType(updatedMovie as unknown as MovieType);
     }
 
     async hardDeleteMovie(input: MutateHardDeleteMovieInput) {
+        const movie = await this.movieRepo.findOneOrThrow({
+            filterQuery: { _id: convertToObjectId(input._id) },
+        });
+
         await Promise.allSettled([
-            this.movieRepo.deleteOne({ _id: convertToObjectId(input._id) }),
-            this.searchService.deleteMovie({ _id: convertToObjectId(input._id) }),
+            this.movieRepo.deleteOne({ _id: movie._id }),
+            this.searchService.deleteMovie({ _id: movie._id }),
         ]);
+        await this.revalidateMovies({ movieSlug: [movie.slug] });
         return 1;
     }
 
@@ -814,5 +821,33 @@ export class MovieService {
 
         this.logger.error('[AI] All AI models failed. Returning null.');
         return null;
+    }
+
+    protected async revalidateMovies({
+        movieSlug,
+        tag = null,
+    }: {
+        movieSlug: string[];
+        tag?: string;
+    }) {
+        try {
+            const res = await this.httpService.axiosRef.post(
+                this.configService.getOrThrow<string>('REVALIDATE_WEBHOOK_URL'),
+                { movieSlug, tags: tag ? [tag] : [] },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': this.configService.getOrThrow<string>('REVALIDATE_API_KEY'),
+                    },
+                },
+            );
+
+            if (res?.status !== 200) {
+                this.logger.error(`Failed to revalidate on front-end side: ${res.statusText}`);
+                return;
+            }
+        } catch (error) {
+            this.logger.error(`Error during revalidateMovies: ${error}`);
+        }
     }
 }
