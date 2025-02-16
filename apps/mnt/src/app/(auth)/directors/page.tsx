@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { GET_DIRECTOR_LIST_QUERY, MNT_DIRECTOR_DELETE } from '~mnt/queries/director.query';
-import ResourceList from '~mnt/components/list/resource-list';
+import { PersonResourceList } from '~mnt/components/list/person-resource-list';
 
 export default function DirectorList() {
     return (
-        <ResourceList
+        <PersonResourceList
             createPath="/directors/create"
             deleteOperation="deleteDirector"
             gqlQuery={GET_DIRECTOR_LIST_QUERY}

@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { GET_ACTOR_LIST_QUERY, MNT_ACTOR_DELETE } from '~mnt/queries/actor.query';
-import ResourceList from '~mnt/components/list/resource-list';
+import { PersonResourceList } from '~mnt/components/list/person-resource-list';
 
 export default function ActorList() {
     return (
-        <ResourceList
+        <PersonResourceList
             createPath="/actors/create"
             deleteOperation="deleteActor"
             gqlQuery={GET_ACTOR_LIST_QUERY}

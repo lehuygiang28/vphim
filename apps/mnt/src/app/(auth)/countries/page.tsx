@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { MNT_REGIONS_LIST_QUERY, MNT_REGION_DELETE } from '~mnt/queries/region.query';
-import ResourceList from '~mnt/components/list/resource-list';
+import { SimpleResourceList } from '~mnt/components/list/simple-resource-list';
 
 export default function RegionList() {
     return (
-        <ResourceList
+        <SimpleResourceList
             createPath="/countries/create"
             deleteOperation="deleteRegion"
             gqlQuery={MNT_REGIONS_LIST_QUERY}

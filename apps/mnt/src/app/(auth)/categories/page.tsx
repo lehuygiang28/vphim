@@ -3,11 +3,11 @@
 import React from 'react';
 
 import { MNT_CATEGORIES_LIST_QUERY, MNT_CATEGORY_DELETE } from '~mnt/queries/category.query';
-import ResourceList from '~mnt/components/list/resource-list';
+import { SimpleResourceList } from '~mnt/components/list/simple-resource-list';
 
 export default function CategoryList() {
     return (
-        <ResourceList
+        <SimpleResourceList
             createPath="/categories/create"
             deleteOperation="deleteCategory"
             gqlQuery={MNT_CATEGORIES_LIST_QUERY}

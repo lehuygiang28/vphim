@@ -6,8 +6,10 @@ export const GET_DIRECTOR_LIST_QUERY = gql`
             data {
                 _id
                 name
+                originalName
                 slug
                 updatedAt
+                posterUrl
             }
             total
         }
@@ -27,7 +29,10 @@ export const MNT_DIRECTOR_QUERY = gql`
         director(input: $input) {
             _id
             name
+            originalName
             slug
+            updatedAt
+            posterUrl
         }
     }
 `;
