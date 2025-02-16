@@ -291,8 +291,12 @@ export class OphimCrawler extends BaseCrawler {
                 categories: categoryIds,
                 countries: countryIds,
                 directors: directorIds,
-                thumbUrl: resolveUrl(thumb_url, this.config.imgHost),
-                posterUrl: resolveUrl(poster_url, this.config.imgHost),
+
+                // With ophim, we should reverse thumb and poster, because poster should is vertical image
+                thumbUrl: resolveUrl(poster_url, this.config.imgHost),
+                posterUrl: resolveUrl(thumb_url, this.config.imgHost),
+                // With ophim, we should reverse thumb and poster, because poster should is vertical image
+
                 trailerUrl: trailer_url,
                 isCopyright: is_copyright,
                 originName: origin_name,

@@ -227,10 +227,8 @@ export class KKPhimCrawler extends BaseCrawler {
                 countries: countryIds,
                 directors: directorIds,
 
-                // With kkphim should reverse thumb and poster, because thumb should is vertical image
-                thumbUrl: resolveUrl(poster_url, this.config.imgHost),
-                posterUrl: resolveUrl(thumb_url, this.config.imgHost),
-                // With kkphim should reverse thumb and poster, because thumb should is vertical image
+                thumbUrl: resolveUrl(thumb_url, this.config.imgHost),
+                posterUrl: resolveUrl(poster_url, this.config.imgHost),
 
                 trailerUrl: trailer_url,
                 isCopyright: is_copyright,

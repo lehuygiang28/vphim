@@ -245,8 +245,11 @@ export class NguoncCrawler extends BaseCrawler {
                     directorIds && directorIds?.length > 0
                         ? directorIds
                         : existingMovie?.directors || [],
-                thumbUrl: existingMovie?.thumbUrl || movieDetail.thumb_url || '',
-                posterUrl: existingMovie?.posterUrl || movieDetail.poster_url || '',
+
+                // With nguonc, we should reverse thumb and poster, because poster should is vertical image
+                thumbUrl: existingMovie?.thumbUrl || movieDetail.poster_url || '',
+                posterUrl: existingMovie?.posterUrl || movieDetail.thumb_url || '',
+                // With nguonc, we should reverse thumb and poster, because poster should is vertical image
 
                 name: existingMovie?.name || movieDetail.name || '',
                 originName: existingMovie?.originName || movieDetail.origin_name || '',
