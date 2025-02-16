@@ -7,7 +7,7 @@ export const MNT_MOVIE_LIST_QUERY = gql`
                 _id
                 name
                 originName
-                thumbUrl
+                posterUrl
                 episodeCurrent
                 slug
                 year
@@ -43,12 +43,12 @@ export const GET_FULL_MOVIE_DETAIL_QUERY = gql`
             lang
             notify
             originName
-            posterUrl
             quality
             showtimes
             slug
             status
             subDocquyen
+            posterUrl
             thumbUrl
             time
             trailerUrl
