@@ -2,7 +2,7 @@
 
 import { Edit, useForm } from '@refinedev/antd';
 import { type RegionType } from '~api/app/regions/region.type';
-import { ResourceForm } from '~mnt/components/form/resource/resource-form';
+import { BaseResourceForm } from '~mnt/components/form/resource/base-resource-form';
 import { MNT_REGION_QUERY, MNT_REGION_UPDATE } from '~mnt/queries/region.query';
 
 export type EditRegionPageProps = {
@@ -28,12 +28,10 @@ export default function EditRegion({ params }: EditRegionPageProps) {
 
     return (
         <Edit saveButtonProps={saveButtonProps}>
-            <ResourceForm
+            <BaseResourceForm
                 formProps={formProps}
+                type="create"
                 gqlQuery={MNT_REGION_QUERY}
-                resource="countries"
-                singularName="country"
-                type="edit"
                 operation="region"
             />
         </Edit>

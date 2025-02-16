@@ -2,7 +2,7 @@
 
 import { Edit, useForm } from '@refinedev/antd';
 import { type ActorType } from '~api/app/actors/actor.type';
-import { ResourceForm } from '~mnt/components/form/resource/resource-form';
+import { PersonResourceForm } from '~mnt/components/form/resource/person-resource-form';
 import { MNT_ACTOR_QUERY, MNT_ACTOR_UPDATE } from '~mnt/queries/actor.query';
 
 export type EditActorPageProps = {
@@ -28,11 +28,9 @@ export default function EditActor({ params }: EditActorPageProps) {
 
     return (
         <Edit saveButtonProps={saveButtonProps}>
-            <ResourceForm
+            <PersonResourceForm
                 formProps={formProps}
                 gqlQuery={MNT_ACTOR_QUERY}
-                resource="actors"
-                singularName="actor"
                 type="edit"
                 operation="actor"
             />

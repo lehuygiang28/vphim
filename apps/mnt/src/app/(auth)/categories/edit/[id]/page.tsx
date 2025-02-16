@@ -2,7 +2,7 @@
 
 import { Edit, useForm } from '@refinedev/antd';
 import { type CategoryType } from '~api/app/categories/category.type';
-import { CategoryForm } from '~mnt/components/form/category/category-form';
+import { BaseResourceForm } from '~mnt/components/form/resource/base-resource-form';
 import { MNT_CATEGORY_QUERY, MNT_CATEGORY_UPDATE } from '~mnt/queries/category.query';
 
 export type EditCategoryPageProps = {
@@ -28,7 +28,12 @@ export default function EditCategory({ params }: EditCategoryPageProps) {
 
     return (
         <Edit saveButtonProps={saveButtonProps}>
-            <CategoryForm formProps={formProps} type="edit" />
+            <BaseResourceForm
+                formProps={formProps}
+                type="edit"
+                gqlQuery={MNT_CATEGORY_QUERY}
+                operation="category"
+            />
         </Edit>
     );
 }

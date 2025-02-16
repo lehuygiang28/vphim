@@ -2,9 +2,9 @@
 
 import { Create, useForm } from '@refinedev/antd';
 import { type CategoryType } from '~api/app/categories/category.type';
-import { CategoryForm } from '~mnt/components/form/category/category-form';
+import { BaseResourceForm } from '~mnt/components/form/resource/base-resource-form';
 import { useFormLocalStorage } from '~mnt/hooks/useFormLocalStorage';
-import { MNT_CATEGORY_CREATE } from '~mnt/queries/category.query';
+import { MNT_CATEGORY_CREATE, MNT_CATEGORY_QUERY } from '~mnt/queries/category.query';
 
 const STORAGE_KEY = 'vephim_categoryCreateFormData';
 
@@ -29,13 +29,15 @@ export default function CreateCategory() {
 
     return (
         <Create saveButtonProps={saveButtonProps} headerButtons={<ClearFormButton />}>
-            <CategoryForm
+            <BaseResourceForm
                 formProps={{
                     ...formProps,
                     onFinish: handleFormFinish,
                     onValuesChange: handleValuesChange,
                 }}
                 type="create"
+                gqlQuery={MNT_CATEGORY_QUERY}
+                operation="category"
             />
         </Create>
     );

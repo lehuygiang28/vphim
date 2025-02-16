@@ -2,7 +2,7 @@
 
 import { Create, useForm } from '@refinedev/antd';
 import { type RegionType } from '~api/app/regions/region.type';
-import { ResourceForm } from '~mnt/components/form/resource/resource-form';
+import { BaseResourceForm } from '~mnt/components/form/resource/base-resource-form';
 import { useFormLocalStorage } from '~mnt/hooks/useFormLocalStorage';
 import { MNT_REGION_QUERY, MNT_REGION_CREATE } from '~mnt/queries/region.query';
 
@@ -29,16 +29,14 @@ export default function CreateRegion() {
 
     return (
         <Create saveButtonProps={saveButtonProps} headerButtons={<ClearFormButton />}>
-            <ResourceForm
+            <BaseResourceForm
                 formProps={{
                     ...formProps,
                     onFinish: handleFormFinish,
                     onValuesChange: handleValuesChange,
                 }}
-                gqlQuery={MNT_REGION_QUERY}
-                resource="countries"
-                singularName="country"
                 type="create"
+                gqlQuery={MNT_REGION_QUERY}
                 operation="region"
             />
         </Create>

@@ -2,7 +2,7 @@
 
 import { Edit, useForm } from '@refinedev/antd';
 import { type DirectorType } from '~api/app/directors/director.type';
-import { ResourceForm } from '~mnt/components/form/resource/resource-form';
+import { PersonResourceForm } from '~mnt/components/form/resource/person-resource-form';
 import { MNT_DIRECTOR_QUERY, MNT_DIRECTOR_UPDATE } from '~mnt/queries/director.query';
 
 export type EditDirectorPageProps = {
@@ -28,11 +28,9 @@ export default function EditDirector({ params }: EditDirectorPageProps) {
 
     return (
         <Edit saveButtonProps={saveButtonProps}>
-            <ResourceForm
+            <PersonResourceForm
                 formProps={formProps}
                 gqlQuery={MNT_DIRECTOR_QUERY}
-                resource="directors"
-                singularName="director"
                 type="edit"
                 operation="director"
             />

@@ -2,7 +2,7 @@
 
 import { Create, useForm } from '@refinedev/antd';
 import { type DirectorType } from '~api/app/directors/director.type';
-import { ResourceForm } from '~mnt/components/form/resource/resource-form';
+import { PersonResourceForm } from '~mnt/components/form/resource/person-resource-form';
 import { useFormLocalStorage } from '~mnt/hooks/useFormLocalStorage';
 import { MNT_DIRECTOR_QUERY, MNT_DIRECTOR_CREATE } from '~mnt/queries/director.query';
 
@@ -12,12 +12,12 @@ export default function CreateRegion() {
     const { formProps, saveButtonProps, form, onFinish } = useForm<DirectorType>({
         dataProviderName: 'graphql',
         action: 'create',
-        resource: 'regions',
+        resource: 'directors',
         redirect: 'show',
         id: '',
         meta: {
             gqlMutation: MNT_DIRECTOR_CREATE,
-            operation: 'createRegion',
+            operation: 'createDirector',
         },
     });
 
@@ -29,17 +29,15 @@ export default function CreateRegion() {
 
     return (
         <Create saveButtonProps={saveButtonProps} headerButtons={<ClearFormButton />}>
-            <ResourceForm
+            <PersonResourceForm
                 formProps={{
                     ...formProps,
                     onFinish: handleFormFinish,
                     onValuesChange: handleValuesChange,
                 }}
                 gqlQuery={MNT_DIRECTOR_QUERY}
-                resource="countries"
-                singularName="country"
                 type="create"
-                operation="region"
+                operation="director"
             />
         </Create>
     );

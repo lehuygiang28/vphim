@@ -2,22 +2,22 @@
 
 import { Create, useForm } from '@refinedev/antd';
 import { type ActorType } from '~api/app/actors/actor.type';
-import { ResourceForm } from '~mnt/components/form/resource/resource-form';
+import { PersonResourceForm } from '~mnt/components/form/resource/person-resource-form';
 import { useFormLocalStorage } from '~mnt/hooks/useFormLocalStorage';
 import { MNT_ACTOR_QUERY, MNT_ACTOR_CREATE } from '~mnt/queries/actor.query';
 
 const STORAGE_KEY = 'vephim_actorCreateFormData';
 
-export default function CreateRegion() {
+export default function CreateActor() {
     const { formProps, saveButtonProps, form, onFinish } = useForm<ActorType>({
         dataProviderName: 'graphql',
         action: 'create',
-        resource: 'regions',
+        resource: 'actors',
         redirect: 'show',
         id: '',
         meta: {
             gqlMutation: MNT_ACTOR_CREATE,
-            operation: 'createRegion',
+            operation: 'createActor',
         },
     });
 
@@ -29,17 +29,15 @@ export default function CreateRegion() {
 
     return (
         <Create saveButtonProps={saveButtonProps} headerButtons={<ClearFormButton />}>
-            <ResourceForm
+            <PersonResourceForm
                 formProps={{
                     ...formProps,
                     onFinish: handleFormFinish,
                     onValuesChange: handleValuesChange,
                 }}
                 gqlQuery={MNT_ACTOR_QUERY}
-                resource="countries"
-                singularName="country"
                 type="create"
-                operation="region"
+                operation="actor"
             />
         </Create>
     );
