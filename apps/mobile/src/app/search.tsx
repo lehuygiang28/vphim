@@ -119,14 +119,14 @@ export default function SearchScreen() {
                     accessoryLeft={() => (
                         <Image
                             source={{
-                                uri: getOptimizedImageUrl(item?.thumbUrl || item?.posterUrl, {
+                                uri: getOptimizedImageUrl(item?.posterUrl || item?.thumbUrl, {
                                     baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
                                     width: 480,
                                     height: 854,
                                     quality: 60,
                                 }),
                             }}
-                            style={styles.thumbnail}
+                            style={styles.poster}
                             resizeMode="cover"
                         />
                     )}
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 20,
     },
-    thumbnail: {
+    poster: {
         width: 50,
         height: 75,
         borderRadius: 4,

@@ -147,7 +147,6 @@ export default function MovieScreen() {
                     <VideoPlayer
                         isPlaying={isPlaying}
                         selectedEpisode={selectedEpisode}
-                        posterUrl={movie.data.posterUrl || movie.data.thumbUrl}
                         onPlayPress={handlePlayPress}
                         onVideoError={handleVideoError}
                         onNextEpisode={handleNextEpisode}

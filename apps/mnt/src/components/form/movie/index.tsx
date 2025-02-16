@@ -159,7 +159,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
         ],
     });
 
-    const [isPostLoading, setIsPostLoading] = useState(false);
+    const [isPosterLoading, setIsPosterLoading] = useState(false);
     const [isThumbLoading, setIsThumbLoading] = useState(false);
     const [posterUrl, setPosterUrl] = useState('');
     const [thumbUrl, setThumbUrl] = useState('');
@@ -179,7 +179,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customUpload = async (options: any, type: 'poster' | 'thumb') => {
         const { onSuccess, onError, file } = options;
-        setIsPostLoading(type === 'poster');
+        setIsPosterLoading(type === 'poster');
         setIsThumbLoading(type === 'thumb');
 
         const formData = new FormData();
@@ -210,7 +210,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
             onError({ error });
             message.error('Image upload failed, please try again later!');
         } finally {
-            setIsPostLoading(false);
+            setIsPosterLoading(false);
             setIsThumbLoading(false);
         }
     };
@@ -276,6 +276,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
         errorNotification: false,
         successNotification: false,
     });
+
     const generateSlug = useCallback((name: string) => {
         if (!name) {
             return '';
@@ -879,53 +880,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                     <Card title={<Title level={4}>Media</Title>} style={{ marginBottom: 16 }}>
                         <Space direction="vertical">
                             <Form.Item
-                                name="posterUrl"
-                                label="Poster"
-                                rules={[{ type: 'url', message: 'Poster URL must be a valid URL' }]}
-                            >
-                                <Space direction="vertical" style={{ width: '100%' }}>
-                                    <Input
-                                        value={posterUrl}
-                                        onChange={(e) => handleUrlChange(e, 'poster')}
-                                        autoComplete="off"
-                                    />
-                                    <Space>
-                                        <Upload
-                                            customRequest={(options) =>
-                                                customUpload(options, 'poster')
-                                            }
-                                            showUploadList={false}
-                                            beforeUpload={beforeUpload}
-                                            accept="image/*"
-                                        >
-                                            <Button
-                                                icon={<UploadOutlined />}
-                                                loading={isPostLoading}
-                                            >
-                                                Upload
-                                            </Button>
-                                        </Upload>
-                                        {posterUrl !== defaultPosterUrl && (
-                                            <Button
-                                                icon={<UndoOutlined />}
-                                                onClick={() => restoreDefaultImage('poster')}
-                                            >
-                                                Restore Default
-                                            </Button>
-                                        )}
-                                    </Space>
-                                </Space>
-                            </Form.Item>
-                            {posterUrl && (
-                                <Image
-                                    src={posterUrl}
-                                    alt="Movie Poster"
-                                    style={{ width: '100%', marginBottom: 16 }}
-                                />
-                            )}
-                            <Form.Item
                                 name="thumbUrl"
-                                label="Thumbnail"
+                                label="Horizontal Image (Thumb)"
                                 rules={[
                                     { required: true, message: 'Thumb can not be empty' },
                                     { type: 'url', message: 'Thumb URL must be a valid URL' },
@@ -967,7 +923,52 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             {thumbUrl && (
                                 <Image
                                     src={thumbUrl}
-                                    alt="Movie Thumbnail"
+                                    alt="Movie Horizontal Image"
+                                    style={{ width: '100%', marginBottom: 16 }}
+                                />
+                            )}
+                            <Form.Item
+                                name="posterUrl"
+                                label="Vertical Image (Poster)"
+                                rules={[{ type: 'url', message: 'Poster URL must be a valid URL' }]}
+                            >
+                                <Space direction="vertical" style={{ width: '100%' }}>
+                                    <Input
+                                        value={posterUrl}
+                                        onChange={(e) => handleUrlChange(e, 'poster')}
+                                        autoComplete="off"
+                                    />
+                                    <Space>
+                                        <Upload
+                                            customRequest={(options) =>
+                                                customUpload(options, 'poster')
+                                            }
+                                            showUploadList={false}
+                                            beforeUpload={beforeUpload}
+                                            accept="image/*"
+                                        >
+                                            <Button
+                                                icon={<UploadOutlined />}
+                                                loading={isPosterLoading}
+                                            >
+                                                Upload
+                                            </Button>
+                                        </Upload>
+                                        {posterUrl !== defaultPosterUrl && (
+                                            <Button
+                                                icon={<UndoOutlined />}
+                                                onClick={() => restoreDefaultImage('poster')}
+                                            >
+                                                Restore Default
+                                            </Button>
+                                        )}
+                                    </Space>
+                                </Space>
+                            </Form.Item>
+                            {posterUrl && (
+                                <Image
+                                    src={posterUrl}
+                                    alt="Movie Vertical Image"
                                     style={{ width: '100%', marginBottom: 16 }}
                                 />
                             )}

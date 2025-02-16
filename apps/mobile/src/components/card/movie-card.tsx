@@ -19,7 +19,7 @@ export const MovieCard = ({ movie, onPress }: { movie: MovieType; onPress: () =>
             <Card style={styles.card} onPress={onPress}>
                 <Image
                     source={{
-                        uri: getOptimizedImageUrl(movie?.thumbUrl || movie?.posterUrl, {
+                        uri: getOptimizedImageUrl(movie?.posterUrl || movie?.thumbUrl, {
                             baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
                             width: 480,
                             height: 854,

@@ -8,7 +8,6 @@ import ExpoVideoPlayer from '~mb/components/expo-video-player';
 interface VideoPlayerProps {
     isPlaying: boolean;
     selectedEpisode: EpisodeServerDataType | null;
-    posterUrl: string;
     onPlayPress: () => void;
     onVideoError: () => void;
     onNextEpisode: () => void;
@@ -20,7 +19,6 @@ interface VideoPlayerProps {
 export default function VideoPlayer({
     isPlaying,
     selectedEpisode,
-    posterUrl,
     onPlayPress,
     onVideoError,
     onNextEpisode,

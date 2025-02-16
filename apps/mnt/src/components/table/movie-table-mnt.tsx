@@ -434,14 +434,14 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         },
                     },
                     {
-                        title: 'Thumbnail',
-                        dataIndex: 'thumbUrl',
-                        key: 'thumbUrl',
+                        title: 'Poster',
+                        dataIndex: 'posterUrl',
+                        key: 'posterUrl',
                         width: 80,
-                        render: (thumbUrl: string, record: MovieType) => (
+                        render: (posterUrl: string, record: MovieType) => (
                             <Tooltip title={record.name}>
                                 <AntImage
-                                    src={getOptimizedImageUrl(thumbUrl, {
+                                    src={getOptimizedImageUrl(posterUrl, {
                                         width: 480,
                                         height: 854,
                                         quality: 60,

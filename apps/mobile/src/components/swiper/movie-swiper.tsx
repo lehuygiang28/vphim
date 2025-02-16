@@ -26,7 +26,7 @@ function MovieSwiper({ movies = [] }: { movies?: MovieType[] }) {
             >
                 <Image
                     source={{
-                        uri: getOptimizedImageUrl(movie.posterUrl || movie.thumbUrl, {
+                        uri: getOptimizedImageUrl(movie.thumbUrl || movie.posterUrl, {
                             baseUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
                             width: 1200,
                             height: 720,

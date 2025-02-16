@@ -287,10 +287,10 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                     <Card
                         cover={
                             <Space direction="vertical">
-                                <Image alt={`${record?.name} thumbnail`} src={record?.thumbUrl} />
+                                <Image alt={`${record?.name} poster`} src={record?.posterUrl} />
                                 <Image
-                                    alt={`${record?.name} poster`}
-                                    src={record?.posterUrl}
+                                    alt={`${record?.name} thumb`}
+                                    src={record?.thumbUrl}
                                     style={{ marginTop: 10 }}
                                 />
                             </Space>

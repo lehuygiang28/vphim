@@ -310,7 +310,7 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                     }}
                                 >
                                     <ImageOptimized
-                                        url={movie?.thumbUrl || movie?.posterUrl}
+                                        url={movie?.posterUrl || movie?.thumbUrl}
                                         alt={movie?.name || ''}
                                         width={480}
                                         height={854}

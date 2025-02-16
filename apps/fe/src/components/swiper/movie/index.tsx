@@ -325,7 +325,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                         >
                                             <Link href={`/phim/${movie.slug}`}>
                                                 <ImageOptimized
-                                                    url={movie?.thumbUrl}
+                                                    url={movie?.posterUrl}
                                                     alt={movie?.name}
                                                     width={480}
                                                     height={854}
