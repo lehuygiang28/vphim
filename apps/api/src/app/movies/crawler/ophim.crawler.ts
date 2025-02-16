@@ -252,6 +252,8 @@ export class OphimCrawler extends BaseCrawler {
                 correctId = new Types.ObjectId();
             }
 
+            const { tmdb, imdb } = await this.processExternalData(movieDetail);
+
             // Save movie
             const movieData: Movie = {
                 ...(existingMovie || {}),
@@ -306,12 +308,8 @@ export class OphimCrawler extends BaseCrawler {
                 cinemaRelease: chieurap,
                 year,
                 episode: this.processEpisodes(movieDetail?.episodes),
-                tmdb: {
-                    ...movieDetail?.tmdb,
-                    voteAverage: movieDetail?.tmdb?.vote_average,
-                    voteCount: movieDetail?.tmdb?.vote_count,
-                },
-                imdb: movieDetail?.imdb,
+                tmdb,
+                imdb,
             };
 
             if (existingMovie) {
@@ -348,6 +346,37 @@ export class OphimCrawler extends BaseCrawler {
             this.logger.error(`Error saving movie detail for ${movieSlug}: ${error}`);
             return false;
         }
+    }
+
+    protected async processExternalData(movieDetail: OPhimMovie): Promise<{
+        tmdb?: TmdbType;
+        imdb?: ImdbType;
+    }> {
+        // Find movie by IMDB ID if TMDB ID is not available
+        if (!movieDetail?.tmdb?.id && movieDetail?.imdb?.id) {
+            const tmdbData = await this.tmdbService.findTmdbByImdbId(movieDetail.imdb.id);
+            return { tmdb: tmdbData, imdb: movieDetail.imdb };
+        }
+
+        // Find movie by TMDB ID if IMDB ID is not available
+        if (movieDetail?.tmdb?.id && !movieDetail?.imdb?.id) {
+            const ids = await this.tmdbService.getExternalIds({
+                id: movieDetail?.tmdb?.id?.toString(),
+                type: movieDetail.tmdb.type,
+            });
+            return {
+                tmdb: {
+                    ...movieDetail.tmdb,
+                    id: ids?.id?.toString(),
+                    type: movieDetail.tmdb.type,
+                    voteAverage: movieDetail?.tmdb?.vote_average,
+                    voteCount: movieDetail?.tmdb?.vote_count,
+                },
+                imdb: { id: ids?.imdb_id },
+            };
+        }
+
+        return { tmdb: null, imdb: null };
     }
 
     /**
@@ -412,11 +441,6 @@ export class OphimCrawler extends BaseCrawler {
         actors?: string[],
         externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
     ): Promise<Types.ObjectId[]> {
-        // Find movie by IMDB ID if TMDB ID is not available
-        if (!externalData?.tmdbData?.id && externalData?.imdbData?.id) {
-            externalData.tmdbData = await this.tmdbService.findByImdbId(externalData.imdbData.id);
-        }
-
         // Handle TMDB data processing
         if (externalData?.tmdbData?.id) {
             const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
@@ -587,11 +611,6 @@ export class OphimCrawler extends BaseCrawler {
         externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
     ): Promise<Types.ObjectId[]> {
         const finalDirectorResult: Types.ObjectId[] = [];
-
-        // Find movie by IMDB ID if TMDB ID is not available
-        if (!externalData?.tmdbData?.id && externalData?.imdbData?.id) {
-            externalData.tmdbData = await this.tmdbService.findByImdbId(externalData.imdbData.id);
-        }
 
         // Handle TMDB data processing
         if (externalData?.tmdbData?.id) {

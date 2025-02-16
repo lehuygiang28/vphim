@@ -1,6 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MovieDb, CreditsResponse, ExternalId } from 'moviedb-promise';
+import {
+    MovieDb,
+    CreditsResponse,
+    ExternalId,
+    TvExternalIdsResponse,
+    MovieExternalIdsResponse,
+} from 'moviedb-promise';
 
 import { TmdbType } from 'apps/api/src/app/movies/movie.type';
 
@@ -20,7 +26,7 @@ export class TmdbService {
         };
     }
 
-    public async findByImdbId(imdbId: string): Promise<TmdbType | null> {
+    public async findTmdbByImdbId(imdbId: string): Promise<TmdbType | null> {
         try {
             const foundResult = await this.moviedb.find({
                 id: imdbId,
@@ -44,6 +50,32 @@ export class TmdbService {
             this.logger.error(`Failed to fetch TMDB data for IMDb ID ${imdbId}:`, error);
         }
         return null;
+    }
+
+    public async getExternalIds(
+        tmdbData: TmdbType,
+    ): Promise<TvExternalIdsResponse | MovieExternalIdsResponse> {
+        let data: TvExternalIdsResponse | MovieExternalIdsResponse | null = null;
+
+        switch (tmdbData.type) {
+            case 'tv': {
+                data = await this.moviedb.tvExternalIds({
+                    id: tmdbData.id,
+                });
+                break;
+            }
+            case 'movie': {
+                data = await this.moviedb.movieExternalIds({
+                    id: tmdbData.id,
+                });
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
+        return data;
     }
 
     public async getCreditDetails(tmdbData: TmdbType): Promise<CreditsResponse | null> {
