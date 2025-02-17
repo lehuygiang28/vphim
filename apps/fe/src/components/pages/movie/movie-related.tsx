@@ -56,7 +56,7 @@ export function MovieRelated({ movie }: MovieRelatedProps) {
         meta: { gqlQuery: MOVIES_LIST_QUERY, operation: 'movies' },
         pagination: {
             current: 1,
-            pageSize: 12,
+            pageSize: 24,
             mode: 'server',
         },
         ...asset,
