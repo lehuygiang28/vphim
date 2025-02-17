@@ -14,12 +14,12 @@ export const GET_MOVIE_QUERY = gql`
             lang
             notify
             originName
-            posterUrl
             quality
             showtimes
             slug
             status
             subDocquyen
+            posterUrl
             thumbUrl
             time
             trailerUrl
