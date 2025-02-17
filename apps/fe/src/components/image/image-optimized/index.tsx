@@ -15,6 +15,8 @@ export type ImageOptimizedProps = {
     quality?: number;
     disableSkeleton?: boolean;
     loadType?: 'lazy' | 'eager';
+    onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+    onLoad?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
 };
 
 const isBase64Image = (url: string) =>
@@ -27,7 +29,16 @@ const extractBase64Data = (url: string) => {
 };
 
 const OptimizedImage = React.memo(
-    ({ url, alt, onError, onLoad, style, className, loadType, wrapperStyle }: any) => {
+    ({
+        url,
+        alt,
+        onError,
+        onLoad,
+        style,
+        className,
+        loadType,
+        wrapperStyle,
+    }: ImageOptimizedProps) => {
         const [currentUrl, setCurrentUrl] = useState(url);
 
         useEffect(() => {
@@ -100,6 +111,7 @@ export function ImageOptimized({
     wrapperStyle,
     quality = 60,
     loadType,
+    ...props
 }: ImageOptimizedProps) {
     const currentUrl = useMemo(
         () => getOptimizedImageUrl(url, { width, height, quality }),
@@ -116,6 +128,9 @@ export function ImageOptimized({
             className={className}
             loadType={loadType}
             wrapperStyle={wrapperStyle}
+            width={width}
+            height={height}
+            {...props}
         />
     );
 }
