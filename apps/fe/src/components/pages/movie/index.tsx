@@ -64,7 +64,7 @@ const InfoItem = ({
             {title}:
         </Title>
         {'  '}
-        <Text>{content}</Text>
+        <>{content}</>
     </Paragraph>
 );
 
@@ -176,50 +176,91 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
             <Space size={0} direction="vertical" className="movieInfo">
                 <InfoItem
                     md={md}
-                    title="Chiếu rạp"
-                    content={movie?.cinemaRelease ? 'Có' : 'Không'}
-                />
-                <InfoItem
-                    md={md}
-                    title="Diễn viên"
-                    content={movie?.actors?.map((actor) => actor?.name).join(', ')}
+                    title="Định dạng"
+                    content={
+                        <Text>
+                            {movie?.type && movieTypeTranslations[movie.type as MovieTypeEnum]
+                                ? movieTypeTranslations[movie.type as MovieTypeEnum]
+                                : 'N/A'}
+                        </Text>
+                    }
                 />
                 <InfoItem
                     md={md}
                     title="Quốc gia"
-                    content={movie?.countries?.map((country) => country?.name).join(', ')}
+                    content={
+                        <Text>{movie?.countries?.map((country) => country?.name).join(', ')}</Text>
+                    }
                 />
                 <InfoItem
                     md={md}
                     title="Thể loại"
-                    content={movie?.categories?.map((c) => c?.name)?.join(', ')}
-                />
-                <InfoItem
-                    md={md}
-                    title="Định dạng"
-                    content={
-                        movie?.type && movieTypeTranslations[movie.type as MovieTypeEnum]
-                            ? movieTypeTranslations[movie.type as MovieTypeEnum]
-                            : 'N/A'
-                    }
+                    content={<Text>{movie?.categories?.map((c) => c?.name)?.join(', ')}</Text>}
                 />
                 <InfoItem
                     md={md}
                     title="Trạng thái"
                     content={
-                        movie?.status && movieStatusTranslations[movie.status as MovieStatusEnum]
-                            ? movieStatusTranslations[movie.status as MovieStatusEnum]
-                            : 'N/A'
+                        <Text>
+                            {movie?.status &&
+                            movieStatusTranslations[movie.status as MovieStatusEnum]
+                                ? movieStatusTranslations[movie.status as MovieStatusEnum]
+                                : 'N/A'}
+                        </Text>
                     }
                 />
+                <InfoItem
+                    md={md}
+                    title="Chiếu rạp"
+                    content={<Text>{movie?.cinemaRelease ? 'Có' : 'Không'}</Text>}
+                />
+                <InfoItem md={md} title="Thời lượng" content={<Text>{movie?.time}</Text>} />
                 {movie?.directors && movie?.directors?.length > 0 && (
                     <InfoItem
                         md={md}
                         title="Đạo diễn"
-                        content={movie?.directors?.map((d) => d?.name).join(', ')}
+                        content={movie?.directors?.map((director, index) => {
+                            if (director?.tmdbPersonId)
+                                return (
+                                    <>
+                                        <Link
+                                            key={`${director?._id?.toString()}-${
+                                                director?.tmdbPersonId
+                                            }`}
+                                            target="_blank"
+                                            href={`https://www.themoviedb.org/person/${director.tmdbPersonId}`}
+                                        >
+                                            {director?.name}
+                                        </Link>
+                                        {index < movie?.directors?.length - 1 && ', '}
+                                    </>
+                                );
+
+                            return director?.name;
+                        })}
                     />
                 )}
-                <InfoItem md={md} title="Thời lượng" content={movie?.time} />
+                <InfoItem
+                    md={md}
+                    title="Diễn viên"
+                    content={movie?.actors?.map((actor, index) => {
+                        if (actor?.tmdbPersonId)
+                            return (
+                                <>
+                                    <Link
+                                        key={`${actor?._id?.toString()}-${actor?.tmdbPersonId}`}
+                                        target="_blank"
+                                        href={`https://www.themoviedb.org/person/${actor.tmdbPersonId}`}
+                                    >
+                                        {actor?.name}
+                                    </Link>
+                                    {index < movie?.actors?.length - 1 && ', '}
+                                </>
+                            );
+
+                        return actor?.name;
+                    })}
+                />
                 <InfoItem md={md} title="Tóm tắt" content={movie?.content} ellipsis={false} />
             </Space>
         );
