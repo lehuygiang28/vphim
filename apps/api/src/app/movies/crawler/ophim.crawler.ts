@@ -212,20 +212,23 @@ export class OphimCrawler extends BaseCrawler {
                 filterQuery: { slug: movieSlug },
             });
 
-            const lastModified = new Date(movieDetail.modified.time);
-            if (
-                !this.config.forceUpdate &&
-                existingMovie &&
-                lastModified?.getTime() <= (existingMovie?.lastSyncModified?.ophim || 0)
-            ) {
-                return false;
+            const lastModified = new Date(movieDetail?.modified?.time || 0).getTime();
+            if (!this.config.forceUpdate) {
+                // If not force update, check if movie was already updated
+                if (
+                    existingMovie &&
+                    lastModified <= (existingMovie?.lastSyncModified?.ophim || 0)
+                ) {
+                    // If movie was already up to date, skip
+                    return false;
+                }
             }
 
             const [{ categories: categoryIds, countries: countryIds }, actorIds, directorIds] =
                 await Promise.all([
                     this.processCategoriesAndCountries(movieDetail),
-                    this.processActors(movieDetail.actor, { tmdbData: movieDetail?.tmdb }),
-                    this.processDirectors(movieDetail.director, { tmdbData: movieDetail?.tmdb }),
+                    this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
+                    this.processDirectors(movieDetail?.director, { tmdbData: movieDetail?.tmdb }),
                 ]);
 
             const {

@@ -182,19 +182,22 @@ export class NguoncCrawler extends BaseCrawler {
                 filterQuery: { slug: movieSlug },
             });
 
-            const lastModified = new Date(movieDetail?.modified || 0);
-            if (
-                existingMovie &&
-                !this.config.forceUpdate &&
-                lastModified?.getTime() <= (existingMovie?.lastSyncModified?.nguonc || 0)
-            ) {
-                return false;
+            const lastModified = new Date(movieDetail?.modified || 0).getTime();
+            if (!this.config.forceUpdate) {
+                // If not force update, check if movie was already updated
+                if (
+                    existingMovie &&
+                    lastModified <= (existingMovie?.lastSyncModified?.nguonc || 0)
+                ) {
+                    // If movie was already up to date, skip
+                    return false;
+                }
             }
 
             const [{ categories, countries }, actorIds, directorIds] = await Promise.all([
-                this.processCategoriesAndCountries(movieDetail.category),
-                this.processActors(movieDetail.casts),
-                this.processDirectors(movieDetail.director),
+                this.processCategoriesAndCountries(movieDetail?.category),
+                this.processActors(movieDetail?.casts),
+                this.processDirectors(movieDetail?.director),
             ]);
 
             const processedEpisodes = this.processEpisodes(
