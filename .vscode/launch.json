@@ -8,7 +8,8 @@
             "name": "vphim-api",
             "type": "node",
             "request": "launch",
-            "args": ["apps/api/src/main.ts"],
+            "cwd": "${workspaceFolder}/apps/api",
+            "args": ["src/main.ts"],
             "runtimeArgs": [
                 "--require",
                 "ts-node/register",
@@ -18,31 +19,14 @@
                 "ts-node/register/transpile-only",
                 "--nolazy"
             ],
-            "cwd": "${workspaceRoot}",
             "internalConsoleOptions": "openOnSessionStart",
             "env": {
-                "TS_NODE_PROJECT": "apps/api/tsconfig.app.json",
+                "TS_NODE_PROJECT": "tsconfig.app.json",
                 "IS_DEBUG": "true"
             },
-            "envFile": "${workspaceFolder}/apps/api/.env",
+            "envFile": ".env",
             "sourceMaps": true,
             "console": "internalConsole",
-            "outputCapture": "std",
-            "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug NestJS in NX",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": ["nx", "serve", "api", "--configuration=debug"],
-            "console": "internalConsole",
-            "restart": true,
-            "autoAttachChildProcesses": true,
-            "stopOnEntry": true,
-            "cwd": "${workspaceRoot}",
-            "envFile": "${workspaceFolder}/apps/api/.env",
-            "sourceMaps": true,
             "outputCapture": "std",
             "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
         }
