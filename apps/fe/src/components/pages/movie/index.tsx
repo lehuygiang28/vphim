@@ -236,7 +236,9 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                     </>
                                 );
 
-                            return director?.name;
+                            return index < movie?.directors?.length - 1
+                                ? `${director?.name}, `
+                                : director?.name;
                         })}
                     />
                 )}
@@ -258,7 +260,7 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                 </>
                             );
 
-                        return actor?.name;
+                        return index < movie?.actors?.length - 1 ? `${actor?.name}, ` : actor?.name;
                     })}
                 />
                 <InfoItem md={md} title="Tóm tắt" content={movie?.content} ellipsis={false} />
