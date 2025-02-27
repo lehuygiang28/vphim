@@ -1,0 +1,603 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Actor {
+  _id: ID!
+  name: String!
+  originalName: String!
+  tmdbPersonId: Float
+  slug: String!
+  content: String
+  thumbUrl: String
+  posterUrl: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type GetActorsOutput {
+  data: [Actor!]!
+  count: Float!
+  total: Float!
+}
+
+type Category {
+  _id: ID!
+  name: String!
+  slug: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type GetCategoriesOutput {
+  data: [Category!]!
+  count: Float!
+  total: Float!
+}
+
+type Region {
+  _id: ID!
+  name: String!
+  slug: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Director {
+  _id: ID!
+  name: String!
+  originalName: String!
+  tmdbPersonId: Float
+  slug: String!
+  content: String
+  thumbUrl: String
+  posterUrl: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type EpisodeServerData {
+  slug: String
+  name: String
+  filename: String
+  linkM3u8: String
+  linkEmbed: String
+}
+
+type Episode {
+  serverData: [EpisodeServerData!]
+  originSrc: String
+  serverName: String
+}
+
+type TmdbType {
+  type: String
+  id: String
+  season: Float
+  voteAverage: Float
+  voteCount: Float
+}
+
+type ImdbType {
+  id: String
+}
+
+type LastSyncModifiedType {
+  ophim: Float
+  kkphim: Float
+  nguonc: Float
+}
+
+type Movie {
+  _id: ID!
+  name: String!
+  actors: [Actor!]
+  categories: [Category!]
+  cinemaRelease: Boolean
+  content: String
+  countries: [Region!]
+  createdAt: DateTime
+  directors: [Director!]
+  episode: [Episode!]
+  episodeCurrent: String
+  episodeTotal: String
+  isCopyright: Boolean
+  lang: String
+  lastSyncModified: LastSyncModifiedType
+  notify: String
+  originName: String
+  quality: String
+  showtimes: String
+  slug: String!
+  status: String
+  subDocquyen: Boolean
+  thumbUrl: String!
+  posterUrl: String
+  time: String
+  trailerUrl: String
+  type: String!
+  updatedAt: DateTime
+  view: Float
+  year: Float
+  imdb: ImdbType
+  tmdb: TmdbType
+  deletedAt: DateTime
+}
+
+type BlockActivityLogType {
+  action: String!
+  actionAt: DateTime!
+  actionBy: ID!
+  note: String!
+  reason: String!
+}
+
+type UserBlockType {
+  isBlocked: Boolean!
+  activityLogs: [BlockActivityLogType!]
+}
+
+type AvatarType {
+  url: String
+}
+
+type MovieFollowType {
+  _id: ID!
+  name: String!
+  actors: [Actor!]
+  categories: [Category!]
+  cinemaRelease: Boolean
+  content: String
+  countries: [Region!]
+  createdAt: DateTime
+  directors: [Director!]
+  episode: [Episode!]
+  episodeCurrent: String
+  episodeTotal: String
+  isCopyright: Boolean
+  lang: String
+  lastSyncModified: LastSyncModifiedType
+  notify: String
+  originName: String
+  quality: String
+  showtimes: String
+  slug: String!
+  status: String
+  subDocquyen: Boolean
+  thumbUrl: String!
+  posterUrl: String
+  time: String
+  trailerUrl: String
+  type: String!
+  updatedAt: DateTime
+  view: Float
+  year: Float
+  imdb: ImdbType
+  tmdb: TmdbType
+  deletedAt: DateTime
+}
+
+type UserType {
+  _id: ID!
+  email: String!
+  createdAt: DateTime!
+  emailVerified: Boolean!
+  fullName: String!
+  password: String!
+  role: String!
+  updatedAt: DateTime
+  avatar: AvatarType
+  block: UserBlockType
+  followMovies: [MovieFollowType!]
+}
+
+type GetDirectorsOutput {
+  data: [Director!]!
+  count: Float!
+  total: Float!
+}
+
+type GetRegionsOutput {
+  data: [Region!]!
+  count: Float!
+  total: Float!
+}
+
+type GetMoviesOutput {
+  data: [Movie!]!
+  total: Float!
+}
+
+type UserCommentType {
+  _id: ID!
+  fullName: String!
+  avatar: AvatarType
+}
+
+type CommentType {
+  _id: ID!
+  user: UserCommentType!
+  movieId: ID!
+  content: String!
+  parentComment: ID
+  replyCount: Float
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  editedAt: Float
+}
+
+type GetCommentsOutput {
+  data: [CommentType!]!
+  total: Float!
+  count: Float!
+  hasMore: Boolean!
+  currentPage: Float!
+}
+
+type GetCommentRepliesOutput {
+  data: [CommentType!]!
+  total: Float!
+  count: Float!
+  hasMore: Boolean!
+  currentPage: Float!
+}
+
+input EpisodeServerDataInputType {
+  slug: String
+  name: String
+  filename: String
+  linkM3u8: String
+  linkEmbed: String
+}
+
+input EpisodeInputType {
+  serverData: [EpisodeServerDataInputType!]
+  originSrc: String
+  serverName: String
+}
+
+input TmdbInputType {
+  type: String
+  id: String
+  season: Float
+  voteAverage: Float
+  voteCount: Float
+}
+
+input ImdbInputType {
+  id: String
+}
+
+input LastSyncModifiedInputType {
+  ophim: Float
+  kkphim: Float
+  nguonc: Float
+}
+
+type Query {
+  getMe: UserType!
+  movie(input: GetMovieInput!): Movie!
+  movies(input: GetMoviesInput!): GetMoviesOutput!
+  moviesForAdmin(input: GetMoviesAdminInput!): GetMoviesOutput!
+  actors(input: GetActorsInput!): GetActorsOutput!
+  actor(input: GetActorInput!): Actor!
+  categories(input: GetCategoriesInput!): GetCategoriesOutput!
+  category(input: GetCategoryInput!): Category!
+  directors(input: GetDirectorsInput!): GetDirectorsOutput!
+  director(input: GetDirectorInput!): Director!
+  regions(input: GetRegionsInput!): GetRegionsOutput!
+  region(input: GetRegionInput!): Region!
+
+  """Get paginated comments for a movie"""
+  movieComments(
+    """Input containing movieId and pagination parameters (page, limit)"""
+    input: GetCommentsInput!
+  ): GetCommentsOutput!
+
+  """Get paginated replies for a specific comment"""
+  commentReplies(
+    """
+    Input containing parentCommentId and pagination parameters (page, limit)
+    """
+    input: GetCommentRepliesInput!
+  ): GetCommentRepliesOutput!
+}
+
+input GetMovieInput {
+  slug: String
+  _id: String
+}
+
+input GetMoviesInput {
+  name: String
+  categories: String
+  countries: String
+  cinemaRelease: Boolean
+  isCopyright: Boolean
+  keywords: String
+  limit: Float = 10
+  page: Float = 1
+  slug: String
+  sortBy: String
+  sortOrder: String
+  type: String
+  years: String
+  status: String
+  useAI: Boolean
+}
+
+input GetMoviesAdminInput {
+  name: String
+  categories: String
+  countries: String
+  cinemaRelease: Boolean
+  isCopyright: Boolean
+  keywords: String
+  limit: Float = 10
+  page: Float = 1
+  slug: String
+  sortBy: String
+  sortOrder: String
+  type: String
+  years: String
+  status: String
+  useAI: Boolean
+  resetCache: Boolean
+  isDeleted: Boolean
+  bypassCache: Boolean
+}
+
+input GetActorsInput {
+  limit: Float = 10
+  page: Float = 1
+  keywords: String
+}
+
+input GetActorInput {
+  _id: String
+  slug: String
+}
+
+input GetCategoriesInput {
+  limit: Float = 10
+  page: Float = 1
+  keywords: String
+  ids: [String!]
+  slugs: [String!]
+}
+
+input GetCategoryInput {
+  _id: String
+  slug: String
+}
+
+input GetDirectorsInput {
+  limit: Float = 10
+  page: Float = 1
+  keywords: String
+}
+
+input GetDirectorInput {
+  _id: String
+  slug: String
+}
+
+input GetRegionsInput {
+  limit: Float = 10
+  page: Float = 1
+  keywords: String
+}
+
+input GetRegionInput {
+  _id: String
+  slug: String
+}
+
+input GetCommentsInput {
+  limit: Float = 10
+  page: Float = 1
+  movieId: ID!
+  replyPage: Float = 1
+  replyLimit: Float = 5
+}
+
+input GetCommentRepliesInput {
+  limit: Float = 10
+  page: Float = 1
+  parentCommentId: ID!
+  movieId: ID!
+}
+
+type Mutation {
+  mutationMe(input: MutationMeInput!): UserType!
+  followMovie(input: MutationFollowMovieInput!): UserType!
+  unfollowMovie(input: MutationUnfollowMovieInput!): UserType!
+  createMovie(input: CreateMovieInput!): Movie!
+  updateMovie(input: UpdateMovieInput!): Movie!
+  mutateHardDeleteMovie(input: MutateHardDeleteMovieInput!): Int!
+  updateActor(input: UpdateActorInput!): Actor!
+  createActor(input: CreateActorInput!): Actor!
+  deleteActor(input: DeleteActorInput!): Int!
+  updateCategory(input: UpdateCategoryInput!): Category!
+  createCategory(input: CreateCategoryInput!): Category!
+  deleteCategory(input: DeleteCategoryInput!): Int!
+  updateDirector(input: UpdateDirectorInput!): Director!
+  createDirector(input: CreateDirectorInput!): Director!
+  deleteDirector(input: DeleteDirectorInput!): Int!
+  updateRegion(input: UpdateRegionInput!): Region!
+  createRegion(input: CreateRegionInput!): Region!
+  deleteRegion(input: DeleteRegionInput!): Int!
+  createComment(input: CreateCommentInput!): CommentType!
+  updateComment(input: UpdateCommentInput!): CommentType!
+  deleteComment(input: DeleteCommentInput!): Boolean!
+}
+
+input MutationMeInput {
+  fullName: String
+  avatar: AvatarMutationInput
+}
+
+input AvatarMutationInput {
+  url: String
+}
+
+input MutationFollowMovieInput {
+  movieSlug: String!
+}
+
+input MutationUnfollowMovieInput {
+  movieSlug: String!
+}
+
+input CreateMovieInput {
+  name: String!
+  slug: String!
+  originName: String
+  content: String
+  type: String!
+  lang: String
+  quality: String
+  showtimes: String
+  status: String!
+  time: String
+  thumbUrl: String!
+  posterUrl: String
+  trailerUrl: String
+  isCopyright: Boolean
+  episodeCurrent: String
+  episodeTotal: String
+  subDocquyen: Boolean
+  cinemaRelease: Boolean
+  year: Float
+  actors: [ID!]
+  directors: [ID!]
+  categories: [ID!]
+  countries: [ID!]
+  episode: [EpisodeInputType!]
+  tmdb: TmdbInputType
+  imdb: ImdbInputType
+}
+
+input UpdateMovieInput {
+  _id: ID!
+  name: String
+  actors: [ID!]
+  categories: [ID!]
+  cinemaRelease: Boolean
+  content: String
+  countries: [ID!]
+  directors: [ID!]
+  episodeCurrent: String
+  episodeTotal: String
+  isCopyright: Boolean
+  lang: String
+  notify: String
+  originName: String
+  posterUrl: String
+  quality: String
+  showtimes: String
+  slug: String
+  status: String
+  subDocquyen: Boolean
+  thumbUrl: String
+  time: String
+  trailerUrl: String
+  type: String
+  year: Float
+  episode: [EpisodeInputType!]
+  imdb: ImdbInputType
+  tmdb: TmdbInputType
+  deletedAt: String
+}
+
+input MutateHardDeleteMovieInput {
+  _id: ID!
+}
+
+input UpdateActorInput {
+  _id: String!
+  name: String!
+  slug: String
+  originalName: String
+  posterUrl: String
+}
+
+input CreateActorInput {
+  name: String!
+  originalName: String
+  slug: String!
+  posterUrl: String
+}
+
+input DeleteActorInput {
+  _id: ID!
+}
+
+input UpdateCategoryInput {
+  _id: String!
+  name: String!
+  slug: String
+}
+
+input CreateCategoryInput {
+  name: String!
+  slug: String!
+}
+
+input DeleteCategoryInput {
+  _id: ID!
+}
+
+input UpdateDirectorInput {
+  _id: String!
+  name: String!
+  slug: String
+  originalName: String
+  posterUrl: String
+}
+
+input CreateDirectorInput {
+  name: String!
+  originalName: String
+  slug: String!
+  posterUrl: String
+}
+
+input DeleteDirectorInput {
+  _id: ID!
+}
+
+input UpdateRegionInput {
+  _id: String!
+  name: String!
+  slug: String
+}
+
+input CreateRegionInput {
+  name: String!
+  slug: String!
+}
+
+input DeleteRegionInput {
+  _id: ID!
+}
+
+input CreateCommentInput {
+  movieId: ID!
+  content: String!
+  parentCommentId: ID
+}
+
+input UpdateCommentInput {
+  _id: ID!
+  content: String!
+}
+
+input DeleteCommentInput {
+  _id: ID!
+}

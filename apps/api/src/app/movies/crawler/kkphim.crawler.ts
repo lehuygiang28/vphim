@@ -33,7 +33,6 @@ import { RegionRepository } from '../../regions/region.repository';
 import { DirectorRepository } from '../../directors';
 import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
-import { ImdbType, TmdbType } from '../movie.type';
 
 @Injectable()
 export class KKPhimCrawler extends BaseCrawler {
@@ -49,7 +48,7 @@ export class KKPhimCrawler extends BaseCrawler {
         directorRepo: DirectorRepository,
         regionRepo: RegionRepository,
         httpService: HttpService,
-        private tmdbService: TmdbService,
+        protected tmdbService: TmdbService,
     ) {
         const config: ICrawlerConfig = {
             name: 'KKPhimCrawler',
@@ -72,6 +71,7 @@ export class KKPhimCrawler extends BaseCrawler {
             categoryRepo,
             directorRepo,
             regionRepo,
+            tmdbService,
         };
 
         super(dependencies);
@@ -285,45 +285,11 @@ export class KKPhimCrawler extends BaseCrawler {
         }
     }
 
-    protected async processExternalData(movieDetail: OPhimMovie): Promise<{
-        tmdb?: TmdbType;
-        imdb?: ImdbType;
-    }> {
-        // Find movie by IMDB ID
-        if (movieDetail?.imdb?.id) {
-            const tmdbData = await this.tmdbService.findTmdbByImdbId(movieDetail.imdb.id);
-            return {
-                tmdb: tmdbData,
-                imdb: movieDetail.imdb,
-            };
-        }
-
-        // Find movie by TMDB ID
-        if (movieDetail?.tmdb?.id) {
-            const ids = await this.tmdbService.getExternalIds({
-                id: movieDetail?.tmdb?.id?.toString(),
-                type: movieDetail.tmdb.type,
-            });
-            return {
-                tmdb: {
-                    ...movieDetail.tmdb,
-                    id: ids?.id?.toString(),
-                    type: movieDetail.tmdb.type,
-                    voteAverage: movieDetail?.tmdb?.vote_average,
-                    voteCount: movieDetail?.tmdb?.vote_count,
-                },
-                imdb: { id: ids?.imdb_id },
-            };
-        }
-
-        return { tmdb: null, imdb: null };
-    }
-
     protected async processCategoriesAndCountries(
         movieDetail: any,
     ): Promise<{ categories: any[]; countries: any[] }> {
         const categories = await Promise.all(
-            movieDetail?.category?.map(async (category) => {
+            (movieDetail?.category || []).map(async (category) => {
                 if (isNullOrUndefined(category) || !category?.name || !category?.slug) {
                     return null;
                 }
@@ -341,11 +307,11 @@ export class KKPhimCrawler extends BaseCrawler {
                     });
                     return newCategory._id;
                 }
-            }) || [],
+            }),
         );
 
         const countries = await Promise.all(
-            movieDetail?.country?.map(async (country) => {
+            (movieDetail?.country || []).map(async (country) => {
                 if (isNullOrUndefined(country) || !country?.name || !country?.slug) {
                     return null;
                 }
@@ -363,7 +329,7 @@ export class KKPhimCrawler extends BaseCrawler {
                     });
                     return newCountry._id;
                 }
-            }) || [],
+            }),
         );
 
         return {
@@ -372,323 +338,22 @@ export class KKPhimCrawler extends BaseCrawler {
         };
     }
 
-    protected async processActors(
-        actors?: string[],
-        externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
-    ): Promise<Types.ObjectId[]> {
-        // Handle TMDB data processing
-        if (externalData?.tmdbData?.id) {
-            const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
-
-            if (creditData && creditData.cast?.length > 0) {
-                // First, try to find actors by TMDB ID
-                const tmdbSearchCriteria = creditData.cast.map((cast) => ({
-                    tmdbPersonId: cast.id,
-                }));
-
-                const existingTmdbActors = await this.actorRepo.find({
-                    filterQuery: { $or: tmdbSearchCriteria },
-                });
-
-                // Create a map for quick lookup
-                const existingActorsMap = new Map(
-                    existingTmdbActors.map((actor) => [actor.tmdbPersonId, actor._id]),
-                );
-
-                // Get actors not found by TMDB ID
-                const remainingCast = creditData.cast.filter(
-                    (cast) => !existingActorsMap.has(cast.id),
-                );
-
-                // Try to find remaining actors by simple slug (without cast.id)
-                const simpleSlugSearchCriteria = remainingCast.map((cast) => ({
-                    slug: slugifyVietnamese(cast.name, { lower: true }),
-                }));
-
-                if (simpleSlugSearchCriteria.length > 0) {
-                    const existingSlugActors = await this.actorRepo.find({
-                        filterQuery: { $or: simpleSlugSearchCriteria },
-                    });
-
-                    // Create a map of existing slugs
-                    const existingSlugsMap = new Map(
-                        existingSlugActors.map((actor) => [actor.slug, actor]),
-                    );
-
-                    // Process remaining actors
-                    for (const cast of remainingCast) {
-                        const simpleSlug = slugifyVietnamese(cast.name, { lower: true });
-                        const existingActor = existingSlugsMap.get(simpleSlug);
-
-                        if (existingActor) {
-                            // If actor exists with simple slug but different TMDB ID,
-                            // create new actor with TMDB ID in slug
-                            if (
-                                existingActor.tmdbPersonId &&
-                                existingActor.tmdbPersonId !== cast.id
-                            ) {
-                                const formattedSlugWithCastId = `${simpleSlug}-t-${cast.id}`;
-                                const imgUrl = cast.profile_path
-                                    ? resolveUrl(cast.profile_path, this.tmdbService.config.imgHost)
-                                    : null;
-
-                                const newActor = await this.actorRepo.create({
-                                    document: {
-                                        name: cast.name,
-                                        originalName: cast.original_name,
-                                        slug: formattedSlugWithCastId,
-                                        tmdbPersonId: cast.id,
-                                        thumbUrl: imgUrl,
-                                        posterUrl: imgUrl,
-                                    },
-                                });
-                                existingActorsMap.set(cast.id, newActor._id);
-                            } else {
-                                // Update existing actor with TMDB data if it doesn't have it
-                                if (!existingActor.tmdbPersonId) {
-                                    const imgUrl = cast.profile_path
-                                        ? resolveUrl(
-                                              cast.profile_path,
-                                              this.tmdbService.config.imgHost,
-                                          )
-                                        : null;
-
-                                    await this.actorRepo.updateOne({
-                                        filterQuery: { _id: existingActor._id },
-                                        updateQuery: {
-                                            $set: {
-                                                tmdbPersonId: cast.id,
-                                                thumbUrl: imgUrl,
-                                                posterUrl: imgUrl,
-                                            },
-                                        },
-                                    });
-                                }
-                                existingActorsMap.set(cast.id, existingActor._id);
-                            }
-                        } else {
-                            // Create new actor with simple slug
-                            const imgUrl = cast.profile_path
-                                ? resolveUrl(cast.profile_path, this.tmdbService.config.imgHost)
-                                : null;
-
-                            const newActor = await this.actorRepo.create({
-                                document: {
-                                    name: cast.name,
-                                    originalName: cast.original_name,
-                                    slug: simpleSlug,
-                                    tmdbPersonId: cast.id,
-                                    thumbUrl: imgUrl,
-                                    posterUrl: imgUrl,
-                                },
-                            });
-                            existingActorsMap.set(cast.id, newActor._id);
-                        }
-                    }
-                }
-
-                // Return all actor IDs
-                return creditData.cast
-                    .map((cast) => existingActorsMap.get(cast.id))
-                    .filter((id) => id !== null);
-            }
-        }
-
-        // Handle manual actors list
-        if (actors?.length) {
-            // Generate slugs for all actors
-            const slugs = actors
-                .filter((actor) => !isNullOrUndefined(actor) && actor)
-                .map((actor) => slugifyVietnamese(actor, { lower: true }) || actor);
-
-            // Bulk find existing actors
-            const existingActors = await this.actorRepo.find({
-                filterQuery: { slug: { $in: slugs } },
-            });
-
-            // Create a map for quick lookup
-            const existingActorsMap = new Map(
-                existingActors.map((actor) => [actor.slug, actor._id]),
-            );
-
-            // Prepare actors to create
-            const actorsToCreate = actors
-                .filter((actor) => !isNullOrUndefined(actor) && actor)
-                .filter(
-                    (actor) =>
-                        !existingActorsMap.has(slugifyVietnamese(actor, { lower: true }) || actor),
-                )
-                .map((actor) => ({
-                    name: actor,
-                    originalName: actor,
-                    slug: slugifyVietnamese(actor, { lower: true }) || actor,
-                }));
-
-            // Bulk create new actors
-            if (actorsToCreate.length > 0) {
-                const newActors = await this.actorRepo.insertMany(actorsToCreate);
-
-                // Add new actors to the map
-                newActors.forEach((actor) => {
-                    existingActorsMap.set(actor.slug, actor._id);
-                });
-            }
-
-            // Map all actors to their IDs
-            return (
-                slugs.map((slug) => existingActorsMap.get(slug)).filter((id) => id !== null) || []
-            );
-        }
-
-        return [];
-    }
-
-    protected async processDirectors(
-        directors?: string[],
-        externalData?: { tmdbData?: TmdbType; imdbData?: ImdbType },
-    ): Promise<Types.ObjectId[]> {
-        const finalDirectorResult: Types.ObjectId[] = [];
-
-        // Handle TMDB data processing
-        if (externalData?.tmdbData?.id) {
-            const creditData = await this.tmdbService.getCreditDetails(externalData.tmdbData);
-
-            if (creditData && creditData.crew?.length > 0) {
-                // Find all directors (case insensitive job match)
-                const directors = creditData.crew.filter(
-                    (crew) => crew.job.toLowerCase() === 'director',
-                );
-
-                // Process each director
-                for (const director of directors) {
-                    // Try to find by TMDB ID first
-                    let existingDirector = await this.directorRepo.findOne({
-                        filterQuery: { tmdbPersonId: director.id },
-                    });
-
-                    if (!existingDirector) {
-                        // Try to find by simple slug
-                        const simpleSlug = slugifyVietnamese(director.name, { lower: true });
-                        existingDirector = await this.directorRepo.findOne({
-                            filterQuery: { slug: simpleSlug },
-                        });
-
-                        if (existingDirector) {
-                            if (
-                                existingDirector.tmdbPersonId &&
-                                existingDirector.tmdbPersonId !== director.id
-                            ) {
-                                // If exists with different TMDB ID, create new with ID in slug
-                                const formattedSlugWithDirectorId = `${simpleSlug}-t-${director.id}`;
-                                const imgUrl = director.profile_path
-                                    ? resolveUrl(
-                                          director.profile_path,
-                                          this.tmdbService.config.imgHost,
-                                      )
-                                    : null;
-
-                                existingDirector = await this.directorRepo.create({
-                                    document: {
-                                        name: director.name,
-                                        originalName: director.original_name,
-                                        slug: formattedSlugWithDirectorId,
-                                        tmdbPersonId: director.id,
-                                        thumbUrl: imgUrl,
-                                        posterUrl: imgUrl,
-                                    },
-                                });
-                            } else if (!existingDirector.tmdbPersonId) {
-                                // Update existing with TMDB data
-                                const imgUrl = director.profile_path
-                                    ? resolveUrl(
-                                          director.profile_path,
-                                          this.tmdbService.config.imgHost,
-                                      )
-                                    : null;
-
-                                await this.directorRepo.updateOne({
-                                    filterQuery: { _id: existingDirector._id },
-                                    updateQuery: {
-                                        $set: {
-                                            tmdbPersonId: director.id,
-                                            thumbUrl: imgUrl,
-                                            posterUrl: imgUrl,
-                                        },
-                                    },
-                                });
-                            }
-                        } else {
-                            // Create new director with simple slug
-                            const imgUrl = director.profile_path
-                                ? resolveUrl(director.profile_path, this.tmdbService.config.imgHost)
-                                : null;
-
-                            existingDirector = await this.directorRepo.create({
-                                document: {
-                                    name: director.name,
-                                    originalName: director.original_name,
-                                    slug: simpleSlug,
-                                    tmdbPersonId: director.id,
-                                    thumbUrl: imgUrl,
-                                    posterUrl: imgUrl,
-                                },
-                            });
-                        }
-                    }
-
-                    if (existingDirector) {
-                        finalDirectorResult.push(existingDirector._id);
-                    }
-                }
-            }
-        }
-
-        // Handle manual directors list
-        if (directors?.length && finalDirectorResult.length === 0) {
-            // Process all valid directors from the manual list
-            const validDirectors = directors.filter((d) => !isNullOrUndefined(d) && d);
-
-            for (const director of validDirectors) {
-                const slug = slugifyVietnamese(director, { lower: true }) || director;
-
-                // Try to find existing director
-                const existingDirector = await this.directorRepo.findOne({
-                    filterQuery: { slug },
-                });
-
-                if (existingDirector) {
-                    finalDirectorResult.push(existingDirector._id);
-                } else {
-                    // Create new director
-                    const newDirector = await this.directorRepo.create({
-                        document: {
-                            name: director,
-                            originalName: director,
-                            slug,
-                        },
-                    });
-                    finalDirectorResult.push(newDirector._id);
-                }
-            }
-        }
-
-        return finalDirectorResult;
-    }
-
     protected processEpisodes(episodes: OPhimServerData[]): any[] {
         if (!episodes?.length) return [];
 
         return episodes.map((server, index) => {
-            const serverData: EpisodeServerData[] = server?.server_data?.map((item, index) => {
-                const { name, slug } = mappingNameSlugEpisode(item, index);
-                return {
-                    name: name,
-                    slug: slug,
-                    linkEmbed: resolveUrl(item?.link_embed),
-                    linkM3u8: resolveUrl(item?.link_m3u8),
-                    filename: item?.filename,
-                };
-            });
+            const serverData: EpisodeServerData[] = (server?.server_data || [])
+                .filter((item) => item) // Filter out null/undefined items
+                .map((item, index) => {
+                    const { name, slug } = mappingNameSlugEpisode(item, index);
+                    return {
+                        name: name,
+                        slug: slug || `episode-${index}`, // Ensure slug is never empty
+                        linkEmbed: resolveUrl(item?.link_embed),
+                        linkM3u8: resolveUrl(item?.link_m3u8),
+                        filename: item?.filename,
+                    };
+                });
 
             return {
                 originSrc: 'kkphim',

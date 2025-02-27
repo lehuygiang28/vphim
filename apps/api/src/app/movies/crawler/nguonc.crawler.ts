@@ -26,6 +26,7 @@ import {
 import { AbstractRepository } from 'apps/api/src/libs/abstract/abstract.repository';
 import { MovieTypeEnum } from '../movie.constant';
 import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
+import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
 
 /**
  * Crawler implementation for NguonC movie source.
@@ -57,6 +58,7 @@ export class NguoncCrawler extends BaseCrawler {
         categoryRepo: CategoryRepository,
         directorRepo: DirectorRepository,
         regionRepo: RegionRepository,
+        protected tmdbService: TmdbService,
     ) {
         const config: ICrawlerConfig = {
             name: 'NguoncCrawler',
@@ -78,6 +80,7 @@ export class NguoncCrawler extends BaseCrawler {
             categoryRepo,
             directorRepo,
             regionRepo,
+            tmdbService,
         };
 
         super(dependencies);
@@ -196,8 +199,8 @@ export class NguoncCrawler extends BaseCrawler {
 
             const [{ categories, countries }, actorIds, directorIds] = await Promise.all([
                 this.processCategoriesAndCountries(movieDetail?.category),
-                this.processActors(movieDetail?.casts),
-                this.processDirectors(movieDetail?.director),
+                this.processActors([movieDetail?.casts]),
+                this.processDirectors([movieDetail?.director]),
             ]);
 
             const processedEpisodes = this.processEpisodes(
@@ -381,8 +384,8 @@ export class NguoncCrawler extends BaseCrawler {
      * @param casts Comma-separated list of actor names
      * @returns Promise with array of actor ObjectIds
      */
-    protected async processActors(casts: string): Promise<any[]> {
-        const actorNames = (casts || '')
+    protected async processActors(casts: string[]): Promise<any[]> {
+        const actorNames = (casts[0] || '')
             .split(',')
             ?.map((name) => name?.toString()?.trim())
             .filter((actor) => !isNullOrUndefined(actor) && !!actor);
@@ -394,8 +397,8 @@ export class NguoncCrawler extends BaseCrawler {
      * @param directors Comma-separated list of director names
      * @returns Promise with array of director ObjectIds
      */
-    protected async processDirectors(directors: string): Promise<any[]> {
-        const directorNames = (directors || '')
+    protected async processDirectors(directors: string[]): Promise<any[]> {
+        const directorNames = (directors[0] || '')
             .split(',')
             ?.map((name) => name?.toString()?.trim())
             .filter((director) => !isNullOrUndefined(director) && !!director);
