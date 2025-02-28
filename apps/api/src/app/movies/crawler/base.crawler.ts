@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import slugify from 'slugify';
-import { removeDiacritics } from '@vn-utils/text';
+import { removeDiacritics, removeTone } from '@vn-utils/text';
 import { Types } from 'mongoose';
 import { Movie as OPhimMovie } from 'ophim-js';
 
@@ -15,7 +15,7 @@ import { ActorRepository } from '../../actors';
 import { CategoryRepository } from '../../categories';
 import { DirectorRepository } from '../../directors';
 import { RegionRepository } from '../../regions/region.repository';
-import { Episode, EpisodeServerData } from '../movie.schema';
+import { Episode, EpisodeServerData, Movie } from '../movie.schema';
 import { resolveUrl, sleep, slugifyVietnamese } from '../../../libs/utils/common';
 import { mappingNameSlugEpisode } from './mapping-data';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
@@ -1150,5 +1150,72 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         }
 
         return finalDirectorResult;
+    }
+
+    protected async findExistingMovie(movieDetail: {
+        tmdb?: TmdbType;
+        imdb?: ImdbType;
+        slug?: string;
+    }): Promise<Movie | null> {
+        // Try to find by TMDB ID first
+        if (movieDetail?.tmdb?.id && movieDetail?.tmdb?.type) {
+            const movieByTmdb = await this.movieRepo.findOne({
+                filterQuery: { 'tmdb.id': movieDetail.tmdb.id, 'tmdb.type': movieDetail.tmdb.type },
+            });
+            if (movieByTmdb) return movieByTmdb;
+        }
+
+        // Try to find by IMDB ID
+        if (movieDetail?.imdb?.id) {
+            const movieByImdb = await this.movieRepo.findOne({
+                filterQuery: { 'imdb.id': movieDetail.imdb.id },
+            });
+            if (movieByImdb) return movieByImdb;
+        }
+
+        // Finally try by slug
+        const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
+        return this.movieRepo.findOne({
+            filterQuery: { slug: movieSlug },
+        });
+    }
+
+    protected mergeEpisodes(
+        existingEpisodes: Episode[] = [],
+        newEpisodes: Episode[],
+        sourceName: string,
+    ): Episode[] {
+        const mergedEpisodes = [...existingEpisodes];
+
+        newEpisodes.forEach((newEp) => {
+            // Find matching episode by source and server name
+            const existingEpIndex = mergedEpisodes.findIndex(
+                (ep) => ep.originSrc === sourceName && ep.serverName === newEp.serverName,
+            );
+
+            if (existingEpIndex === -1) {
+                // If no matching episode exists, add the new one
+                mergedEpisodes.push({
+                    ...newEp,
+                    originSrc: sourceName,
+                });
+            } else {
+                // If matching episode exists, merge server data
+                const existingEp = mergedEpisodes[existingEpIndex];
+                const uniqueServerData = newEp.serverData.filter(
+                    (newData) =>
+                        !existingEp.serverData.some(
+                            (existingData) => existingData.slug === newData.slug,
+                        ),
+                );
+
+                mergedEpisodes[existingEpIndex] = {
+                    ...existingEp,
+                    serverData: [...existingEp.serverData, ...uniqueServerData],
+                };
+            }
+        });
+
+        return mergedEpisodes;
     }
 }

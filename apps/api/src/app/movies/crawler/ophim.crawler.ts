@@ -8,7 +8,6 @@ import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js'
 import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
-import { removeDiacritics, removeTone } from '@vn-utils/text';
 
 import { EpisodeServerData, Movie } from '../movie.schema';
 import { MovieRepository } from '../movie.repository';
@@ -205,21 +204,14 @@ export class OphimCrawler extends BaseCrawler {
         >,
     ): Promise<boolean> {
         const { data: { item: movieDetail } = {} } = input;
-        const movieSlug = removeTone(removeDiacritics(movieDetail?.slug || ''));
 
         try {
-            const existingMovie = await this.movieRepo.findOne({
-                filterQuery: { slug: movieSlug },
-            });
-
+            const existingMovie = await this.findExistingMovie(movieDetail);
             const lastModified = new Date(movieDetail?.modified?.time || 0).getTime();
-            if (!this.config.forceUpdate) {
-                // If not force update, check if movie was already updated
-                if (
-                    existingMovie &&
-                    lastModified <= (existingMovie?.lastSyncModified?.ophim || 0)
-                ) {
-                    // If movie was already up to date, skip
+
+            if (!this.config.forceUpdate && existingMovie) {
+                // Check if this source's data is already up to date
+                if (lastModified <= (existingMovie?.lastSyncModified?.ophim || 0)) {
                     return false;
                 }
             }
@@ -276,16 +268,7 @@ export class OphimCrawler extends BaseCrawler {
 
                 lastSyncModified: {
                     ...existingMovie?.lastSyncModified,
-                    ophim: Math.max(
-                        // Get modified time or default to 0
-                        modified?.time ? new Date(modified.time).getTime() : 0,
-                        // Get existing ophim time or default to 0
-                        existingMovie?.lastSyncModified?.ophim
-                            ? new Date(existingMovie.lastSyncModified.ophim).getTime()
-                            : 0,
-                        // Ensure at least 0
-                        0,
-                    ),
+                    ophim: lastModified,
                 },
 
                 _id: correctId,
@@ -310,43 +293,38 @@ export class OphimCrawler extends BaseCrawler {
                 subDocquyen: sub_docquyen,
                 cinemaRelease: chieurap,
                 year,
-                episode: this.processEpisodes(movieDetail?.episodes),
+                episode: this.mergeEpisodes(
+                    existingMovie?.episode,
+                    this.processEpisodes(movieDetail?.episodes),
+                    'ophim',
+                ),
                 tmdb,
                 imdb,
             };
 
             if (existingMovie) {
-                const newEpisodes = movieData?.episode?.filter(
-                    (newEp) =>
-                        !existingMovie.episode.some(
-                            (existingEp) =>
-                                existingEp.serverName === newEp.serverName &&
-                                existingEp.originSrc === newEp.originSrc,
-                        ),
-                );
                 const updateQuery: Partial<Movie> = {};
                 for (const [key, value] of Object.entries(movieData)) {
                     if (!isNullOrUndefined(value)) {
                         updateQuery[key] = value;
                     }
                 }
-                updateQuery.episode = [...newEpisodes, ...(existingMovie?.episode ?? [])];
 
                 await this.movieRepo.findOneAndUpdate({
-                    filterQuery: { slug: movieSlug },
+                    filterQuery: { _id: existingMovie._id },
                     updateQuery,
                 });
-                this.moviesToRevalidate.push(movieSlug);
-                this.logger.log(`Updated movie: "${movieSlug}"`);
+                this.moviesToRevalidate.push(movieData.slug);
+                this.logger.log(`Updated movie: "${movieData.slug}"`);
             } else {
                 await this.movieRepo.create({
                     document: movieData,
                 });
-                this.logger.log(`Saved new movie: "${movieSlug}"`);
+                this.logger.log(`Saved new movie: "${movieData.slug}"`);
             }
             return true;
         } catch (error) {
-            this.logger.error(`Error saving movie detail for ${movieSlug}: ${error}`);
+            this.logger.error(`Error saving movie detail for ${movieDetail.slug}: ${error}`);
             return false;
         }
     }
