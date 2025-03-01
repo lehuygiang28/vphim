@@ -7,10 +7,10 @@ import { RedisModule } from 'apps/api/src/libs/modules/redis';
 
 import { NguoncCrawler, KKPhimCrawler, OphimCrawler } from './index';
 import { CrawlController } from './crawl.controller';
-import { ActorModule } from '../../actors';
-import { CategoryModule } from '../../categories';
-import { DirectorModule } from '../../directors';
-import { RegionsModule } from '../../regions';
+import { ActorModule } from '../actors';
+import { CategoryModule } from '../categories';
+import { DirectorModule } from '../directors';
+import { RegionsModule } from '../regions';
 import { TmdbModule } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.module';
 
 @Module({

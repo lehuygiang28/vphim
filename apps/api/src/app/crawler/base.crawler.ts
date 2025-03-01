@@ -9,17 +9,17 @@ import { removeDiacritics, removeTone } from '@vn-utils/text';
 import { Types } from 'mongoose';
 import { Movie as OPhimMovie } from 'ophim-js';
 
-import { RedisService } from '../../../libs/modules/redis';
-import { MovieRepository } from '../movie.repository';
-import { ActorRepository } from '../../actors';
-import { CategoryRepository } from '../../categories';
-import { DirectorRepository } from '../../directors';
-import { RegionRepository } from '../../regions/region.repository';
-import { Episode, EpisodeServerData, Movie } from '../movie.schema';
-import { resolveUrl, sleep, slugifyVietnamese } from '../../../libs/utils/common';
+import { RedisService } from '../../libs/modules/redis';
+import { MovieRepository } from '../movies/movie.repository';
+import { ActorRepository } from '../actors';
+import { CategoryRepository } from '../categories';
+import { DirectorRepository } from '../directors';
+import { RegionRepository } from '../regions/region.repository';
+import { Episode, EpisodeServerData, Movie } from '../movies/movie.schema';
+import { resolveUrl, sleep, slugifyVietnamese } from '../../libs/utils/common';
 import { mappingNameSlugEpisode } from './mapping-data';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
-import { ImdbType, TmdbType } from '../movie.type';
+import { ImdbType, TmdbType } from '../movies/movie.type';
 
 export interface ICrawlerConfig {
     name: string;

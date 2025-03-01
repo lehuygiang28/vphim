@@ -6,7 +6,7 @@ import { OphimCrawler } from './ophim.crawler';
 import { NguoncCrawler } from './nguonc.crawler';
 import { ConfigService } from '@nestjs/config';
 import { isNullOrUndefined, isTrue } from 'apps/api/src/libs/utils/common';
-import { SearchService } from '../search.service';
+import { SearchService } from '../movies/search.service';
 
 @ApiExcludeController()
 @Controller({ path: 'trigger-crawl' })

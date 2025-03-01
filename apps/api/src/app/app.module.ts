@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConditionalModule, ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -19,6 +19,7 @@ import { UsersModule } from './users';
 import { ImagesModule } from './images';
 import { CommentsModule } from './comments/comments.module';
 import { CopilotkitModule } from './copilotkit/copilotkit.module';
+import { MovieCrawlerModule } from './crawler/crawler.module';
 
 @Module({
     imports: [
@@ -62,6 +63,10 @@ import { CopilotkitModule } from './copilotkit/copilotkit.module';
         DirectorModule,
         CommentsModule,
         CopilotkitModule,
+        ConditionalModule.registerWhen(
+            MovieCrawlerModule,
+            (env: NodeJS.ProcessEnv) => !env?.DISABLE_CRAWL || env?.DISABLE_CRAWL === 'false',
+        ),
     ],
     controllers: [AppController],
     providers: [],

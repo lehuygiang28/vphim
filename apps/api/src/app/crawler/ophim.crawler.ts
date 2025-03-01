@@ -9,20 +9,20 @@ import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
 
-import { EpisodeServerData, Movie } from '../movie.schema';
-import { MovieRepository } from '../movie.repository';
+import { EpisodeServerData, Movie } from '../movies/movie.schema';
+import { MovieRepository } from '../movies/movie.repository';
 import {
     convertToObjectId,
     isNullOrUndefined,
     resolveUrl,
     sleep,
     slugifyVietnamese,
-} from '../../../libs/utils/common';
-import { ActorRepository } from '../../actors';
-import { RedisService } from '../../../libs/modules/redis';
-import { CategoryRepository } from '../../categories';
-import { RegionRepository } from '../../regions/region.repository';
-import { DirectorRepository } from '../../directors';
+} from '../../libs/utils/common';
+import { ActorRepository } from '../actors';
+import { RedisService } from '../../libs/modules/redis';
+import { CategoryRepository } from '../categories';
+import { RegionRepository } from '../regions/region.repository';
+import { DirectorRepository } from '../directors';
 import {
     convertToVietnameseTime,
     mapLanguage,

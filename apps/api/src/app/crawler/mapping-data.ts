@@ -1,6 +1,6 @@
 import { removeTone, removeDiacritics } from '@vn-utils/text';
 import { slugifyVietnamese } from 'apps/api/src/libs/utils/common';
-import { MovieQualityEnum } from '../movie.constant';
+import { MovieQualityEnum } from '../movies/movie.constant';
 
 export const MOVIE_TYPE_MAP = {
     'phim lẻ': 'single',

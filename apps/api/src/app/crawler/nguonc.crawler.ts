@@ -7,14 +7,14 @@ import { Types } from 'mongoose';
 import { stripHtml } from 'string-strip-html';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
 
-import { EpisodeServerData, Movie, Episode } from './../movie.schema';
-import { MovieRepository } from './../movie.repository';
-import { isNullOrUndefined, sleep, slugifyVietnamese } from '../../../libs/utils/common';
-import { ActorRepository } from '../../actors';
-import { RedisService } from '../../../libs/modules/redis';
-import { CategoryRepository } from '../../categories';
-import { RegionRepository } from '../../regions/region.repository';
-import { DirectorRepository } from '../../directors';
+import { EpisodeServerData, Movie, Episode } from '../movies/movie.schema';
+import { MovieRepository } from '../movies/movie.repository';
+import { isNullOrUndefined, sleep, slugifyVietnamese } from '../../libs/utils/common';
+import { ActorRepository } from '../actors';
+import { RedisService } from '../../libs/modules/redis';
+import { CategoryRepository } from '../categories';
+import { RegionRepository } from '../regions/region.repository';
+import { DirectorRepository } from '../directors';
 import {
     convertToVietnameseTime,
     mapLanguage,
@@ -24,7 +24,7 @@ import {
     MOVIE_TYPE_MAP,
 } from './mapping-data';
 import { AbstractRepository } from 'apps/api/src/libs/abstract/abstract.repository';
-import { MovieTypeEnum } from '../movie.constant';
+import { MovieTypeEnum } from '../movies/movie.constant';
 import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
 

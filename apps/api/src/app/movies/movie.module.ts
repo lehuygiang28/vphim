@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService, ConditionalModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
 import { HttpModule } from '@nestjs/axios';
@@ -22,7 +22,6 @@ import { MovieService } from './movie.service';
 import { MovieResolver } from './movie.resolver';
 import { ThrottlerCustomGuard } from '../../libs/guards/throttler.guard';
 import { SearchService } from './search.service';
-import { MovieCrawlerModule } from './crawler';
 import { isNullOrUndefined } from '../../libs/utils';
 
 @Global()
@@ -100,10 +99,6 @@ import { isNullOrUndefined } from '../../libs/utils';
                 };
             },
         }),
-        ConditionalModule.registerWhen(
-            MovieCrawlerModule,
-            (env: NodeJS.ProcessEnv) => !env?.DISABLE_CRAWL || env?.DISABLE_CRAWL === 'false',
-        ),
     ],
     controllers: [MovieController],
     providers: [
