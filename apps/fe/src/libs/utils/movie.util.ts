@@ -56,6 +56,10 @@ export function getOptimizedImageUrl(
         useApi?: boolean;
     },
 ) {
+    if (url?.startsWith('https://image.tmdb.org')) {
+        return url;
+    }
+
     const {
         width,
         height,
