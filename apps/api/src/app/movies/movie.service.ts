@@ -232,7 +232,15 @@ export class MovieService {
         const query = aiFilter || (await this.buildTraditionalQuery(dto));
         const { data, total } = await this.executeSearch(query, dto, isRestful);
 
-        const res = { data, total, count: data?.length || 0 };
+        const res = {
+            data: data.map((d) => ({
+                ...d,
+                thumbUrl: d?.thumbUrl || '',
+                posterUrl: d?.posterUrl || '',
+            })),
+            total,
+            count: data?.length || 0,
+        };
         await this.redisService.set(cacheKey, res, 1000 * 30);
 
         return res;

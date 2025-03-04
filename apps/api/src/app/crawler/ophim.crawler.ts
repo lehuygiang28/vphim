@@ -216,13 +216,6 @@ export class OphimCrawler extends BaseCrawler {
                 }
             }
 
-            const [{ categories: categoryIds, countries: countryIds }, actorIds, directorIds] =
-                await Promise.all([
-                    this.processCategoriesAndCountries(movieDetail),
-                    this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
-                    this.processDirectors(movieDetail?.director, { tmdbData: movieDetail?.tmdb }),
-                ]);
-
             const {
                 _id,
                 is_copyright,
@@ -248,6 +241,26 @@ export class OphimCrawler extends BaseCrawler {
             }
 
             const { tmdb, imdb } = await this.processExternalData(movieDetail);
+
+            const [
+                { categories: categoryIds, countries: countryIds },
+                actorIds,
+                directorIds,
+                { posterUrl, thumbUrl },
+            ] = await Promise.all([
+                this.processCategoriesAndCountries(movieDetail),
+                this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
+                this.processDirectors(movieDetail?.director, { tmdbData: movieDetail?.tmdb }),
+                this.processImages({
+                    // With ophim, we should reverse thumb and poster, because poster should is vertical image
+                    // So thumb of ophim is poster, and poster of ophim is thumb
+                    thumbUrl: poster_url,
+                    posterUrl: thumb_url,
+                    // With ophim, we should reverse thumb and poster, because poster should is vertical image
+                    host: this.config.imgHost,
+                    tmdb: tmdb,
+                }),
+            ]);
 
             // Save movie
             const movieData: Movie = {
@@ -280,10 +293,8 @@ export class OphimCrawler extends BaseCrawler {
                 countries: countryIds,
                 directors: directorIds,
 
-                // With ophim, we should reverse thumb and poster, because poster should is vertical image
-                thumbUrl: resolveUrl(poster_url, this.config.imgHost),
-                posterUrl: resolveUrl(thumb_url, this.config.imgHost),
-                // With ophim, we should reverse thumb and poster, because poster should is vertical image
+                thumbUrl,
+                posterUrl,
 
                 trailerUrl: trailer_url,
                 isCopyright: is_copyright,

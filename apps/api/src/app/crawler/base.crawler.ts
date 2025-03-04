@@ -375,6 +375,48 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     protected abstract getTotalPages(response: any): number;
     protected abstract getMovieItems(response: any): any[];
 
+    protected async processImages(data: {
+        thumbUrl?: string;
+        posterUrl?: string;
+        host?: string;
+        tmdb?: TmdbType;
+    }): Promise<{ thumbUrl: string; posterUrl: string }> {
+        if (data?.thumbUrl && data?.posterUrl) {
+            return {
+                thumbUrl: resolveUrl(data?.thumbUrl, data.host),
+                posterUrl: resolveUrl(data?.posterUrl, data.host),
+            };
+        }
+        const tmdbImages = await this.tmdbService.getImages({
+            id: data?.tmdb?.id,
+            type: data?.tmdb?.type,
+        });
+
+        let thumb = data?.thumbUrl ? resolveUrl(data?.thumbUrl, data.host) : null;
+        let poster = data?.posterUrl ? resolveUrl(data?.posterUrl, data.host) : null;
+
+        if (!thumb) {
+            const backdrops = (tmdbImages.backdrops || []).filter((b) => b?.file_path);
+            thumb =
+                backdrops?.length > 0
+                    ? resolveUrl(backdrops[0].file_path, this.tmdbService.config.imgHost)
+                    : null;
+        }
+
+        if (!poster) {
+            const posters = (tmdbImages.posters || []).filter((p) => p?.file_path);
+            poster =
+                posters?.length > 0
+                    ? resolveUrl(posters[0].file_path, this.tmdbService.config.imgHost)
+                    : null;
+        }
+
+        return {
+            thumbUrl: thumb,
+            posterUrl: poster,
+        };
+    }
+
     protected async crawlPage(page: number) {
         try {
             const movies = await this.enqueueRequest(() => this.getNewestMovies(page));

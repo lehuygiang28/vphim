@@ -151,13 +151,6 @@ export class KKPhimCrawler extends BaseCrawler {
                 }
             }
 
-            const [{ categories: categoryIds, countries: countryIds }, actorIds, directorIds] =
-                await Promise.all([
-                    this.processCategoriesAndCountries(movieDetail),
-                    this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
-                    this.processDirectors(movieDetail?.director, { tmdbData: movieDetail?.tmdb }),
-                ]);
-
             const {
                 _id,
                 is_copyright,
@@ -184,6 +177,22 @@ export class KKPhimCrawler extends BaseCrawler {
             }
 
             const { tmdb, imdb } = await this.processExternalData(movieDetail);
+            const [
+                { categories: categoryIds, countries: countryIds },
+                actorIds,
+                directorIds,
+                { thumbUrl, posterUrl },
+            ] = await Promise.all([
+                this.processCategoriesAndCountries(movieDetail),
+                this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
+                this.processDirectors(movieDetail?.director, { tmdbData: movieDetail?.tmdb }),
+                this.processImages({
+                    thumbUrl: thumb_url,
+                    posterUrl: poster_url,
+                    host: this.config.imgHost,
+                    tmdb: tmdb,
+                }),
+            ]);
 
             // Save movie
             const movieData: Movie = {
@@ -216,8 +225,8 @@ export class KKPhimCrawler extends BaseCrawler {
                 countries: countryIds,
                 directors: directorIds,
 
-                thumbUrl: resolveUrl(thumb_url, this.config.imgHost),
-                posterUrl: resolveUrl(poster_url, this.config.imgHost),
+                thumbUrl,
+                posterUrl,
 
                 trailerUrl: trailer_url,
                 isCopyright: is_copyright,

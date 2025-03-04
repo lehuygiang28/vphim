@@ -6,6 +6,8 @@ import {
     ExternalId,
     TvExternalIdsResponse,
     MovieExternalIdsResponse,
+    TvImagesResponse,
+    MovieImagesResponse,
 } from 'moviedb-promise';
 
 import { TmdbType } from 'apps/api/src/app/movies/movie.type';
@@ -13,7 +15,7 @@ import { TmdbType } from 'apps/api/src/app/movies/movie.type';
 @Injectable()
 export class TmdbService {
     public readonly moviedb: MovieDb;
-    public readonly config: { imgHost: string };
+    public readonly config: { imgHost: string; language?: string };
     private readonly logger = new Logger(TmdbService.name);
 
     constructor(private readonly configService: ConfigService) {
@@ -23,6 +25,7 @@ export class TmdbService {
                 'TMDB_IMG_HOST',
                 'https://image.tmdb.org/t/p/original',
             ),
+            language: this.configService.get('TMDB_LANGUAGE', 'vi,en,null'),
         };
     }
 
@@ -31,6 +34,7 @@ export class TmdbService {
             const foundResult = await this.moviedb.find({
                 id: imdbId,
                 external_source: ExternalId.ImdbId,
+                language: this.config.language,
             });
 
             if (!foundResult) {
@@ -61,12 +65,14 @@ export class TmdbService {
             case 'tv': {
                 data = await this.moviedb.tvExternalIds({
                     id: tmdbData.id,
+                    language: this.config.language,
                 });
                 break;
             }
             case 'movie': {
                 data = await this.moviedb.movieExternalIds({
                     id: tmdbData.id,
+                    language: this.config.language,
                 });
                 break;
             }
@@ -92,12 +98,42 @@ export class TmdbService {
             case 'tv': {
                 data = await this.moviedb.tvCredits({
                     id: tmdbData.id,
+                    language: this.config.language,
                 });
                 break;
             }
             case 'movie': {
                 data = await this.moviedb.movieCredits({
                     id: tmdbData.id,
+                    language: this.config.language,
+                });
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
+        return data;
+    }
+
+    public async getImages(
+        tmdbData: TmdbType,
+    ): Promise<TvImagesResponse | MovieImagesResponse | null> {
+        let data: TvImagesResponse | MovieImagesResponse | null = null;
+
+        switch (tmdbData.type) {
+            case 'tv': {
+                data = await this.moviedb.tvImages({
+                    id: tmdbData.id,
+                    language: this.config.language,
+                });
+                break;
+            }
+            case 'movie': {
+                data = await this.moviedb.movieImages({
+                    id: tmdbData.id,
+                    language: this.config.language,
                 });
                 break;
             }
