@@ -251,15 +251,18 @@ export class OphimCrawler extends BaseCrawler {
                 this.processCategoriesAndCountries(movieDetail),
                 this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
                 this.processDirectors(movieDetail?.director, { tmdbData: movieDetail?.tmdb }),
-                this.processImages({
-                    // With ophim, we should reverse thumb and poster, because poster should is vertical image
-                    // So thumb of ophim is poster, and poster of ophim is thumb
-                    thumbUrl: poster_url,
-                    posterUrl: thumb_url,
-                    // With ophim, we should reverse thumb and poster, because poster should is vertical image
-                    host: this.config.imgHost,
-                    tmdb: tmdb,
-                }),
+                this.processImages(
+                    {
+                        // With ophim, we should reverse thumb and poster, because poster should is vertical image
+                        // So thumb of ophim is poster, and poster of ophim is thumb
+                        thumbUrl: poster_url,
+                        posterUrl: thumb_url,
+                        // With ophim, we should reverse thumb and poster, because poster should is vertical image
+                        host: this.config.imgHost,
+                        tmdb: tmdb,
+                    },
+                    { preferTmdb: true },
+                ),
             ]);
 
             // Save movie

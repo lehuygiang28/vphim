@@ -16,7 +16,7 @@ import { CategoryRepository } from '../categories';
 import { DirectorRepository } from '../directors';
 import { RegionRepository } from '../regions/region.repository';
 import { Episode, EpisodeServerData, Movie } from '../movies/movie.schema';
-import { resolveUrl, sleep, slugifyVietnamese } from '../../libs/utils/common';
+import { isNullOrUndefined, resolveUrl, sleep, slugifyVietnamese } from '../../libs/utils/common';
 import { mappingNameSlugEpisode } from './mapping-data';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
 import { ImdbType, TmdbType } from '../movies/movie.type';
@@ -375,40 +375,61 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     protected abstract getTotalPages(response: any): number;
     protected abstract getMovieItems(response: any): any[];
 
-    protected async processImages(data: {
-        thumbUrl?: string;
-        posterUrl?: string;
-        host?: string;
-        tmdb?: TmdbType;
-    }): Promise<{ thumbUrl: string; posterUrl: string }> {
-        if (data?.thumbUrl && data?.posterUrl) {
+    protected async processImages(
+        data: {
+            thumbUrl?: string;
+            posterUrl?: string;
+            host?: string;
+            tmdb?: TmdbType;
+        },
+        options?: { preferTmdb?: boolean },
+    ): Promise<{ thumbUrl: string; posterUrl: string }> {
+        const preferTmdb = options?.preferTmdb || false;
+
+        // If both thumbUrl and posterUrl are provided and we prefer manual images, return them immediately
+        if (!preferTmdb && data?.thumbUrl && data?.posterUrl) {
             return {
                 thumbUrl: resolveUrl(data?.thumbUrl, data.host),
                 posterUrl: resolveUrl(data?.posterUrl, data.host),
             };
         }
+
+        // Get TMDB images (either as primary source or fallback)
         const tmdbImages = await this.tmdbService.getImages({
             id: data?.tmdb?.id,
             type: data?.tmdb?.type,
         });
 
-        let thumb = data?.thumbUrl ? resolveUrl(data?.thumbUrl, data.host) : null;
-        let poster = data?.posterUrl ? resolveUrl(data?.posterUrl, data.host) : null;
+        // Process thumbnail image
+        let thumb =
+            !isNullOrUndefined(data?.thumbUrl) && data?.thumbUrl?.trim() !== ''
+                ? resolveUrl(data?.thumbUrl, data.host)
+                : null;
+        let poster =
+            !isNullOrUndefined(data?.posterUrl) && data?.posterUrl?.trim() !== ''
+                ? resolveUrl(data?.posterUrl, data.host)
+                : null;
 
-        if (!thumb) {
-            const backdrops = (tmdbImages.backdrops || []).filter((b) => b?.file_path);
-            thumb =
-                backdrops?.length > 0
-                    ? resolveUrl(backdrops[0].file_path, this.tmdbService.config.imgHost)
-                    : null;
-        }
+        const tmdbBackdrops = (tmdbImages.backdrops || []).filter((b) => b?.file_path);
+        const tmdbThumb =
+            tmdbBackdrops?.length > 0
+                ? resolveUrl(tmdbBackdrops[0].file_path, this.tmdbService.config.imgHost)
+                : null;
 
-        if (!poster) {
-            const posters = (tmdbImages.posters || []).filter((p) => p?.file_path);
-            poster =
-                posters?.length > 0
-                    ? resolveUrl(posters[0].file_path, this.tmdbService.config.imgHost)
-                    : null;
+        const tmdbPosters = (tmdbImages.posters || []).filter((p) => p?.file_path);
+        const tmdbPoster =
+            tmdbPosters?.length > 0
+                ? resolveUrl(tmdbPosters[0].file_path, this.tmdbService.config.imgHost)
+                : null;
+
+        // If preferring TMDB, use TMDB images first, then fall back to manual
+        if (preferTmdb) {
+            thumb = tmdbThumb || thumb;
+            poster = tmdbPoster || poster;
+        } else {
+            // Original behavior: use manual images first, then fall back to TMDB
+            thumb = thumb || tmdbThumb;
+            poster = poster || tmdbPoster;
         }
 
         return {

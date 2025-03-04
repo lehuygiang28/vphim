@@ -186,12 +186,15 @@ export class KKPhimCrawler extends BaseCrawler {
                 this.processCategoriesAndCountries(movieDetail),
                 this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
                 this.processDirectors(movieDetail?.director, { tmdbData: movieDetail?.tmdb }),
-                this.processImages({
-                    thumbUrl: thumb_url,
-                    posterUrl: poster_url,
-                    host: this.config.imgHost,
-                    tmdb: tmdb,
-                }),
+                this.processImages(
+                    {
+                        thumbUrl: thumb_url,
+                        posterUrl: poster_url,
+                        host: this.config.imgHost,
+                        tmdb: tmdb,
+                    },
+                    { preferTmdb: true },
+                ),
             ]);
 
             // Save movie
