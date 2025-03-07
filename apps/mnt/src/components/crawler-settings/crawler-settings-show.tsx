@@ -1,12 +1,10 @@
 'use client';
 
 import React from 'react';
-import { useShow, useCustomMutation } from '@refinedev/core';
-import { Show, TextField, DateField } from '@refinedev/antd';
+import { useShow, useUpdate } from '@refinedev/core';
 import {
     Card,
     Descriptions,
-    Divider,
     Button,
     Space,
     Tag,
@@ -26,7 +24,6 @@ import {
     SettingOutlined,
     GlobalOutlined,
     FieldTimeOutlined,
-    LinkOutlined,
     ClockCircleOutlined,
     CheckCircleOutlined,
     CloseCircleOutlined,
@@ -65,29 +62,36 @@ export const CrawlerSettingsShow: React.FC<CrawlerSettingsShowProps> = ({ id, gq
         },
     });
 
-    const { mutate } = useCustomMutation();
+    const { mutate } = useUpdate({
+        dataProviderName: 'graphql',
+        resource: 'triggerCrawler',
+    });
 
     const record = query?.data?.data;
 
     const triggerCrawler = () => {
+        console.log(record);
         if (!record) return;
 
         mutate({
-            url: 'triggerCrawler',
-            method: 'post',
-            values: {
-                input: {
-                    name: record.name,
-                } satisfies TriggerCrawlerInput,
-            },
+            dataProviderName: 'graphql',
+            resource: 'triggerCrawler',
+            id: record.name,
             meta: {
+                gqlQuery: MNT_TRIGGER_CRAWLER,
                 gqlMutation: MNT_TRIGGER_CRAWLER,
+                variables: {
+                    input: {
+                        name: record.name,
+                    } satisfies TriggerCrawlerInput,
+                },
             },
             successNotification: {
                 message: 'Crawler Triggered',
                 description: `${record.name} crawler has been triggered successfully`,
                 type: 'success',
             },
+            values: {},
         });
     };
 
