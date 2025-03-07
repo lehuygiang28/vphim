@@ -24,7 +24,7 @@ import { SearchService } from '../movies/search.service';
 import { CrawlerSettings, CrawlerSettingsSchema } from './dto/crawler-settings.schema';
 import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
 import { CrawlerSettingsService } from './dto/crawler-settings.service';
-import { CrawlerSettingsResolver } from './dto/crawler-settings.resolver';
+import { CrawlerSettingsResolver } from './crawler-settings.resolver';
 import { isNullOrUndefined } from '../../libs/utils';
 
 /**
