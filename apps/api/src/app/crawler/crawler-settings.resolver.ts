@@ -10,8 +10,6 @@ import { GetCrawlerSettingsOutput } from './dto/outputs/get-crawler-settings.out
 import { UpdateCrawlerSettingsInput } from './dto/inputs/update-crawler-settings.input';
 import { RequiredRoles } from '../auth';
 import { UserRoleEnum } from '../users';
-import { CreateCrawlerSettingsInput } from './dto/inputs/create-crawler-settings.input';
-import { DeleteCrawlerSettingsInput } from './dto/inputs/delete-crawler-settings.input';
 import { TriggerCrawlerInput } from './dto/inputs/trigger-crawler.input';
 
 @Resolver(() => CrawlerSettingsType)
@@ -32,18 +30,6 @@ export class CrawlerSettingsResolver {
     @Mutation(() => CrawlerSettingsType, { name: 'updateCrawlerSettings' })
     async updateCrawlerSettings(@Args('input') input: UpdateCrawlerSettingsInput) {
         return this.crawlerSettingsService.updateCrawlerSettings(input);
-    }
-
-    @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
-    @Mutation(() => CrawlerSettingsType, { name: 'createCrawlerSettings' })
-    async createCrawlerSettings(@Args('input') input: CreateCrawlerSettingsInput) {
-        return this.crawlerSettingsService.createCrawlerSettings(input);
-    }
-
-    @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
-    @Mutation(() => Int, { name: 'deleteCrawlerSettings' })
-    async deleteCrawlerSettings(@Args('input') input: DeleteCrawlerSettingsInput) {
-        return this.crawlerSettingsService.deleteCrawlerSettings(input);
     }
 
     @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
