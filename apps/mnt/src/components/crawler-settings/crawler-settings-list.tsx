@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { List, useTable, EditButton, ShowButton, DeleteButton, DateField } from '@refinedev/antd';
-import { useCustomMutation, HttpError } from '@refinedev/core';
+import { useTable, EditButton, ShowButton, DeleteButton, DateField } from '@refinedev/antd';
+import { HttpError, useUpdate } from '@refinedev/core';
 import {
     Table,
     Space,
@@ -17,13 +17,12 @@ import {
     Statistic,
     Input,
     Form,
+    Alert,
 } from 'antd';
 import {
     PlayCircleOutlined,
-    SyncOutlined,
     ClockCircleOutlined,
     SearchOutlined,
-    PlusOutlined,
     SettingOutlined,
 } from '@ant-design/icons';
 import { MNT_TRIGGER_CRAWLER } from '~mnt/queries/crawler-settings.query';
@@ -68,26 +67,33 @@ export const CrawlerSettingsList: React.FC<CrawlerSettingsListProps> = ({
         },
     });
 
-    const { mutate } = useCustomMutation();
+    const { mutate } = useUpdate({
+        dataProviderName: 'graphql',
+        resource: 'triggerCrawler',
+    });
 
     const triggerCrawler = (name: string) => {
+        if (!name) return;
+
         mutate({
             dataProviderName: 'graphql',
-            url: 'triggerCrawler',
-            method: 'post',
-            values: {
-                input: {
-                    name,
-                } satisfies TriggerCrawlerInput,
-            },
+            resource: 'triggerCrawler',
+            id: name,
             meta: {
+                gqlQuery: MNT_TRIGGER_CRAWLER,
                 gqlMutation: MNT_TRIGGER_CRAWLER,
+                variables: {
+                    input: {
+                        name: name,
+                    } satisfies TriggerCrawlerInput,
+                },
             },
             successNotification: {
                 message: 'Crawler Triggered',
-                description: `${name} crawler has been triggered successfully.`,
+                description: `${name} crawler has been triggered successfully`,
                 type: 'success',
             },
+            values: {},
         });
     };
 
@@ -98,6 +104,25 @@ export const CrawlerSettingsList: React.FC<CrawlerSettingsListProps> = ({
 
     return (
         <div style={{ padding: '0 24px' }}>
+            <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+                <Col span={24}>
+                    <Card bordered={false}>
+                        <Title level={3}>Crawler Management</Title>
+                        <Paragraph>
+                            This interface allows you to manage existing crawler settings. You can
+                            update settings, enable/disable, or trigger crawlers manually.
+                        </Paragraph>
+                        <Alert
+                            message="Managing Crawler Sources"
+                            description="The system only supports editing existing crawler sources. Creating new sources or removing existing ones requires changes to the codebase."
+                            type="info"
+                            showIcon
+                            style={{ marginBottom: 16 }}
+                        />
+                    </Card>
+                </Col>
+            </Row>
+
             <Row gutter={[24, 24]}>
                 <Col span={24}>
                     <Card>
@@ -109,19 +134,6 @@ export const CrawlerSettingsList: React.FC<CrawlerSettingsListProps> = ({
                                 <Paragraph type="secondary" style={{ marginBottom: 0 }}>
                                     Manage movie data crawlers configuration and scheduling
                                 </Paragraph>
-                            </Col>
-                            <Col xs={24} sm={24} md={12} lg={12} style={{ textAlign: 'right' }}>
-                                <Space>
-                                    <Button
-                                        type="primary"
-                                        icon={<PlusOutlined />}
-                                        onClick={() => {
-                                            window.location.href = createPath;
-                                        }}
-                                    >
-                                        Create Crawler
-                                    </Button>
-                                </Space>
                             </Col>
                         </Row>
                     </Card>
@@ -160,27 +172,27 @@ export const CrawlerSettingsList: React.FC<CrawlerSettingsListProps> = ({
 
                 {/* Search Card */}
                 <Col span={24}>
-                    <Card>
-                        <Form {...searchFormProps} layout="vertical">
-                            <Row gutter={[16, 16]}>
-                                <Col xs={24} sm={12} md={6}>
-                                    <Form.Item name="name" label="Search by Name">
-                                        <Input
-                                            placeholder="Search crawler name"
-                                            prefix={<SearchOutlined />}
-                                            allowClear
-                                        />
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={24} sm={12} md={6}>
-                                    <Form.Item label=" " colon={false}>
-                                        <Button type="primary" htmlType="submit">
-                                            Search
-                                        </Button>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Form>
+                    <Card bordered={false}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                marginBottom: 16,
+                            }}
+                        >
+                            <Form {...searchFormProps} layout="inline">
+                                <Form.Item name="name">
+                                    <Input
+                                        placeholder="Search by name"
+                                        prefix={<SearchOutlined />}
+                                        allowClear
+                                    />
+                                </Form.Item>
+                                <Button type="primary" htmlType="submit">
+                                    Search
+                                </Button>
+                            </Form>
+                        </div>
                     </Card>
                 </Col>
 

@@ -78,26 +78,55 @@ export const CrawlerSettingsForm: React.FC<CrawlerSettingsFormProps> = ({
         warnWhenUnsavedChanges: true,
     });
 
-    return (
-        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
-            <Card bordered={false} style={{ marginBottom: 24 }}>
-                <Title level={3}>
-                    {action === 'create' ? 'Create New Crawler' : 'Edit Crawler Settings'}
-                </Title>
-                <Paragraph type="secondary">
-                    {action === 'create'
-                        ? 'Configure a new crawler to fetch movie data from an external source'
-                        : 'Modify the configuration for this crawler to optimize its performance and behavior'}
-                </Paragraph>
-                {action === 'edit' && (
+    // Redirect to list if action is create since we don't allow creation
+    if (action === 'create') {
+        if (typeof window !== 'undefined') {
+            window.location.href = '/crawler-settings';
+        }
+        return (
+            <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
+                <Card bordered={false}>
+                    <Title level={3}>Feature Not Available</Title>
+                    <Paragraph>
+                        Creating new crawler sources is not supported through the UI. New crawler
+                        sources must be added directly to the codebase.
+                    </Paragraph>
                     <Alert
-                        message="Changes will take effect on the next crawler run"
-                        description="Any modifications will be applied when the crawler is next triggered manually or by schedule."
-                        type="info"
+                        message="Operation Not Permitted"
+                        description="The system only allows editing existing crawler sources. Adding new sources requires code changes."
+                        type="warning"
                         showIcon
                         style={{ marginTop: 16 }}
                     />
-                )}
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            window.location.href = '/crawler-settings';
+                        }}
+                        style={{ marginTop: 16 }}
+                    >
+                        Return to Crawler List
+                    </Button>
+                </Card>
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+                <Title level={3}>Edit Crawler Settings</Title>
+                <Paragraph type="secondary">
+                    Modify the configuration for this crawler to optimize its performance and
+                    behavior
+                </Paragraph>
+                <Alert
+                    message="Changes will take effect on the next crawler run"
+                    description="Any modifications will be applied when the crawler is next triggered manually or by schedule."
+                    type="info"
+                    showIcon
+                    style={{ marginTop: 16 }}
+                />
             </Card>
 
             <Form
@@ -380,7 +409,7 @@ export const CrawlerSettingsForm: React.FC<CrawlerSettingsFormProps> = ({
                         icon={<SaveOutlined />}
                         loading={formLoading}
                     >
-                        {action === 'create' ? 'Create Crawler' : 'Save Changes'}
+                        Save Changes
                     </Button>
                 </div>
             </Form>
