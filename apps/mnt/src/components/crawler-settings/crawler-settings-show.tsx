@@ -70,7 +70,6 @@ export const CrawlerSettingsShow: React.FC<CrawlerSettingsShowProps> = ({ id, gq
     const record = query?.data?.data;
 
     const triggerCrawler = () => {
-        console.log(record);
         if (!record) return;
 
         mutate({
@@ -412,14 +411,6 @@ export const CrawlerSettingsShow: React.FC<CrawlerSettingsShowProps> = ({ id, gq
                                             block
                                         >
                                             Trigger Crawler Now
-                                        </Button>
-                                        <Button
-                                            type="default"
-                                            icon={<SettingOutlined />}
-                                            href="/crawler-trigger"
-                                            block
-                                        >
-                                            Advanced Trigger Options
                                         </Button>
                                         <Button
                                             type="default"
