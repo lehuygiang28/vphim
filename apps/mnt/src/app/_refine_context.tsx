@@ -143,14 +143,14 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     name: 'crawlers',
                                     meta: {
                                         icon: <SyncOutlined />,
-                                        label: 'Crawlers Management',
+                                        label: 'Crawlers',
                                     },
                                 },
                                 {
                                     name: 'crawler-settings',
                                     meta: {
                                         parent: 'crawlers',
-                                        label: 'Crawler Settings',
+                                        label: 'Settings',
                                     },
                                     list: '/crawler-settings',
                                     create: '/crawler-settings/create',
