@@ -15,6 +15,7 @@ import {
     mapQuality,
     mapStatus,
     mappingNameSlugEpisode,
+    normalizeCountrySlug,
 } from './mapping-data';
 import { EpisodeServerData, Movie } from '../movies/movie.schema';
 import { MovieRepository } from '../movies/movie.repository';
@@ -165,7 +166,6 @@ export class KKPhimCrawler extends BaseCrawler {
                 content,
                 year,
                 view = 0,
-                modified,
             } = movieDetail;
 
             // kkphim's `_id` is not ObjectId, from it we will create a new ObjectId
@@ -305,8 +305,10 @@ export class KKPhimCrawler extends BaseCrawler {
                 if (isNullOrUndefined(country) || !country?.name || !country?.slug) {
                     return null;
                 }
+                // Normalize the country slug
+                const normalizedSlug = normalizeCountrySlug(country.slug);
                 const existingCountry = await this.regionRepo.findOne({
-                    filterQuery: { slug: country.slug },
+                    filterQuery: { slug: normalizedSlug },
                 });
                 if (existingCountry) {
                     return existingCountry._id;
@@ -314,7 +316,7 @@ export class KKPhimCrawler extends BaseCrawler {
                     const newCountry = await this.regionRepo.create({
                         document: {
                             name: country.name,
-                            slug: country.slug,
+                            slug: normalizedSlug,
                         },
                     });
                     return newCountry._id;

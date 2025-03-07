@@ -30,6 +30,7 @@ import {
     mapQuality,
     mapStatus,
     MOVIE_TYPE_MAP,
+    normalizeCountrySlug,
 } from './mapping-data';
 import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
@@ -230,7 +231,6 @@ export class OphimCrawler extends BaseCrawler {
                 content,
                 year,
                 view,
-                modified,
             } = movieDetail;
 
             let correctId: Types.ObjectId;
@@ -378,8 +378,10 @@ export class OphimCrawler extends BaseCrawler {
                 if (isNullOrUndefined(country) || !country?.name || !country?.slug) {
                     return null;
                 }
+                // Normalize the country slug
+                const normalizedSlug = normalizeCountrySlug(country.slug);
                 const existingCountry = await this.regionRepo.findOne({
-                    filterQuery: { slug: country.slug },
+                    filterQuery: { slug: normalizedSlug },
                 });
                 if (existingCountry) {
                     return existingCountry._id;
@@ -387,7 +389,7 @@ export class OphimCrawler extends BaseCrawler {
                     const newCountry = await this.regionRepo.create({
                         document: {
                             name: country.name,
-                            slug: country.slug,
+                            slug: normalizedSlug,
                         },
                     });
                     return newCountry._id;
