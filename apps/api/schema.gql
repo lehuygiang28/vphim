@@ -471,8 +471,6 @@ type Mutation {
   updateComment(input: UpdateCommentInput!): CommentType!
   deleteComment(input: DeleteCommentInput!): Boolean!
   updateCrawlerSettings(input: UpdateCrawlerSettingsInput!): CrawlerSettingsType!
-  createCrawlerSettings(input: CreateCrawlerSettingsInput!): CrawlerSettingsType!
-  deleteCrawlerSettings(input: DeleteCrawlerSettingsInput!): Int!
   triggerCrawler(input: TriggerCrawlerInput!): Boolean!
 }
 
@@ -653,23 +651,6 @@ input UpdateCrawlerSettingsInput {
   rateLimitDelay: Float
   maxConcurrentRequests: Float
   maxContinuousSkips: Float
-}
-
-input CreateCrawlerSettingsInput {
-  name: String!
-  host: String!
-  cronSchedule: String! = "0 0 * * *"
-  forceUpdate: Boolean! = false
-  enabled: Boolean! = true
-  imgHost: String = null
-  maxRetries: Float = 3
-  rateLimitDelay: Float = 1000
-  maxConcurrentRequests: Float = 5
-  maxContinuousSkips: Float = 10
-}
-
-input DeleteCrawlerSettingsInput {
-  _id: String!
 }
 
 input TriggerCrawlerInput {

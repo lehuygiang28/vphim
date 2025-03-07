@@ -62,10 +62,7 @@ export const CrawlerSettingsShow: React.FC<CrawlerSettingsShowProps> = ({ id, gq
         },
     });
 
-    const { mutate } = useUpdate({
-        dataProviderName: 'graphql',
-        resource: 'triggerCrawler',
-    });
+    const { mutate } = useUpdate();
 
     const record = query?.data?.data;
 
@@ -76,8 +73,8 @@ export const CrawlerSettingsShow: React.FC<CrawlerSettingsShowProps> = ({ id, gq
             dataProviderName: 'graphql',
             resource: 'triggerCrawler',
             id: record.name,
+            values: {},
             meta: {
-                gqlQuery: MNT_TRIGGER_CRAWLER,
                 gqlMutation: MNT_TRIGGER_CRAWLER,
                 variables: {
                     input: {
@@ -90,7 +87,11 @@ export const CrawlerSettingsShow: React.FC<CrawlerSettingsShowProps> = ({ id, gq
                 description: `${record.name} crawler has been triggered successfully`,
                 type: 'success',
             },
-            values: {},
+            errorNotification: {
+                message: 'Failed to Trigger Crawler',
+                description: `Failed to trigger ${record.name} crawler. Please check the logs.`,
+                type: 'error',
+            },
         });
     };
 

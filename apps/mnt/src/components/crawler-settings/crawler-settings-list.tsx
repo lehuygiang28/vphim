@@ -67,20 +67,20 @@ export const CrawlerSettingsList: React.FC<CrawlerSettingsListProps> = ({
         },
     });
 
-    const { mutate } = useUpdate({
-        dataProviderName: 'graphql',
-        resource: 'triggerCrawler',
-    });
+    const { mutate } = useUpdate();
 
     const triggerCrawler = (name: string) => {
-        if (!name) return;
+        if (!name) {
+            return;
+        }
+
+        console.log(`Triggering crawler with name: ${name}`);
 
         mutate({
-            dataProviderName: 'graphql',
             resource: 'triggerCrawler',
             id: name,
+            values: {},
             meta: {
-                gqlQuery: MNT_TRIGGER_CRAWLER,
                 gqlMutation: MNT_TRIGGER_CRAWLER,
                 variables: {
                     input: {
@@ -90,10 +90,14 @@ export const CrawlerSettingsList: React.FC<CrawlerSettingsListProps> = ({
             },
             successNotification: {
                 message: 'Crawler Triggered',
-                description: `${name} crawler has been triggered successfully`,
+                description: `${name} crawler has been triggered successfully.`,
                 type: 'success',
             },
-            values: {},
+            errorNotification: {
+                message: 'Failed to Trigger Crawler',
+                description: `Failed to trigger ${name} crawler. Please check the logs.`,
+                type: 'error',
+            },
         });
     };
 
