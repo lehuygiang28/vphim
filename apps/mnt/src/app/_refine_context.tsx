@@ -18,6 +18,7 @@ import {
     GlobalOutlined,
     VideoCameraOutlined,
     TeamOutlined,
+    SyncOutlined,
 } from '@ant-design/icons';
 
 import { ColorModeContextProvider } from '~fe/contexts/color-mode';
@@ -137,6 +138,32 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     meta: {
                                         icon: <UserOutlined />,
                                     },
+                                },
+                                {
+                                    name: 'crawlers',
+                                    meta: {
+                                        icon: <SyncOutlined />,
+                                        label: 'Crawlers Management',
+                                    },
+                                },
+                                {
+                                    name: 'crawler-settings',
+                                    meta: {
+                                        parent: 'crawlers',
+                                        label: 'Crawler Settings',
+                                    },
+                                    list: '/crawler-settings',
+                                    create: '/crawler-settings/create',
+                                    edit: '/crawler-settings/edit/:id',
+                                    show: '/crawler-settings/show/:id',
+                                },
+                                {
+                                    name: 'crawler-trigger',
+                                    meta: {
+                                        parent: 'crawlers',
+                                        label: 'Trigger Crawler',
+                                    },
+                                    show: '/crawler-trigger',
                                 },
                             ]}
                             options={{
