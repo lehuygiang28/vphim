@@ -247,6 +247,27 @@ type GetCommentRepliesOutput {
   currentPage: Float!
 }
 
+type CrawlerSettingsType {
+  _id: String!
+  name: String!
+  host: String!
+  cronSchedule: String!
+  forceUpdate: Boolean!
+  enabled: Boolean!
+  imgHost: String
+  maxRetries: Float
+  rateLimitDelay: Float
+  maxConcurrentRequests: Float
+  maxContinuousSkips: Float
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type GetCrawlerSettingsOutput {
+  data: [CrawlerSettingsType!]!
+  total: Float!
+}
+
 input EpisodeServerDataInputType {
   slug: String
   name: String
@@ -306,6 +327,8 @@ type Query {
     """
     input: GetCommentRepliesInput!
   ): GetCommentRepliesOutput!
+  crawlerSettings(input: GetCrawlerSettingsInput!): GetCrawlerSettingsOutput!
+  crawlerSetting(input: GetCrawlerSettingInput!): CrawlerSettingsType!
 }
 
 input GetMovieInput {
@@ -413,6 +436,18 @@ input GetCommentRepliesInput {
   movieId: ID!
 }
 
+input GetCrawlerSettingsInput {
+  name: String
+  page: Int = 1
+  limit: Int = 20
+  search: String
+}
+
+input GetCrawlerSettingInput {
+  _id: String
+  name: String
+}
+
 type Mutation {
   mutationMe(input: MutationMeInput!): UserType!
   followMovie(input: MutationFollowMovieInput!): UserType!
@@ -435,6 +470,10 @@ type Mutation {
   createComment(input: CreateCommentInput!): CommentType!
   updateComment(input: UpdateCommentInput!): CommentType!
   deleteComment(input: DeleteCommentInput!): Boolean!
+  updateCrawlerSettings(input: UpdateCrawlerSettingsInput!): CrawlerSettingsType!
+  createCrawlerSettings(input: CreateCrawlerSettingsInput!): CrawlerSettingsType!
+  deleteCrawlerSettings(input: DeleteCrawlerSettingsInput!): Int!
+  triggerCrawler(input: TriggerCrawlerInput!): Boolean!
 }
 
 input MutationMeInput {
@@ -600,4 +639,40 @@ input UpdateCommentInput {
 
 input DeleteCommentInput {
   _id: ID!
+}
+
+input UpdateCrawlerSettingsInput {
+  _id: String!
+  name: String
+  host: String
+  cronSchedule: String
+  forceUpdate: Boolean
+  enabled: Boolean
+  imgHost: String
+  maxRetries: Float
+  rateLimitDelay: Float
+  maxConcurrentRequests: Float
+  maxContinuousSkips: Float
+}
+
+input CreateCrawlerSettingsInput {
+  name: String!
+  host: String!
+  cronSchedule: String! = "0 0 * * *"
+  forceUpdate: Boolean! = false
+  enabled: Boolean! = true
+  imgHost: String = null
+  maxRetries: Float = 3
+  rateLimitDelay: Float = 1000
+  maxConcurrentRequests: Float = 5
+  maxContinuousSkips: Float = 10
+}
+
+input DeleteCrawlerSettingsInput {
+  _id: String!
+}
+
+input TriggerCrawlerInput {
+  name: String!
+  slug: String
 }

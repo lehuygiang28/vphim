@@ -82,6 +82,15 @@ export class RedisService implements OnModuleDestroy {
         return this.redisClient.del(...keys);
     }
 
+    /**
+     * Alias for delWithPrefix to maintain backward compatibility
+     * @param pattern Pattern to match keys to delete
+     * @returns Number of keys deleted
+     */
+    public async clearByPattern(pattern: string): Promise<number> {
+        return this.delWithPrefix(pattern);
+    }
+
     public async keys(pattern: string): Promise<string[]> {
         return this.redisClient.keys(pattern);
     }

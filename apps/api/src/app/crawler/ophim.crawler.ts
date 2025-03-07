@@ -14,6 +14,7 @@ import { MovieRepository } from '../movies/movie.repository';
 import {
     convertToObjectId,
     isNullOrUndefined,
+    isTrue,
     resolveUrl,
     sleep,
     slugifyVietnamese,
@@ -32,8 +33,9 @@ import {
     MOVIE_TYPE_MAP,
     normalizeCountrySlug,
 } from './mapping-data';
-import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
+import { BaseCrawler, ICrawlerConfig } from './base.crawler';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
+import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
 
 /**
  * Crawler implementation for OPhim movie source.
@@ -48,8 +50,10 @@ import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.servi
  * Configuration (via environment variables):
  * - OPHIM_HOST: Base URL for OPhim API (default: https://ophim1.com)
  * - OPHIM_CRON: Cron schedule for updates (default: 0 4 * * *)
- * - OPHIM_FORCE_UPDATE: Whether to force update existing movies (default: false)
+ * - OPHIM_FORCE_UPDATE: Whether to update existing records (default: false)
  * - OPHIM_MAX_RETRIES: Maximum number of retry attempts (default: 3)
+ * - OPHIM_RATE_LIMIT_DELAY: Delay between requests in ms (default: 1000)
+ * - OPHIM_MAX_PAGES: Maximum number of pages to crawl (default: 0 - all pages)
  */
 @Injectable()
 export class OphimCrawler extends BaseCrawler {
@@ -68,31 +72,35 @@ export class OphimCrawler extends BaseCrawler {
      * @param regionRepo RegionRepository instance
      */
     constructor(
-        configService: ConfigService,
-        schedulerRegistry: SchedulerRegistry,
-        redisService: RedisService,
-        httpService: HttpService,
-        movieRepo: MovieRepository,
-        actorRepo: ActorRepository,
-        categoryRepo: CategoryRepository,
-        directorRepo: DirectorRepository,
-        regionRepo: RegionRepository,
-        protected tmdbService: TmdbService,
+        protected readonly configService: ConfigService,
+        protected readonly schedulerRegistry: SchedulerRegistry,
+        protected readonly redisService: RedisService,
+        protected readonly httpService: HttpService,
+        protected readonly movieRepo: MovieRepository,
+        protected readonly actorRepo: ActorRepository,
+        protected readonly categoryRepo: CategoryRepository,
+        protected readonly directorRepo: DirectorRepository,
+        protected readonly regionRepo: RegionRepository,
+        protected readonly tmdbService: TmdbService,
+        protected readonly crawlerSettingsRepo: CrawlerSettingsRepository,
     ) {
-        const config: ICrawlerConfig = {
-            name: 'OphimCrawler',
-            host: configService.getOrThrow<string>('OPHIM_HOST', 'https://ophim1.com'),
+        const crawlerConfig: ICrawlerConfig = {
+            name: 'ophim',
+            host: configService.get<string>('OPHIM_HOST') ?? 'https://ophim1.com',
             imgHost: configService.getOrThrow<string>(
                 'OPHIM_IMG_HOST',
                 'https://img.ophim.live/uploads/movies',
             ),
-            cronSchedule: configService.getOrThrow<string>('OPHIM_CRON', '0 4 * * *'),
-            forceUpdate: configService.getOrThrow<string>('OPHIM_FORCE_UPDATE', 'false') === 'true',
-            maxRetries: configService.getOrThrow<number>('OPHIM_MAX_RETRIES', 3),
+            cronSchedule: configService.get<string>('OPHIM_CRON_SCHEDULE') ?? '0 0 * * *',
+            forceUpdate: isTrue(configService.get<boolean>('OPHIM_FORCE_UPDATE') ?? false),
+            maxRetries: configService.get<number>('OPHIM_MAX_RETRIES') ?? 3,
+            rateLimitDelay: configService.get<number>('OPHIM_RATE_LIMIT_DELAY') ?? 1000,
+            maxConcurrentRequests: configService.get<number>('OPHIM_MAX_CONCURRENT_REQUESTS') ?? 5,
+            maxContinuousSkips: configService.get<number>('OPHIM_MAX_CONTINUOUS_SKIPS') ?? 500,
         };
 
-        const dependencies: ICrawlerDependencies = {
-            config,
+        super({
+            config: crawlerConfig,
             configService,
             schedulerRegistry,
             redisService,
@@ -103,13 +111,10 @@ export class OphimCrawler extends BaseCrawler {
             directorRepo,
             regionRepo,
             tmdbService,
-        };
-
-        super(dependencies);
-
-        this.ophim = new Ophim({
-            host: config.host,
+            crawlerSettingsRepo,
         });
+
+        this.ophim = new Ophim({ host: this.config.host });
     }
 
     /**

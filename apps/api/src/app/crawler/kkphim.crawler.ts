@@ -22,6 +22,7 @@ import { MovieRepository } from '../movies/movie.repository';
 import {
     convertToObjectId,
     isNullOrUndefined,
+    isTrue,
     resolveUrl,
     sleep,
     slugifyVietnamese,
@@ -31,39 +32,43 @@ import { RedisService } from '../../libs/modules/redis';
 import { CategoryRepository } from '../categories';
 import { RegionRepository } from '../regions/region.repository';
 import { DirectorRepository } from '../directors';
-import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
+import { BaseCrawler, ICrawlerConfig } from './base.crawler';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
+import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
 
 @Injectable()
 export class KKPhimCrawler extends BaseCrawler {
     private readonly kkphim: Ophim;
 
     constructor(
-        configService: ConfigService,
-        schedulerRegistry: SchedulerRegistry,
-        redisService: RedisService,
-        movieRepo: MovieRepository,
-        actorRepo: ActorRepository,
-        categoryRepo: CategoryRepository,
-        directorRepo: DirectorRepository,
-        regionRepo: RegionRepository,
-        httpService: HttpService,
-        protected tmdbService: TmdbService,
+        protected readonly httpService: HttpService,
+        protected readonly configService: ConfigService,
+        protected readonly scheduler: SchedulerRegistry,
+        protected readonly redisService: RedisService,
+        protected readonly movieRepo: MovieRepository,
+        protected readonly actorRepo: ActorRepository,
+        protected readonly categoryRepo: CategoryRepository,
+        protected readonly directorRepo: DirectorRepository,
+        protected readonly regionRepo: RegionRepository,
+        protected readonly tmdbService: TmdbService,
+        protected readonly crawlerSettingsRepo: CrawlerSettingsRepository,
     ) {
-        const config: ICrawlerConfig = {
-            name: 'KKPhimCrawler',
-            host: configService.getOrThrow<string>('KKPHIM_HOST', 'https://phimapi.com'),
-            imgHost: configService.getOrThrow<string>('KKPHIM_IMG_HOST', 'https://phimimg.com'),
-            cronSchedule: configService.getOrThrow<string>('KKPHIM_CRON', '0 5 * * *'),
-            forceUpdate:
-                configService.getOrThrow<string>('KKPHIM_FORCE_UPDATE', 'false') === 'true',
-            maxRetries: configService.getOrThrow<number>('KKPHIM_MAX_RETRIES', 3),
+        const crawlerConfig: ICrawlerConfig = {
+            name: 'kkphim',
+            host: configService.get<string>('KKPHIM_HOST') ?? 'https://kkphim4.com',
+            cronSchedule: configService.get<string>('KKPHIM_CRON_SCHEDULE') ?? '0 0 * * *',
+            forceUpdate: isTrue(configService.get<boolean>('KKPHIM_FORCE_UPDATE') ?? false),
+            imgHost: configService.get<string>('KKPHIM_IMG_HOST') ?? 'https://img.kkphim.com',
+            maxRetries: configService.get<number>('KKPHIM_MAX_RETRIES') ?? 3,
+            rateLimitDelay: configService.get<number>('KKPHIM_RATE_LIMIT_DELAY') ?? 1000,
+            maxConcurrentRequests: configService.get<number>('KKPHIM_MAX_CONCURRENT_REQUESTS') ?? 5,
+            maxContinuousSkips: configService.get<number>('KKPHIM_MAX_CONTINUOUS_SKIPS') ?? 500,
         };
 
-        const dependencies: ICrawlerDependencies = {
-            config,
-            configService,
-            schedulerRegistry,
+        super({
+            config: crawlerConfig,
+            configService: configService,
+            schedulerRegistry: scheduler,
             redisService,
             httpService,
             movieRepo,
@@ -72,9 +77,8 @@ export class KKPhimCrawler extends BaseCrawler {
             directorRepo,
             regionRepo,
             tmdbService,
-        };
-
-        super(dependencies);
+            crawlerSettingsRepo,
+        });
 
         this.kkphim = new Ophim({ host: this.config.host });
     }

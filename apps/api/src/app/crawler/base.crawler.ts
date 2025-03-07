@@ -20,6 +20,8 @@ import { isNullOrUndefined, resolveUrl, sleep, slugifyVietnamese } from '../../l
 import { mappingNameSlugEpisode } from './mapping-data';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
 import { ImdbType, TmdbType } from '../movies/movie.type';
+import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
+import { CrawlerSettings } from './dto/crawler-settings.schema';
 
 export interface ICrawlerConfig {
     name: string;
@@ -31,6 +33,7 @@ export interface ICrawlerConfig {
     rateLimitDelay?: number;
     maxConcurrentRequests?: number;
     maxContinuousSkips?: number;
+    enabled?: boolean;
 }
 
 export interface ICrawlerDependencies {
@@ -45,6 +48,7 @@ export interface ICrawlerDependencies {
     directorRepo: DirectorRepository;
     regionRepo: RegionRepository;
     tmdbService: TmdbService;
+    crawlerSettingsRepo?: CrawlerSettingsRepository;
 }
 
 export interface ICrawlerStatus {
@@ -65,7 +69,11 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     protected readonly REVALIDATION_BATCH_SIZE = 40;
     protected moviesToRevalidate: string[] = [];
 
-    protected readonly config: ICrawlerConfig;
+    private _config: ICrawlerConfig;
+    protected get config(): ICrawlerConfig {
+        return this._config;
+    }
+
     protected readonly configService: ConfigService;
     protected readonly schedulerRegistry: SchedulerRegistry;
     protected readonly redisService: RedisService;
@@ -89,18 +97,8 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     private continuousSkips = 0;
 
     constructor(protected readonly dependencies: ICrawlerDependencies) {
-        this.validateConfig(dependencies.config);
-
-        this.config = {
-            maxRetries: 3,
-            rateLimitDelay: 1000,
-            maxConcurrentRequests: 3,
-            maxContinuousSkips: parseInt(
-                dependencies.configService.get('MAX_CONTINUOUS_SKIPS') || '100',
-            ),
-            ...dependencies.config,
-        };
-
+        this.logger = new Logger(this.constructor.name);
+        this._config = { ...dependencies.config };
         this.configService = dependencies.configService;
         this.schedulerRegistry = dependencies.schedulerRegistry;
         this.redisService = dependencies.redisService;
@@ -112,15 +110,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         this.regionRepo = dependencies.regionRepo;
         this.tmdbService = dependencies.tmdbService;
 
-        this.logger = new Logger(this.config.name);
-        this.logger.log({
-            host: this.config.host,
-            cron: this.config.cronSchedule,
-            forceUpdate: this.config.forceUpdate,
-            timeZone: process.env.TZ,
-            tzOffset: new Date().getTimezoneOffset(),
-            maxContinuousSkips: this.config.maxContinuousSkips,
-        });
+        this.validateConfig(this._config);
     }
 
     private validateConfig(config: ICrawlerConfig) {
@@ -191,15 +181,108 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
      */
     protected abstract shouldEnable(): boolean;
 
-    onModuleInit() {
-        if (!this.isEnabled()) {
-            this.logger.warn(`Crawler ${this.config.name} is disabled by configuration`);
-            return;
+    /**
+     * Helper method to load crawler settings from repository or cache
+     */
+    protected async loadCrawlerSettings(): Promise<CrawlerSettings | null> {
+        if (!this.dependencies.crawlerSettingsRepo) {
+            return null;
         }
 
-        // Check if the crawler was auto-stopped due to continuous skips
-        const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
-        this.redisService.get(autoStopKey).then((lastStopTime) => {
+        try {
+            // Use a cache key to store crawler settings
+            const cacheKey = `CACHED:CRAWLER_CONFIG:${this.config.name}`;
+
+            // Try to get settings from cache first
+            let dbSettings = await this.redisService.get<CrawlerSettings>(cacheKey);
+
+            // If not in cache, fetch from database
+            if (!dbSettings) {
+                dbSettings = await this.dependencies.crawlerSettingsRepo.findOne({
+                    filterQuery: { name: this.config.name },
+                });
+
+                // If found in database, cache it
+                if (dbSettings) {
+                    await this.redisService.set(cacheKey, dbSettings, 60 * 60); // 1 hour cache
+                }
+            }
+
+            return dbSettings;
+        } catch (error) {
+            this.logger.error(`Error loading crawler settings: ${error.message}`, error.stack);
+            return null;
+        }
+    }
+
+    /**
+     * Helper method to create default settings
+     */
+    protected async createDefaultSettings(): Promise<CrawlerSettings | null> {
+        if (!this.dependencies.crawlerSettingsRepo) {
+            return null;
+        }
+
+        try {
+            const defaultSettings = await this.dependencies.crawlerSettingsRepo.create({
+                document: {
+                    ...this.config,
+                    enabled: true,
+                },
+            });
+
+            // Cache the new settings
+            if (defaultSettings) {
+                const cacheKey = `CACHED:CRAWLER_CONFIG:${this.config.name}`;
+                await this.redisService.set(cacheKey, defaultSettings, 60 * 60);
+            }
+
+            return defaultSettings;
+        } catch (error) {
+            // Check if it's a duplicate key error (likely concurrent creation)
+            if (error.code === 11000 || error.name === 'MongoServerError') {
+                this.logger.warn(
+                    `Duplicate key error when creating settings for ${this.config.name}, another instance may have created it first`,
+                );
+
+                // Try to load the settings again
+                return await this.loadCrawlerSettings();
+            } else {
+                this.logger.error(`Failed to create default crawler settings: ${error.message}`);
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Apply settings from database to config
+     */
+    protected applySettings(dbSettings: CrawlerSettings): void {
+        if (!dbSettings) return;
+
+        this._config = {
+            ...this._config,
+            host: dbSettings.host || this._config.host,
+            cronSchedule: dbSettings.cronSchedule || this._config.cronSchedule,
+            forceUpdate: dbSettings.forceUpdate ?? this._config.forceUpdate,
+            imgHost: dbSettings.imgHost || this._config.imgHost,
+            maxRetries: dbSettings.maxRetries || this._config.maxRetries,
+            rateLimitDelay: dbSettings.rateLimitDelay || this._config.rateLimitDelay,
+            maxConcurrentRequests:
+                dbSettings.maxConcurrentRequests || this._config.maxConcurrentRequests,
+            maxContinuousSkips: dbSettings.maxContinuousSkips || this._config.maxContinuousSkips,
+            enabled: dbSettings.enabled ?? true,
+        };
+    }
+
+    /**
+     * Check if crawler was auto-stopped
+     */
+    protected async wasAutoStopped(): Promise<{ stopped: boolean; hoursSinceStop?: number }> {
+        try {
+            const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
+            const lastStopTime = await this.redisService.get<string>(autoStopKey);
+
             if (lastStopTime) {
                 const stopTime = new Date(lastStopTime);
                 const hoursSinceStop =
@@ -207,22 +290,109 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
 
                 // If it's been less than 20 hours since auto-stop, don't restart
                 if (hoursSinceStop < 20) {
-                    this.logger.warn(
-                        `Crawler ${this.config.name} was auto-stopped ${Math.round(
-                            hoursSinceStop,
-                        )} hours ago due to no updates. Will not restart until 20 hours have passed.`,
-                    );
-                    return;
+                    return { stopped: true, hoursSinceStop };
                 } else {
-                    // Clear the auto-stop flag and start normally
-                    this.redisService.del(autoStopKey);
+                    // Clear the auto-stop flag since enough time has passed
+                    await this.redisService.del(autoStopKey);
+                    return { stopped: false };
                 }
             }
 
-            this.crawlerJob = new CronJob(this.config.cronSchedule, this.crawlMovies.bind(this));
-            this.schedulerRegistry.addCronJob(this.jobName, this.crawlerJob);
-            this.crawlerJob.start();
-        });
+            return { stopped: false };
+        } catch (error) {
+            this.logger.error(`Error checking auto-stop status: ${error.message}`);
+            return { stopped: false };
+        }
+    }
+
+    /**
+     * Mark crawler as auto-stopped
+     */
+    protected async markAutoStopped(): Promise<void> {
+        try {
+            const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
+            await this.redisService.set(autoStopKey, new Date().toISOString(), 60 * 60 * 24 * 2); // 48 hour TTL
+        } catch (error) {
+            this.logger.error(`Failed to set auto-stop flag: ${error.message}`);
+        }
+    }
+
+    /**
+     * Update onModuleInit method to use helper methods
+     */
+    async onModuleInit() {
+        this.logger.log(`Initializing crawler for ${this.config.name}`);
+
+        // Check for settings in database if repository is available
+        if (this.dependencies.crawlerSettingsRepo) {
+            try {
+                // Load settings from repository or cache
+                let dbSettings = await this.loadCrawlerSettings();
+
+                if (dbSettings) {
+                    this.logger.log(`Found settings for ${this.config.name}`);
+
+                    // Apply database settings to the config
+                    this.applySettings(dbSettings);
+                } else {
+                    this.logger.log(
+                        `No settings found for ${this.config.name}, creating default entry`,
+                    );
+
+                    // Create default settings in DB
+                    dbSettings = await this.createDefaultSettings();
+
+                    if (dbSettings) {
+                        this.applySettings(dbSettings);
+                    }
+                }
+            } catch (error) {
+                this.logger.error(
+                    `Error loading crawler settings from database: ${error.message}`,
+                    error.stack,
+                );
+            }
+        }
+
+        // Skip scheduler registration if crawler is disabled
+        if (this.config.enabled === false) {
+            this.logger.log(`Crawler ${this.config.name} is disabled, skipping scheduler setup`);
+            return;
+        }
+
+        // Check if the crawler was auto-stopped due to continuous skips
+        const autoStopStatus = await this.wasAutoStopped();
+        if (autoStopStatus.stopped) {
+            this.logger.warn(
+                `Crawler ${this.config.name} was auto-stopped ${Math.round(
+                    autoStopStatus.hoursSinceStop!,
+                )} hours ago. Will not restart until 20 hours have passed.`,
+            );
+            return;
+        }
+
+        if (this.shouldEnable()) {
+            try {
+                const job = new CronJob(this.config.cronSchedule, () => {
+                    this.triggerCrawl();
+                });
+
+                this.schedulerRegistry.addCronJob(this.jobName, job);
+                job.start();
+
+                this.crawlerJob = job;
+                this.logger.log(
+                    `Registered crawler job ${this.jobName} with schedule ${this.config.cronSchedule}`,
+                );
+            } catch (error) {
+                this.logger.error(
+                    `Failed to initialize crawler job: ${error.message}`,
+                    error.stack,
+                );
+            }
+        } else {
+            this.logger.log(`Crawler ${this.config.name} is disabled by configuration`);
+        }
     }
 
     onModuleDestroy() {
@@ -232,22 +402,77 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
-     * Manually trigger a crawl operation
+     * Manually triggers the crawler to run.
+     * If a slug is provided, will crawl only that specific item.
+     *
+     * @param slug Optional slug to crawl specifically
      * @returns Promise that resolves when crawling is complete
      */
-    public async triggerCrawl(): Promise<void> {
+    public async triggerCrawl(slug?: string): Promise<void> {
+        if (slug) {
+            this.logger.log(`Manually triggered crawl for specific slug: ${slug}`);
+            try {
+                // Ensure we're not already crawling
+                if (this.isCrawling) {
+                    this.logger.warn(
+                        `Crawler is already running, can't start a specific slug crawl for: ${slug}`,
+                    );
+                    return;
+                }
+
+                this.isCrawling = true;
+                await this.fetchAndSaveMovieDetail(slug);
+                this.isCrawling = false;
+                this.logger.log(`Successfully completed crawl for slug: ${slug}`);
+            } catch (error) {
+                this.isCrawling = false;
+                this.logger.error(`Error crawling slug ${slug}: ${error.message}`, error.stack);
+                throw error;
+            }
+            return;
+        }
+
         if (!this.isEnabled()) {
             this.logger.warn(
-                `Cannot trigger crawl: Crawler ${this.config.name} is disabled by configuration`,
+                'Crawler is not enabled or is currently running. Use resumeCrawler() to manually resume a stopped crawler.',
             );
             return;
         }
 
-        if (this.isCrawling) {
-            this.logger.warn('Crawler is already running');
-            return;
+        this.logger.log('Triggering crawler manually');
+
+        try {
+            if (this.isCrawling) {
+                this.logger.warn('Crawler is already running');
+                return;
+            }
+
+            this.isCrawling = true;
+            this.status = {
+                isRunning: true,
+                lastRun: new Date(),
+                startTime: new Date(),
+                processedItems: 0,
+                failedItems: 0,
+            };
+
+            await this.crawl();
+
+            this.status.isRunning = false;
+            this.status.endTime = new Date();
+            this.isCrawling = false;
+
+            this.logger.log(
+                `Crawl completed: processed ${this.status.processedItems} items, failed ${this.status.failedItems} items`,
+            );
+        } catch (error) {
+            this.status.isRunning = false;
+            this.status.endTime = new Date();
+            this.status.error = error.message;
+            this.isCrawling = false;
+
+            this.logger.error(`Crawl failed: ${error.message}`, error.stack);
         }
-        return this.crawl();
     }
 
     /**
@@ -488,137 +713,224 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
 
     protected async addToFailedCrawls(slug: string, error: string) {
         try {
-            const hostStr = this.config.host.replace('https://', '');
+            const hostStr = this.config.host.replace(/https?:\/\//, '');
             const key = `failed-movie-crawls:${hostStr}`;
-            await this.redisService.getClient.hset(
-                key,
-                slug,
-                JSON.stringify({
-                    error,
-                    retryCount: 0,
-                    lastAttempt: new Date().toISOString(),
-                }),
-            );
-            await this.redisService.getClient.expire(key, 60 * 60 * 24); // 24 hours expiry
+
+            // Use Redis service to store the failure data
+            const failureData = {
+                error,
+                retryCount: 0,
+                lastAttempt: new Date().toISOString(),
+            };
+
+            // Get current failed crawls
+            const currentFailedCrawls =
+                (await this.redisService.get<Record<string, any>>(key)) || {};
+
+            // Update with the new failed crawl
+            currentFailedCrawls[slug] = failureData;
+
+            // Save the updated record
+            await this.redisService.set(key, currentFailedCrawls, 60 * 60 * 24); // 24 hours expiry
         } catch (error) {
-            this.logger.error(`Error adding slug ${slug} to failed crawls: ${error}`);
+            this.logger.error(`Error adding slug ${slug} to failed crawls: ${error.message}`);
         }
     }
 
     protected async addToFailedPages(page: number, error: string) {
         try {
-            const hostStr = this.config.host.replace('https://', '');
-            const key = `failed-pages:${hostStr}`;
-            await this.redisService.getClient.hset(
-                key,
-                page.toString(),
-                JSON.stringify({
-                    error,
-                    retryCount: 0,
-                    lastAttempt: new Date().toISOString(),
-                }),
-            );
-            await this.redisService.getClient.expire(key, 60 * 60 * 24); // 24 hours expiry
+            const hostStr = this.config.host.replace(/https?:\/\//, '');
+            const key = `failed-page-crawls:${hostStr}`;
+
+            // Use Redis service to store the failure data
+            const failureData = {
+                error,
+                retryCount: 0,
+                lastAttempt: new Date().toISOString(),
+            };
+
+            // Get current failed pages
+            const currentFailedPages =
+                (await this.redisService.get<Record<string, any>>(key)) || {};
+
+            // Update with the new failed page
+            currentFailedPages[page.toString()] = failureData;
+
+            // Save the updated record
+            await this.redisService.set(key, currentFailedPages, 60 * 60 * 24); // 24 hours expiry
         } catch (error) {
-            this.logger.error(`Error adding page ${page} to failed pages: ${error}`);
+            this.logger.error(`Error adding page ${page} to failed pages: ${error.message}`);
         }
     }
 
     protected async retryFailedCrawls() {
         try {
-            const hostStr = this.config.host.replace('https://', '');
-            const failedMoviesKey = `failed-movie-crawls:${hostStr}`;
+            const hostStr = this.config.host.replace(/https?:\/\//, '');
+            const key = `failed-movie-crawls:${hostStr}`;
 
-            // Get all failed movies
-            const failedMovies = await this.redisService.getClient.hgetall(failedMoviesKey);
-            if (!failedMovies) return;
+            // Get failed crawls from Redis
+            const failedCrawls = await this.redisService.get<Record<string, any>>(key);
 
-            for (const [slug, dataStr] of Object.entries(failedMovies)) {
+            if (!failedCrawls || Object.keys(failedCrawls).length === 0) {
+                this.logger.log('No failed crawls to retry');
+                return;
+            }
+
+            this.logger.log(`Retrying ${Object.keys(failedCrawls).length} failed crawls`);
+
+            // Track successful retries to remove from the failed list
+            const successfulRetries: string[] = [];
+
+            // Process each failed crawl
+            for (const [slug, data] of Object.entries(failedCrawls)) {
                 try {
-                    const data = JSON.parse(dataStr);
-                    if (data.retryCount >= this.config.maxRetries) {
-                        this.logger.warn(`Max retries reached for movie ${slug}, skipping`);
+                    // Parse the retry data
+                    const retryData = typeof data === 'string' ? JSON.parse(data) : data;
+                    const retryCount = retryData.retryCount || 0;
+
+                    // Skip if too many retries
+                    if (retryCount >= (this.config.maxRetries || 3)) {
+                        this.logger.warn(
+                            `Skipping retry for ${slug} after ${retryCount} failed attempts`,
+                        );
                         continue;
                     }
 
-                    // Add exponential backoff delay
-                    const backoffDelay = this.calculateBackoff(data.retryCount);
-                    await sleep(backoffDelay);
+                    // Attempt to fetch and save again
+                    const wasSuccessful = await this.fetchAndSaveMovieDetail(slug);
 
-                    const success = await this.fetchAndSaveMovieDetail(slug);
-                    if (success) {
-                        await this.redisService.getClient.hdel(failedMoviesKey, slug);
-                        this.logger.log(`Successfully retried and saved movie: ${slug}`);
+                    if (wasSuccessful) {
+                        // If successful, mark for removal
+                        successfulRetries.push(slug);
+                        this.logger.log(`Successfully retried crawl for ${slug}`);
                     } else {
                         // Update retry count
-                        data.retryCount++;
-                        data.lastAttempt = new Date().toISOString();
-                        await this.redisService.getClient.hset(
-                            failedMoviesKey,
-                            slug,
-                            JSON.stringify(data),
+                        failedCrawls[slug] = {
+                            ...retryData,
+                            retryCount: retryCount + 1,
+                            lastAttempt: new Date().toISOString(),
+                        };
+
+                        this.logger.warn(
+                            `Retry ${retryCount + 1} for ${slug} did not result in an update`,
                         );
                     }
                 } catch (error) {
-                    this.logger.error(`Error retrying movie ${slug}: ${error}`);
-                    // Update retry count even on error
-                    const data = JSON.parse(dataStr);
-                    data.retryCount++;
-                    data.lastAttempt = new Date().toISOString();
-                    data.error = error.message;
-                    await this.redisService.getClient.hset(
-                        failedMoviesKey,
-                        slug,
-                        JSON.stringify(data),
-                    );
+                    // Update retry count on error
+                    failedCrawls[slug] = {
+                        ...(typeof data === 'string' ? JSON.parse(data) : data),
+                        error: error.message,
+                        retryCount: (data.retryCount || 0) + 1,
+                        lastAttempt: new Date().toISOString(),
+                    };
+
+                    this.logger.error(`Error retrying crawl for ${slug}: ${error.message}`);
                 }
+
+                // Add delay between retries to avoid overwhelming the source
+                await sleep(this.config.rateLimitDelay || 1000);
             }
+
+            // Remove successful retries
+            for (const slug of successfulRetries) {
+                delete failedCrawls[slug];
+            }
+
+            // Update the Redis record if there are still failed crawls
+            if (Object.keys(failedCrawls).length > 0) {
+                await this.redisService.set(key, failedCrawls, 60 * 60 * 24); // 24 hours
+            } else {
+                // All crawls were successful, remove the key
+                await this.redisService.del(key);
+            }
+
+            this.logger.log(
+                `Retry complete. Successfully retried ${successfulRetries.length} crawls, ${
+                    Object.keys(failedCrawls).length
+                } remaining`,
+            );
         } catch (error) {
-            this.logger.error(`Error during retryFailedCrawls: ${error}`);
+            this.logger.error(`Error retrying failed crawls: ${error.message}`);
         }
     }
 
     protected async retryFailedPages() {
         try {
-            const hostStr = this.config.host.replace('https://', '');
-            const failedPagesKey = `failed-pages:${hostStr}`;
+            const hostStr = this.config.host.replace(/https?:\/\//, '');
+            const key = `failed-page-crawls:${hostStr}`;
 
-            // Get all failed pages
-            const failedPages = await this.redisService.getClient.hgetall(failedPagesKey);
-            if (!failedPages) return;
+            // Get failed pages from Redis
+            const failedPages = await this.redisService.get<Record<string, any>>(key);
 
-            for (const [pageStr, dataStr] of Object.entries(failedPages)) {
+            if (!failedPages || Object.keys(failedPages).length === 0) {
+                this.logger.log('No failed pages to retry');
+                return;
+            }
+
+            this.logger.log(`Retrying ${Object.keys(failedPages).length} failed pages`);
+
+            // Track successful retries to remove from the failed list
+            const successfulRetries: string[] = [];
+
+            // Process each failed page
+            for (const [pageStr, data] of Object.entries(failedPages)) {
                 try {
-                    const data = JSON.parse(dataStr);
-                    if (data.retryCount >= this.config.maxRetries) {
-                        this.logger.warn(`Max retries reached for page ${pageStr}, skipping`);
+                    const page = parseInt(pageStr, 10);
+
+                    // Parse the retry data
+                    const retryData = typeof data === 'string' ? JSON.parse(data) : data;
+                    const retryCount = retryData.retryCount || 0;
+
+                    // Skip if too many retries
+                    if (retryCount >= (this.config.maxRetries || 3)) {
+                        this.logger.warn(
+                            `Skipping retry for page ${page} after ${retryCount} failed attempts`,
+                        );
                         continue;
                     }
 
-                    // Add exponential backoff delay
-                    const backoffDelay = this.calculateBackoff(data.retryCount);
-                    await sleep(backoffDelay);
-
-                    const page = parseInt(pageStr);
+                    // Attempt to crawl the page again
                     await this.crawlPage(page);
-                    await this.redisService.getClient.hdel(failedPagesKey, pageStr);
-                    this.logger.log(`Successfully retried page: ${page}`);
+
+                    // If no exception was thrown, consider it successful
+                    successfulRetries.push(pageStr);
+                    this.logger.log(`Successfully retried page ${page}`);
                 } catch (error) {
-                    this.logger.error(`Error retrying page ${pageStr}: ${error}`);
-                    // Update retry count
-                    const data = JSON.parse(dataStr);
-                    data.retryCount++;
-                    data.lastAttempt = new Date().toISOString();
-                    data.error = error.message;
-                    await this.redisService.getClient.hset(
-                        failedPagesKey,
-                        pageStr,
-                        JSON.stringify(data),
-                    );
+                    // Update retry count on error
+                    failedPages[pageStr] = {
+                        ...(typeof data === 'string' ? JSON.parse(data) : data),
+                        error: error.message,
+                        retryCount: (data.retryCount || 0) + 1,
+                        lastAttempt: new Date().toISOString(),
+                    };
+
+                    this.logger.error(`Error retrying page ${pageStr}: ${error.message}`);
                 }
+
+                // Add delay between retries to avoid overwhelming the source
+                await sleep(this.config.rateLimitDelay || 1000);
             }
+
+            // Remove successful retries
+            for (const pageStr of successfulRetries) {
+                delete failedPages[pageStr];
+            }
+
+            // Update the Redis record if there are still failed pages
+            if (Object.keys(failedPages).length > 0) {
+                await this.redisService.set(key, failedPages, 60 * 60 * 24); // 24 hours
+            } else {
+                // All pages were successful, remove the key
+                await this.redisService.del(key);
+            }
+
+            this.logger.log(
+                `Retry complete. Successfully retried ${successfulRetries.length} pages, ${
+                    Object.keys(failedPages).length
+                } remaining`,
+            );
         } catch (error) {
-            this.logger.error(`Error during retryFailedPages: ${error}`);
+            this.logger.error(`Error retrying failed pages: ${error.message}`);
         }
     }
 
@@ -709,9 +1021,19 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
      */
     protected incrementSkipCount(): void {
         this.continuousSkips++;
-        this.logger.debug(
-            `Continuous skips: ${this.continuousSkips}/${this.config.maxContinuousSkips}`,
-        );
+        this.logger.debug(`Increment skip count to ${this.continuousSkips}`);
+
+        // If we've hit the skip limit, auto-stop the crawler
+        if (this.continuousSkips >= this.config.maxContinuousSkips) {
+            this.logger.warn(
+                `Crawler has skipped ${this.continuousSkips} items in a row, stopping crawler`,
+            );
+
+            // Store the auto-stop time in Redis
+            this.markAutoStopped();
+
+            this.stopCrawler();
+        }
     }
 
     /**
