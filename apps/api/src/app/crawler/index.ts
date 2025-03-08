@@ -15,7 +15,7 @@ export * from './crawl.controller';
 export * from './dto/crawler-settings.schema';
 export * from './dto/crawler-settings.type';
 export * from './dto/crawler-settings.repository';
-export * from './dto/crawler-settings.service';
+export * from './crawler-settings.service';
 export * from './crawler-settings.resolver';
 export * from './dto/inputs';
 export * from './dto/outputs/get-crawler-settings.output';

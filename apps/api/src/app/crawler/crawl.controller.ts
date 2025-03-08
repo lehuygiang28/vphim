@@ -7,7 +7,7 @@ import { NguoncCrawler } from './nguonc.crawler';
 import { ConfigService } from '@nestjs/config';
 import { isNullOrUndefined, isTrue } from 'apps/api/src/libs/utils/common';
 import { SearchService } from '../movies/search.service';
-import { CrawlerSettingsService } from './dto/crawler-settings.service';
+import { CrawlerSettingsService } from './crawler-settings.service';
 import { GetCrawlerSettingsOutput } from './dto/outputs/get-crawler-settings.output';
 
 /**

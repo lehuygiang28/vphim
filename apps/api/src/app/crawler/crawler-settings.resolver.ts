@@ -1,7 +1,7 @@
 import { Resolver, Query, Args, Mutation, Int } from '@nestjs/graphql';
 
 import { CrawlerSettingsType } from './dto/crawler-settings.type';
-import { CrawlerSettingsService } from './dto/crawler-settings.service';
+import { CrawlerSettingsService } from './crawler-settings.service';
 import {
     GetCrawlerSettingsInput,
     GetCrawlerSettingInput,

@@ -23,7 +23,7 @@ import { SearchService } from '../movies/search.service';
 // Crawler settings
 import { CrawlerSettings, CrawlerSettingsSchema } from './dto/crawler-settings.schema';
 import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
-import { CrawlerSettingsService } from './dto/crawler-settings.service';
+import { CrawlerSettingsService } from './crawler-settings.service';
 import { CrawlerSettingsResolver } from './crawler-settings.resolver';
 import { isNullOrUndefined } from '../../libs/utils';
 import { CrawlerProcessor } from './crawler.processor';

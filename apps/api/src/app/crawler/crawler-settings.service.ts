@@ -4,24 +4,24 @@ import { createRegex, removeDiacritics, removeTone } from '@vn-utils/text';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
-import { CrawlerSettingsRepository } from './crawler-settings.repository';
+import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
 import {
     GetCrawlerSettingsInput,
     GetCrawlerSettingInput,
-} from './inputs/get-crawler-settings.input';
-import { CrawlerSettings, CrawlerSettingsDocument } from './crawler-settings.schema';
-import { CrawlerSettingsType } from './crawler-settings.type';
-import { RedisService } from '../../../libs/modules/redis';
-import { UpdateCrawlerSettingsInput } from './inputs/update-crawler-settings.input';
-import { CreateCrawlerSettingsInput } from './inputs/create-crawler-settings.input';
-import { DeleteCrawlerSettingsInput } from './inputs/delete-crawler-settings.input';
-import { GetCrawlerSettingsOutput } from './outputs/get-crawler-settings.output';
-import { TriggerCrawlerInput } from './inputs/trigger-crawler.input';
+} from './dto/inputs/get-crawler-settings.input';
+import { CrawlerSettings, CrawlerSettingsDocument } from './dto/crawler-settings.schema';
+import { CrawlerSettingsType } from './dto/crawler-settings.type';
+import { RedisService } from '../../libs/modules/redis';
+import { UpdateCrawlerSettingsInput } from './dto/inputs/update-crawler-settings.input';
+import { CreateCrawlerSettingsInput } from './dto/inputs/create-crawler-settings.input';
+import { DeleteCrawlerSettingsInput } from './dto/inputs/delete-crawler-settings.input';
+import { GetCrawlerSettingsOutput } from './dto/outputs/get-crawler-settings.output';
+import { TriggerCrawlerInput } from './dto/inputs/trigger-crawler.input';
 import {
     CrawlerJobName,
     TriggerCrawlJobData,
     UpdateCrawlerConfigJobData,
-} from '../types/crawler-jobs.types';
+} from './types/crawler-jobs.types';
 
 // Define a custom type for MongoDB error
 interface MongoDBError {
