@@ -2,11 +2,9 @@
 import { HttpService } from '@nestjs/axios';
 import { Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SchedulerRegistry } from '@nestjs/schedule';
-import { CronJob } from 'cron';
+import { Types } from 'mongoose';
 import slugify from 'slugify';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
-import { Types } from 'mongoose';
 import { Movie as OPhimMovie } from 'ophim-js';
 
 import { RedisService } from '../../libs/modules/redis';
@@ -21,9 +19,10 @@ import { mappingNameSlugEpisode } from './mapping-data';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
 import { ImdbType, TmdbType } from '../movies/movie.type';
 import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
-import { CrawlerSettings } from './dto/crawler-settings.schema';
+import { CrawlerSettings, CrawlerType } from './dto/crawler-settings.schema';
 
 export interface ICrawlerConfig {
+    type: CrawlerType;
     name: string;
     host: string;
     cronSchedule: string;
@@ -39,7 +38,6 @@ export interface ICrawlerConfig {
 export interface ICrawlerDependencies {
     config: ICrawlerConfig;
     configService: ConfigService;
-    schedulerRegistry: SchedulerRegistry;
     redisService: RedisService;
     httpService: HttpService;
     movieRepo: MovieRepository;
@@ -75,7 +73,6 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     }
 
     protected readonly configService: ConfigService;
-    protected readonly schedulerRegistry: SchedulerRegistry;
     protected readonly redisService: RedisService;
     protected readonly httpService: HttpService;
     protected readonly movieRepo: MovieRepository;
@@ -85,7 +82,6 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
     protected readonly regionRepo: RegionRepository;
     protected readonly tmdbService: TmdbService;
 
-    private crawlerJob: CronJob;
     private isCrawling = false;
     private status: ICrawlerStatus = {
         isRunning: false,
@@ -100,7 +96,6 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         this.logger = new Logger(this.constructor.name);
         this._config = { ...dependencies.config };
         this.configService = dependencies.configService;
-        this.schedulerRegistry = dependencies.schedulerRegistry;
         this.redisService = dependencies.redisService;
         this.httpService = dependencies.httpService;
         this.movieRepo = dependencies.movieRepo;
@@ -119,10 +114,6 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         if (!config.cronSchedule) throw new Error('Crawler cron schedule is required');
         if (typeof config.forceUpdate !== 'boolean')
             throw new Error('forceUpdate must be a boolean');
-    }
-
-    private get jobName(): string {
-        return `${this.crawlMovies.name}_${this.config.name}`;
     }
 
     private async enqueueRequest<T>(request: () => Promise<T>): Promise<T> {
@@ -210,7 +201,8 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
 
             return dbSettings;
         } catch (error) {
-            this.logger.error(`Error loading crawler settings: ${error.message}`, error.stack);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.error(`Error loading crawler settings: ${errorMessage}`);
             return null;
         }
     }
@@ -248,7 +240,8 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                 // Try to load the settings again
                 return await this.loadCrawlerSettings();
             } else {
-                this.logger.error(`Failed to create default crawler settings: ${error.message}`);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                this.logger.error(`Failed to create default crawler settings: ${errorMessage}`);
                 return null;
             }
         }
@@ -300,7 +293,8 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
 
             return { stopped: false };
         } catch (error) {
-            this.logger.error(`Error checking auto-stop status: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.error(`Error checking auto-stop status: ${errorMessage}`);
             return { stopped: false };
         }
     }
@@ -313,12 +307,14 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
             await this.redisService.set(autoStopKey, new Date().toISOString(), 60 * 60 * 24 * 2); // 48 hour TTL
         } catch (error) {
-            this.logger.error(`Failed to set auto-stop flag: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.error(`Failed to set auto-stop flag: ${errorMessage}`);
         }
     }
 
     /**
-     * Update onModuleInit method to use helper methods
+     * Initialize the crawler by loading configuration from the database
+     * Scheduling is now handled by BullMQ, so we just load settings here
      */
     async onModuleInit() {
         this.logger.log(`Initializing crawler for ${this.config.name}`);
@@ -347,248 +343,196 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                     }
                 }
             } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                const errorStack = error instanceof Error ? error.stack : undefined;
                 this.logger.error(
-                    `Error loading crawler settings from database: ${error.message}`,
-                    error.stack,
+                    `Error loading crawler settings from database: ${errorMessage}`,
+                    errorStack,
                 );
             }
         }
+    }
 
-        // Skip scheduler registration if crawler is disabled
-        if (this.config.enabled === false) {
-            this.logger.log(`Crawler ${this.config.name} is disabled, skipping scheduler setup`);
+    onModuleDestroy() {
+        // Nothing to clean up - scheduler is handled by BullMQ
+    }
+
+    /**
+     * Update crawler configuration without handling scheduling
+     * Scheduling is now managed by BullMQ, so we just update local config
+     */
+    public async updateCrawlerConfig(): Promise<boolean> {
+        try {
+            this.logger.log(`Updating configuration for crawler ${this.config.name}`);
+
+            // Load latest settings from database
+            if (this.dependencies.crawlerSettingsRepo) {
+                const dbSettings = await this.loadCrawlerSettings();
+                if (dbSettings) {
+                    this.logger.log(`Loaded updated settings for ${this.config.name}`);
+                    this.applySettings(dbSettings);
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            const errorStack = error instanceof Error ? error.stack : undefined;
+
+            this.logger.error(`Error updating crawler configuration: ${errorMessage}`, errorStack);
+            return false;
+        }
+    }
+
+    /**
+     * Trigger a crawl operation manually or programmatically
+     * This method can be called directly or through a job processor
+     */
+    public async triggerCrawl(slug?: string): Promise<void> {
+        if (this.isCrawling) {
+            this.logger.warn(`Crawler ${this.config.name} is already running, ignoring trigger`);
+            return;
+        }
+
+        this.logger.log(
+            `Triggering crawler ${this.config.name}${slug ? ` for slug: ${slug}` : ''}`,
+        );
+
+        // Don't run if the crawler is not enabled
+        if (!this.isEnabled()) {
+            this.logger.log(`Crawler ${this.config.name} is disabled by configuration`);
             return;
         }
 
         // Check if the crawler was auto-stopped due to continuous skips
         const autoStopStatus = await this.wasAutoStopped();
-        if (autoStopStatus.stopped) {
+        if (autoStopStatus.stopped && autoStopStatus.hoursSinceStop !== undefined) {
             this.logger.warn(
                 `Crawler ${this.config.name} was auto-stopped ${Math.round(
-                    autoStopStatus.hoursSinceStop!,
+                    autoStopStatus.hoursSinceStop,
                 )} hours ago. Will not restart until 20 hours have passed.`,
             );
             return;
         }
 
-        if (this.shouldEnable()) {
-            try {
-                const job = new CronJob(this.config.cronSchedule, () => {
-                    this.triggerCrawl();
-                });
-
-                this.schedulerRegistry.addCronJob(this.jobName, job);
-                job.start();
-
-                this.crawlerJob = job;
-                this.logger.log(
-                    `Registered crawler job ${this.jobName} with schedule ${this.config.cronSchedule}`,
-                );
-            } catch (error) {
-                this.logger.error(
-                    `Failed to initialize crawler job: ${error.message}`,
-                    error.stack,
-                );
-            }
-        } else {
-            this.logger.log(`Crawler ${this.config.name} is disabled by configuration`);
-        }
-    }
-
-    onModuleDestroy() {
-        if (this.schedulerRegistry.doesExist('cron', this.jobName)) {
-            this.schedulerRegistry.deleteCronJob(this.jobName);
-        }
-    }
-
-    /**
-     * Manually triggers the crawler to run.
-     * If a slug is provided, will crawl only that specific item.
-     *
-     * @param slug Optional slug to crawl specifically
-     * @returns Promise that resolves when crawling is complete
-     */
-    public async triggerCrawl(slug?: string): Promise<void> {
-        if (slug) {
-            this.logger.log(`Manually triggered crawl for specific slug: ${slug}`);
-            try {
-                // Ensure we're not already crawling
-                if (this.isCrawling) {
-                    this.logger.warn(
-                        `Crawler is already running, can't start a specific slug crawl for: ${slug}`,
-                    );
-                    return;
-                }
-
-                this.isCrawling = true;
-                await this.fetchAndSaveMovieDetail(slug);
-                this.isCrawling = false;
-                this.logger.log(`Successfully completed crawl for slug: ${slug}`);
-            } catch (error) {
-                this.isCrawling = false;
-                this.logger.error(`Error crawling slug ${slug}: ${error.message}`, error.stack);
-                throw error;
-            }
-            return;
-        }
-
-        if (!this.isEnabled()) {
-            this.logger.warn(
-                'Crawler is not enabled or is currently running. Use resumeCrawler() to manually resume a stopped crawler.',
-            );
-            return;
-        }
-
-        this.logger.log('Triggering crawler manually');
-
         try {
-            if (this.isCrawling) {
-                this.logger.warn('Crawler is already running');
-                return;
+            // Reset skip count
+            this.resetSkipCount();
+
+            // If slug is provided, just fetch and save that movie
+            if (slug) {
+                await this.fetchAndSaveMovieDetail(slug);
+            } else {
+                // Otherwise, start crawling
+                this.isCrawling = true;
+                this.status = {
+                    isRunning: true,
+                    startTime: new Date(),
+                    processedItems: 0,
+                    failedItems: 0,
+                };
+
+                await this.crawl();
             }
-
-            this.isCrawling = true;
-            this.status = {
-                isRunning: true,
-                lastRun: new Date(),
-                startTime: new Date(),
-                processedItems: 0,
-                failedItems: 0,
-            };
-
-            await this.crawl();
-
-            this.status.isRunning = false;
-            this.status.endTime = new Date();
-            this.isCrawling = false;
-
-            this.logger.log(
-                `Crawl completed: processed ${this.status.processedItems} items, failed ${this.status.failedItems} items`,
-            );
         } catch (error) {
-            this.status.isRunning = false;
-            this.status.endTime = new Date();
-            this.status.error = error.message;
-            this.isCrawling = false;
-
-            this.logger.error(`Crawl failed: ${error.message}`, error.stack);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.error(`Error triggering crawler: ${errorMessage}`);
         }
     }
 
     /**
-     * Stop the crawler's cron job
+     * Stop the crawler
      */
     public stopCrawler(): void {
-        if (this.crawlerJob) {
-            this.crawlerJob.stop();
-            this.logger.log('Crawler stopped');
-        }
+        this.logger.log(`Manually stopping crawler ${this.config.name}`);
+        this.isCrawling = false;
+        this.status.isRunning = false;
+        this.status.endTime = new Date();
     }
 
     /**
-     * Resume the crawler's cron job, clearing any auto-stop state
+     * Resume a previously stopped crawler
      */
     public async resumeCrawler(): Promise<void> {
-        if (!this.isEnabled()) {
+        if (this.isCrawling) {
             this.logger.warn(
-                `Cannot resume: Crawler ${this.config.name} is disabled by configuration`,
+                `Crawler ${this.config.name} is already running, ignoring resume request`,
             );
             return;
         }
 
-        // Clear the auto-stop flag
-        const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
-        await this.redisService.del(autoStopKey);
-
-        if (!this.crawlerJob) {
-            this.crawlerJob = new CronJob(this.config.cronSchedule, this.crawlMovies.bind(this));
-            this.schedulerRegistry.addCronJob(this.jobName, this.crawlerJob);
-        }
-
-        if (!this.crawlerJob.running) {
-            this.crawlerJob.start();
-            this.logger.log('Crawler resumed');
-        }
-    }
-
-    protected async crawl() {
-        if (this.isCrawling) {
-            this.logger.warn('Crawler is already running');
+        // Check if the crawler was auto-stopped due to continuous skips
+        const autoStopStatus = await this.wasAutoStopped();
+        if (autoStopStatus.stopped && autoStopStatus.hoursSinceStop !== undefined) {
+            this.logger.warn(
+                `Crawler ${this.config.name} was auto-stopped ${Math.round(
+                    autoStopStatus.hoursSinceStop,
+                )} hours ago. Will not restart until 20 hours have passed.`,
+            );
             return;
         }
 
+        this.logger.log(`Resuming crawler ${this.config.name}`);
         this.isCrawling = true;
-        this.status = {
-            isRunning: true,
-            processedItems: 0,
-            failedItems: 0,
-            startTime: new Date(),
-        };
+        this.status.isRunning = true;
+        if (!this.status.startTime) {
+            this.status.startTime = new Date();
+        }
+
+        await this.crawl();
+    }
+
+    /**
+     * Crawl for new movies
+     * This method now contains the main crawling logic that used to be in the crawl method
+     */
+    protected async crawlMovies(): Promise<void> {
         this.continuousSkips = 0;
 
         const today = new Date().toISOString().slice(0, 10);
         const crawlKey = `crawled-pages:${this.config.host.replace('https://', '')}:${today}`;
 
+        const latestMovies = await this.enqueueRequest(() => this.getNewestMovies(1));
+        const totalPages = this.getTotalPages(latestMovies);
+        this.status.totalPages = totalPages;
+
+        let lastCrawledPage = 0;
         try {
-            const latestMovies = await this.enqueueRequest(() => this.getNewestMovies(1));
-            const totalPages = this.getTotalPages(latestMovies);
-            this.status.totalPages = totalPages;
+            lastCrawledPage = parseInt(await this.redisService.get(crawlKey)) || 0;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.error(`Error getting last crawled page from Redis: ${errorMessage}`);
+        }
 
-            let lastCrawledPage = 0;
-            try {
-                lastCrawledPage = parseInt(await this.redisService.get(crawlKey)) || 0;
-            } catch (error) {
-                this.logger.error(`Error getting last crawled page from Redis: ${error}`);
+        for (let i = lastCrawledPage; i <= totalPages; i++) {
+            this.status.currentPage = i;
+            await this.crawlPage(i);
+            await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
+
+            if (this.continuousSkips >= this.config.maxContinuousSkips) {
+                this.logger.warn(
+                    `Stopping crawler: ${this.continuousSkips} movies skipped continuously without updates`,
+                );
+
+                // Mark as auto-stopped but don't touch the schedule (BullMQ handles scheduling)
+                await this.markAutoStopped();
+                break;
             }
 
-            for (let i = lastCrawledPage; i <= totalPages; i++) {
-                this.status.currentPage = i;
-                await this.crawlPage(i);
-                await this.redisService.set(crawlKey, i, 60 * 60 * 24 * 1000);
-
-                if (this.continuousSkips >= this.config.maxContinuousSkips) {
-                    this.logger.warn(
-                        `Stopping crawler: ${this.continuousSkips} movies skipped continuously without updates`,
-                    );
-
-                    // Stop the cron job
-                    if (this.crawlerJob && this.schedulerRegistry.doesExist('cron', this.jobName)) {
-                        this.crawlerJob.stop();
-                        this.logger.log(`Stopped cron job ${this.jobName}`);
-
-                        // Set a Redis key to remember that this crawler was auto-stopped
-                        const autoStopKey = `crawler:${this.config.name}:auto-stopped`;
-                        await this.redisService.set(autoStopKey, new Date().toISOString());
-                    }
-                    break;
-                }
-
-                if (
-                    this.moviesToRevalidate.length > 0 &&
-                    this.moviesToRevalidate.length >= this.REVALIDATION_BATCH_SIZE
-                ) {
-                    await this.revalidateMovies();
-                }
-            }
-
-            // Retry failed movies and pages
-            await this.retryFailedCrawls();
-            await this.retryFailedPages();
-
-            if (this.moviesToRevalidate.length > 0) {
+            if (
+                this.moviesToRevalidate.length > 0 &&
+                this.moviesToRevalidate.length >= this.REVALIDATION_BATCH_SIZE
+            ) {
                 await this.revalidateMovies();
             }
-        } catch (error) {
-            this.logger.error(`Error crawling movies: ${error}`);
-            this.status.error = error.message;
-        } finally {
-            this.isCrawling = false;
-            this.status.isRunning = false;
-            this.status.endTime = new Date();
         }
+
+        // Retry failed movies and pages
+        await this.retryFailedCrawls();
+        await this.retryFailedPages();
     }
 
-    protected abstract crawlMovies(): Promise<void>;
     protected abstract getNewestMovies(page: number): Promise<any>;
     protected abstract fetchAndSaveMovieDetail(slug: string, retryCount?: number): Promise<boolean>;
     /**
@@ -1602,5 +1546,41 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         });
 
         return mergedEpisodes;
+    }
+
+    /**
+     * Main crawl method that orchestrates the crawling process
+     */
+    protected async crawl(): Promise<void> {
+        try {
+            this.logger.log(`Starting crawler for ${this.config.name}`);
+            this.status.startTime = new Date();
+            this.status.isRunning = true;
+            this.status.processedItems = 0;
+            this.status.failedItems = 0;
+
+            await this.crawlMovies();
+
+            // Process any items waiting to be revalidated
+            if (this.moviesToRevalidate.length > 0) {
+                await this.revalidateMovies();
+            }
+
+            // Log completion
+            this.status.isRunning = false;
+            this.status.endTime = new Date();
+            this.isCrawling = false;
+
+            this.logger.log(
+                `Crawl completed: processed ${this.status.processedItems} items, failed ${this.status.failedItems} items`,
+            );
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.error(`Error crawling movies: ${errorMessage}`);
+            this.status.error = errorMessage;
+            this.status.isRunning = false;
+            this.status.endTime = new Date();
+            this.isCrawling = false;
+        }
     }
 }

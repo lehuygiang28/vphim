@@ -1,6 +1,8 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
 import { createRegex, removeDiacritics, removeTone } from '@vn-utils/text';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 import { CrawlerSettingsRepository } from './crawler-settings.repository';
 import {
@@ -15,11 +17,19 @@ import { CreateCrawlerSettingsInput } from './inputs/create-crawler-settings.inp
 import { DeleteCrawlerSettingsInput } from './inputs/delete-crawler-settings.input';
 import { GetCrawlerSettingsOutput } from './outputs/get-crawler-settings.output';
 import { TriggerCrawlerInput } from './inputs/trigger-crawler.input';
-import { ModuleRef } from '@nestjs/core';
+import {
+    CrawlerJobName,
+    TriggerCrawlJobData,
+    UpdateCrawlerConfigJobData,
+} from '../types/crawler-jobs.types';
 
-// Define a simplified interface for BaseCrawler to avoid import cycle
-interface CrawlerInstance {
-    triggerCrawl(slug?: string): Promise<void>;
+// Define a custom type for MongoDB error
+interface MongoDBError {
+    code?: number;
+    keyPattern?: Record<string, unknown>;
+    name?: string;
+    message?: string;
+    stack?: string;
 }
 
 /**
@@ -35,7 +45,8 @@ export class CrawlerSettingsService {
     constructor(
         private readonly crawlerSettingsRepo: CrawlerSettingsRepository,
         private readonly redisService: RedisService,
-        private readonly moduleRef: ModuleRef,
+        @InjectQueue('CRAWLER_CONFIG_QUEUE')
+        private readonly crawlerQueue: Queue<unknown, unknown, CrawlerJobName>,
     ) {
         this.logger = new Logger(CrawlerSettingsService.name);
     }
@@ -48,6 +59,7 @@ export class CrawlerSettingsService {
         return {
             _id: document._id.toString(),
             name: document.name,
+            type: document.type,
             host: document.host,
             cronSchedule: document.cronSchedule,
             forceUpdate: document.forceUpdate,
@@ -166,6 +178,7 @@ export class CrawlerSettingsService {
             // Ensure default values for optional fields
             const documentWithDefaults = {
                 name: input.name,
+                type: input.type,
                 host: input.host,
                 cronSchedule: input.cronSchedule || '0 0 * * *',
                 forceUpdate: input.forceUpdate !== undefined ? input.forceUpdate : false,
@@ -216,9 +229,42 @@ export class CrawlerSettingsService {
                 throw new HttpException('Crawler Setting not found', HttpStatus.NOT_FOUND);
             }
 
+            this.logger.log(
+                `🔍 Updating crawler settings for: ${currentSettings.name} (ID: ${input._id})`,
+            );
+
+            // Track schedule changes for logging
+            const scheduleChanged =
+                input.cronSchedule && input.cronSchedule !== currentSettings.cronSchedule;
+            const enabledChanged =
+                input.enabled !== undefined && input.enabled !== currentSettings.enabled;
+            const typeChanged = input.type && input.type !== currentSettings.type;
+
+            // Log important changes
+            if (scheduleChanged) {
+                this.logger.log(
+                    `📅 Changing schedule for ${currentSettings.name}: ${currentSettings.cronSchedule} → ${input.cronSchedule}`,
+                );
+            }
+
+            if (enabledChanged) {
+                if (input.enabled) {
+                    this.logger.log(`▶️ Enabling crawler: ${currentSettings.name}`);
+                } else {
+                    this.logger.log(`⏸️ Disabling crawler: ${currentSettings.name}`);
+                }
+            }
+
+            if (typeChanged) {
+                this.logger.log(
+                    `🔄 Changing crawler type for ${currentSettings.name}: ${currentSettings.type} → ${input.type}`,
+                );
+            }
+
             // Create update object with appropriate defaults
             const updateData = {
                 name: input.name || currentSettings.name,
+                type: input.type || currentSettings.type,
                 host: input.host || currentSettings.host,
                 cronSchedule: input.cronSchedule || currentSettings.cronSchedule || '0 0 * * *',
                 forceUpdate:
@@ -253,6 +299,35 @@ export class CrawlerSettingsService {
 
             // Clear cache
             await this.clearCache();
+            this.logger.log(`🗑️ Cleared cache for crawler settings`);
+
+            // Add job to update crawler configuration
+            try {
+                this.logger.log(
+                    `📝 Adding job to update crawler configuration for ${crawlerSetting.name}`,
+                );
+                await this.crawlerQueue.add('updateCrawlerConfig', {
+                    name: crawlerSetting.name,
+                    cronSchedule: crawlerSetting.cronSchedule,
+                    forceUpdate: crawlerSetting.forceUpdate,
+                    enabled: crawlerSetting.enabled,
+                    host: crawlerSetting.host,
+                    imgHost: crawlerSetting.imgHost,
+                    maxRetries: crawlerSetting.maxRetries,
+                    rateLimitDelay: crawlerSetting.rateLimitDelay,
+                    maxConcurrentRequests: crawlerSetting.maxConcurrentRequests,
+                    maxContinuousSkips: crawlerSetting.maxContinuousSkips,
+                } as UpdateCrawlerConfigJobData);
+                this.logger.log(
+                    `✅ Successfully queued configuration update job for ${crawlerSetting.name}`,
+                );
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                this.logger.error(
+                    `❌ Failed to add job to update crawler configuration: ${errorMessage}`,
+                );
+                // We still return the updated settings even if we couldn't add the job
+            }
 
             // Map to GraphQL type
             return this.mapToGraphQLType(crawlerSetting);
@@ -304,120 +379,32 @@ export class CrawlerSettingsService {
             }
 
             this.logger.log(
-                `Trying to trigger crawler: ${name}${slug ? ` with slug: ${slug}` : ''}`,
+                `🔍 Preparing to trigger crawler: ${name}${slug ? ` with slug: ${slug}` : ''}`,
             );
 
-            // Get the crawler instance
-            let crawlerInstance: CrawlerInstance;
+            // Add job to trigger crawler
             try {
-                crawlerInstance = await this.findCrawlerInstance(name);
-                this.logger.log(`Successfully found crawler instance for: ${name}`);
-            } catch (error) {
-                this.logger.error(`Failed to find crawler instance for: ${name}`, error);
-                throw error;
-            }
-
-            // Ensure the crawler has a triggerCrawl method
-            if (typeof crawlerInstance.triggerCrawl !== 'function') {
-                this.logger.error(`Crawler ${name} doesn't have a triggerCrawl method`);
-                throw new HttpException(
-                    `Crawler ${name} doesn't have a trigger method`,
-                    HttpStatus.BAD_REQUEST,
+                this.logger.log(
+                    `📝 Adding ${name} crawler job to queue${slug ? ` for movie: ${slug}` : ''}`,
                 );
-            }
 
-            // Call the crawler's triggerCrawl method with the slug if provided
-            this.logger.log(`Triggering crawler: ${name}${slug ? ` with slug: ${slug}` : ''}`);
-            try {
-                await crawlerInstance.triggerCrawl(slug);
-                this.logger.log(`Successfully triggered crawler: ${name}`);
+                await this.crawlerQueue.add('triggerCrawl', {
+                    name,
+                    slug,
+                } as TriggerCrawlJobData);
+
+                this.logger.log(`✅ Successfully queued job to trigger crawler: ${name}`);
+                return true;
             } catch (error) {
-                this.logger.error(`Error during crawler execution for ${name}:`, error);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                this.logger.error(`❌ Failed to add job to trigger crawler: ${errorMessage}`);
                 throw new HttpException(
-                    `Error executing crawler ${name}: ${error.message}`,
+                    `Error queueing crawler job for ${name}: ${errorMessage}`,
                     HttpStatus.INTERNAL_SERVER_ERROR,
                 );
             }
-
-            return true;
         } catch (error) {
             this.handleServiceError('Error triggering crawler', error);
-        }
-    }
-
-    /**
-     * Find a crawler instance by name
-     * @param name Name of the crawler
-     * @returns Crawler instance
-     * @private
-     */
-    private async findCrawlerInstance(name: string): Promise<CrawlerInstance> {
-        try {
-            // Standardize the name (lowercase)
-            const normalizedName = name.toLowerCase();
-
-            // Generate capitalized version for multi-word names
-            const capitalizedName = normalizedName
-                .split(/[^a-zA-Z0-9]/)
-                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-                .join('');
-
-            // Special case for KKPhim - it needs to be exactly "KKPhimCrawler"
-            const isKkphim = normalizedName === 'kkphim';
-
-            // Try different naming conventions
-            const crawlerClassNames = [
-                // Special case for KKPhim with two capital letters
-                isKkphim ? 'KKPhimCrawler' : null,
-
-                // Standard camelCase for most crawlers: OphimCrawler, NguoncCrawler
-                `${normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1)}Crawler`,
-
-                // Try with all uppercase first letters for each segment
-                `${capitalizedName}Crawler`,
-
-                // Try with all uppercase
-                `${normalizedName.toUpperCase()}Crawler`,
-
-                // Direct name match
-                name,
-            ].filter(Boolean); // Remove nulls
-
-            this.logger.log(`Looking for crawler with name: ${name}`);
-            this.logger.log(`Trying the following class names: ${crawlerClassNames.join(', ')}`);
-
-            let crawlerInstance: CrawlerInstance | undefined;
-
-            for (const className of crawlerClassNames) {
-                try {
-                    this.logger.log(`Attempting to get instance with name: ${className}`);
-                    crawlerInstance = this.moduleRef.get(className, { strict: false });
-                    if (crawlerInstance) {
-                        this.logger.log(`Found crawler instance with name: ${className}`);
-                        break;
-                    }
-                } catch (e) {
-                    this.logger.debug(`Failed to get instance with name: ${className}`);
-                    // Continue to next attempt
-                }
-            }
-
-            if (!crawlerInstance) {
-                // Log all available providers for debugging
-                this.logger.error(
-                    `Crawler ${name} not found. Available providers might not include this crawler.`,
-                );
-                throw new HttpException(`Crawler ${name} not found`, HttpStatus.NOT_FOUND);
-            }
-
-            return crawlerInstance;
-        } catch (error) {
-            if (error instanceof HttpException) {
-                throw error;
-            }
-
-            this.logger.error(`Failed to find crawler: ${error.message}`);
-            throw new HttpException(`Crawler ${name} not found`, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -529,6 +516,10 @@ export class CrawlerSettingsService {
             throw new HttpException('Name is required', HttpStatus.BAD_REQUEST);
         }
 
+        if (!input.type) {
+            throw new HttpException('Crawler type is required', HttpStatus.BAD_REQUEST);
+        }
+
         if (!input.host) {
             throw new HttpException('Host is required', HttpStatus.BAD_REQUEST);
         }
@@ -550,7 +541,7 @@ export class CrawlerSettingsService {
      * @param error Error object
      * @private
      */
-    private handleServiceError(message: string, error: Error | HttpException | unknown): never {
+    private handleServiceError(message: string, error: unknown): never {
         if (error instanceof Error || error instanceof HttpException) {
             this.logger.error(`${message}: ${error.message}`, error.stack);
 
@@ -576,20 +567,16 @@ export class CrawlerSettingsService {
      * @param error Error object
      * @private
      */
-    private handleDatabaseError(
-        operation: string,
-        error:
-            | Error
-            | HttpException
-            | { code?: number; keyPattern?: Record<string, unknown>; name?: string },
-    ): never {
-        // Handle duplicate key errors
-        if (
-            ('code' in error && error.code === 11000) ||
-            ('name' in error && error.name === 'MongoServerError')
-        ) {
-            const mongoError = error as { keyPattern?: Record<string, unknown> };
-            const field = Object.keys(mongoError.keyPattern || {})[0] || 'name';
+    private handleDatabaseError(operation: string, error: unknown): never {
+        // Handle duplicate key errors for MongoDB
+        const isMongoError = (err: unknown): err is MongoDBError =>
+            typeof err === 'object' &&
+            err !== null &&
+            (('code' in err && err.code === 11000) ||
+                ('name' in err && typeof err.name === 'string' && err.name === 'MongoServerError'));
+
+        if (isMongoError(error)) {
+            const field = error.keyPattern ? Object.keys(error.keyPattern)[0] || 'name' : 'name';
             throw new HttpException(
                 `Crawler settings with this ${field} already exists`,
                 HttpStatus.CONFLICT,
@@ -601,9 +588,9 @@ export class CrawlerSettingsService {
             throw error;
         }
 
-        // Use type-guard to safely access message and stack properties
-        const errorMessage = 'message' in error ? error.message : 'Unknown error';
-        const errorStack = 'stack' in error ? error.stack : undefined;
+        // Extract message and stack for error logging
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorStack = error instanceof Error ? error.stack : undefined;
 
         this.logger.error(`Failed to ${operation}: ${errorMessage}`, errorStack);
         throw new HttpException(`Failed to ${operation}: ${errorMessage}`, HttpStatus.BAD_REQUEST);

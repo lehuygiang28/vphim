@@ -77,6 +77,7 @@ export const CrawlerSettingsList: React.FC<CrawlerSettingsListProps> = ({
         console.log(`Triggering crawler with name: ${name}`);
 
         mutate({
+            dataProviderName: 'graphql',
             resource: 'triggerCrawler',
             id: name,
             values: {},

@@ -250,6 +250,7 @@ type GetCommentRepliesOutput {
 type CrawlerSettingsType {
   _id: String!
   name: String!
+  type: String!
   host: String!
   cronSchedule: String!
   forceUpdate: Boolean!
@@ -642,6 +643,7 @@ input DeleteCommentInput {
 input UpdateCrawlerSettingsInput {
   _id: String!
   name: String
+  type: String
   host: String
   cronSchedule: String
   forceUpdate: Boolean

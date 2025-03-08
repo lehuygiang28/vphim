@@ -35,6 +35,7 @@ import { DirectorRepository } from '../directors';
 import { BaseCrawler, ICrawlerConfig } from './base.crawler';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
 import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
+import { CrawlerType } from './dto/crawler-settings.schema';
 
 @Injectable()
 export class KKPhimCrawler extends BaseCrawler {
@@ -43,7 +44,6 @@ export class KKPhimCrawler extends BaseCrawler {
     constructor(
         protected readonly httpService: HttpService,
         protected readonly configService: ConfigService,
-        protected readonly scheduler: SchedulerRegistry,
         protected readonly redisService: RedisService,
         protected readonly movieRepo: MovieRepository,
         protected readonly actorRepo: ActorRepository,
@@ -54,6 +54,7 @@ export class KKPhimCrawler extends BaseCrawler {
         protected readonly crawlerSettingsRepo: CrawlerSettingsRepository,
     ) {
         const crawlerConfig: ICrawlerConfig = {
+            type: CrawlerType.KKPHIM,
             name: 'kkphim',
             host: configService.get<string>('KKPHIM_HOST') ?? 'https://kkphim4.com',
             cronSchedule: configService.get<string>('KKPHIM_CRON_SCHEDULE') ?? '0 0 * * *',
@@ -68,7 +69,6 @@ export class KKPhimCrawler extends BaseCrawler {
         super({
             config: crawlerConfig,
             configService: configService,
-            schedulerRegistry: scheduler,
             redisService,
             httpService,
             movieRepo,

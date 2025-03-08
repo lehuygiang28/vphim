@@ -1,4 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
+import { CrawlerType } from '../crawler-settings.schema';
 
 @InputType()
 export class CreateCrawlerSettingsInput {
@@ -6,29 +7,32 @@ export class CreateCrawlerSettingsInput {
     name: string;
 
     @Field(() => String)
+    type: CrawlerType;
+
+    @Field(() => String)
     host: string;
 
-    @Field(() => String, { defaultValue: '0 0 * * *' })
-    cronSchedule: string;
+    @Field(() => String, { nullable: true })
+    cronSchedule?: string;
 
-    @Field(() => Boolean, { defaultValue: false })
-    forceUpdate: boolean;
+    @Field(() => Boolean, { nullable: true })
+    forceUpdate?: boolean;
 
-    @Field(() => Boolean, { defaultValue: true })
-    enabled: boolean;
+    @Field(() => Boolean, { nullable: true })
+    enabled?: boolean;
 
-    @Field(() => String, { nullable: true, defaultValue: null })
+    @Field(() => String, { nullable: true })
     imgHost?: string;
 
-    @Field(() => Number, { nullable: true, defaultValue: 3 })
+    @Field(() => Number, { nullable: true })
     maxRetries?: number;
 
-    @Field(() => Number, { nullable: true, defaultValue: 1000 })
+    @Field(() => Number, { nullable: true })
     rateLimitDelay?: number;
 
-    @Field(() => Number, { nullable: true, defaultValue: 5 })
+    @Field(() => Number, { nullable: true })
     maxConcurrentRequests?: number;
 
-    @Field(() => Number, { nullable: true, defaultValue: 10 })
+    @Field(() => Number, { nullable: true })
     maxContinuousSkips?: number;
 }

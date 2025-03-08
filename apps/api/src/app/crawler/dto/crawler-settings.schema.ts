@@ -1,10 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import type { HydratedDocument } from 'mongoose';
+import { Document } from 'mongoose';
 
 import { AbstractDocument } from '../../../libs/abstract/abstract.schema';
 
-export type CrawlerSettingsDocument = HydratedDocument<CrawlerSettings>;
+export type CrawlerSettingsDocument = CrawlerSettings & Document;
+
+/**
+ * Enum for crawler types to ensure consistent mapping between configuration and implementation
+ */
+export enum CrawlerType {
+    OPHIM = 'OPHIM',
+    KKPHIM = 'KKPHIM',
+    NGUONC = 'NGUONC',
+}
 
 @Schema({ timestamps: true, collection: 'crawler_settings' })
 export class CrawlerSettings extends AbstractDocument {
@@ -13,11 +22,15 @@ export class CrawlerSettings extends AbstractDocument {
     name: string;
 
     @ApiProperty()
+    @Prop({ required: true, type: String, enum: CrawlerType })
+    type: CrawlerType;
+
+    @ApiProperty()
     @Prop({ required: true, type: String })
     host: string;
 
     @ApiProperty()
-    @Prop({ required: true, type: String })
+    @Prop({ required: true, type: String, default: '0 0 * * *' })
     cronSchedule: string;
 
     @ApiProperty()
@@ -25,7 +38,7 @@ export class CrawlerSettings extends AbstractDocument {
     forceUpdate: boolean;
 
     @ApiProperty()
-    @Prop({ required: false, type: Boolean, default: true })
+    @Prop({ required: true, type: Boolean, default: true })
     enabled: boolean;
 
     @ApiProperty()
@@ -33,19 +46,19 @@ export class CrawlerSettings extends AbstractDocument {
     imgHost?: string;
 
     @ApiProperty()
-    @Prop({ required: false, type: Number })
+    @Prop({ required: false, type: Number, default: 3 })
     maxRetries?: number;
 
     @ApiProperty()
-    @Prop({ required: false, type: Number })
+    @Prop({ required: false, type: Number, default: 1000 })
     rateLimitDelay?: number;
 
     @ApiProperty()
-    @Prop({ required: false, type: Number })
+    @Prop({ required: false, type: Number, default: 5 })
     maxConcurrentRequests?: number;
 
     @ApiProperty()
-    @Prop({ required: false, type: Number })
+    @Prop({ required: false, type: Number, default: 10 })
     maxContinuousSkips?: number;
 }
 

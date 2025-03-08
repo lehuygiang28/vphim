@@ -1,9 +1,9 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
 import { HttpModule } from '@nestjs/axios';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
+import { BullModule } from '@nestjs/bullmq';
 
 import { RedisModule } from 'apps/api/src/libs/modules/redis';
 import { TmdbModule } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.module';
@@ -26,6 +26,8 @@ import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
 import { CrawlerSettingsService } from './dto/crawler-settings.service';
 import { CrawlerSettingsResolver } from './crawler-settings.resolver';
 import { isNullOrUndefined } from '../../libs/utils';
+import { CrawlerProcessor } from './crawler.processor';
+import { CrawlerScheduleProcessor } from './crawler.schedule-processor';
 
 /**
  * Movie Crawler Module
@@ -47,12 +49,19 @@ import { isNullOrUndefined } from '../../libs/utils';
     imports: [
         // Core modules
         ConfigModule.forRoot(),
-        ScheduleModule.forRoot(),
 
         // HTTP client with timeouts
         HttpModule.register({
             timeout: 60000, // 60 seconds
             maxRedirects: 5,
+        }),
+
+        // BullMQ for queues and scheduling
+        BullModule.registerQueue({
+            name: 'CRAWLER_CONFIG_QUEUE',
+        }),
+        BullModule.registerQueue({
+            name: 'CRAWLER_SCHEDULE_QUEUE',
         }),
 
         // Cache
@@ -89,15 +98,19 @@ import { isNullOrUndefined } from '../../libs/utils';
     ],
     controllers: [CrawlController],
     providers: [
+        // Crawler settings management (should come first since it's needed for other components)
+        CrawlerSettingsRepository,
+        CrawlerSettingsService,
+        CrawlerSettingsResolver,
+
         // Crawler implementations
         OphimCrawler,
         KKPhimCrawler,
         NguoncCrawler,
 
-        // Crawler settings management
-        CrawlerSettingsRepository,
-        CrawlerSettingsService,
-        CrawlerSettingsResolver,
+        // BullMQ processors
+        CrawlerProcessor,
+        CrawlerScheduleProcessor,
 
         // Other services
         SearchService,

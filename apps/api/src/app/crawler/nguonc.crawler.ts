@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { stripHtml } from 'string-strip-html';
@@ -27,6 +26,7 @@ import { AbstractRepository } from 'apps/api/src/libs/abstract/abstract.reposito
 import { MovieTypeEnum } from '../movies/movie.constant';
 import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
+import { CrawlerType } from './dto/crawler-settings.schema';
 
 /**
  * Crawler implementation for NguonC movie source.
@@ -50,7 +50,6 @@ import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.servi
 export class NguoncCrawler extends BaseCrawler {
     constructor(
         configService: ConfigService,
-        schedulerRegistry: SchedulerRegistry,
         redisService: RedisService,
         httpService: HttpService,
         movieRepo: MovieRepository,
@@ -61,6 +60,7 @@ export class NguoncCrawler extends BaseCrawler {
         protected tmdbService: TmdbService,
     ) {
         const config: ICrawlerConfig = {
+            type: CrawlerType.NGUONC,
             name: 'NguoncCrawler',
             host: configService.getOrThrow<string>('NGUONC_HOST', 'https://phim.nguonc.com/api'),
             cronSchedule: configService.getOrThrow<string>('NGUONC_CRON', '0 6 * * *'),
@@ -72,7 +72,6 @@ export class NguoncCrawler extends BaseCrawler {
         const dependencies: ICrawlerDependencies = {
             config,
             configService,
-            schedulerRegistry,
             redisService,
             httpService,
             movieRepo,

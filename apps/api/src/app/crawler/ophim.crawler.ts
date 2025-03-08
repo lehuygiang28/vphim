@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js';
@@ -36,6 +35,7 @@ import {
 import { BaseCrawler, ICrawlerConfig } from './base.crawler';
 import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
 import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
+import { CrawlerType } from './dto/crawler-settings.schema';
 
 /**
  * Crawler implementation for OPhim movie source.
@@ -73,7 +73,6 @@ export class OphimCrawler extends BaseCrawler {
      */
     constructor(
         protected readonly configService: ConfigService,
-        protected readonly schedulerRegistry: SchedulerRegistry,
         protected readonly redisService: RedisService,
         protected readonly httpService: HttpService,
         protected readonly movieRepo: MovieRepository,
@@ -85,6 +84,7 @@ export class OphimCrawler extends BaseCrawler {
         protected readonly crawlerSettingsRepo: CrawlerSettingsRepository,
     ) {
         const crawlerConfig: ICrawlerConfig = {
+            type: CrawlerType.OPHIM,
             name: 'ophim',
             host: configService.get<string>('OPHIM_HOST') ?? 'https://ophim1.com',
             imgHost: configService.getOrThrow<string>(
@@ -102,7 +102,6 @@ export class OphimCrawler extends BaseCrawler {
         super({
             config: crawlerConfig,
             configService,
-            schedulerRegistry,
             redisService,
             httpService,
             movieRepo,

@@ -1,4 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
+import { CrawlerType } from '../crawler-settings.schema';
 
 @InputType()
 export class UpdateCrawlerSettingsInput {
@@ -7,6 +8,9 @@ export class UpdateCrawlerSettingsInput {
 
     @Field(() => String, { nullable: true })
     name?: string;
+
+    @Field(() => String, { nullable: true })
+    type?: CrawlerType;
 
     @Field(() => String, { nullable: true })
     host?: string;

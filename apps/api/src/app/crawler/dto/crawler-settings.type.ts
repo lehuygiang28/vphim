@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Types } from 'mongoose';
+import { CrawlerType } from './crawler-settings.schema';
 
 @ObjectType()
 export class CrawlerSettingsType {
@@ -8,6 +9,9 @@ export class CrawlerSettingsType {
 
     @Field(() => String)
     name: string;
+
+    @Field(() => String)
+    type: CrawlerType;
 
     @Field(() => String)
     host: string;
