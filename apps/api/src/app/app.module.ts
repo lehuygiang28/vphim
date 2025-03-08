@@ -19,7 +19,7 @@ import { UsersModule } from './users';
 import { ImagesModule } from './images';
 import { CommentsModule } from './comments/comments.module';
 import { CopilotkitModule } from './copilotkit/copilotkit.module';
-import { MovieCrawlerModule } from './crawler/crawler.module';
+import { MovieCrawlerModule } from './crawlers';
 
 @Module({
     imports: [

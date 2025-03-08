@@ -7,7 +7,6 @@ export const MOVIE_TYPE_MAP = {
     'phim bộ': 'series',
     'tv shows': 'tvshows',
     'phim hoạt hình': 'hoathinh',
-
     single: 'single',
     series: 'series',
     tvshows: 'tvshows',
@@ -253,36 +252,4 @@ export function mappingNameSlugEpisode(item: { name: string; slug?: string }, in
     }
     slug = slugifyVietnamese(name, { lower: true });
     return { name, slug };
-}
-
-export function normalizeCountrySlug(slug: string): string {
-    // Convert to lowercase and trim
-    const normalizedSlug = slug.toLowerCase().trim();
-
-    // Special cases mapping
-    const countryMap: { [key: string]: string } = {
-        vietnam: 'viet-nam',
-        vn: 'viet-nam',
-        'hong-ko': 'hong-kong',
-        'hong-kon': 'hong-kong',
-        hongkong: 'hong-kong',
-        hk: 'hong-kong',
-        'trung-quoc': 'trung-quoc',
-        china: 'trung-quoc',
-        cn: 'trung-quoc',
-        'nhat-ban': 'nhat-ban',
-        japan: 'nhat-ban',
-        jp: 'nhat-ban',
-        'han-quoc': 'han-quoc',
-        korea: 'han-quoc',
-        kr: 'han-quoc',
-        'thai-lan': 'thai-lan',
-        thailand: 'thai-lan',
-        th: 'thai-lan',
-        'dai-loan': 'dai-loan',
-        taiwan: 'dai-loan',
-        tw: 'dai-loan',
-    };
-
-    return countryMap[normalizedSlug] || normalizedSlug;
 }

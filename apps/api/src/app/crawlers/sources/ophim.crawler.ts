@@ -5,70 +5,95 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
 import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js';
+import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
 
-import {
-    MOVIE_TYPE_MAP,
-    convertToVietnameseTime,
-    mapLanguage,
-    mapQuality,
-    mapStatus,
-    mappingNameSlugEpisode,
-    normalizeCountrySlug,
-} from './mapping-data';
-import { EpisodeServerData, Movie } from '../movies/movie.schema';
-import { MovieRepository } from '../movies/movie.repository';
+import { EpisodeServerData, Movie } from '../../movies/movie.schema';
+import { MovieRepository } from '../../movies/movie.repository';
 import {
     convertToObjectId,
     isNullOrUndefined,
-    isTrue,
     resolveUrl,
     sleep,
     slugifyVietnamese,
-} from '../../libs/utils/common';
-import { ActorRepository } from '../actors';
-import { RedisService } from '../../libs/modules/redis';
-import { CategoryRepository } from '../categories';
-import { RegionRepository } from '../regions/region.repository';
-import { DirectorRepository } from '../directors';
-import { BaseCrawler, ICrawlerConfig } from './base.crawler';
-import { TmdbService } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.service';
-import { CrawlerSettingsRepository } from './dto/crawler-settings.repository';
-import { CrawlerType } from './dto/crawler-settings.schema';
+} from '../../../libs/utils/common';
+import { ActorRepository } from '../../actors';
+import { RedisService } from '../../../libs/modules/redis';
+import { CategoryRepository } from '../../categories';
+import { RegionRepository } from '../../regions/region.repository';
+import { DirectorRepository } from '../../directors';
+import {
+    convertToVietnameseTime,
+    mapLanguage,
+    mappingNameSlugEpisode,
+    mapQuality,
+    mapStatus,
+    MOVIE_TYPE_MAP,
+} from '../mapping-data';
+import { BaseCrawler, ICrawlerConfig, ICrawlerDependencies } from './base.crawler';
+import { TmdbService } from '../../../libs/modules/themoviedb.org/tmdb.service';
 
+/**
+ * Crawler implementation for OPhim movie source.
+ * Handles fetching and updating movies from ophim1.com.
+ *
+ * Features:
+ * - Fetches latest movies from OPhim API
+ * - Updates movie details including episodes and servers
+ * - Handles pagination and rate limiting
+ * - Supports force update mode
+ *
+ * Configuration (via environment variables):
+ * - OPHIM_HOST: Base URL for OPhim API (default: https://ophim1.com)
+ * - OPHIM_CRON: Cron schedule for updates (default: 0 4 * * *)
+ * - OPHIM_FORCE_UPDATE: Whether to force update existing movies (default: false)
+ * - OPHIM_MAX_RETRIES: Maximum number of retry attempts (default: 3)
+ */
 @Injectable()
-export class KKPhimCrawler extends BaseCrawler {
-    private readonly kkphim: Ophim;
+export class OphimCrawler extends BaseCrawler {
+    private readonly ophim: Ophim;
 
+    /**
+     * Constructor for OphimCrawler
+     * @param configService ConfigService instance
+     * @param schedulerRegistry SchedulerRegistry instance
+     * @param redisService RedisService instance
+     * @param httpService HttpService instance
+     * @param movieRepo MovieRepository instance
+     * @param actorRepo ActorRepository instance
+     * @param categoryRepo CategoryRepository instance
+     * @param directorRepo DirectorRepository instance
+     * @param regionRepo RegionRepository instance
+     */
     constructor(
-        protected readonly httpService: HttpService,
-        protected readonly configService: ConfigService,
-        protected readonly redisService: RedisService,
-        protected readonly movieRepo: MovieRepository,
-        protected readonly actorRepo: ActorRepository,
-        protected readonly categoryRepo: CategoryRepository,
-        protected readonly directorRepo: DirectorRepository,
-        protected readonly regionRepo: RegionRepository,
-        protected readonly tmdbService: TmdbService,
-        protected readonly crawlerSettingsRepo: CrawlerSettingsRepository,
+        configService: ConfigService,
+        schedulerRegistry: SchedulerRegistry,
+        redisService: RedisService,
+        httpService: HttpService,
+        movieRepo: MovieRepository,
+        actorRepo: ActorRepository,
+        categoryRepo: CategoryRepository,
+        directorRepo: DirectorRepository,
+        regionRepo: RegionRepository,
+        protected tmdbService: TmdbService,
     ) {
-        const crawlerConfig: ICrawlerConfig = {
-            type: CrawlerType.KKPHIM,
-            name: 'kkphim',
-            host: configService.get<string>('KKPHIM_HOST') ?? 'https://kkphim4.com',
-            cronSchedule: configService.get<string>('KKPHIM_CRON_SCHEDULE') ?? '0 0 * * *',
-            forceUpdate: isTrue(configService.get<boolean>('KKPHIM_FORCE_UPDATE') ?? false),
-            imgHost: configService.get<string>('KKPHIM_IMG_HOST') ?? 'https://img.kkphim.com',
-            maxRetries: configService.get<number>('KKPHIM_MAX_RETRIES') ?? 3,
-            rateLimitDelay: configService.get<number>('KKPHIM_RATE_LIMIT_DELAY') ?? 1000,
-            maxConcurrentRequests: configService.get<number>('KKPHIM_MAX_CONCURRENT_REQUESTS') ?? 5,
-            maxContinuousSkips: configService.get<number>('KKPHIM_MAX_CONTINUOUS_SKIPS') ?? 500,
+        const config: ICrawlerConfig = {
+            name: 'OphimCrawler',
+            host: configService.getOrThrow<string>('OPHIM_HOST', 'https://ophim1.com'),
+            imgHost: configService.getOrThrow<string>(
+                'OPHIM_IMG_HOST',
+                'https://img.ophim.live/uploads/movies',
+            ),
+            cronSchedule: configService.getOrThrow<string>('OPHIM_CRON', '0 4 * * *'),
+            forceUpdate: configService.getOrThrow<string>('OPHIM_FORCE_UPDATE', 'false') === 'true',
+            maxRetries: configService.getOrThrow<number>('OPHIM_MAX_RETRIES', 3),
         };
 
-        super({
-            config: crawlerConfig,
-            configService: configService,
+        const dependencies: ICrawlerDependencies = {
+            config,
+            configService,
+            schedulerRegistry,
             redisService,
             httpService,
             movieRepo,
@@ -77,41 +102,71 @@ export class KKPhimCrawler extends BaseCrawler {
             directorRepo,
             regionRepo,
             tmdbService,
-            crawlerSettingsRepo,
+        };
+
+        super(dependencies);
+
+        this.ophim = new Ophim({
+            host: config.host,
         });
-
-        this.kkphim = new Ophim({ host: this.config.host });
     }
 
+    /**
+     * Override of base method to check if this crawler should be enabled
+     * @returns true if the crawler should be enabled
+     */
     protected shouldEnable(): boolean {
-        // Only enable if KKPHIM_HOST is set and not 'false'
-        const kkphimHost = this.configService.get<string>('KKPHIM_HOST');
-        return !!kkphimHost && kkphimHost !== 'false';
+        // Only enable if OPHIM_HOST is set and not 'false'
+        const ophimHost = this.configService.get<string>('OPHIM_HOST');
+        return !!ophimHost && ophimHost !== 'false';
     }
 
+    /**
+     * Main crawl method called by the cron job
+     */
     protected async crawlMovies(): Promise<void> {
-        this.logger.log('Crawling movies from KKPhim...');
-        // Call base class crawl() which handles skip detection and auto-stop
+        this.logger.log('Crawling movie from Ophim ...');
         await this.crawl();
     }
 
+    /**
+     * Fetches the newest movies from a specific page
+     * @param page Page number to fetch
+     * @returns Promise with the movie list response
+     */
     protected async getNewestMovies(page: number): Promise<any> {
-        return this.kkphim.getNewestMovies({ page, limit: 24 });
+        return this.ophim.getNewestMovies({ page });
     }
 
+    /**
+     * Gets the total number of pages from a response
+     * @param response Response from getNewestMovies
+     * @returns Total number of pages
+     */
     protected getTotalPages(response: any): number {
         return response.pagination.totalPages;
     }
 
+    /**
+     * Gets the movie items from a response
+     * @param response Response from getNewestMovies
+     * @returns Array of movie items
+     */
     protected getMovieItems(response: any): any[] {
         return response.items;
     }
 
+    /**
+     * Fetches and saves details for a specific movie
+     * @param slug Movie slug to fetch
+     * @param retryCount Current retry attempt number
+     * @returns Promise<boolean> - true if movie was updated, false if skipped
+     */
     protected async fetchAndSaveMovieDetail(slug: string, retryCount = 0): Promise<boolean> {
         slug = slugifyVietnamese(slug);
 
         try {
-            const movieDetail = await this.kkphim.getMovieDetail({ slug });
+            const movieDetail = await this.ophim.getMovieDetail({ slug });
             if (!movieDetail) {
                 return false;
             }
@@ -136,13 +191,18 @@ export class KKPhimCrawler extends BaseCrawler {
         }
     }
 
-    protected async saveMovieDetail(input: {
-        data?: {
-            item?: OPhimMovie & {
+    /**
+     * Saves or updates movie details in the database
+     * @param input Movie details from OPhim API
+     * @returns Promise<boolean> - true if movie was updated, false if skipped
+     */
+    protected async saveMovieDetail(
+        input: OPhimResponseSingle<
+            OPhimMovie & {
                 episodes?: OPhimServerData[];
-            };
-        };
-    }): Promise<boolean> {
+            }
+        >,
+    ): Promise<boolean> {
         const { data: { item: movieDetail } = {} } = input;
 
         try {
@@ -169,10 +229,10 @@ export class KKPhimCrawler extends BaseCrawler {
                 chieurap,
                 content,
                 year,
-                view = 0,
+                view,
+                modified,
             } = movieDetail;
 
-            // kkphim's `_id` is not ObjectId, from it we will create a new ObjectId
             let correctId: Types.ObjectId;
             try {
                 correctId = convertToObjectId(_id);
@@ -181,19 +241,23 @@ export class KKPhimCrawler extends BaseCrawler {
             }
 
             const { tmdb, imdb } = await this.processExternalData(movieDetail);
+
             const [
                 { categories: categoryIds, countries: countryIds },
                 actorIds,
                 directorIds,
-                { thumbUrl, posterUrl },
+                { posterUrl, thumbUrl },
             ] = await Promise.all([
                 this.processCategoriesAndCountries(movieDetail),
                 this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
                 this.processDirectors(movieDetail?.director, { tmdbData: movieDetail?.tmdb }),
                 this.processImages(
                     {
-                        thumbUrl: thumb_url,
-                        posterUrl: poster_url,
+                        // With ophim, we should reverse thumb and poster, because poster should is vertical image
+                        // So thumb of ophim is poster, and poster of ophim is thumb
+                        thumbUrl: poster_url,
+                        posterUrl: thumb_url,
+                        // With ophim, we should reverse thumb and poster, because poster should is vertical image
                         host: this.config.imgHost,
                         tmdb: tmdb,
                     },
@@ -220,7 +284,7 @@ export class KKPhimCrawler extends BaseCrawler {
 
                 lastSyncModified: {
                     ...existingMovie?.lastSyncModified,
-                    kkphim: lastModified,
+                    ophim: lastModified,
                 },
 
                 _id: correctId,
@@ -246,7 +310,7 @@ export class KKPhimCrawler extends BaseCrawler {
                 episode: this.mergeEpisodes(
                     existingMovie?.episode,
                     this.processEpisodes(movieDetail?.episodes),
-                    'kkphim',
+                    'ophim',
                 ),
                 tmdb,
                 imdb,
@@ -274,16 +338,21 @@ export class KKPhimCrawler extends BaseCrawler {
             }
             return true;
         } catch (error) {
-            this.logger.error(`Error saving movie detail for ${movieDetail?.slug}: ${error}`);
+            this.logger.error(`Error saving movie detail for ${movieDetail.slug}: ${error}`);
             return false;
         }
     }
 
+    /**
+     * Process categories and countries for a movie
+     * @param movieDetail Movie details from OPhim API
+     * @returns Promise with categories and countries
+     */
     protected async processCategoriesAndCountries(
         movieDetail: any,
     ): Promise<{ categories: any[]; countries: any[] }> {
         const categories = await Promise.all(
-            (movieDetail?.category || []).map(async (category) => {
+            movieDetail?.category?.map(async (category) => {
                 if (isNullOrUndefined(category) || !category?.name || !category?.slug) {
                     return null;
                 }
@@ -301,18 +370,16 @@ export class KKPhimCrawler extends BaseCrawler {
                     });
                     return newCategory._id;
                 }
-            }),
+            }) || [],
         );
 
         const countries = await Promise.all(
-            (movieDetail?.country || []).map(async (country) => {
+            movieDetail?.country?.map(async (country) => {
                 if (isNullOrUndefined(country) || !country?.name || !country?.slug) {
                     return null;
                 }
-                // Normalize the country slug
-                const normalizedSlug = normalizeCountrySlug(country.slug);
                 const existingCountry = await this.regionRepo.findOne({
-                    filterQuery: { slug: normalizedSlug },
+                    filterQuery: { slug: country.slug },
                 });
                 if (existingCountry) {
                     return existingCountry._id;
@@ -320,12 +387,12 @@ export class KKPhimCrawler extends BaseCrawler {
                     const newCountry = await this.regionRepo.create({
                         document: {
                             name: country.name,
-                            slug: normalizedSlug,
+                            slug: country.slug,
                         },
                     });
                     return newCountry._id;
                 }
-            }),
+            }) || [],
         );
 
         return {
@@ -334,26 +401,29 @@ export class KKPhimCrawler extends BaseCrawler {
         };
     }
 
+    /**
+     * Process episodes for a movie
+     * @param episodes Episodes from OPhim API
+     * @returns Array of episode objects
+     */
     protected processEpisodes(episodes: OPhimServerData[]): any[] {
         if (!episodes?.length) return [];
 
         return episodes.map((server, index) => {
-            const serverData: EpisodeServerData[] = (server?.server_data || [])
-                .filter((item) => item) // Filter out null/undefined items
-                .map((item, index) => {
-                    const { name, slug } = mappingNameSlugEpisode(item, index);
-                    return {
-                        name: name,
-                        slug: slug || `episode-${index}`, // Ensure slug is never empty
-                        linkEmbed: resolveUrl(item?.link_embed),
-                        linkM3u8: resolveUrl(item?.link_m3u8),
-                        filename: item?.filename,
-                    };
-                });
+            const serverData: EpisodeServerData[] = server?.server_data?.map((item, index) => {
+                const { name, slug } = mappingNameSlugEpisode(item, index);
+                return {
+                    name: name,
+                    slug: slug,
+                    linkEmbed: resolveUrl(item?.link_embed),
+                    linkM3u8: resolveUrl(item?.link_m3u8),
+                    filename: item?.filename,
+                };
+            });
 
             return {
-                originSrc: 'kkphim',
-                serverName: server?.server_name || `KK #${index + 1}`,
+                originSrc: 'ophim',
+                serverName: server?.server_name || `OP #${index + 1}`,
                 serverData,
             };
         });
