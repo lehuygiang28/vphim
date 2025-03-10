@@ -37,6 +37,7 @@ import { MovieCrawlerModule } from './crawlers';
                     autoSchemaFile: './schema.gql',
                     playground: true,
                     csrfPrevention: false,
+                    introspection: true,
                     context: ({ req, res }) => ({ req, res }),
                 };
             },
