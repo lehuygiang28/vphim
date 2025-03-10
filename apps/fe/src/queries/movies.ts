@@ -25,6 +25,7 @@ export const GET_MOVIE_QUERY = gql`
             trailerUrl
             type
             updatedAt
+            createdAt
             view
             year
             countries {

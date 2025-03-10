@@ -8,20 +8,32 @@ import {
     handlePaginationQuery,
     handleSortQuery,
 } from '@/libs/utils/data-provider.util';
+import { GET_MOVIE_QUERY } from '@/queries/movies';
 
 export async function getMovieBySlug(slug: string): Promise<MovieType> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/movies/${slug}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/graphql`, {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+            query: print(GET_MOVIE_QUERY),
+            variables: {
+                input: {
+                    slug,
+                },
+            },
+        }),
         next: {
             revalidate: 3600,
+            tags: ['movies', slug],
         },
     });
     if (!res.ok) {
         throw new Error('Failed to fetch movie data');
     }
-    return res.json();
+    const result = await res.json();
+    return result?.data?.movie as MovieType;
 }
 
 export async function getMovies(data: {
