@@ -799,7 +799,7 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
             this.logger.error(`Error processing external data: ${error.message}`);
         }
 
-        return { tmdb: null, imdb: null };
+        return { tmdb: movieDetail?.tmdb || null, imdb: movieDetail?.imdb || null };
     }
 
     protected async processActors(
