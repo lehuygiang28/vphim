@@ -1,3 +1,57 @@
-.link_item_blur {
-    color: rgba(255, 255, 255, 0.6) !important;
+.netflix-footer {
+    background-color: var(--vphim-colorBgBase);
+    padding: 2rem 1rem;
+    color: var(--vphim-colorTextSecondary);
+}
+
+.netflix-footer-link {
+    color: var(--vphim-colorTextSecondary);
+    transition: color 0.2s ease;
+}
+
+.netflix-footer-link:hover {
+    color: var(--vphim-colorText);
+    text-decoration: underline;
+}
+
+.netflix-footer-heading {
+    color: var(--vphim-colorText);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.link-item-blur {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.dark-mode .link-item-blur {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.light-mode .link-item-blur {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.footer-social-icons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.footer-social-icon {
+    font-size: 1.5rem;
+    color: var(--vphim-colorTextSecondary);
+    transition: color 0.2s ease;
+}
+
+.footer-social-icon:hover {
+    color: var(--vphim-colorPrimary);
+}
+
+.netflix-footer-bottom {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--vphim-colorBorderSecondary);
+    text-align: center;
+    font-size: 0.875rem;
 }

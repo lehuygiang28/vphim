@@ -7,6 +7,8 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { CopilotKit } from '@copilotkit/react-core';
 
+import '@/styles/global.css';
+import '@/components/layout/layout.css';
 import { RefineContext } from './_refine_context';
 import { customFont } from '@/fonts';
 
@@ -26,7 +28,6 @@ export const metadata: Metadata = {
         'vê phim',
         'ophim',
         'kkphim',
-        'nguonc',
         'nguồn phim',
     ],
     authors: [{ name: 'VePhim Team' }],
@@ -121,6 +122,9 @@ export default function DefaultNoLayoutStyle({
     return (
         <html lang="en" className={customFont.className}>
             <head>
+                <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL} />
+                <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
+
                 <link rel="dns-prefetch" href={'https://api.themoviedb.org'} />
                 <link rel="preconnect" href={'https://api.themoviedb.org'} />
 
@@ -143,7 +147,7 @@ export default function DefaultNoLayoutStyle({
                 </AntdRegistry>
                 <Analytics />
                 <SpeedInsights />
-                <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
+                <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID ?? ''} />
             </body>
         </html>
     );

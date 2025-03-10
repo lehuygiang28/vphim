@@ -1,0 +1,101 @@
+/* Netflix-inspired layout styles */
+
+/* Smooth scrolling for page */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Transition effect for all links */
+a {
+    transition: all 0.2s ease;
+}
+
+/* Global content spacing for fixed header - applied to all layouts */
+.ant-layout-content {
+    padding-top: 80px; /* Default padding for all content */
+}
+
+/* Main content container */
+.netflix-content {
+    transition: padding-top 0.3s ease;
+}
+
+/* Special class for layouts without the fixed header */
+.no-header-layout {
+    padding-top: 0 !important;
+}
+
+/* Special class for auth pages */
+.auth-layout .ant-layout-content {
+    padding-top: 0;
+}
+
+/* Smooth page transitions */
+.page-transition-enter {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.page-transition-exit {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.page-transition-exit-active {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+/* Netflix-style scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--vphim-colorPrimary);
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+    outline: 2px solid var(--vphim-colorPrimary);
+    outline-offset: 2px;
+}
+
+/* Transition for layout elements */
+.layout-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Media queries for responsive adjustments */
+@media (max-width: 768px) {
+    .ant-layout-content {
+        padding-top: 60px;
+    }
+
+    .netflix-content {
+        padding-top: 60px;
+    }
+}
+
+@media (min-width: 769px) {
+    .netflix-content {
+        padding-top: 80px;
+    }
+}

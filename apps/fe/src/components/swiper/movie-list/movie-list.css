@@ -1,11 +1,11 @@
-a {
-    color: white !important;
+a.netflix-link {
+    color: var(--vphim-colorText);
     text-decoration: none;
     transition: all 0.3s ease;
 }
 
-a:hover {
-    color: #e50914 !important;
+a.netflix-link:hover {
+    color: var(--vphim-colorPrimary);
 }
 
 .movie-list-container {
@@ -138,7 +138,7 @@ a:hover {
 }
 
 .movie-list-container .view-more:hover {
-    color: #e50914 !important;
+    color: var(--vphim-colorPrimary);
 }
 
 .movie-list-container .view-more svg {
@@ -215,7 +215,7 @@ a:hover {
 }
 
 .swiper-button-disabled {
-    display: none !important;
+    display: none;
 }
 
 @media (max-width: 768px) {

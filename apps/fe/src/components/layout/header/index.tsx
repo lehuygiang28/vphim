@@ -2,12 +2,13 @@
 
 import './header.css';
 
-import React, { useState, ReactNode } from 'react';
-import { Layout, Menu, Button, Drawer, Grid } from 'antd';
+import React, { useState, ReactNode, useEffect, useRef } from 'react';
+import { Layout, Menu, Button, Drawer, Grid, Badge } from 'antd';
 import { MenuOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
+import { usePathname } from 'next/navigation';
 
 import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
 
@@ -22,12 +23,17 @@ const { useBreakpoint } = Grid;
 const baseNavItems: ItemType<MenuItemType>[] = [
     {
         key: 'home',
-        label: <Link href={'/'}>Trang Chủ</Link>,
+        label: (
+            <Link className="netflix-link" href={'/'}>
+                Trang Chủ
+            </Link>
+        ),
     },
     {
         key: MovieTypeEnum.SERIES,
         label: (
             <Link
+                className="netflix-link"
                 href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
                     filters: [
                         {
@@ -52,6 +58,7 @@ const baseNavItems: ItemType<MenuItemType>[] = [
         key: MovieTypeEnum.SINGLE,
         label: (
             <Link
+                className="netflix-link"
                 href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
                     filters: [
                         {
@@ -76,6 +83,7 @@ const baseNavItems: ItemType<MenuItemType>[] = [
         key: 'phim-hay',
         label: (
             <Link
+                className="netflix-link"
                 href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
                     filters: [],
                     sorters: [
@@ -94,6 +102,7 @@ const baseNavItems: ItemType<MenuItemType>[] = [
         key: MovieTypeEnum.TV_SHOWS,
         label: (
             <Link
+                className="netflix-link"
                 href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
                     filters: [
                         {
@@ -123,7 +132,33 @@ export type HeaderProps = {
 
 export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: HeaderProps) {
     const [drawerVisible, setDrawerVisible] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [prevScrollPos, setPrevScrollPos] = useState(0);
+    const [hideHeader, setHideHeader] = useState(false);
+    const [hovering, setHovering] = useState(false);
     const screens = useBreakpoint();
+    const headerRef = useRef<HTMLDivElement>(null);
+    const pathname = usePathname();
+
+    // Add enhanced scroll listener with hide/show behavior
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollPos = window.scrollY;
+            const scrollingUp = prevScrollPos > currentScrollPos;
+            const scrollThreshold = 50;
+
+            // Don't hide header when hovering over it
+            if (!hovering) {
+                // Only hide header when scrolling down and past the threshold
+                setHideHeader(!scrollingUp && currentScrollPos > 200);
+            }
+            setIsScrolled(currentScrollPos > scrollThreshold);
+            setPrevScrollPos(currentScrollPos);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [prevScrollPos, hovering]);
 
     const navItems = [
         ...baseNavItems,
@@ -149,21 +184,19 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
 
     return (
         <Header
+            ref={headerRef}
+            className={`netflix-header ${isScrolled ? 'scrolled' : 'transparent'} ${
+                hideHeader ? 'header-hidden' : ''
+            }`}
             style={{
-                position: 'absolute',
-                top: 0,
-                zIndex: 999,
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: screens.md ? '0 3.125rem' : '0 0.9375rem',
-                background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.0))',
-                transition: 'background-color 0.3s ease',
+                transform: hideHeader ? 'translateY(-100%)' : 'translateY(0)',
             }}
+            onMouseEnter={() => setHovering(true)}
+            onMouseLeave={() => setHovering(false)}
         >
             <Link
                 href="/"
+                className="logo-container header-animated"
                 style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -181,25 +214,36 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
             </Link>
             {screens.md && (
                 <Menu
+                    className="netflix-menu header-animated"
                     mode="horizontal"
                     items={navItems}
                     style={{
                         flex: 1,
                         minWidth: 0,
                         justifyContent: 'flex-start',
-                        background: 'transparent',
                     }}
                 />
             )}
-            <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+            <div
+                className="header-animated"
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    position: 'relative',
+                    animationDelay: '0.1s',
+                }}
+            >
                 <HeaderSearch />
                 {!screens.md && (
-                    <Button
-                        type="text"
-                        icon={<MenuOutlined />}
-                        onClick={showDrawer}
-                        style={{ marginRight: '0.5rem' }}
-                    />
+                    <Badge dot={drawerVisible} color="var(--vphim-colorPrimary)">
+                        <Button
+                            type="text"
+                            className="netflix-mobile-menu-btn"
+                            icon={<MenuOutlined />}
+                            onClick={showDrawer}
+                            style={{ marginRight: '0.5rem' }}
+                        />
+                    </Badge>
                 )}
                 <HeaderUser />
             </div>
@@ -208,17 +252,19 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 placement="right"
                 onClose={onCloseDrawer}
                 open={drawerVisible}
+                className="netflix-drawer"
                 styles={{
                     body: { padding: 0 },
                 }}
-                width={'60%'}
+                width={'70%'}
             >
                 <div style={{ padding: '1rem' }}>
                     <HeaderSearch />
                     <Menu
+                        className="netflix-menu"
                         mode="inline"
                         items={navItems}
-                        style={{ height: '100%', background: 'transparent' }}
+                        style={{ height: '100%' }}
                         onClick={onCloseDrawer}
                     />
                 </div>

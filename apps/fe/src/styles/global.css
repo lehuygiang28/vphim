@@ -1,0 +1,45 @@
+/* Global styles to ensure proper spacing with the fixed header */
+
+/* Default body padding to account for fixed header */
+body {
+    padding-top: 0; /* Content padding is handled by layout classes */
+    margin: 0;
+}
+
+/* Main container styles */
+.content-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+/* Container for content that needs space from the header */
+.header-spacing {
+    padding-top: 80px;
+}
+
+@media (max-width: 768px) {
+    .header-spacing {
+        padding-top: 60px;
+    }
+}
+
+/* Skip header margin for fullscreen pages */
+.fullscreen-content {
+    padding-top: 0 !important;
+}
+
+/* Utility class to ensure content doesn't overlap with header */
+.no-header-overlap {
+    margin-top: 80px;
+}
+
+@media (max-width: 768px) {
+    .no-header-overlap {
+        margin-top: 60px;
+    }
+}
+
+/* Prevent content from being hidden under header */
+.ant-layout-content {
+    min-height: calc(100vh - 80px);
+}

@@ -1,5 +1,7 @@
 'use client';
 
+import './layout.css';
+
 import { PropsWithChildren } from 'react';
 import { Layout, Grid } from 'antd';
 import Link from 'next/link';
@@ -26,6 +28,7 @@ export function LayoutComponent({ children, categories, regions }: LayoutCompone
 
     return (
         <Layout
+            className="layout-transition"
             style={{
                 overflowX: 'hidden',
             }}
@@ -35,6 +38,7 @@ export function LayoutComponent({ children, categories, regions }: LayoutCompone
                     key: c.slug,
                     label: (
                         <Link
+                            className="netflix-link"
                             href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
                                 filters: [{ field: 'categories', value: c.slug, operator: 'in' }],
                                 sorters: [],
@@ -48,6 +52,7 @@ export function LayoutComponent({ children, categories, regions }: LayoutCompone
                     key: r.slug,
                     label: (
                         <Link
+                            className="netflix-link"
                             href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
                                 filters: [{ field: 'countries', value: r.slug, operator: 'in' }],
                                 sorters: [],
@@ -59,15 +64,17 @@ export function LayoutComponent({ children, categories, regions }: LayoutCompone
                 }))}
             />
             <Content
+                className="netflix-content"
                 style={{
                     minHeight: '110vh',
                     position: 'relative',
+                    width: '100%',
                 }}
             >
                 {children}
             </Content>
 
-            <div style={{ marginTop: md ? '3rem' : '1.5rem' }}>
+            <div className="layout-transition" style={{ marginTop: md ? '3rem' : '1.5rem' }}>
                 <Footer categories={categories} regions={regions} />
             </div>
         </Layout>
