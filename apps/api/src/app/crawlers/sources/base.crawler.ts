@@ -415,13 +415,13 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
                 ? resolveUrl(data?.posterUrl, data.host)
                 : null;
 
-        const tmdbBackdrops = (tmdbImages.backdrops || []).filter((b) => b?.file_path);
+        const tmdbBackdrops = (tmdbImages?.backdrops || []).filter((b) => b?.file_path);
         const tmdbThumb =
             tmdbBackdrops?.length > 0
                 ? resolveUrl(tmdbBackdrops[0].file_path, this.tmdbService.config.imgHost)
                 : null;
 
-        const tmdbPosters = (tmdbImages.posters || []).filter((p) => p?.file_path);
+        const tmdbPosters = (tmdbImages?.posters || []).filter((p) => p?.file_path);
         const tmdbPoster =
             tmdbPosters?.length > 0
                 ? resolveUrl(tmdbPosters[0].file_path, this.tmdbService.config.imgHost)
