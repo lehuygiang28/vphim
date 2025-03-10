@@ -7,6 +7,8 @@ import { type CrudFilter, type CrudSort } from '@refinedev/core';
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 import { LazyMovieListSSR } from '@/components/list/movie-lazy-list-ssr';
+import './home-movie-lists.css';
+
 const LazyMovieList = dynamic(() => import('@/components/list/movie-lazy-list'), { ssr: true });
 
 export type HomeMovieListsProps = {
@@ -60,7 +62,7 @@ export default function HomeMovieLists({ moviesWithAsset }: HomeMovieListsProps)
     );
 
     return (
-        <>
+        <div className="movie-lists-container">
             {moviesWithAsset &&
                 moviesWithAsset?.length > 0 &&
                 moviesWithAsset?.map((movieWithAsset, index) => (
@@ -86,6 +88,6 @@ export default function HomeMovieLists({ moviesWithAsset }: HomeMovieListsProps)
                     setActiveList={setActiveListCallback}
                 />
             ))}
-        </>
+        </div>
     );
 }

@@ -1,0 +1,290 @@
+.movie-card-container {
+    overflow: hidden;
+    border-radius: 0.5rem;
+    transition: all 0.25s ease;
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+}
+
+.movie-card-container:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.movie-card-link {
+    display: block;
+    color: inherit;
+    transition: all 0.3s ease;
+    width: 100%;
+    height: 100%;
+}
+
+.movie-poster {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: #181818;
+}
+
+.episode-tag {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    background-color: rgba(132, 90, 194, 0.8);
+    color: white;
+    font-weight: 600;
+    font-size: 0.7rem;
+    border: none;
+    backdrop-filter: blur(4px);
+}
+
+.rating-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    background-color: rgba(255, 198, 0, 0.8);
+    color: #000;
+    font-weight: 600;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.episode-tag + .rating-badge {
+    top: 38px; /* Position below episode tag if both are present */
+}
+
+.quality-tag-wrapper {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+}
+
+.movie-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.95) 0%,
+        rgba(0, 0, 0, 0.8) 60%,
+        rgba(0, 0, 0, 0.4) 90%,
+        transparent 100%
+    );
+    opacity: 0;
+    transition: all 0.3s ease;
+    border-radius: 0 0 0.5rem 0.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.movie-card-link:hover .movie-overlay {
+    opacity: 1;
+    height: 100%;
+}
+
+.overlay-content {
+    padding: 1rem;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.movie-title {
+    color: white;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.movie-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.card-ratings {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.category {
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.1rem 0.4rem;
+    border-radius: 2px;
+}
+
+.movie-description {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    margin: 0.5rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.watch-now-btn {
+    width: 100%;
+    background: #e50914 !important;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    z-index: 10;
+    position: relative;
+}
+
+.watch-now-btn:hover {
+    background: #f40612 !important;
+    transform: translateY(-2px);
+}
+
+.view-details-btn {
+    width: 100%;
+    border-radius: 4px;
+    font-weight: 600;
+    z-index: 10;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+}
+
+.view-details-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px);
+}
+
+/* Footer visible without hover */
+.card-footer {
+    padding: 0.5rem 0.2rem;
+    background-color: #111;
+    width: 100%;
+    cursor: pointer;
+}
+
+.card-title {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 0.3rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.year-small,
+.episode-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+/* Responsive styles */
+@media (min-width: 768px) {
+    .movie-title {
+        font-size: 0.9rem;
+    }
+
+    .movie-meta {
+        font-size: 0.75rem;
+    }
+
+    .category {
+        font-size: 0.7rem;
+    }
+
+    .watch-now-btn {
+        font-size: 0.8rem;
+    }
+
+    .movie-description {
+        font-size: 0.8rem;
+    }
+
+    .card-title {
+        font-size: 1rem;
+    }
+
+    .card-meta {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .movie-card-container:hover {
+        transform: translateY(-4px);
+    }
+
+    .movie-overlay {
+        opacity: 0;
+        height: 0;
+    }
+
+    .overlay-content {
+        padding: 0.7rem;
+    }
+
+    .movie-title {
+        font-size: 0.8rem;
+    }
+
+    .movie-meta {
+        font-size: 0.65rem;
+    }
+
+    .category {
+        font-size: 0.6rem;
+    }
+
+    .watch-now-btn {
+        font-size: 0.7rem;
+    }
+
+    /* Show basic info on tap for mobile */
+    .movie-card-container:active .movie-overlay {
+        opacity: 1;
+        height: 100%;
+    }
+}

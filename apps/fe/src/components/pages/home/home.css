@@ -1,0 +1,39 @@
+.home-container {
+    width: 100%;
+    max-width: 100vw;
+    background-color: #0a0a0a;
+    min-height: 100vh;
+}
+
+.hero-section {
+    min-height: 80vh;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.content-section {
+    padding: 0 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-skeleton,
+.content-skeleton {
+    background: linear-gradient(110deg, #1a1a1a 8%, #222 18%, #1a1a1a 33%);
+    background-size: 200% 100%;
+    animation: shine 1.5s linear infinite;
+}
+
+@keyframes shine {
+    to {
+        background-position-x: -200%;
+    }
+}
+
+@media (min-width: 768px) {
+    .content-section {
+        padding: 0 3rem;
+    }
+}

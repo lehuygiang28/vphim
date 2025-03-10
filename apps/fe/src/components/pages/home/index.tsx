@@ -9,6 +9,8 @@ import { MOVIES_LIST_FOR_SWIPER_QUERY, MOVIES_LIST_QUERY } from '@/queries/movie
 import { getMovies } from '@/services/movies';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { stringifyTableParams } from '@/libs/utils/url.util';
+import './home.css';
+
 const HomeMovieLists = dynamic(() => import('./home-movie-lists'), {
     ssr: true,
 });
@@ -88,11 +90,22 @@ export default async function Home() {
     ]);
 
     return (
-        <Suspense>
-            <div style={{ minHeight: '15vh' }}>
-                <MovieSwiper movies={mostViewed} />
-            </div>
-            <HomeMovieLists moviesWithAsset={homeMovieListsData} />
-        </Suspense>
+        <div className="home-container">
+            <section className="hero-section">
+                <Suspense
+                    fallback={<div className="hero-skeleton" style={{ minHeight: '80vh' }} />}
+                >
+                    <MovieSwiper movies={mostViewed} />
+                </Suspense>
+            </section>
+
+            <section className="content-section">
+                <Suspense
+                    fallback={<div className="content-skeleton" style={{ minHeight: '50vh' }} />}
+                >
+                    <HomeMovieLists moviesWithAsset={homeMovieListsData} />
+                </Suspense>
+            </section>
+        </div>
     );
 }

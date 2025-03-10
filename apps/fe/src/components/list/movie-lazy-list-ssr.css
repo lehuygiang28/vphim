@@ -1,0 +1,74 @@
+.movie-section {
+    margin-bottom: 3rem;
+    padding: 0 0.5rem;
+    min-height: 350px;
+    position: relative;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Add subtle section dividers */
+.movie-section::after {
+    content: '';
+    position: absolute;
+    bottom: -1.5rem;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+/* Hover highlight effect for entire section */
+.movie-section:hover {
+    background: linear-gradient(
+        to right,
+        rgba(229, 9, 20, 0.02),
+        transparent,
+        rgba(229, 9, 20, 0.02)
+    );
+}
+
+@media (min-width: 768px) {
+    .movie-section {
+        margin-bottom: 4rem;
+        padding: 0 2rem 1rem;
+        min-height: 400px;
+    }
+
+    .movie-section::after {
+        left: 15%;
+        right: 15%;
+    }
+}
+
+/* Tablets */
+@media (min-width: 481px) and (max-width: 767px) {
+    .movie-section {
+        margin-bottom: 3rem;
+        padding: 0 1rem 0.5rem;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+    .movie-section {
+        margin-bottom: 2.5rem;
+        padding: 0 0.3rem 0.5rem;
+        min-height: 320px;
+    }
+
+    .movie-section::after {
+        left: 5%;
+        right: 5%;
+    }
+}

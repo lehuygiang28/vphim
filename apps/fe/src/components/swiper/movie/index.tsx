@@ -9,10 +9,15 @@ import 'swiper/css/navigation';
 import React, { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Typography, Row, Col, Space, Grid, Tag } from 'antd';
-import { CalendarOutlined, EyeOutlined } from '@ant-design/icons';
+import { Typography, Row, Col, Space, Grid, Tag, Button, Tooltip } from 'antd';
+import {
+    CalendarOutlined,
+    EyeOutlined,
+    PlayCircleOutlined,
+    InfoCircleOutlined,
+} from '@ant-design/icons';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
-import { EffectFade, Pagination, Autoplay } from 'swiper/modules';
+import { EffectFade, Pagination, Autoplay, Navigation } from 'swiper/modules';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
@@ -29,8 +34,9 @@ interface MovieSwiperProps {
 }
 
 export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
-    const { md } = useBreakpoint();
+    const { xs, sm, md, lg } = useBreakpoint();
     const [currentMovieIndex, setCurrentMovieIndex] = useState<number | null>(null);
+    const isMobile = !md;
 
     useEffect(() => {
         if (movies?.[0]) {
@@ -40,38 +46,39 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
 
     const heroStyle: CSSProperties = {
         position: 'relative',
-        height: md ? '80vh' : '50vh',
+        height: md ? '85vh' : '90vh',
         overflow: 'hidden',
     };
 
     const bgImageStyle: CSSProperties = {
-        filter: 'blur(1rem) brightness(0.2)',
+        filter: 'blur(0.7rem) brightness(0.3)',
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
-        height: md ? '85vh' : '55vh',
-        maxHeight: md ? '85vh' : '55vh',
+        height: '100%',
         zIndex: 0,
-        transition: 'opacity 0.5s ease-in-out',
-        minHeight: '15vh',
+        transition: 'all 0.8s ease-in-out',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
     };
 
     const contentStyle: CSSProperties = {
-        padding: md ? '3rem' : '0.7rem',
+        padding: md ? '4rem' : '1.5rem',
         textAlign: 'left',
         zIndex: 1,
         height: '100%',
+        position: 'relative',
     };
 
     const posterStyle: CSSProperties = {
-        borderRadius: '0.5rem',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-        transition: 'transform 0.5s ease',
+        borderRadius: '0.8rem',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.7)',
+        transition: 'all 0.5s ease',
         width: '100%',
         height: '100%',
-        maxWidth: md ? '20rem' : '9rem',
-        maxHeight: md ? '27rem' : '13rem',
+        maxWidth: md ? '22rem' : '100%',
+        maxHeight: md ? '33rem' : '100%',
         objectFit: 'cover',
         display: 'block',
         margin: 'auto',
@@ -79,13 +86,39 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     };
 
     const textContentStyle: CSSProperties = {
-        padding: '0',
+        padding: md ? '0 2rem' : '0 0.5rem',
         color: '#fff',
         textAlign: 'left',
+        position: 'relative',
+        zIndex: 2,
     };
+
+    const gradientOverlay: CSSProperties = {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '70%',
+        background: 'linear-gradient(to top, rgba(10,10,10,1) 0%, rgba(10,10,10,0) 100%)',
+        zIndex: 1,
+    };
+
+    const getRatings = (movie: MovieResponseDto) => (
+        <div className="movie-ratings">
+            {movie.tmdb?.id && (
+                <TMDBRating
+                    id={movie.tmdb.id}
+                    type={movie.tmdb.type || 'movie'}
+                    size={md ? 'middle' : 'small'}
+                />
+            )}
+            {movie.imdb?.id && <IMDBRating id={movie.imdb.id} size={md ? 'middle' : 'small'} />}
+        </div>
+    );
 
     return (
         <>
+            {/* Background Images */}
             {movies?.length &&
                 movies?.map((movie, index) => {
                     return (
@@ -99,20 +132,24 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                             <ImageOptimized
                                 url={movie?.posterUrl}
                                 alt={movie?.name}
-                                width={640}
-                                height={360}
+                                width={1920}
+                                height={1080}
                                 style={{
-                                    maxHeight: md ? '85vh' : '35vh',
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
                                 }}
-                                quality={20}
+                                quality={70}
                                 loadType={index === 0 ? 'eager' : undefined}
                             />
                         </div>
                     );
                 })}
 
+            <div style={gradientOverlay}></div>
+
             <Swiper
-                modules={[EffectFade, Pagination, Autoplay]}
+                modules={[EffectFade, Pagination, Autoplay, Navigation]}
                 effect="fade"
                 slidesPerView={1}
                 fadeEffect={{
@@ -122,224 +159,267 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                     clickable: true,
                     enabled: true,
                 }}
+                navigation={{
+                    enabled: true,
+                }}
                 autoplay={{
-                    delay: 3000,
+                    delay: 5000,
+                    disableOnInteraction: false,
                 }}
                 onSlideChange={(swiper) => {
                     const activeIndex = swiper.activeIndex;
-                    const slides = swiper.slides;
-
                     setCurrentMovieIndex(activeIndex);
-
-                    // Slide in the active slide's image from right to left
-                    const slide = slides[activeIndex].querySelector('.posterImage') as HTMLElement;
-                    if (slide) {
-                        slide.style.transform = 'translateX(0)';
-                    }
                 }}
-                onBeforeTransitionStart={(swiper: SwiperClass) => {
-                    const activeIndex = swiper.activeIndex;
-                    const slides = swiper.slides;
-                    // Move the previous slide's image off-screen to the left
-                    if (activeIndex > 0) {
-                        const slide = slides[activeIndex - 1].querySelector(
-                            '.posterImage',
-                        ) as HTMLElement;
-                        if (slide) {
-                            slide.style.transform = 'translateX(75%)';
-                        }
-                    }
-
-                    // Move the next slide's image off-screen to the right
-                    if (activeIndex < slides.length - 1) {
-                        const slide = slides[activeIndex + 1].querySelector(
-                            '.posterImage',
-                        ) as HTMLElement;
-                        if (slide) {
-                            slide.style.transform = 'translateX(75%)';
-                        }
-                    }
-                }}
+                className="hero-swiper"
             >
                 {movies?.map((movie, movieIndex) => (
                     <SwiperSlide key={movie.slug}>
                         <div style={heroStyle}>
                             <div style={contentStyle}>
-                                <Row
-                                    justify="center"
-                                    align="middle"
-                                    style={{ height: '100%', width: '100%' }}
-                                >
-                                    <Col xs={{ span: 14 }} md={{ span: 18 }}>
-                                        <div style={textContentStyle} className="textContent">
-                                            <Space
-                                                direction="vertical"
-                                                size={md ? 'middle' : 'small'}
+                                {isMobile ? (
+                                    // Mobile Layout
+                                    <div className="mobile-hero-content">
+                                        <div className="mobile-poster-wrapper">
+                                            <ImageOptimized
+                                                url={movie?.posterUrl}
+                                                alt={movie?.name}
+                                                width={300}
+                                                height={450}
+                                                style={{
+                                                    borderRadius: '0.8rem',
+                                                    boxShadow: '0 5px 15px rgba(0, 0, 0, 0.5)',
+                                                }}
+                                                className="posterImage"
+                                                disableSkeleton
+                                                loadType={movieIndex === 0 ? 'eager' : undefined}
+                                            />
+
+                                            {movie.quality && (
+                                                <div className="quality-badge">
+                                                    <MovieQualityTag quality={movie.quality} />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="mobile-movie-info">
+                                            <Title
+                                                level={3}
+                                                className="movie-title"
+                                                style={{ marginTop: '1rem' }}
                                             >
-                                                <div>
-                                                    <Link href={`/phim/${movie.slug}`}>
+                                                {movie.name}
+                                            </Title>
+
+                                            {getRatings(movie)}
+
+                                            <div className="mobile-meta">
+                                                {movie.year && (
+                                                    <Tag className="year-tag">
+                                                        <CalendarOutlined /> {movie.year}
+                                                    </Tag>
+                                                )}
+
+                                                {movie.view !== undefined && (
+                                                    <Tag className="view-tag">
+                                                        <EyeOutlined />{' '}
+                                                        {movie.view > 1000
+                                                            ? `${Math.floor(movie.view / 1000)}K`
+                                                            : movie.view}
+                                                    </Tag>
+                                                )}
+                                            </div>
+
+                                            <div className="categories-wrapper">
+                                                {movie?.categories?.length !== undefined &&
+                                                    movie?.categories?.length > 0 &&
+                                                    movie.categories.slice(0, 2).map((category) => (
+                                                        <Tag
+                                                            key={category._id.toString()}
+                                                            className="category-tag"
+                                                        >
+                                                            {category.name}
+                                                        </Tag>
+                                                    ))}
+                                            </div>
+
+                                            <div className="button-group">
+                                                <Link
+                                                    href={`/phim/${movie.slug}`}
+                                                    className="full-width"
+                                                >
+                                                    <Button
+                                                        type="primary"
+                                                        size="large"
+                                                        icon={<PlayCircleOutlined />}
+                                                        className="watch-button"
+                                                        block
+                                                    >
+                                                        Xem Phim
+                                                    </Button>
+                                                </Link>
+
+                                                <Link
+                                                    href={`/phim/${movie.slug}`}
+                                                    className="full-width"
+                                                >
+                                                    <Button
+                                                        size="large"
+                                                        icon={<InfoCircleOutlined />}
+                                                        className="info-button"
+                                                        block
+                                                    >
+                                                        Chi Tiết
+                                                    </Button>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // Desktop Layout
+                                    <Row
+                                        justify="center"
+                                        align="middle"
+                                        style={{ height: '100%', width: '100%' }}
+                                    >
+                                        <Col xs={{ span: 24 }} md={{ span: 14 }} lg={{ span: 12 }}>
+                                            <div
+                                                style={textContentStyle}
+                                                className="hero-text-content"
+                                            >
+                                                <Space
+                                                    direction="vertical"
+                                                    size={md ? 'large' : 'middle'}
+                                                    style={{ width: '100%' }}
+                                                >
+                                                    <div className="movie-title-container">
                                                         <Title
-                                                            level={md ? 1 : 4}
-                                                            style={{ marginBottom: '0' }}
+                                                            level={md ? 1 : 3}
+                                                            style={{
+                                                                marginBottom: '0.5rem',
+                                                                fontWeight: 800,
+                                                                textShadow:
+                                                                    '0 2px 10px rgba(0,0,0,0.7)',
+                                                            }}
+                                                            className="movie-title"
                                                         >
                                                             {movie.name}
                                                         </Title>
 
-                                                        <Text type="secondary">
+                                                        <Text
+                                                            type="secondary"
+                                                            style={{
+                                                                fontSize: md ? '1.2rem' : '0.9rem',
+                                                                opacity: 0.8,
+                                                                display: 'block',
+                                                                marginBottom: '1rem',
+                                                            }}
+                                                        >
                                                             {movie.originName}
                                                         </Text>
-                                                    </Link>
-                                                    <div style={{ marginTop: '0.5rem' }}>
-                                                        <Space wrap size={[8, 8]}>
+                                                    </div>
+
+                                                    <Space
+                                                        size="small"
+                                                        wrap
+                                                        className="movie-badges"
+                                                    >
+                                                        {movie.quality && (
                                                             <MovieQualityTag
-                                                                quality={movie?.quality || 'N/A'}
+                                                                quality={movie.quality}
                                                             />
-                                                            <Text
-                                                                type="secondary"
-                                                                style={{ fontSize: 12 }}
-                                                            >
-                                                                |
-                                                            </Text>
-                                                            <Space size={2}>
-                                                                <CalendarOutlined
-                                                                    style={{ fontSize: 12 }}
-                                                                />
-                                                                <Text style={{ fontSize: 12 }}>
-                                                                    {movie?.year || 'N/A'}
-                                                                </Text>
-                                                            </Space>
-                                                            <Text
-                                                                type="secondary"
-                                                                style={{ fontSize: 12 }}
-                                                            >
-                                                                |
-                                                            </Text>
-                                                            <Space
-                                                                size={2}
-                                                                style={{
-                                                                    maxWidth: '100%',
-                                                                    display: 'inline-flex',
-                                                                }}
-                                                            >
-                                                                <EyeOutlined
-                                                                    style={{ fontSize: 12 }}
-                                                                />{' '}
-                                                                <Text
-                                                                    style={{
-                                                                        fontSize: 12,
-                                                                        wordBreak: 'break-word',
-                                                                        whiteSpace: 'normal',
-                                                                    }}
-                                                                >
-                                                                    {movie?.view?.toLocaleString() ||
-                                                                        '0'}
-                                                                </Text>
-                                                            </Space>
-                                                        </Space>
-                                                    </div>
-                                                    {(movie?.tmdb?.id || movie?.imdb?.id) && (
-                                                        <div style={{ marginTop: '0.5rem' }}>
-                                                            {movie?.imdb?.id && (
-                                                                <IMDBRating
-                                                                    id={movie?.imdb?.id}
-                                                                    size={md ? 'middle' : 'small'}
-                                                                />
-                                                            )}
-                                                            {movie?.tmdb?.id && (
-                                                                <TMDBRating
-                                                                    id={movie?.tmdb?.id}
-                                                                    type={movie?.tmdb?.type}
-                                                                    size={md ? 'middle' : 'small'}
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    <div style={{ marginTop: '0.5rem' }}>
-                                                        {movie?.categories?.map((category) => (
+                                                        )}
+                                                        {movie.categories?.length !== undefined &&
+                                                            movie.categories?.length > 0 &&
+                                                            movie.categories
+                                                                .slice(0, 3)
+                                                                .map((category) => (
+                                                                    <Tag
+                                                                        key={category._id.toString()}
+                                                                        className="category-tag"
+                                                                    >
+                                                                        {category.name}
+                                                                    </Tag>
+                                                                ))}
+                                                        <Tag
+                                                            className="year-tag"
+                                                            icon={<CalendarOutlined />}
+                                                        >
+                                                            {movie.year}
+                                                        </Tag>
+                                                        {movie.view !== undefined && (
                                                             <Tag
-                                                                key={category?._id?.toString()}
-                                                                style={{
-                                                                    fontSize: md
-                                                                        ? '0.7rem'
-                                                                        : '0.5rem',
-                                                                    background: 'rgba(0 0 0 / 0.4)',
-                                                                    border: 'none',
-                                                                }}
+                                                                className="view-tag"
+                                                                icon={<EyeOutlined />}
                                                             >
-                                                                {category?.name}
+                                                                {movie.view.toLocaleString()}
                                                             </Tag>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                {md && (
+                                                        )}
+                                                    </Space>
+
                                                     <Paragraph
-                                                        ellipsis={{
-                                                            rows: md ? 5 : 3,
-                                                            expandable: false,
+                                                        ellipsis={{ rows: md ? 3 : 2 }}
+                                                        style={{
+                                                            color: 'rgba(255, 255, 255, 0.8)',
+                                                            fontSize: md ? '1rem' : '0.85rem',
+                                                            maxWidth: '90%',
+                                                            marginBottom: '1.5rem',
+                                                            lineHeight: 1.6,
                                                         }}
-                                                        style={{ maxWidth: '45vw' }}
                                                     >
                                                         {movie.content}
                                                     </Paragraph>
-                                                )}
-                                            </Space>
-                                        </div>
-                                        {md ? (
-                                            <div
-                                                style={{
-                                                    background: '#bd1010',
-                                                    borderRadius: '9999px',
-                                                    maxWidth: '4rem',
-                                                    maxHeight: '4rem',
-                                                }}
-                                            >
+
+                                                    <Space size="middle" align="center">
+                                                        {getRatings(movie)}
+                                                    </Space>
+
+                                                    <Space size="middle">
+                                                        <Link href={`/phim/${movie.slug}`}>
+                                                            <Button
+                                                                type="primary"
+                                                                size={md ? 'large' : 'middle'}
+                                                                icon={<PlayCircleOutlined />}
+                                                                className="watch-button"
+                                                            >
+                                                                Xem Phim
+                                                            </Button>
+                                                        </Link>
+                                                        <Link href={`/phim/${movie.slug}`}>
+                                                            <Button
+                                                                size={md ? 'large' : 'middle'}
+                                                                className="info-button"
+                                                            >
+                                                                Chi Tiết
+                                                            </Button>
+                                                        </Link>
+                                                    </Space>
+                                                </Space>
+                                            </div>
+                                        </Col>
+                                        <Col xs={{ span: 0 }} md={{ span: 10 }} lg={{ span: 12 }}>
+                                            <div className="poster-container">
                                                 <Link href={`/phim/${movie.slug}`}>
-                                                    <Image
-                                                        alt="play button"
-                                                        src="/assets/play.svg"
-                                                        width={64}
-                                                        height={64}
-                                                    />
+                                                    <div className="poster-wrapper">
+                                                        <ImageOptimized
+                                                            url={movie?.posterUrl}
+                                                            alt={movie?.name}
+                                                            width={480}
+                                                            height={854}
+                                                            style={posterStyle}
+                                                            className="posterImage"
+                                                            disableSkeleton
+                                                            loadType={
+                                                                movieIndex === 0
+                                                                    ? 'eager'
+                                                                    : undefined
+                                                            }
+                                                        />
+                                                    </div>
                                                 </Link>
                                             </div>
-                                        ) : (
-                                            <></>
-                                        )}
-                                    </Col>
-                                    <Col
-                                        xs={{ span: 10 }}
-                                        md={{ span: 6 }}
-                                        style={{ width: '100%', height: '100%' }}
-                                    >
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                position: 'relative',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                width: '100%',
-                                                height: '100%',
-                                                textAlign: 'center',
-                                                background: 'transparent',
-                                            }}
-                                        >
-                                            <Link href={`/phim/${movie.slug}`}>
-                                                <ImageOptimized
-                                                    url={movie?.posterUrl}
-                                                    alt={movie?.name}
-                                                    width={480}
-                                                    height={854}
-                                                    style={posterStyle}
-                                                    className="posterImage"
-                                                    disableSkeleton
-                                                    loadType={
-                                                        movieIndex === 0 ? 'eager' : undefined
-                                                    }
-                                                />
-                                            </Link>
-                                        </div>
-                                    </Col>
-                                </Row>
+                                        </Col>
+                                    </Row>
+                                )}
                             </div>
                         </div>
                     </SwiperSlide>

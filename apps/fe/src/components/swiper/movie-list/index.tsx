@@ -2,12 +2,11 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import './movie-list.css';
 
-import React, { useRef, CSSProperties, useState, useEffect } from 'react';
+import React, { useRef, CSSProperties, useState, useEffect, useMemo, useCallback } from 'react';
 import { Typography, Grid, Skeleton } from 'antd';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
+import { Navigation, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import { ArrowRightOutlined } from '@ant-design/icons';
 
@@ -46,16 +45,22 @@ export default function MovieList({
     viewMoreHref,
     clearVisibleContentCard,
     style,
-    disableNavigation = true,
+    disableNavigation = false,
     eagerLoad = 0,
 }: MovieListProps) {
-    const router = useRouter();
     const { md, lg, xl, xxl } = useBreakpoint();
     const swiperRef = useRef<SwiperType>();
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const [showMobileNav, setShowMobileNav] = useState(false);
+    const isMobile = !md;
+    const navContainerRef = useRef<HTMLDivElement>(null);
 
-    const prevButtonId = `prev-button-${randomString(10)}`;
-    const nextButtonId = `next-button-${randomString(10)}`;
+    const uniqueId = useMemo(() => randomString(10), []);
+    const prevButtonId = `prev-button-${uniqueId}`;
+    const nextButtonId = `next-button-${uniqueId}`;
+
+    const handleMouseEnter = useCallback(() => setShowMobileNav(true), []);
+    const handleMouseLeave = useCallback(() => setShowMobileNav(false), []);
 
     useEffect(() => {
         if (clearVisibleContentCard) {
@@ -63,130 +68,190 @@ export default function MovieList({
         }
     }, [clearVisibleContentCard]);
 
-    const handleVisibleContentCard = (index: number | null) => {
-        if (index === null || index === selectedIndex) {
-            setSelectedIndex(null);
-        } else {
-            setSelectedIndex(index);
+    useEffect(() => {
+        if (swiperRef.current && !disableNavigation) {
+            swiperRef.current.navigation.init();
+            swiperRef.current.navigation.update();
         }
-    };
+    }, [swiperRef.current, disableNavigation]);
 
-    const renderSkeleton = () => {
-        const skeletonCount = getSlidesPerView(md, lg, xl, xxl);
-        return Array(skeletonCount)
+    const handleVisibleContentCard = useCallback(
+        (index: number | null) => {
+            if (index === null || index === selectedIndex) {
+                setSelectedIndex(null);
+            } else {
+                setSelectedIndex(index);
+            }
+        },
+        [selectedIndex],
+    );
+
+    const breakpoints = useMemo(
+        () => ({
+            320: {
+                slidesPerView: 2.2,
+                spaceBetween: 12,
+            },
+            480: {
+                slidesPerView: 3.2,
+                spaceBetween: 12,
+            },
+            640: {
+                slidesPerView: 4.2,
+                spaceBetween: 12,
+            },
+            768: {
+                slidesPerView: 4.2,
+                spaceBetween: 16,
+            },
+            1024: {
+                slidesPerView: 5.2,
+                spaceBetween: 16,
+            },
+            1280: {
+                slidesPerView: 6.2,
+                spaceBetween: 20,
+            },
+        }),
+        [],
+    );
+
+    const freeModeConfig = useMemo(
+        () => ({
+            enabled: isMobile,
+            sticky: true,
+            momentumRatio: 0.25,
+        }),
+        [isMobile],
+    );
+
+    const renderSkeleton = useCallback(() => {
+        const slideCount = isMobile ? 3 : lg ? 5 : xl ? 6 : 4;
+
+        return Array(slideCount)
             .fill(null)
             .map((_, index) => (
                 <SwiperSlide
                     key={`skeleton-${index}`}
                     style={{
                         overflow: 'visible',
-                        width: md ? '13rem' : '8rem',
-                        height: md ? '20rem' : '15rem',
+                        height: 'auto',
                     }}
                 >
-                    <SkeletonImage
+                    <div
                         style={{
-                            width: md ? '13rem' : '8rem',
-                            height: md ? '20rem' : '15rem',
+                            width: '100%',
+                            aspectRatio: '2/3',
+                            borderRadius: '0.5rem',
+                            overflow: 'hidden',
                         }}
-                        active={true}
-                    />
+                    >
+                        <SkeletonImage
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '0.5rem',
+                            }}
+                            active={true}
+                        />
+                    </div>
                 </SwiperSlide>
             ));
-    };
+    }, [isMobile, lg, xl]);
+
+    const navigationConfig = useMemo(
+        () => ({
+            prevEl: `#${prevButtonId}`,
+            nextEl: `#${nextButtonId}`,
+            enabled: !disableNavigation,
+            disabledClass: 'swiper-button-disabled',
+            hiddenClass: 'swiper-button-hidden',
+        }),
+        [prevButtonId, nextButtonId, disableNavigation],
+    );
+
+    const renderMobileSwipeIndicator = useCallback(() => {
+        if (!isMobile) return null;
+
+        return (
+            <div className="mobile-swipe-indicator">
+                <div className="indicator-dot"></div>
+                <div className="indicator-dot"></div>
+                <div className="indicator-dot"></div>
+            </div>
+        );
+    }, [isMobile]);
 
     return (
         <div
             className="movie-list-container"
-            style={{
-                overflow: 'visible',
-                position: 'relative',
-                ...style,
-            }}
+            style={style}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            ref={navContainerRef}
         >
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '0.5rem',
-                }}
-            >
-                {title && (
-                    <Link href={viewMoreHref ?? '#'}>
-                        <Title level={md ? 3 : 4} style={{ fontWeight: 'bold' }}>
-                            {isLoading ? (
-                                <Skeleton.Input style={{ width: '5rem' }} active />
-                            ) : (
-                                title
-                            )}
-                        </Title>
-                    </Link>
-                )}
-                {viewMoreHref && !isLoading && (
-                    <Link href={viewMoreHref} style={{ display: 'flex', alignItems: 'center' }}>
-                        Xem thêm <ArrowRightOutlined style={{ marginLeft: '0.5rem' }} />
-                    </Link>
-                )}
-            </div>
+            {title && (
+                <div className="list-header">
+                    <h3 className="list-title">{title}</h3>
+                    {viewMoreHref && (
+                        <Link href={viewMoreHref} className="view-more">
+                            <span>Xem thêm</span>
+                            <ArrowRightOutlined />
+                        </Link>
+                    )}
+                </div>
+            )}
+
             <Swiper
-                slidesPerView={getSlidesPerView(md, lg, xl, xxl)}
-                spaceBetween={12}
-                modules={[...(disableNavigation ? [] : [Navigation])]}
-                navigation={
-                    disableNavigation
-                        ? false
-                        : {
-                              nextEl: `#${nextButtonId}`,
-                              prevEl: `#${prevButtonId}`,
-                          }
-                }
-                style={{
-                    overflow: 'visible',
-                    padding: disableNavigation ? undefined : md ? '0 2rem' : '0 0.5rem',
-                }}
-                onSwiper={(swiper) => {
+                className="movie-swiper"
+                modules={[Navigation, FreeMode]}
+                slidesPerView={'auto'}
+                spaceBetween={md ? 16 : 12}
+                freeMode={freeModeConfig}
+                touchRatio={1.5}
+                watchSlidesProgress={true}
+                onBeforeInit={(swiper) => {
                     swiperRef.current = swiper;
                 }}
+                breakpoints={breakpoints}
+                navigation={navigationConfig}
+                speed={400}
+                grabCursor={true}
+                observer={true}
+                observeParents={true}
+                resizeObserver={true}
             >
-                {isLoading
-                    ? renderSkeleton()
-                    : movies?.map((movie, index) => (
-                          <SwiperSlide
-                              key={movie._id.toString()}
-                              style={{
-                                  overflow: 'visible',
-                                  width: md ? '13rem' : '8rem',
-                                  height: md ? '20rem' : '15rem',
-                                  zIndex: index === selectedIndex ? '100' : '1',
-                              }}
-                              onClick={() => {
-                                  if (md) {
-                                      router.push(`/phim/${movie.slug}`);
-                                  } else {
-                                      handleVisibleContentCard(index);
-                                  }
-                              }}
-                              onMouseEnter={() => handleVisibleContentCard(index)}
-                              onMouseLeave={() => handleVisibleContentCard(null)}
-                          >
-                              <MovieCard
-                                  movie={movie}
-                                  visibleContent={selectedIndex === index}
-                                  scale={md ? undefined : 1.1}
-                                  loadType={
-                                      eagerLoad > 0 && index < eagerLoad ? 'eager' : undefined
-                                  }
-                              />
-                          </SwiperSlide>
-                      ))}
+                {isLoading && renderSkeleton()}
+                {!isLoading &&
+                    movies?.length > 0 &&
+                    movies.map((movie, index) => (
+                        <SwiperSlide
+                            key={movie._id.toString()}
+                            onClick={() => handleVisibleContentCard(index)}
+                            style={{ height: 'auto' }}
+                        >
+                            <div className="movie-card">
+                                <MovieCard
+                                    movie={movie}
+                                    loadType={index < eagerLoad ? 'eager' : undefined}
+                                />
+                            </div>
+                        </SwiperSlide>
+                    ))}
             </Swiper>
-            {!isLoading && movies?.length > 0 && !disableNavigation && (
-                <>
-                    <div className="swiper-button-prev" id={prevButtonId} />
-                    <div className="swiper-button-next" id={nextButtonId} />
-                </>
-            )}
+
+            {renderMobileSwipeIndicator()}
+
+            <button
+                id={prevButtonId}
+                className="swiper-button-prev"
+                aria-label="Previous slide"
+            ></button>
+            <button
+                id={nextButtonId}
+                className="swiper-button-next"
+                aria-label="Next slide"
+            ></button>
         </div>
     );
 }

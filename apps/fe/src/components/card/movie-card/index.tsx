@@ -1,195 +1,175 @@
 'use client';
 
-import React, { CSSProperties, FC } from 'react';
+import React, { FC } from 'react';
 import Link from 'next/link';
-import { Button, Card, Divider, Grid, Space, Tag, Typography } from 'antd';
-import { CalendarOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
+import { Button, Grid, Tag, Space } from 'antd';
+import { CalendarOutlined, EyeOutlined, PlayCircleOutlined, StarOutlined } from '@ant-design/icons';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos/movie-response.dto';
 
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
-import { truncateText } from '@/libs/utils/movie.util';
+import { TMDBRating } from '@/components/card/tmdb-rating';
+import { IMDBRating } from '@/components/card/imdb-rating';
+import './movie-card.css';
 
-const { Text, Paragraph, Title } = Typography;
 const { useBreakpoint } = Grid;
-
-const MAX_LENGTH_MOVIE_NAME = 60;
 
 interface MovieCardProps {
     movie: MovieResponseDto;
-    visibleContent?: boolean;
-    scale?: number;
     loadType?: 'lazy' | 'eager';
 }
 
-export const MovieCard: FC<MovieCardProps> = ({
-    movie,
-    visibleContent,
-    scale = 1.25,
-    loadType,
-}) => {
+export const MovieCard: FC<MovieCardProps> = ({ movie, loadType }) => {
     const { md } = useBreakpoint();
+    const router = useRouter();
 
-    const maxWidth: CSSProperties = {
-        maxWidth: '14rem',
+    const handleViewMovie = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        router.push(`/phim/${movie.slug}`);
+    };
+
+    // Create a formatted description
+    const formatDescription = () => {
+        if (!movie.content) return '';
+
+        // Limit to a reasonable length (100 characters)
+        const maxLength = 100;
+        const text =
+            movie.content.length > maxLength
+                ? `${movie.content.substring(0, maxLength)}...`
+                : movie.content;
+
+        return text;
+    };
+
+    // Display average rating if available
+    const renderAverageRating = () => {
+        let rating = 0;
+        let ratingCount = 0;
+
+        if (movie.tmdb?.voteAverage) {
+            rating += movie.tmdb.voteAverage;
+            ratingCount++;
+        }
+
+        if (ratingCount === 0) return null;
+
+        const finalRating = (rating / ratingCount).toFixed(1);
+
+        return (
+            <div className="rating-badge">
+                <StarOutlined /> {finalRating}
+            </div>
+        );
+    };
+
+    const renderRatings = () => {
+        return (
+            <div className="card-ratings">
+                {movie.tmdb?.id && (
+                    <TMDBRating id={movie.tmdb.id} type={movie.tmdb.type || 'movie'} size="small" />
+                )}
+                {movie.imdb?.id && <IMDBRating id={movie.imdb.id} size="small" />}
+            </div>
+        );
     };
 
     return (
-        <>
-            <Card
-                hoverable
-                style={{
-                    ...maxWidth,
-                    position: 'relative',
-                    maxHeight: '21rem',
-                    width: '100%',
-                    height: '100%',
-                    transition: 'all 0.3s ease-in-out',
-                    background: 'none',
-                    border: 'none',
-                    transform: visibleContent ? `scale(${scale})` : 'scale(1)',
-                    zIndex: visibleContent ? 100 : 1,
-                }}
-                styles={{
-                    body: { padding: 0, height: '100%', width: '100%' },
-                }}
-            >
-                <div
-                    style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '100%',
-                        background: 'black',
-                        overflow: 'hidden',
-                        borderRadius: '0.3rem',
-                    }}
-                >
+        <div className="movie-card-container">
+            <div className="movie-card-link">
+                <div className="movie-poster">
                     <ImageOptimized
                         alt={movie.name}
                         url={movie.posterUrl}
                         width={480}
                         height={854}
-                        style={{ maxHeight: '100%', maxWidth: '100%' }}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: '0.5rem',
+                        }}
                         loadType={loadType}
                     />
-                    <Tag
-                        style={{
-                            position: 'absolute',
-                            top: 8,
-                            left: 8,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            background: 'rgba(133, 78, 202, 0.8)',
-                            border: 'none',
-                        }}
-                    >
-                        {movie.episodeCurrent}
-                    </Tag>
-                    <div
-                        style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '70%',
-                            padding: 6,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            background: 'rgba(0, 0, 0, 0.8)',
-                            transition: 'opacity 0.3s',
-                            borderRadius: '0 0 0.3rem 0.3rem',
-                            opacity: visibleContent ? 1 : 0,
-                        }}
-                    >
-                        <Space direction="vertical" size={0}>
-                            <Paragraph
-                                style={{
-                                    color: 'white',
-                                    fontSize: md ? '1rem' : '0.7rem',
-                                    marginBottom: '0.3rem',
-                                    lineHeight: md ? '1.2rem' : '0.9rem',
-                                }}
-                            >
-                                {movie.name}
-                            </Paragraph>
-                            <Paragraph
-                                type="secondary"
-                                ellipsis={{ rows: 2, expandable: false }}
-                                style={{
-                                    fontSize: md ? '0.7rem' : '0.5rem',
-                                    lineHeight: md ? '0.85rem' : '0.7rem',
-                                    marginBottom: 0,
-                                    color: '#a6a6a6',
-                                }}
-                            >
-                                {movie.originName}
-                            </Paragraph>
-                            {md && (
-                                <div
-                                    style={{
-                                        marginTop: '0.3rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        flexWrap: 'wrap',
-                                    }}
-                                >
-                                    <MovieQualityTag
-                                        style={{ marginRight: 4, fontSize: '0.6rem' }}
-                                        quality={movie?.quality || ''}
-                                    />
-                                    <Divider
-                                        type="vertical"
-                                        style={{ height: '0.8rem', background: '#a6a6a6' }}
-                                    />
-                                    <Text style={{ fontSize: '0.6rem', color: '#a6a6a6' }}>
-                                        <CalendarOutlined /> {movie.year}
-                                    </Text>
-                                    <Divider
-                                        type="vertical"
-                                        style={{ height: '0.8rem', background: '#a6a6a6' }}
-                                    />
-                                    <Text style={{ fontSize: '0.6rem', color: '#a6a6a6' }}>
-                                        {movie.episodeCurrent}
-                                    </Text>
+
+                    {movie.episodeCurrent && (
+                        <Tag className="episode-tag">{movie.episodeCurrent}</Tag>
+                    )}
+
+                    <div className="quality-tag-wrapper">
+                        <MovieQualityTag quality={movie.quality || ''} />
+                    </div>
+
+                    {renderAverageRating()}
+
+                    <div className="movie-overlay">
+                        <div className="overlay-content">
+                            <h4 className="movie-title">{movie.name}</h4>
+
+                            <div className="movie-meta">
+                                <span className="year">{movie.year}</span>
+                                {movie.view && (
+                                    <span className="views">
+                                        <EyeOutlined />{' '}
+                                        {movie.view > 1000
+                                            ? `${Math.floor(movie.view / 1000)}K`
+                                            : movie.view}
+                                    </span>
+                                )}
+                            </div>
+
+                            {renderRatings()}
+
+                            {movie.categories && movie.categories.length > 0 && (
+                                <div className="categories">
+                                    {movie.categories.slice(0, 2).map((category) => (
+                                        <span key={category._id.toString()} className="category">
+                                            {category.name}
+                                        </span>
+                                    ))}
                                 </div>
                             )}
-                            <Paragraph
-                                ellipsis={{
-                                    rows: movie.name.length > 25 ? 3 : 5,
-                                    expandable: false,
-                                }}
-                                style={{
-                                    color: '#a6a6a6',
-                                    fontSize: md ? '0.7rem' : '0.6rem',
-                                    lineHeight: '1rem',
-                                    WebkitLineClamp: 3,
-                                    WebkitBoxOrient: 'vertical',
-                                    overflow: 'hidden',
-                                    display: '-webkit-box',
-                                    marginTop: md ? '0.3rem' : '0',
-                                }}
-                            >
-                                {movie.content}
-                            </Paragraph>
-                        </Space>
-                        <Link href={`/phim/${movie.slug}`}>
-                            <Button
-                                type="primary"
-                                size="small"
-                                icon={<PlayCircleOutlined />}
-                                style={{ width: '100%', fontSize: md ? '0.8rem' : '0.6rem' }}
-                            >
-                                Xem ngay
-                            </Button>
-                        </Link>
+
+                            <p className="movie-description">{formatDescription()}</p>
+
+                            <Space direction="vertical" style={{ width: '100%' }} size="small">
+                                <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={<PlayCircleOutlined />}
+                                    className="watch-now-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewMovie();
+                                    }}
+                                >
+                                    Xem phim
+                                </Button>
+                            </Space>
+                        </div>
                     </div>
                 </div>
-            </Card>
-            <Title level={5} style={{ ...maxWidth, lineHeight: '1.2rem', marginTop: '0.3rem' }}>
-                {movie?.name && truncateText(movie.name, MAX_LENGTH_MOVIE_NAME)}
-            </Title>
-        </>
+
+                <div className="card-footer">
+                    <Link href={`/phim/${movie.slug}`}>
+                        <h5 className="card-title">{movie.name}</h5>
+                    </Link>
+
+                    <div className="card-meta">
+                        {movie.year && (
+                            <span className="year-small">
+                                <CalendarOutlined /> {movie.year}
+                            </span>
+                        )}
+
+                        {movie.episodeCurrent && (
+                            <span className="episode-small">{movie.episodeCurrent}</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };

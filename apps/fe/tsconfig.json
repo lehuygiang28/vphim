@@ -20,7 +20,8 @@
         "paths": {
             "@/*": ["./apps/fe/src/*"]
         },
-        "types": ["jest", "node"]
+        "types": ["jest", "node"],
+        "strictNullChecks": true
     },
     "include": [
         "**/*.ts",

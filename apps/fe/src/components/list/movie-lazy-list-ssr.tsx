@@ -5,6 +5,7 @@ import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
 import MovieList from '@/components/swiper/movie-list';
 import { slugifyVietnamese } from '@/libs/utils/movie.util';
+import './movie-lazy-list-ssr.css';
 
 const { useBreakpoint } = Grid;
 
@@ -27,15 +28,7 @@ export function LazyMovieListSSR({
     const slugTitle = slugifyVietnamese(title);
 
     return (
-        <div
-            style={{
-                marginBottom: md ? '4rem' : '3.5rem',
-                marginLeft: md ? '3rem' : '0.7rem',
-                marginRight: md ? '3rem' : '0.7rem',
-                minHeight: '200px', // Prevent layout shift
-            }}
-            onClick={() => setActiveList(slugTitle)}
-        >
+        <div className="movie-section" onClick={() => setActiveList(slugTitle)}>
             <MovieList
                 clearVisibleContentCard={activeList !== slugTitle}
                 title={title}

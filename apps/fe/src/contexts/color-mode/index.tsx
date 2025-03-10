@@ -59,7 +59,6 @@ export const ColorModeContextProvider: React.FC<
                     algorithm: mode === 'dark' ? darkAlgorithm : defaultAlgorithm,
                     token: {
                         ...RefineThemes.Purple.token,
-                        colorBgBase: 'rgba(17 19 25)',
                         fontFamily: customFont.style.fontFamily,
                     },
                     cssVar: true,

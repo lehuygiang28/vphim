@@ -1,16 +1,302 @@
 .swiper-pagination-bullet {
-    height: 0.3rem;
-    width: 0.3rem;
-    background-color: rgb(243 244 246);
+    height: 0.5rem;
+    width: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.5);
     border-radius: 9999px;
-    --tw-bg-opacity: 1;
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 500ms;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.5;
 }
 
 .swiper-pagination-bullet-active {
-    height: 0.3rem;
-    width: 1.3rem;
-    background-color: rgb(243 244 246 / var(--tw-bg-opacity));
+    height: 0.5rem;
+    width: 2rem;
+    background-color: #e50914;
+    opacity: 1;
+}
+
+.hero-swiper {
+    width: 100%;
+    height: 100%;
+}
+
+.swiper-pagination {
+    bottom: 2rem !important;
+}
+
+.movie-title {
+    transition: all 0.5s ease;
+    transform: translateY(0);
+}
+
+.swiper-slide-active .movie-title {
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+.hero-text-content {
+    opacity: 0;
+}
+
+.swiper-slide-active .hero-text-content {
+    animation: fadeIn 1s ease 0.2s forwards;
+}
+
+.poster-container {
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background: transparent;
+}
+
+.poster-wrapper {
+    transform: scale(0.95) translateX(2rem);
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.swiper-slide-active .poster-wrapper {
+    animation: slideInRight 0.8s ease 0.3s forwards;
+}
+
+.movie-badges {
+    opacity: 0;
+}
+
+.swiper-slide-active .movie-badges {
+    animation: fadeIn 0.8s ease 0.5s forwards;
+}
+
+.category-tag {
+    background-color: rgba(61, 112, 178, 0.6);
+    border: none;
+    backdrop-filter: blur(5px);
+}
+
+.year-tag,
+.view-tag {
+    background-color: rgba(255, 255, 255, 0.15);
+    border: none;
+    backdrop-filter: blur(5px);
+}
+
+.watch-button {
+    background: linear-gradient(45deg, #e50914, #ff3e3e);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.watch-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 14px rgba(229, 9, 20, 0.3);
+}
+
+.info-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    backdrop-filter: blur(5px);
+}
+
+.info-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+/* Mobile Hero Content Styles */
+.mobile-hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: 100%;
+    padding-top: 2rem;
+}
+
+.mobile-poster-wrapper {
+    position: relative;
+    width: 70%;
+    max-width: 250px;
+    margin: 0 auto;
+    transform: scale(0.95);
+    opacity: 0;
+}
+
+.swiper-slide-active .mobile-poster-wrapper {
+    animation: scaleIn 0.8s ease forwards;
+}
+
+.quality-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+
+.mobile-movie-info {
+    width: 100%;
+    margin-top: 1.5rem;
+    text-align: center;
+    opacity: 0;
+}
+
+.swiper-slide-active .mobile-movie-info {
+    animation: fadeInUp 0.8s ease 0.3s forwards;
+}
+
+.movie-ratings {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    margin: 0.7rem 0;
+    flex-wrap: wrap;
+}
+
+.mobile-meta {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.7rem 0;
+}
+
+.categories-wrapper {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.7rem 0 1.2rem;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.full-width {
+    width: 100%;
+}
+
+/* Enhanced Navigation Controls */
+.hero-swiper .swiper-button-prev,
+.hero-swiper .swiper-button-next {
+    color: white;
+    width: 60px;
+    height: 60px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    transform: translateY(-50%);
+}
+
+.hero-swiper:hover .swiper-button-prev,
+.hero-swiper:hover .swiper-button-next {
+    opacity: 0.8;
+}
+
+.hero-swiper .swiper-button-prev:hover,
+.hero-swiper .swiper-button-next:hover {
+    opacity: 1;
+    background-color: rgba(229, 9, 20, 0.8);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.hero-swiper .swiper-button-prev:after,
+.hero-swiper .swiper-button-next:after {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.hero-swiper .swiper-button-prev {
+    left: 20px;
+}
+
+.hero-swiper .swiper-button-next {
+    right: 20px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateX(5rem);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    .swiper-pagination-bullet {
+        height: 0.3rem;
+        width: 0.3rem;
+    }
+
+    .swiper-pagination-bullet-active {
+        height: 0.3rem;
+        width: 1.5rem;
+    }
+
+    .hero-swiper .swiper-button-prev,
+    .hero-swiper .swiper-button-next {
+        width: 45px;
+        height: 45px;
+    }
+
+    .hero-swiper .swiper-button-prev:after,
+    .hero-swiper .swiper-button-next:after {
+        font-size: 18px;
+    }
+
+    .watch-button,
+    .info-button {
+        font-size: 0.9rem;
+        padding: 0 15px;
+        height: 40px;
+    }
+
+    .posterImage {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
 }
