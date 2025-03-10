@@ -4,14 +4,14 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { HttpModule } from '@nestjs/axios';
 
 import { RedisModule } from 'apps/api/src/libs/modules/redis';
+import { TmdbModule } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.module';
 
 import { KKPhimCrawler, OphimCrawler } from './sources';
 import { ActorModule } from '../actors';
 import { CategoryModule } from '../categories';
 import { DirectorModule } from '../directors';
 import { RegionsModule } from '../regions';
-import { TmdbModule } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.module';
-
+import { CrawlController } from './crawler.controller';
 @Module({
     imports: [
         ConfigModule.forRoot(),
@@ -24,6 +24,7 @@ import { TmdbModule } from 'apps/api/src/libs/modules/themoviedb.org/tmdb.module
         RegionsModule,
         TmdbModule,
     ],
+    controllers: [CrawlController],
     providers: [OphimCrawler, KKPhimCrawler],
 })
 export class MovieCrawlerModule {}
