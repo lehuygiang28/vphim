@@ -260,76 +260,79 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 <>
                     <div
                         ref={videoContainerRef}
+                        className="video-container"
                         style={{
                             position: 'relative',
-                            width: '90vw',
+                            width: '100%',
                             maxWidth: '1600px',
                             margin: '0 auto',
-                            paddingTop: 'calc(85vw * 9 / 16)', // This creates the 16:9 aspect ratio
+                            // Use aspect-ratio CSS property for better responsiveness
+                            aspectRatio: '16/9',
+                            backgroundColor: '#000',
+                            overflow: 'hidden',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
                         }}
                     >
-                        <div
-                            style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                maxHeight: md ? '90vh' : '25vh',
-                                overflow: 'hidden',
-                            }}
-                        >
-                            {selectedEpisode && (
-                                <iframe
-                                    id="video-player"
-                                    width="100%"
-                                    height="100%"
-                                    src={
-                                        !isM3u8Available || useEmbedLink
-                                            ? selectedEpisode.linkEmbed
-                                            : `${host}/player/${encodeURIComponent(
-                                                  selectedEpisode.linkM3u8,
-                                              )}?movieSlug=${encodeURIComponent(
-                                                  movie?.slug,
-                                              )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
-                                    }
-                                    title={movie?.name}
-                                    allowFullScreen
-                                    style={{
-                                        border: 'none',
-                                        maxWidth: '100%',
-                                        maxHeight: '100%',
-                                        objectFit: 'contain',
-                                    }}
-                                    onError={handleVideoError}
-                                />
-                            )}
-                        </div>
+                        {selectedEpisode && (
+                            <iframe
+                                id="video-player"
+                                width="100%"
+                                height="100%"
+                                src={
+                                    !isM3u8Available || useEmbedLink
+                                        ? selectedEpisode.linkEmbed
+                                        : `${host}/player/${encodeURIComponent(
+                                              selectedEpisode.linkM3u8,
+                                          )}?movieSlug=${encodeURIComponent(
+                                              movie?.slug,
+                                          )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
+                                }
+                                title={movie?.name || 'Movie Player'}
+                                allowFullScreen
+                                allow="autoplay; fullscreen; picture-in-picture"
+                                style={{
+                                    border: 'none',
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'block',
+                                }}
+                                onError={handleVideoError}
+                            />
+                        )}
                     </div>
                     <Space
                         ref={controlsRef}
                         style={{
+                            width: '100%',
+                            maxWidth: '1600px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            padding: '12px 0',
                             backgroundColor: 'transparent',
-                            borderRadius: 8,
-                            marginTop: md ? '0.5rem' : '1rem',
+                            marginTop: '12px',
                         }}
                     >
                         <Button
                             icon={<StepBackwardOutlined />}
                             onClick={() => goToAdjacentEpisode('prev')}
                             disabled={!hasPrevEpisode}
+                            size={md ? 'middle' : 'small'}
                         >
-                            {md && 'Tập trước đó'}
+                            {md && 'Tập trước'}
                         </Button>
-                        {md && (
-                            <Button icon={<ExpandAltOutlined />} onClick={fitToScreen}>
-                                Đang phát
-                            </Button>
-                        )}
+                        <Button
+                            icon={<ExpandAltOutlined />}
+                            onClick={fitToScreen}
+                            size={md ? 'middle' : 'small'}
+                        >
+                            {md ? 'Phóng to' : ''}
+                        </Button>
                         <Button
                             icon={<StepForwardOutlined />}
                             onClick={() => goToAdjacentEpisode('next')}
                             disabled={!hasNextEpisode}
+                            size={md ? 'middle' : 'small'}
                         >
                             {md && 'Tập tiếp theo'}
                         </Button>

@@ -14,6 +14,8 @@ import {
     ChapterTitle,
     Track,
     SeekButton,
+    useMediaState,
+    type MediaViewType,
 } from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { SeekForward10Icon, SeekBackward10Icon } from '@vidstack/react/icons';
@@ -39,6 +41,7 @@ export type PlayerPageProps = {
     };
 };
 
+// Improved container style for better iframe integration
 const containerStyle: CSSProperties = {
     width: '100%',
     height: '100vh',
@@ -47,19 +50,60 @@ const containerStyle: CSSProperties = {
     alignItems: 'center',
     background: 'black',
     overflow: 'hidden',
-    borderRadius: 0,
+    margin: 0,
+    padding: 0,
 };
 
+// Adaptive player style that works better with various aspect ratios
 const playerStyle: CSSProperties = {
     width: '100%',
     height: '100%',
-    maxWidth: '1920px',
-    maxHeight: '1080px',
-    aspectRatio: '16 / 9',
     background: 'black',
     border: 'none',
-    borderRadius: 0,
+    objectFit: 'contain',
+    margin: 0,
+    padding: 0,
 };
+
+// Custom styles to inject for better UI in iframe context
+const customPlayerCss = `
+.vds-video-layout {
+    --video-border-radius: 0;
+    --media-border-radius: 0;
+}
+
+.vds-video-layout[data-view-type="video"] {
+    --video-fit: contain;
+}
+
+.media-player {
+    --media-background: #000;
+    --media-brand: #E50914; /* Netflix red from your theme */
+}
+
+/* Improve control visibility */
+.vds-controls {
+    --control-bg: rgba(0, 0, 0, 0.7);
+    --control-bg-hover: rgba(0, 0, 0, 0.8);
+}
+
+/* Handle different aspect ratios better */
+video {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+}
+
+.vds-time-slider {
+    --slider-track-height: 4px;
+    --slider-thumb-size: 16px;
+}
+
+/* Make sure UI elements don't overflow */
+.vds-time-group, .vds-volume-group {
+    font-size: 14px;
+}
+`;
 
 const MIN_WATCH_TIME = 60; // Minimum watch time in seconds
 const MIN_WATCH_PERCENTAGE = 10; // Minimum watch percentage
@@ -84,6 +128,102 @@ const getStorageKey = (host: string, searchParams: { movieSlug: string; ep?: str
     return `vephim-lastTime-${episodeUrl}`;
 };
 
+// Player wrapper component to manage player state
+function PlayerWrapper({
+    src,
+    player,
+    searchParams,
+    translations,
+}: {
+    src: string;
+    player: React.RefObject<MediaPlayerInstance>;
+    searchParams: PlayerPageProps['searchParams'];
+    translations: Record<string, string>;
+}) {
+    const { host } = useCurrentUrl();
+    const viewType = useMediaState('viewType', player) as MediaViewType;
+
+    return (
+        <MediaPlayer
+            ref={player}
+            src={src}
+            playsInline
+            style={{
+                width: '100%',
+                height: '100%',
+                background: 'black',
+                border: 'none',
+                margin: 0,
+                padding: 0,
+            }}
+            crossOrigin="anonymous"
+            storage={'vephim-player-storage'}
+            keyTarget="player"
+            // Automatically adapt to content instead of fixed aspect ratio
+            data-view-type={viewType}
+        >
+            <style>{customPlayerCss}</style>
+            <MediaProvider>
+                <Track
+                    kind="subtitles"
+                    src="/data/mttq.json"
+                    type={'json'}
+                    default={true}
+                    label="MTTQ"
+                />
+            </MediaProvider>
+            <DefaultVideoLayout
+                icons={defaultLayoutIcons}
+                translations={translations}
+                slots={{
+                    largeLayout: {
+                        afterPlayButton: (
+                            <>
+                                <SeekButton className="vds-button" seconds={-10}>
+                                    <SeekBackward10Icon className="vds-icon" />
+                                </SeekButton>
+                                <SeekButton className="vds-button" seconds={10}>
+                                    <SeekForward10Icon className="vds-icon" />
+                                </SeekButton>
+                            </>
+                        ),
+                    },
+                    chapterTitle: (
+                        <ChapterTitle className="vds-chapter-title">
+                            <Link
+                                href={
+                                    searchParams?.movieSlug
+                                        ? [
+                                              removeLeadingTrailingSlashes(host),
+                                              removeLeadingTrailingSlashes(
+                                                  RouteNameEnum.MOVIE_PAGE,
+                                              ),
+                                              encodeURIComponent(searchParams?.movieSlug),
+                                              encodeURIComponent(searchParams?.ep),
+                                          ].join('/')
+                                        : `${host}/${RouteNameEnum.MOVIE_LIST_PAGE}`
+                                }
+                                target="_blank"
+                            >
+                                <Image
+                                    src="/assets/images/logo-mini.png"
+                                    alt="vphim Logo"
+                                    width={50}
+                                    height={15}
+                                    priority
+                                />
+                            </Link>
+                        </ChapterTitle>
+                    ),
+                    // Remove unnecessary buttons
+                    googleCastButton: <></>,
+                    airPlayButton: <></>,
+                }}
+            />
+        </MediaPlayer>
+    );
+}
+
 export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const { host } = useCurrentUrl();
     const player = useRef<MediaPlayerInstance>(null);
@@ -92,6 +232,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const lastTimeRef = useRef(0);
     const [showResumeModal, setShowResumeModal] = useState(false);
     const [savedTime, setSavedTime] = useState(0);
+    const [loadError, setLoadError] = useState(false);
 
     const { mutate: updateView } = useUpdate({
         errorNotification: false,
@@ -140,12 +281,25 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         const saveCurrentTime = () => {
             if (player.current) {
                 const { currentTime } = player.current.state;
-                localStorage.setItem(
-                    getStorageKey(host, { movieSlug: searchParams.movieSlug, ep: searchParams.ep }),
-                    currentTime.toString(),
-                );
+                if (currentTime > 0) {
+                    localStorage.setItem(
+                        getStorageKey(host, {
+                            movieSlug: searchParams.movieSlug,
+                            ep: searchParams.ep,
+                        }),
+                        currentTime.toString(),
+                    );
+                }
             }
         };
+
+        // Error handling for player
+        const onPlayerError = () => {
+            setLoadError(true);
+            console.error('Media playback error');
+        };
+
+        player.current.addEventListener('error', onPlayerError);
 
         // Subscribe to state updates without triggering renders
         const unsubscribe = player.current.subscribe(({ paused, seeking }) => {
@@ -162,6 +316,9 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
             unsubscribe();
             clearInterval(intervalId);
             clearInterval(saveIntervalId);
+            if (player.current) {
+                player.current.removeEventListener('error', onPlayerError);
+            }
         };
     }, [updateView, viewUpdated, searchParams.movieSlug, searchParams.ep, host]);
 
@@ -171,8 +328,11 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         );
         if (lastTime) {
             const parsedTime = parseFloat(lastTime);
-            setSavedTime(parsedTime);
-            setShowResumeModal(true);
+            if (parsedTime > 5) {
+                // Only show resume modal if previous position is > 5 seconds
+                setSavedTime(parsedTime);
+                setShowResumeModal(true);
+            }
         }
     }, [searchParams.movieSlug, searchParams.ep, host]);
 
@@ -184,79 +344,21 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
             player.current.currentTime = savedTime;
         }
         setShowResumeModal(false);
-        player.current.play();
+        player.current.play().catch((err) => {
+            console.error('Autoplay failed:', err);
+        });
     };
 
     return (
         <Layout style={containerStyle}>
-            <Content>
-                <MediaPlayer
-                    ref={player}
+            <Content style={{ width: '100%', height: '100%', padding: 0 }}>
+                <PlayerWrapper
                     src={decodeURIComponent(params.m3u8)}
-                    playsInline
-                    style={{ ...playerStyle }}
-                    aspectRatio="16/9"
-                    storage={'vephim-player-storage'}
-                >
-                    <MediaProvider>
-                        <Track
-                            kind="subtitles"
-                            src="/data/mttq.json"
-                            type={'json'}
-                            default={true}
-                            label="MTTQ"
-                        />
-                    </MediaProvider>
-                    <DefaultVideoLayout
-                        icons={defaultLayoutIcons}
-                        translations={
-                            searchParams?.lang === 'en' ? undefined : vietnameseLayoutTranslations
-                        }
-                        slots={{
-                            largeLayout: {
-                                afterPlayButton: (
-                                    <>
-                                        <SeekButton className="vds-button" seconds={-10}>
-                                            <SeekBackward10Icon className="vds-icon" />
-                                        </SeekButton>
-                                        <SeekButton className="vds-button" seconds={10}>
-                                            <SeekForward10Icon className="vds-icon" />
-                                        </SeekButton>
-                                    </>
-                                ),
-                            },
-                            chapterTitle: (
-                                <ChapterTitle className="vds-chapter-title">
-                                    <Link
-                                        href={
-                                            searchParams?.movieSlug
-                                                ? [
-                                                      removeLeadingTrailingSlashes(host),
-                                                      removeLeadingTrailingSlashes(
-                                                          RouteNameEnum.MOVIE_PAGE,
-                                                      ),
-                                                      encodeURIComponent(searchParams?.movieSlug),
-                                                      encodeURIComponent(searchParams?.ep),
-                                                  ].join('/')
-                                                : `${host}/${RouteNameEnum.MOVIE_LIST_PAGE}`
-                                        }
-                                        target="_blank"
-                                    >
-                                        <Image
-                                            src="/assets/images/logo-mini.png"
-                                            alt="vphim Logo"
-                                            width={50}
-                                            height={15}
-                                            priority
-                                        />
-                                    </Link>
-                                </ChapterTitle>
-                            ),
-                            googleCastButton: <></>,
-                            airPlayButton: <></>,
-                        }}
-                    />
-                </MediaPlayer>
+                    player={player}
+                    searchParams={searchParams}
+                    translations={searchParams?.lang === 'en' ? {} : vietnameseLayoutTranslations}
+                />
+
                 <Modal
                     title="Tiếp tục phát?"
                     open={showResumeModal}
@@ -264,10 +366,14 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                     footer={null}
                     closable={false}
                     centered
+                    styles={{
+                        mask: { background: 'rgba(0, 0, 0, 0.8)' },
+                        content: { background: '#1A1A1A', borderRadius: '8px' },
+                    }}
                 >
                     <p>
                         Bạn đã xem tới {formatTime(savedTime)}. Bạn muốn xem tiếp hay quay lại từ
-                        đầu ?
+                        đầu?
                     </p>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
                         <Button
