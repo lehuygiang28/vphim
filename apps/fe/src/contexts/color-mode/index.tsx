@@ -3,6 +3,7 @@
 import { customFont } from '@/fonts';
 import { App as AntdApp, ConfigProvider, theme } from 'antd';
 import type { ThemeConfig } from 'antd';
+import { AliasToken } from 'antd/es/theme/internal';
 import Cookies from 'js-cookie';
 import React, { createContext, useEffect, useState, type PropsWithChildren } from 'react';
 
@@ -18,7 +19,7 @@ type ColorModeContextProviderProps = {
 };
 
 // Netflix-inspired theme tokens
-const netflixTheme = {
+const netflixTheme: { dark: Partial<AliasToken>; light: Partial<AliasToken> } = {
     // Base tokens
     dark: {
         colorPrimary: '#E50914', // Netflix red
