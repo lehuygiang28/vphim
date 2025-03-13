@@ -3,7 +3,7 @@
 import './layout.css';
 
 import { PropsWithChildren } from 'react';
-import { Layout, Grid } from 'antd';
+import { Layout } from 'antd';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -16,7 +16,6 @@ import { RouteNameEnum } from '@/constants/route.constant';
 import { stringifyTableParams } from '@/libs/utils/url.util';
 
 const { Content } = Layout;
-const { useBreakpoint } = Grid;
 
 export type LayoutComponentProps = PropsWithChildren & {
     categories?: CategoryType[];
@@ -24,8 +23,6 @@ export type LayoutComponentProps = PropsWithChildren & {
 };
 
 export function LayoutComponent({ children, categories, regions }: LayoutComponentProps) {
-    const { md } = useBreakpoint();
-
     return (
         <Layout
             className="layout-transition"
@@ -74,7 +71,7 @@ export function LayoutComponent({ children, categories, regions }: LayoutCompone
                 {children}
             </Content>
 
-            <div className="layout-transition" style={{ marginTop: md ? '3rem' : '1.5rem' }}>
+            <div className="footer-margin layout-transition">
                 <Footer categories={categories} regions={regions} />
             </div>
         </Layout>

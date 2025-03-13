@@ -34,7 +34,7 @@
 }
 
 .netflix-header.scrolled {
-    background-color: var(--vphim-colorBgBase);
+    background-color: var(--vphim-color-bg-base, #141414);
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
     height: 60px;
     backdrop-filter: blur(10px);
@@ -57,7 +57,7 @@
 .netflix-menu.ant-menu {
     background: transparent;
     border: none;
-    color: var(--vphim-colorText);
+    color: var(--vphim-color-text, rgba(255, 255, 255, 0.95));
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -80,33 +80,33 @@
 
 .netflix-menu.ant-menu-horizontal .ant-menu-item:hover,
 .netflix-menu.ant-menu-horizontal .ant-menu-submenu:hover {
-    color: var(--vphim-colorPrimary);
+    color: var(--vphim-color-primary, #e50914);
 }
 
 .netflix-menu.ant-menu-horizontal .ant-menu-item-selected {
-    color: var(--vphim-colorPrimary);
+    color: var(--vphim-color-primary, #e50914);
     font-weight: 600;
 }
 
 /* Drawer styles */
 .netflix-drawer .ant-drawer-content {
-    background-color: var(--vphim-colorBgBase);
+    background-color: var(--vphim-color-bg-base, #141414);
 }
 
 .netflix-drawer .ant-drawer-header {
-    background-color: var(--vphim-colorBgBase);
-    border-bottom: 1px solid var(--vphim-colorBorderSecondary);
+    background-color: var(--vphim-color-bg-base, #141414);
+    border-bottom: 1px solid var(--vphim-color-border-secondary, rgba(255, 255, 255, 0.06));
 }
 
 .netflix-drawer .ant-drawer-title {
-    color: var(--vphim-colorText);
+    color: var(--vphim-color-text, rgba(255, 255, 255, 0.95));
 }
 
 /* Mobile menu button */
 .netflix-mobile-menu-btn {
     background: transparent;
     border: none;
-    color: var(--vphim-colorText);
+    color: var(--vphim-color-text, rgba(255, 255, 255, 0.95));
     font-size: 24px;
     padding: 8px;
     border-radius: 50%;

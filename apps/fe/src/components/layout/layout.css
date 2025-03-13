@@ -1,8 +1,24 @@
 /* Netflix-inspired layout styles */
 
+/* Global spacing variables */
+:root {
+    --layout-container-margin-desktop: 3rem;
+    --layout-container-margin-mobile: 0.7rem;
+    --layout-padding-vertical: 2rem;
+    --layout-margin-top: 3rem;
+    --layout-margin-top-mobile: 1.5rem;
+    --layout-content-padding-top: 80px;
+    --layout-content-padding-top-mobile: 60px;
+    --vphim-color-bg-base: #141414;
+}
+
 /* Smooth scrolling for page */
 html {
     scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--vphim-color-bg-base);
 }
 
 /* Transition effect for all links */
@@ -12,12 +28,29 @@ a {
 
 /* Global content spacing for fixed header - applied to all layouts */
 .ant-layout-content {
-    padding-top: 80px; /* Default padding for all content */
+    padding-top: var(--layout-content-padding-top); /* Default padding for all content */
+    background-color: var(--vphim-color-bg-base, #141414); /* Fallback to dark color */
+}
+
+/* Layout container with consistent spacing */
+.layout-space-container {
+    margin-left: var(--layout-container-margin-desktop);
+    margin-right: var(--layout-container-margin-desktop);
+    padding-bottom: var(--layout-padding-vertical);
+    position: relative;
+    z-index: 1;
+    background-color: var(--vphim-color-bg-base, #141414); /* Fallback to dark color */
 }
 
 /* Main content container */
 .netflix-content {
     transition: padding-top 0.3s ease;
+    background-color: var(--vphim-color-bg-base, #141414); /* Fallback to dark color */
+}
+
+/* Ensure consistent background color */
+.ant-layout {
+    background-color: var(--vphim-color-bg-base, #141414) !important; /* Fallback to dark color */
 }
 
 /* Special class for layouts without the fixed header */
@@ -69,12 +102,12 @@ a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--vphim-colorPrimary);
+    background: var(--vphim-color-primary, #e50914);
 }
 
 /* Focus styles for accessibility */
 :focus-visible {
-    outline: 2px solid var(--vphim-colorPrimary);
+    outline: 2px solid var(--vphim-color-primary, #e50914);
     outline-offset: 2px;
 }
 
@@ -83,19 +116,33 @@ a {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Footer margin adjustment */
+.footer-margin {
+    margin-top: var(--layout-margin-top);
+}
+
 /* Media queries for responsive adjustments */
 @media (max-width: 768px) {
     .ant-layout-content {
-        padding-top: 60px;
+        padding-top: var(--layout-content-padding-top-mobile);
     }
 
     .netflix-content {
-        padding-top: 60px;
+        padding-top: var(--layout-content-padding-top-mobile);
+    }
+
+    .layout-space-container {
+        margin-left: var(--layout-container-margin-mobile);
+        margin-right: var(--layout-container-margin-mobile);
+    }
+
+    .footer-margin {
+        margin-top: var(--layout-margin-top-mobile);
     }
 }
 
 @media (min-width: 769px) {
     .netflix-content {
-        padding-top: 80px;
+        padding-top: var(--layout-content-padding-top);
     }
 }

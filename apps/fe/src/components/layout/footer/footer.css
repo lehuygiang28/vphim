@@ -1,21 +1,27 @@
 .netflix-footer {
-    background-color: var(--vphim-colorBgBase);
-    padding: 2rem 1rem;
-    color: var(--vphim-colorTextSecondary);
+    background-color: var(--vphim-color-bg-base, #141414);
+    padding: var(--layout-padding-vertical) var(--layout-container-margin-mobile);
+    color: var(--vphim-color-text-secondary, rgba(255, 255, 255, 0.75));
+}
+
+@media (min-width: 769px) {
+    .netflix-footer {
+        padding: var(--layout-padding-vertical) var(--layout-container-margin-desktop);
+    }
 }
 
 .netflix-footer-link {
-    color: var(--vphim-colorTextSecondary);
+    color: var(--vphim-color-text-secondary, rgba(255, 255, 255, 0.75));
     transition: color 0.2s ease;
 }
 
 .netflix-footer-link:hover {
-    color: var(--vphim-colorText);
+    color: var(--vphim-color-text, rgba(255, 255, 255, 0.95));
     text-decoration: underline;
 }
 
 .netflix-footer-heading {
-    color: var(--vphim-colorText);
+    color: var(--vphim-color-text, rgba(255, 255, 255, 0.95));
     font-weight: 600;
     margin-bottom: 1rem;
 }
@@ -40,18 +46,17 @@
 
 .footer-social-icon {
     font-size: 1.5rem;
-    color: var(--vphim-colorTextSecondary);
+    color: var(--vphim-color-text-secondary, rgba(255, 255, 255, 0.75));
     transition: color 0.2s ease;
 }
 
 .footer-social-icon:hover {
-    color: var(--vphim-colorPrimary);
+    color: var(--vphim-color-primary, #e50914);
 }
 
 .netflix-footer-bottom {
     margin-top: 2rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--vphim-colorBorderSecondary);
     text-align: center;
     font-size: 0.875rem;
 }

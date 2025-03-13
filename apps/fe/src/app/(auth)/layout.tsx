@@ -4,6 +4,7 @@ import { PropsWithChildren } from 'react';
 import { useIsAuthenticated } from '@refinedev/core';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import '@/components/layout/layout.css';
 
 export default function RequiredAuthLayout({ children }: PropsWithChildren) {
     const router = useRouter();
@@ -18,5 +19,5 @@ export default function RequiredAuthLayout({ children }: PropsWithChildren) {
         return router.replace('/');
     }
 
-    return <>{children}</>;
+    return <div className="layout-space-container">{children}</div>;
 }

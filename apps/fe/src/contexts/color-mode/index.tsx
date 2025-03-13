@@ -19,6 +19,8 @@ type ColorModeContextProviderProps = {
 };
 
 // Netflix-inspired theme tokens
+// Note: These camelCase properties (e.g., colorBgBase) will be automatically converted to
+// kebab-case CSS variables by Ant Design (e.g., --vphim-color-bg-base)
 const netflixTheme: { dark: Partial<AliasToken>; light: Partial<AliasToken> } = {
     // Base tokens
     dark: {
@@ -121,8 +123,53 @@ export const ColorModeContextProvider: React.FC<
         if (isMounted) {
             const theme = Cookies.get('theme') || 'dark';
             setMode(theme);
+
+            // Manually apply theme class to body for additional styling options
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+                document.body.classList.remove('light-theme');
+                document.documentElement.style.backgroundColor = '#141414';
+                document.body.style.backgroundColor = '#141414';
+
+                // Set CSS variables directly to ensure consistent styling
+                document.documentElement.style.setProperty('--vphim-color-bg-base', '#141414');
+                document.documentElement.style.setProperty(
+                    '--vphim-color-text',
+                    'rgba(255, 255, 255, 0.95)',
+                );
+                document.documentElement.style.setProperty(
+                    '--vphim-color-text-secondary',
+                    'rgba(255, 255, 255, 0.75)',
+                );
+                document.documentElement.style.setProperty('--vphim-color-primary', '#E50914');
+                document.documentElement.style.setProperty(
+                    '--vphim-color-border-secondary',
+                    'rgba(255, 255, 255, 0.06)',
+                );
+            } else {
+                document.body.classList.add('light-theme');
+                document.body.classList.remove('dark-theme');
+                document.documentElement.style.backgroundColor = '#FFFFFF';
+                document.body.style.backgroundColor = '#FFFFFF';
+
+                // Set CSS variables directly to ensure consistent styling
+                document.documentElement.style.setProperty('--vphim-color-bg-base', '#FFFFFF');
+                document.documentElement.style.setProperty(
+                    '--vphim-color-text',
+                    'rgba(0, 0, 0, 0.88)',
+                );
+                document.documentElement.style.setProperty(
+                    '--vphim-color-text-secondary',
+                    'rgba(0, 0, 0, 0.65)',
+                );
+                document.documentElement.style.setProperty('--vphim-color-primary', '#E50914');
+                document.documentElement.style.setProperty(
+                    '--vphim-color-border-secondary',
+                    '#F0F0F0',
+                );
+            }
         }
-    }, [isMounted]);
+    }, [isMounted, mode]);
 
     const setColorMode = () => {
         if (mode === 'light') {
@@ -197,6 +244,12 @@ export const ColorModeContextProvider: React.FC<
                 itemSelectedColor: '#E50914',
                 itemHoverColor: 'rgba(229, 9, 20, 0.8)',
                 inkBarColor: '#E50914',
+            },
+            Layout: {
+                bodyBg: mode === 'dark' ? '#141414' : '#FFFFFF',
+                headerBg: mode === 'dark' ? '#141414' : '#FFFFFF',
+                siderBg: mode === 'dark' ? '#141414' : '#FFFFFF',
+                footerBg: mode === 'dark' ? '#141414' : '#FFFFFF',
             },
         },
         cssVar: {

@@ -4,7 +4,7 @@ import { PropsWithChildren } from 'react';
 import { useIsAuthenticated } from '@refinedev/core';
 import { useRouter } from 'next/navigation';
 import { Layout } from 'antd';
-import '@/components/layout/layout.css'; // Import global layout CSS
+import '@/components/layout/layout.css';
 
 const { Content } = Layout;
 
@@ -22,7 +22,9 @@ export default function NoAuthLayout({ children }: PropsWithChildren) {
 
     return (
         <Layout className="auth-layout">
-            <Content>{children}</Content>
+            <Content>
+                <div className="layout-space-container">{children}</div>
+            </Content>
         </Layout>
     );
 }

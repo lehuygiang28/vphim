@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Layout, Row, Col, Typography, Grid, Divider, FloatButton } from 'antd';
+import { Layout, Row, Col, Typography, Divider, FloatButton } from 'antd';
 import { stringifyTableParams } from '@refinedev/core';
 import './footer.css';
 
@@ -12,7 +12,6 @@ import { RouteNameEnum } from '@/constants/route.constant';
 
 const { Footer } = Layout;
 const { Title, Text } = Typography;
-const { useBreakpoint } = Grid;
 const { BackTop } = FloatButton;
 
 const helperLinks = [
@@ -27,9 +26,7 @@ export type FooterComponentProps = {
     regions?: Region[];
 };
 
-export default function Component({ categories = [], regions = [] }: FooterComponentProps) {
-    const screens = useBreakpoint();
-
+export default function FooterComponent({ categories = [], regions = [] }: FooterComponentProps) {
     return (
         <>
             <BackTop />

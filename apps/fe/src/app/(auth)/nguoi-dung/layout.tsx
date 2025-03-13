@@ -12,7 +12,7 @@ export default function UserPageLayout({ children }: PropsWithChildren) {
                 alignItems: 'center',
             }}
         >
-            {children}
+            <div className="layout-space-container">{children}</div>
         </Layout>
     );
 }

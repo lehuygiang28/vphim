@@ -4,6 +4,7 @@
 body {
     padding-top: 0; /* Content padding is handled by layout classes */
     margin: 0;
+    background-color: var(--vphim-color-bg-base, #141414);
 }
 
 /* Main container styles */
@@ -42,4 +43,53 @@ body {
 /* Prevent content from being hidden under header */
 .ant-layout-content {
     min-height: calc(100vh - 80px);
+}
+
+/* Global styles */
+
+:root {
+    --background-dark: #141414;
+    --background-light: #ffffff;
+}
+
+/* Ensure all major elements have the correct background */
+html,
+body,
+.ant-layout,
+.ant-layout-content,
+.ant-layout-header,
+.ant-layout-footer {
+    background-color: var(--vphim-color-bg-base, #141414) !important;
+    transition: background-color 0.3s ease;
+}
+
+.dark-theme html,
+.dark-theme body,
+.dark-theme .ant-layout,
+.dark-theme .ant-layout-content,
+.dark-theme .ant-layout-header,
+.dark-theme .ant-layout-footer {
+    background-color: var(--vphim-color-bg-base, #141414) !important;
+}
+
+.light-theme html,
+.light-theme body,
+.light-theme .ant-layout,
+.light-theme .ant-layout-content,
+.light-theme .ant-layout-header,
+.light-theme .ant-layout-footer {
+    background-color: var(--vphim-color-bg-base, #ffffff) !important;
+}
+
+/* Force layout container background color */
+.layout-space-container {
+    background-color: var(--vphim-color-bg-base, #141414) !important;
+}
+
+.dark-theme .layout-space-container {
+    background-color: var(--vphim-color-bg-base, #141414) !important;
+}
+
+.light-theme .layout-space-container {
+    background-color: var(--vphim-color-bg-base, #ffffff) !important;
 }
