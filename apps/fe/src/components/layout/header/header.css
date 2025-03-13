@@ -11,12 +11,19 @@
     right: 0;
     width: 100%;
     z-index: 1000;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Optimize transitions for performance */
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease,
+        box-shadow 0.3s ease, height 0.3s ease;
     padding: 0 24px;
     height: 70px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    /* Improve GPU acceleration */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
 .netflix-header.transparent {
@@ -154,8 +161,25 @@
     animation: fadeIn 0.5s ease forwards;
 }
 
-/* Hidden header state */
+/* Hidden header state - optimize for performance */
 .netflix-header.header-hidden {
-    transform: translateY(-100%) !important;
+    transform: translateY(-105%) !important;
     box-shadow: none;
+    /* Only transition transform for better performance */
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none; /* Prevent interaction when hidden */
+}
+
+/* Add a non-fixed mode for better performance during scrolling */
+.netflix-header.position-absolute {
+    position: absolute;
+    transform: translateY(-105%);
+    transition: none;
+}
+
+/* Optimize for the scrolling state - completely hide when scrolling */
+.netflix-header.during-scroll {
+    transform: translateY(-105%) !important;
+    transition: transform 0.1s ease !important;
+    pointer-events: none;
 }

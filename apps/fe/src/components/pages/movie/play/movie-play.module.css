@@ -1,0 +1,150 @@
+.videoContainer {
+    position: relative;
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    aspect-ratio: 16/9;
+    background-color: #000;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    /* Add GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    /* Ensure smooth animations */
+    transition: all 0.3s ease;
+    z-index: 1; /* Ensure player is above the overlay */
+}
+
+.videoContainer iframe {
+    border: none;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Add top padding when header is hidden to prevent video from being too high */
+.videoContainerPadding {
+    padding-top: 15px;
+    margin-top: 15px; /* Add margin to compensate for removed header */
+    transition: padding-top 0.3s ease, margin-top 0.3s ease;
+}
+
+/* For mobile, ensure there's content spacing at the top */
+@media (max-width: 768px) {
+    .videoContainerPadding {
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+}
+
+/* Container with extra top margin to fill the space of the hidden header */
+.containerWithHeaderSpace {
+    margin-top: 70px; /* Match the header height */
+    transition: margin-top 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .containerWithHeaderSpace {
+        margin-top: 60px; /* Match the mobile header height */
+    }
+}
+
+/* Controls styling */
+.controls {
+    width: 100%;
+    max-width: 1600px;
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+    background-color: transparent;
+    margin-top: 12px;
+}
+
+/* Media query for better mobile experience */
+@media (max-width: 768px) {
+    .videoContainer {
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
+
+/* Lights off overlay */
+.lightsOffOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1;
+    transition: opacity 0.3s ease;
+    pointer-events: auto;
+}
+
+/* Container styles during lights off mode */
+.lightsOff .videoContainer {
+    z-index: 2;
+    transform: scale(1.03);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+/* Controls styling when lights are off */
+.lightsOff .controls {
+    z-index: 2;
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 15px 0;
+    border-radius: 0 0 8px 8px;
+    margin-top: 0;
+}
+
+/* Toggle button for lights on/off */
+.lightsToggleButton {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.lightsToggleButton:hover {
+    background-color: rgba(30, 30, 30, 0.9);
+}
+
+/* Media query for better mobile experience */
+@media (max-width: 768px) {
+    .lightsOff .videoContainer {
+        transform: scale(1);
+        border-radius: 0;
+        max-width: 100%;
+    }
+}
+
+/* Add styles to fade out content below the player in lights-off mode */
+.lightsOff .movieContent {
+    opacity: 0.15;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.movieContent {
+    width: 100%;
+    margin-top: 16px;
+    transition: opacity 0.3s ease;
+}
+
+/* When hovering over the content in lights-off mode, make it more visible */
+.lightsOff .movieContent:hover {
+    opacity: 0.4;
+}
+
+/* When lights come back on, restore pointer events */
+.movieContent {
+    pointer-events: auto;
+}

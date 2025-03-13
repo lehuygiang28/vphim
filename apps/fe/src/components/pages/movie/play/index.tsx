@@ -5,14 +5,24 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Typography, Grid, Divider, Button, Space, Alert, Row, Col } from 'antd';
-import { ExpandAltOutlined, StepForwardOutlined, StepBackwardOutlined } from '@ant-design/icons';
+import {
+    StepForwardOutlined,
+    StepBackwardOutlined,
+    BulbOutlined,
+    BulbFilled,
+} from '@ant-design/icons';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
+import { useHeaderVisibilityStore } from '@/hooks/useHeaderVisibility';
+import useHeaderVisibility from '@/hooks/useHeaderVisibility';
 
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
+import styles from './movie-play.module.css';
+
 const MovieComments = dynamic(() => import('../movie-comment'), { ssr: true });
 
 import type {
@@ -27,6 +37,11 @@ const { useBreakpoint } = Grid;
 export type MoviePlayProps = {
     movie: MovieType;
     episodeSlug: string;
+};
+
+// Helper function for smooth animation easing (defined outside the component to break dependency cycles)
+const easeInOutQuad = (t: number) => {
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 };
 
 export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
@@ -44,6 +59,23 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const [error, setError] = useState<string | null>(null);
     const [useEmbedLink, setUseEmbedLink] = useState<boolean>(false);
     const [isM3u8Available, setIsM3u8Available] = useState<boolean>(true);
+    const [isScrolling, setIsScrolling] = useState<boolean>(false);
+    const [isLightsOff, setIsLightsOff] = useState<boolean>(false);
+
+    // Access the header visibility controls from the store
+    const { hideHeader, enableAutoControl, showHeader } = useHeaderVisibilityStore();
+
+    // Access the hook directly for the methods
+    const { setHeaderDuringScroll, setHeaderPositionFixed } = useHeaderVisibility();
+
+    const debouncedSetHeaderDuringScroll = useDebouncedCallback((scrolling: boolean) => {
+        setHeaderDuringScroll(scrolling);
+    }, 20);
+
+    // Use useDebouncedCallback for smoother performance
+    const debouncedSetHeaderPositionFixed = useDebouncedCallback((fixed: boolean) => {
+        setHeaderPositionFixed(fixed);
+    }, 20);
 
     const preFetchM3u8 = useCallback(async (url: string) => {
         try {
@@ -57,6 +89,33 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             setIsM3u8Available(false);
         }
     }, []);
+
+    // Ensure auto control is re-enabled when component unmounts
+    useEffect(() => {
+        // Hide header initially when the video player mounts
+        hideHeader();
+
+        // Set header to absolute positioning for better scrolling performance
+        debouncedSetHeaderPositionFixed(false);
+
+        return () => {
+            // Reset all header states when unmounting
+            enableAutoControl();
+            setHeaderDuringScroll(false);
+            // Set header back to fixed positioning
+            debouncedSetHeaderPositionFixed(true);
+            // Show header after a slight delay to ensure smooth transition
+            setTimeout(() => {
+                showHeader();
+            }, 100);
+        };
+    }, [
+        hideHeader,
+        enableAutoControl,
+        setHeaderDuringScroll,
+        showHeader,
+        debouncedSetHeaderPositionFixed,
+    ]);
 
     const findEpisodeInServer = useCallback(
         (server: EpisodeType, targetSlug: string): EpisodeServerDataType | null => {
@@ -187,41 +246,226 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         );
     };
 
-    const smoothScroll = (element: HTMLElement, to: number, duration: number) => {
-        const start = element.scrollTop;
-        const change = to - start;
-        const increment = 20;
-        let currentTime = 0;
+    // Create a ref to hold the current cancel function for scrolling
+    const currentCancelScrollRef = useRef<(() => void) | undefined>();
 
-        const animateScroll = () => {
-            currentTime += increment;
-            const val = easeInOutQuad(currentTime, start, change, duration);
-            element.scrollTop = val;
-            if (currentTime < duration) {
-                setTimeout(animateScroll, increment);
+    // Define smoothScroll with useCallback to maintain reference stability
+    const smoothScroll = useCallback(
+        (element: HTMLElement, to: number, duration = 300) => {
+            // Prevent multiple scrolling operations at once
+            if (isScrolling) return;
+
+            // Cancel any previous scroll
+            if (currentCancelScrollRef.current) {
+                currentCancelScrollRef.current();
+                currentCancelScrollRef.current = undefined;
+            }
+
+            setIsScrolling(true);
+
+            // Mark that we're in a scrolling state and use absolute positioning
+            debouncedSetHeaderDuringScroll(true);
+            debouncedSetHeaderPositionFixed(false);
+
+            // Track animation frame ID for cleanup
+            let animationFrameId: number | null = null;
+            let timeoutId: number | null = null;
+            // Track if scrolling is cancelled
+            let isCancelled = false;
+
+            // Clean up function to cancel scrolling
+            const cancelScroll = () => {
+                if (animationFrameId !== null) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                if (timeoutId !== null) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                isCancelled = true;
+                setIsScrolling(false);
+                debouncedSetHeaderDuringScroll(false);
+            };
+
+            // Try to detect if this is a high-performance device
+            const isHighPerformanceDevice =
+                !navigator.userAgent.includes('Mobile') && !navigator.userAgent.includes('Android');
+
+            // Use native smooth scrolling on high-performance devices that support it
+            if (isHighPerformanceDevice && 'scrollBehavior' in document.documentElement.style) {
+                try {
+                    window.scrollTo({
+                        top: to,
+                        behavior: 'smooth',
+                    });
+
+                    // Set scrolling complete after duration
+                    timeoutId = window.setTimeout(() => {
+                        if (!isCancelled) {
+                            setIsScrolling(false);
+
+                            // Add a delay before showing header again for better viewing
+                            window.setTimeout(() => {
+                                debouncedSetHeaderDuringScroll(false);
+                                // Set header back to fixed positioning after a delay
+                                setTimeout(() => {
+                                    debouncedSetHeaderPositionFixed(true);
+                                }, 500);
+                            }, 1000); // Keep header hidden for 1 second after scroll completes
+                        }
+                    }, duration);
+
+                    // Return cancel function for cleanup
+                    return cancelScroll;
+                } catch (error) {
+                    console.warn('Native smooth scroll failed, using fallback');
+                }
+            }
+
+            // Manual implementation with requestAnimationFrame for better performance
+            const startTime = performance.now();
+            const startPosition = window.pageYOffset || document.documentElement.scrollTop;
+            const distance = to - startPosition;
+
+            // If the distance is too small, just jump to position
+            if (Math.abs(distance) < 10) {
+                window.scrollTo(0, to);
+                setIsScrolling(false);
+
+                // Keep header hidden a bit longer for better viewing experience
+                timeoutId = window.setTimeout(() => {
+                    debouncedSetHeaderDuringScroll(false);
+                    // Set header back to fixed positioning after a delay
+                    setTimeout(() => {
+                        debouncedSetHeaderPositionFixed(true);
+                    }, 500);
+                }, 1000);
+
+                return cancelScroll;
+            }
+
+            const animateScroll = (currentTime: number) => {
+                if (isCancelled) return;
+
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+                const easeProgress = easeInOutQuad(progress);
+
+                window.scrollTo(0, startPosition + distance * easeProgress);
+
+                if (progress < 1) {
+                    animationFrameId = requestAnimationFrame(animateScroll);
+                } else {
+                    // Scrolling completed - add a small delay before showing header again
+                    setIsScrolling(false);
+                    // Keep header hidden a bit longer for better viewing experience
+                    timeoutId = window.setTimeout(() => {
+                        debouncedSetHeaderDuringScroll(false);
+                        // Set header back to fixed positioning after a delay
+                        setTimeout(() => {
+                            debouncedSetHeaderPositionFixed(true);
+                        }, 500);
+                    }, 1000); // Wait 1 second before allowing header to reappear
+                    animationFrameId = null;
+                }
+            };
+
+            animationFrameId = requestAnimationFrame(animateScroll);
+
+            // Store cancel function in ref for future cleanup
+            currentCancelScrollRef.current = cancelScroll;
+
+            // Return cancel function
+            return cancelScroll;
+        },
+        [
+            isScrolling,
+            setIsScrolling,
+            debouncedSetHeaderDuringScroll,
+            debouncedSetHeaderPositionFixed,
+            // easeInOutQuad is no longer a dependency because it's defined outside the component
+        ],
+    );
+
+    // Effect to clean up any ongoing scroll when unmounting
+    useEffect(() => {
+        return () => {
+            // Clean up any ongoing scroll when component unmounts
+            if (currentCancelScrollRef.current) {
+                currentCancelScrollRef.current();
+                currentCancelScrollRef.current = undefined;
+            }
+        };
+    }, []);
+
+    // Handler for clicks on the overlay to turn lights back on
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        // Check if click is outside video container and controls
+        if (
+            videoContainerRef.current &&
+            !videoContainerRef.current.contains(e.target as Node) &&
+            controlsRef.current &&
+            !controlsRef.current.contains(e.target as Node)
+        ) {
+            setIsLightsOff(false);
+        }
+    };
+
+    // Toggle lights on/off
+    const toggleLights = useCallback(() => {
+        setIsLightsOff((prev) => !prev);
+
+        // When turning lights off, also position the video optimally
+        if (!isLightsOff) {
+            const videoPlayer = document.getElementById('video-player');
+            if (videoPlayer) {
+                const rect = videoPlayer.getBoundingClientRect();
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+                // Position the video at the top of the viewport with a small gap
+                const targetPosition = rect.top + scrollTop - 15;
+
+                // Set header to scroll mode with absolute positioning for better performance
+                debouncedSetHeaderDuringScroll(true);
+                debouncedSetHeaderPositionFixed(false);
+
+                // Hide header immediately when turning lights off
+                hideHeader();
+
+                // Use smooth scrolling with a faster duration for a better experience
+                smoothScroll(document.documentElement, targetPosition, 250);
+            }
+        } else {
+            // When turning lights back on, delay showing the header to avoid visual glitches
+            setTimeout(() => {
+                debouncedSetHeaderPositionFixed(true);
+                // Allow header to show depending on scroll position
+                debouncedSetHeaderDuringScroll(false);
+            }, 300);
+        }
+    }, [
+        isLightsOff,
+        debouncedSetHeaderDuringScroll,
+        debouncedSetHeaderPositionFixed,
+        hideHeader,
+        smoothScroll,
+    ]);
+
+    // Keyboard shortcut for toggling lights (L key)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Use 'L' key as a shortcut to toggle lights
+            if (e.key === 'l' || e.key === 'L') {
+                toggleLights();
             }
         };
 
-        animateScroll();
-    };
-
-    const easeInOutQuad = (t: number, b: number, c: number, d: number) => {
-        t /= d / 2;
-        if (t < 1) return (c / 2) * t * t + b;
-        t--;
-        return (-c / 2) * (t * (t - 2) - 1) + b;
-    };
-
-    const fitToScreen = () => {
-        const videoPlayer = document.getElementById('video-player');
-        if (videoPlayer) {
-            const rect = videoPlayer.getBoundingClientRect();
-            const scrollTop = window.scrollY || document.documentElement.scrollTop;
-            const targetPosition = rect.top + scrollTop - 20; // 20px offset from the top
-
-            smoothScroll(document.documentElement, targetPosition, 300); // 300ms duration
-        }
-    };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [toggleLights]); // Update dependency to the memoized function
 
     const goToAdjacentEpisode = (direction: 'prev' | 'next') => {
         const currentServer = movie?.episode?.[selectedServerIndex];
@@ -247,7 +491,22 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                position: 'relative',
+            }}
+            className={`${isScrolling ? styles.containerWithHeaderSpace : ''} ${
+                isLightsOff ? styles.lightsOff : ''
+            }`}
+        >
+            {/* Overlay for lights off mode */}
+            {isLightsOff && (
+                <div className={styles.lightsOffOverlay} onClick={handleOverlayClick} />
+            )}
+
             {error ? (
                 <Alert
                     message="Đang cập nhật..."
@@ -260,19 +519,9 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 <>
                     <div
                         ref={videoContainerRef}
-                        className="video-container"
-                        style={{
-                            position: 'relative',
-                            width: '100%',
-                            maxWidth: '1600px',
-                            margin: '0 auto',
-                            // Use aspect-ratio CSS property for better responsiveness
-                            aspectRatio: '16/9',
-                            backgroundColor: '#000',
-                            overflow: 'hidden',
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                        }}
+                        className={`${styles.videoContainer} ${
+                            isScrolling ? styles.videoContainerPadding : ''
+                        }`}
                     >
                         {selectedEpisode && (
                             <iframe
@@ -291,28 +540,11 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                 title={movie?.name || 'Movie Player'}
                                 allowFullScreen
                                 allow="autoplay; fullscreen; picture-in-picture"
-                                style={{
-                                    border: 'none',
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'block',
-                                }}
                                 onError={handleVideoError}
                             />
                         )}
                     </div>
-                    <Space
-                        ref={controlsRef}
-                        style={{
-                            width: '100%',
-                            maxWidth: '1600px',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            padding: '12px 0',
-                            backgroundColor: 'transparent',
-                            marginTop: '12px',
-                        }}
-                    >
+                    <Space ref={controlsRef} className={styles.controls}>
                         <Button
                             icon={<StepBackwardOutlined />}
                             onClick={() => goToAdjacentEpisode('prev')}
@@ -322,11 +554,13 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                             {md && 'Tập trước'}
                         </Button>
                         <Button
-                            icon={<ExpandAltOutlined />}
-                            onClick={fitToScreen}
+                            icon={isLightsOff ? <BulbFilled /> : <BulbOutlined />}
+                            onClick={toggleLights}
                             size={md ? 'middle' : 'small'}
+                            className={styles.lightsToggleButton}
+                            title={`${isLightsOff ? 'Bật đèn' : 'Tắt đèn'} (phím L)`}
                         >
-                            {md ? 'Phóng to' : ''}
+                            {md ? (isLightsOff ? 'Bật đèn' : 'Tắt đèn') : ''}
                         </Button>
                         <Button
                             icon={<StepForwardOutlined />}
@@ -339,7 +573,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                     </Space>
                 </>
             )}
-            <div style={{ width: '100%', marginTop: 16 }}>
+            <div className={styles.movieContent}>
                 {movie && (
                     <>
                         <Divider />

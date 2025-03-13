@@ -2,18 +2,18 @@
 
 import './header.css';
 
-import React, { useState, ReactNode, useEffect, useRef } from 'react';
+import React, { useState, ReactNode, useRef } from 'react';
 import { Layout, Menu, Button, Drawer, Grid, Badge } from 'antd';
 import { MenuOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ItemType, MenuItemType } from 'antd/lib/menu/interface';
-import { usePathname } from 'next/navigation';
 
 import { MovieTypeEnum } from 'apps/api/src/app/movies/movie.constant';
 
 import { RouteNameEnum } from '@/constants/route.constant';
 import { stringifyTableParams } from '@/libs/utils/url.util';
+import useHeaderVisibility from '@/hooks/useHeaderVisibility';
 import HeaderSearch from './header-search';
 import HeaderUser from './header-user';
 
@@ -132,33 +132,22 @@ export type HeaderProps = {
 
 export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: HeaderProps) {
     const [drawerVisible, setDrawerVisible] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [prevScrollPos, setPrevScrollPos] = useState(0);
-    const [hideHeader, setHideHeader] = useState(false);
-    const [hovering, setHovering] = useState(false);
-    const screens = useBreakpoint();
     const headerRef = useRef<HTMLDivElement>(null);
-    const pathname = usePathname();
+    const screens = useBreakpoint();
 
-    // Add enhanced scroll listener with hide/show behavior
-    useEffect(() => {
-        const handleScroll = () => {
-            const currentScrollPos = window.scrollY;
-            const scrollingUp = prevScrollPos > currentScrollPos;
-            const scrollThreshold = 50;
-
-            // Don't hide header when hovering over it
-            if (!hovering) {
-                // Only hide header when scrolling down and past the threshold
-                setHideHeader(!scrollingUp && currentScrollPos > 200);
-            }
-            setIsScrolled(currentScrollPos > scrollThreshold);
-            setPrevScrollPos(currentScrollPos);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [prevScrollPos, hovering]);
+    // Use our custom hook for header visibility
+    const {
+        isVisible,
+        isScrolled,
+        isScrolling,
+        isPositionFixed,
+        handleMouseEnter,
+        handleMouseLeave,
+    } = useHeaderVisibility({
+        headerRef,
+        threshold: 50,
+        autoHide: true,
+    });
 
     const navItems = [
         ...baseNavItems,
@@ -186,13 +175,13 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
         <Header
             ref={headerRef}
             className={`netflix-header ${isScrolled ? 'scrolled' : 'transparent'} ${
-                hideHeader ? 'header-hidden' : ''
-            }`}
+                !isVisible ? 'header-hidden' : ''
+            } ${isScrolling ? 'during-scroll' : ''} ${!isPositionFixed ? 'position-absolute' : ''}`}
             style={{
-                transform: hideHeader ? 'translateY(-100%)' : 'translateY(0)',
+                transform: !isVisible || isScrolling ? 'translateY(-105%)' : 'translateY(0)',
             }}
-            onMouseEnter={() => setHovering(true)}
-            onMouseLeave={() => setHovering(false)}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
             <Link
                 href="/"
