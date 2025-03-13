@@ -61,6 +61,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const [isM3u8Available, setIsM3u8Available] = useState<boolean>(true);
     const [isScrolling, setIsScrolling] = useState<boolean>(false);
     const [isLightsOff, setIsLightsOff] = useState<boolean>(false);
+    const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
 
     // Access the header visibility controls from the store
     const { hideHeader, enableAutoControl, showHeader } = useHeaderVisibilityStore();
@@ -144,6 +145,9 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         const serverIndex = parseInt(searchParams.get('server') || '0', 10);
         setSelectedServerIndex(serverIndex);
 
+        // Reset loading state when episode changes
+        setIsVideoLoading(true);
+
         if (
             movie?.trailerUrl &&
             (episodeSlug === 'trailer' ||
@@ -215,6 +219,9 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
 
     const handleServerChange = (serverIndex: number) => {
         setSelectedServerIndex(serverIndex);
+        // Reset video loading state when changing server
+        setIsVideoLoading(true);
+
         const newEpisode = movie?.episode?.[serverIndex]?.serverData[0];
         if (newEpisode) {
             setSelectedEpisode(newEpisode);
@@ -231,11 +238,16 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     };
 
     const handleVideoError = () => {
+        setIsVideoLoading(false);
         if (isM3u8Available && !useEmbedLink && selectedEpisode?.linkEmbed) {
             setUseEmbedLink(true);
         } else {
             setError('Không thể phát video. Vui lòng thử lại sau.');
         }
+    };
+
+    const handleVideoLoad = () => {
+        setIsVideoLoading(false);
     };
 
     const navigateToEpisode = (episodeSlug: string, serverIndex: number) => {
@@ -401,13 +413,11 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
 
     // Handler for clicks on the overlay to turn lights back on
     const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        // Check if click is outside video container and controls
-        if (
-            videoContainerRef.current &&
-            !videoContainerRef.current.contains(e.target as Node) &&
-            controlsRef.current &&
-            !controlsRef.current.contains(e.target as Node)
-        ) {
+        // Use a wrapper ref to include all player elements
+        const playerWrapperEl = document.querySelector(`.${styles.playerWrapper}`);
+
+        // Check if click is outside player wrapper which contains both player and controls
+        if (playerWrapperEl && !playerWrapperEl.contains(e.target as Node)) {
             setIsLightsOff(false);
         }
     };
@@ -461,9 +471,29 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             }
         };
 
+        // Double-tap handler for touch devices
+        let lastTap = 0;
+        const handleDoubleTap = (e: TouchEvent) => {
+            // Only respond to taps on the video player
+            if (e.target && (e.target as HTMLElement).id === 'video-player') {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+
+                // Check if double tap (tap within 500ms of last tap)
+                if (tapLength < 500 && tapLength > 0) {
+                    e.preventDefault(); // Prevent zooming
+                    toggleLights();
+                }
+                lastTap = currentTime;
+            }
+        };
+
         window.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('touchend', handleDoubleTap);
+
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('touchend', handleDoubleTap);
         };
     }, [toggleLights]); // Update dependency to the memoized function
 
@@ -478,6 +508,8 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                     direction === 'prev' ? currentEpisodeIndex - 1 : currentEpisodeIndex + 1;
                 const adjacentEpisode = currentServer.serverData[adjacentIndex];
                 if (adjacentEpisode) {
+                    // Reset video loading state
+                    setIsVideoLoading(true);
                     setSelectedEpisode(adjacentEpisode);
                     setUseEmbedLink(false);
                     setIsM3u8Available(true);
@@ -517,60 +549,64 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 />
             ) : (
                 <>
-                    <div
-                        ref={videoContainerRef}
-                        className={`${styles.videoContainer} ${
-                            isScrolling ? styles.videoContainerPadding : ''
-                        }`}
-                    >
-                        {selectedEpisode && (
-                            <iframe
-                                id="video-player"
-                                width="100%"
-                                height="100%"
-                                src={
-                                    !isM3u8Available || useEmbedLink
-                                        ? selectedEpisode.linkEmbed
-                                        : `${host}/player/${encodeURIComponent(
-                                              selectedEpisode.linkM3u8,
-                                          )}?movieSlug=${encodeURIComponent(
-                                              movie?.slug,
-                                          )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
-                                }
-                                title={movie?.name || 'Movie Player'}
-                                allowFullScreen
-                                allow="autoplay; fullscreen; picture-in-picture"
-                                onError={handleVideoError}
-                            />
-                        )}
+                    <div className={styles.playerWrapper}>
+                        <div
+                            ref={videoContainerRef}
+                            className={`${styles.videoContainer} ${
+                                isScrolling ? styles.videoContainerPadding : ''
+                            }`}
+                        >
+                            {isVideoLoading && <div className={styles.loadingIndicator} />}
+                            {selectedEpisode && (
+                                <iframe
+                                    id="video-player"
+                                    width="100%"
+                                    height="100%"
+                                    src={
+                                        !isM3u8Available || useEmbedLink
+                                            ? selectedEpisode.linkEmbed
+                                            : `${host}/player/${encodeURIComponent(
+                                                  selectedEpisode.linkM3u8,
+                                              )}?movieSlug=${encodeURIComponent(
+                                                  movie?.slug,
+                                              )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
+                                    }
+                                    title={movie?.name || 'Movie Player'}
+                                    allowFullScreen
+                                    allow="autoplay; fullscreen; picture-in-picture"
+                                    onError={handleVideoError}
+                                    onLoad={handleVideoLoad}
+                                />
+                            )}
+                        </div>
+                        <Space ref={controlsRef} className={styles.controls}>
+                            <Button
+                                icon={isLightsOff ? <BulbFilled /> : <BulbOutlined />}
+                                onClick={toggleLights}
+                                size={md ? 'middle' : 'small'}
+                                className={styles.lightsToggleButton}
+                                title={`${isLightsOff ? 'Bật đèn' : 'Tắt đèn'} (phím L)`}
+                            >
+                                {md ? (isLightsOff ? 'Bật đèn' : 'Tắt đèn') : ''}
+                            </Button>
+                            <Button
+                                icon={<StepBackwardOutlined />}
+                                onClick={() => goToAdjacentEpisode('prev')}
+                                disabled={!hasPrevEpisode}
+                                size={md ? 'middle' : 'small'}
+                            >
+                                {md && 'Tập trước'}
+                            </Button>
+                            <Button
+                                icon={<StepForwardOutlined />}
+                                onClick={() => goToAdjacentEpisode('next')}
+                                disabled={!hasNextEpisode}
+                                size={md ? 'middle' : 'small'}
+                            >
+                                {md && 'Tập tiếp theo'}
+                            </Button>
+                        </Space>
                     </div>
-                    <Space ref={controlsRef} className={styles.controls}>
-                        <Button
-                            icon={<StepBackwardOutlined />}
-                            onClick={() => goToAdjacentEpisode('prev')}
-                            disabled={!hasPrevEpisode}
-                            size={md ? 'middle' : 'small'}
-                        >
-                            {md && 'Tập trước'}
-                        </Button>
-                        <Button
-                            icon={isLightsOff ? <BulbFilled /> : <BulbOutlined />}
-                            onClick={toggleLights}
-                            size={md ? 'middle' : 'small'}
-                            className={styles.lightsToggleButton}
-                            title={`${isLightsOff ? 'Bật đèn' : 'Tắt đèn'} (phím L)`}
-                        >
-                            {md ? (isLightsOff ? 'Bật đèn' : 'Tắt đèn') : ''}
-                        </Button>
-                        <Button
-                            icon={<StepForwardOutlined />}
-                            onClick={() => goToAdjacentEpisode('next')}
-                            disabled={!hasNextEpisode}
-                            size={md ? 'middle' : 'small'}
-                        >
-                            {md && 'Tập tiếp theo'}
-                        </Button>
-                    </Space>
                 </>
             )}
             <div className={styles.movieContent}>
