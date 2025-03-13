@@ -53,10 +53,13 @@ export default function MovieFollowingsPage() {
     return (
         <>
             <div
+                className="layout-space-container"
                 style={{
-                    marginTop: md ? '6rem' : '5rem',
                     marginLeft: md ? '3rem' : '0.7rem',
                     marginRight: md ? '3rem' : '0.7rem',
+                    paddingBottom: '2rem',
+                    position: 'relative',
+                    zIndex: 1,
                 }}
             >
                 <Breadcrumb
