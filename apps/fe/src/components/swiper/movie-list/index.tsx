@@ -3,7 +3,7 @@ import 'swiper/css/navigation';
 import './movie-list.css';
 
 import React, { useRef, CSSProperties, useState, useEffect, useMemo, useCallback } from 'react';
-import { Typography, Grid, Skeleton } from 'antd';
+import { Grid, Skeleton } from 'antd';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, FreeMode } from 'swiper/modules';
@@ -15,17 +15,8 @@ import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 import { MovieCard } from '@/components/card/movie-card';
 import { randomString } from '@/libs/utils/common';
 
-const { Title } = Typography;
 const { useBreakpoint } = Grid;
 const { Image: SkeletonImage } = Skeleton;
-
-const getSlidesPerView = (md = false, lg = false, xl = false, xxl = false) => {
-    if (xxl) return 6;
-    if (xl) return 5;
-    if (lg) return 4;
-    if (md) return 3;
-    return 2;
-};
 
 export type MovieListProps = {
     title?: string;

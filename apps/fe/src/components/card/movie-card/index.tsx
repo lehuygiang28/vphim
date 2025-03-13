@@ -3,7 +3,7 @@
 import React, { FC } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button, Grid, Tag, Space } from 'antd';
+import { Button, Tag, Space } from 'antd';
 import { CalendarOutlined, EyeOutlined, PlayCircleOutlined, StarOutlined } from '@ant-design/icons';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos/movie-response.dto';
@@ -14,15 +14,12 @@ import { TMDBRating } from '@/components/card/tmdb-rating';
 import { IMDBRating } from '@/components/card/imdb-rating';
 import './movie-card.css';
 
-const { useBreakpoint } = Grid;
-
 interface MovieCardProps {
     movie: MovieResponseDto;
     loadType?: 'lazy' | 'eager';
 }
 
 export const MovieCard: FC<MovieCardProps> = ({ movie, loadType }) => {
-    const { md } = useBreakpoint();
     const router = useRouter();
 
     const handleViewMovie = (e?: React.MouseEvent) => {

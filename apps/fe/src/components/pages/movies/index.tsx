@@ -37,7 +37,6 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
     const search = useSearchParams();
     const [parsedQuery, setParsedQuery] = useState(parseTableParams(search?.toString()));
     const [query, setQuery] = useState<undefined | LocalQuery>(undefined);
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     const {
         tableQuery: { data, isLoading, isRefetching },
@@ -109,10 +108,6 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         }
     }, [filters, sorters, current]);
 
-    const handleVisibleContentCard = (index: number | null) => {
-        setSelectedIndex(index === selectedIndex ? null : index);
-    };
-
     const applySearch = (localQuery: LocalQuery) => {
         if (localQuery) {
             setFilters(localQuery?.filters || []);
@@ -163,23 +158,12 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                             <div
                                 style={{
                                     height: md ? '19rem' : '17rem',
-                                    zIndex: index === selectedIndex ? '100' : '1',
                                 }}
                                 onClick={() => {
-                                    if (md) {
-                                        router.push(`/phim/${item.slug}`);
-                                    } else {
-                                        handleVisibleContentCard(index);
-                                    }
+                                    router.push(`/phim/${item.slug}`);
                                 }}
-                                onMouseEnter={() => handleVisibleContentCard(index)}
-                                onMouseLeave={() => handleVisibleContentCard(null)}
                             >
-                                <MovieCard
-                                    movie={item}
-                                    visibleContent={selectedIndex === index}
-                                    scale={md ? undefined : 1.1}
-                                />
+                                <MovieCard movie={item} />
                             </div>
                         </List.Item>
                     )}
