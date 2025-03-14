@@ -3,7 +3,7 @@ import { CrudFilters, stringifyTableParams, useList } from '@refinedev/core';
 
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
-import MovieList from '@/components/swiper/movie-list';
+import { LazyMovieListSSR } from '@/components/list/movie-lazy-list-ssr';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieAsset } from '@/types/movie-asset.type';
 
@@ -64,14 +64,11 @@ export function MovieRelated({ movie }: MovieRelatedProps) {
 
     return (
         <>
-            <MovieList
+            <LazyMovieListSSR
                 title="Phim liên quan"
                 movies={movies?.data}
                 isLoading={isLoading}
                 viewMoreHref={`/danh-sach-phim?${stringifyTableParams(asset)}`}
-                style={{
-                    overflow: 'visible',
-                }}
             />
         </>
     );

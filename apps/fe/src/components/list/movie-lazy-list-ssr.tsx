@@ -1,20 +1,19 @@
 import React from 'react';
-import { Grid } from 'antd';
+import dynamic from 'next/dynamic';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
-import MovieList from '@/components/swiper/movie-list';
+const MovieList = dynamic(() => import('@/components/swiper/movie-list'), { ssr: true });
 import { slugifyVietnamese } from '@/libs/utils/movie.util';
 import './movie-lazy-list-ssr.css';
 
-const { useBreakpoint } = Grid;
-
 interface ServerSideMovieListProps {
     title: string;
-    activeList: string | null;
-    setActiveList: React.Dispatch<React.SetStateAction<string | null>>;
+    activeList?: string | null;
+    setActiveList?: React.Dispatch<React.SetStateAction<string | null>>;
     movies: MovieResponseDto[];
     viewMoreHref: string;
+    isLoading?: boolean;
 }
 
 export function LazyMovieListSSR({
@@ -23,8 +22,8 @@ export function LazyMovieListSSR({
     activeList,
     setActiveList,
     movies,
+    isLoading,
 }: ServerSideMovieListProps) {
-    const { md } = useBreakpoint();
     const slugTitle = slugifyVietnamese(title);
 
     return (
@@ -35,6 +34,7 @@ export function LazyMovieListSSR({
                 movies={movies}
                 viewMoreHref={viewMoreHref}
                 eagerLoad={3}
+                isLoading={isLoading}
             />
         </div>
     );
