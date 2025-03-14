@@ -29,7 +29,7 @@
     aspect-ratio: 2/3;
     overflow: hidden;
     border-radius: 0.5rem;
-    background: #181818;
+    background: #000;
 }
 
 /* Image wrapper to handle transform */
@@ -85,7 +85,7 @@
     z-index: 3;
 }
 
-/* Completely new overlay approach */
+/* Overlay approach */
 .overlay {
     position: absolute;
     inset: 0;
@@ -244,8 +244,39 @@
     gap: 3px;
 }
 
-/* Responsive styles */
-@media (min-width: 768px) {
+/* Enhanced Responsive styles */
+/* Large screens */
+@media (min-width: 1200px) {
+    .title {
+        font-size: 1rem;
+    }
+
+    .meta {
+        font-size: 0.8rem;
+    }
+
+    .category {
+        font-size: 0.75rem;
+        padding: 0.15rem 0.5rem;
+    }
+
+    .watchNowBtn {
+        font-size: 0.85rem;
+        padding: 0.4rem 0;
+    }
+
+    .description {
+        font-size: 0.85rem;
+        -webkit-line-clamp: 4;
+    }
+
+    .overlayContent {
+        padding: 1.2rem;
+    }
+}
+
+/* Medium screens */
+@media (min-width: 768px) and (max-width: 1199px) {
     .title {
         font-size: 0.9rem;
     }
@@ -275,9 +306,10 @@
     }
 }
 
-@media (max-width: 767px) {
+/* Small screens */
+@media (min-width: 480px) and (max-width: 767px) {
     .container:hover .imageWrapper {
-        transform: scale(1.04);
+        transform: scale(1.05);
     }
 
     .container:active .overlay::before {
@@ -289,22 +321,104 @@
     }
 
     .overlayContent {
-        padding: 0.7rem;
+        padding: 0.8rem;
     }
 
     .title {
         font-size: 0.8rem;
+        margin-bottom: 0.3rem;
     }
 
     .meta {
-        font-size: 0.65rem;
+        font-size: 0.7rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .ratings {
+        margin: 0.3rem 0;
+    }
+
+    .categories {
+        margin-bottom: 0.3rem;
     }
 
     .category {
+        font-size: 0.65rem;
+    }
+
+    .description {
+        font-size: 0.7rem;
+        margin: 0.3rem 0;
+        -webkit-line-clamp: 2;
+    }
+
+    .watchNowBtn {
+        font-size: 0.75rem;
+        margin-top: 0.3rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 479px) {
+    .container:hover .imageWrapper {
+        transform: scale(1.04);
+    }
+
+    .overlayContent {
+        padding: 0.6rem;
+    }
+
+    .title {
+        font-size: 0.75rem;
+        margin-bottom: 0.2rem;
+        -webkit-line-clamp: 1;
+    }
+
+    .meta {
         font-size: 0.6rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .ratings {
+        margin: 0.2rem 0;
+        gap: 0.3rem;
+    }
+
+    .categories {
+        display: none;
+    }
+
+    .description {
+        margin: 0.2rem 0;
+        font-size: 0.65rem;
+        -webkit-line-clamp: 2;
     }
 
     .watchNowBtn {
         font-size: 0.7rem;
+        padding: 0.2rem 0;
+        margin-top: 0.2rem;
+    }
+
+    .episodeTag,
+    .ratingBadge {
+        font-size: 0.6rem;
+    }
+
+    .episodeTag + .ratingBadge {
+        top: 32px;
+    }
+
+    .qualityTagWrapper {
+        transform: scale(0.85);
+        transform-origin: top right;
+    }
+
+    .footerTitle {
+        font-size: 0.8rem;
+    }
+
+    .footerMeta {
+        font-size: 0.65rem;
     }
 }

@@ -79,19 +79,19 @@ export default function MovieList({
     const breakpoints = useMemo(
         () => ({
             320: {
-                slidesPerView: 3.2,
+                slidesPerView: 2.2,
                 spaceBetween: 12,
             },
             480: {
-                slidesPerView: 4.2,
+                slidesPerView: 3.2,
                 spaceBetween: 12,
             },
             640: {
-                slidesPerView: 5.2,
+                slidesPerView: 4.2,
                 spaceBetween: 12,
             },
             768: {
-                slidesPerView: 6.2,
+                slidesPerView: 5.2,
                 spaceBetween: 16,
             },
             1024: {
