@@ -1,0 +1,216 @@
+.container {
+    margin: 2rem 0;
+    position: relative;
+    overflow: visible;
+    padding: 0 1.5rem;
+    contain: layout style;
+}
+
+.swiper {
+    overflow: visible;
+    padding: 0.5rem 0 3rem 0;
+    will-change: transform;
+    contain: content;
+    position: relative;
+}
+
+.slide {
+    height: auto;
+    contain: layout style;
+    will-change: transform;
+    z-index: 1;
+    transition: z-index 0.1s ease;
+}
+
+.slide:hover {
+    z-index: 10;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+}
+
+.title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    position: relative;
+    margin: 0;
+    padding-left: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #e50914;
+    border-radius: 4px;
+}
+
+.viewMore {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.viewMore:hover {
+    color: var(--vphim-color-primary);
+}
+
+.viewMore svg {
+    margin-left: 0.3rem;
+    transition: transform 0.3s ease;
+}
+
+.viewMore:hover svg {
+    transform: translateX(4px);
+}
+
+/* Navigation Controls */
+.navigationButton {
+    position: absolute;
+    top: calc(50% - 2rem);
+    width: 40px;
+    height: 40px;
+    z-index: 20;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    opacity: 0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.container:hover .navigationButton {
+    opacity: 1;
+}
+
+.prevButton {
+    composes: navigationButton;
+    left: 0.5rem;
+}
+
+.nextButton {
+    composes: navigationButton;
+    right: 0.5rem;
+}
+
+.navigationButton:hover {
+    background-color: var(--vphim-color-primary);
+    transform: scale(1.05);
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Mobile Touch Indicators */
+.mobileSwipeIndicator {
+    display: none;
+}
+
+/* Add touch hitbox */
+.navigationButton:before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    bottom: -15px;
+    left: -15px;
+    right: -15px;
+}
+
+.buttonDisabled {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin: 1.5rem 0;
+        padding: 0 1rem;
+    }
+
+    .swiper {
+        padding: 0.5rem 0 2rem 0;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .header {
+        padding: 0 0.5rem;
+    }
+
+    .viewMore {
+        font-size: 0.8rem;
+    }
+
+    .navigationButton {
+        width: 32px;
+        height: 32px;
+        top: calc(50% - 1rem);
+        opacity: 0.8;
+    }
+
+    .prevButton {
+        left: 0.25rem;
+    }
+
+    .nextButton {
+        right: 0.25rem;
+    }
+
+    .navigationButton::after {
+        font-size: 16px;
+    }
+
+    /* Always show navigation on mobile */
+    .navigationButton {
+        opacity: 0.7;
+    }
+
+    .slide {
+        padding: 0.25rem;
+        margin: -0.25rem;
+    }
+
+    .slide:hover {
+        transform: translateY(-4px) scale(1.02) !important;
+    }
+
+    /* Visual indicator for swipeable content */
+    .mobileSwipeIndicator {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin-top: -25px;
+        margin-bottom: 5px;
+    }
+
+    .indicatorDot {
+        width: 4px;
+        height: 4px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+    }
+
+    .indicatorDot:nth-child(2) {
+        background-color: rgba(229, 9, 20, 0.8);
+    }
+}

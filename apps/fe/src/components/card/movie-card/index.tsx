@@ -12,7 +12,7 @@ import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { TMDBRating } from '@/components/card/tmdb-rating';
 import { IMDBRating } from '@/components/card/imdb-rating';
-import './movie-card.css';
+import styles from './movie-card.module.css';
 
 interface MovieCardProps {
     movie: MovieResponseDto;
@@ -56,7 +56,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType }) => {
         const finalRating = (rating / ratingCount).toFixed(1);
 
         return (
-            <div className="rating-badge">
+            <div className={styles.ratingBadge}>
                 <StarOutlined /> {finalRating}
             </div>
         );
@@ -64,7 +64,7 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType }) => {
 
     const renderRatings = () => {
         return (
-            <div className="card-ratings">
+            <div className={styles.ratings}>
                 {movie.tmdb?.id && (
                     <TMDBRating id={movie.tmdb.id} type={movie.tmdb.type || 'movie'} size="small" />
                 )}
@@ -74,41 +74,43 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType }) => {
     };
 
     return (
-        <div className="movie-card-container">
-            <div className="movie-card-link">
-                <div className="movie-poster">
-                    <ImageOptimized
-                        alt={movie.name}
-                        url={movie.posterUrl}
-                        width={480}
-                        height={854}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            borderRadius: '0.5rem',
-                        }}
-                        loadType={loadType}
-                    />
+        <div className={styles.container}>
+            <div className={styles.link}>
+                <div className={styles.poster}>
+                    <div className={styles.imageWrapper}>
+                        <ImageOptimized
+                            alt={movie.name}
+                            url={movie.posterUrl}
+                            width={480}
+                            height={854}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '0.5rem',
+                            }}
+                            loadType={loadType}
+                        />
+                    </div>
 
                     {movie.episodeCurrent && (
-                        <Tag className="episode-tag">{movie.episodeCurrent}</Tag>
+                        <Tag className={styles.episodeTag}>{movie.episodeCurrent}</Tag>
                     )}
 
-                    <div className="quality-tag-wrapper">
+                    <div className={styles.qualityTagWrapper}>
                         <MovieQualityTag quality={movie.quality || ''} />
                     </div>
 
                     {renderAverageRating()}
 
-                    <div className="movie-overlay">
-                        <div className="overlay-content">
-                            <h4 className="movie-title">{movie.name}</h4>
+                    <div className={styles.overlay}>
+                        <div className={styles.overlayContent}>
+                            <h4 className={styles.title}>{movie.name}</h4>
 
-                            <div className="movie-meta">
-                                <span className="year">{movie.year}</span>
+                            <div className={styles.meta}>
+                                <span className={styles.year}>{movie.year}</span>
                                 {movie.view && (
-                                    <span className="views">
+                                    <span className={styles.views}>
                                         <EyeOutlined />{' '}
                                         {movie.view > 1000
                                             ? `${Math.floor(movie.view / 1000)}K`
@@ -120,23 +122,26 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType }) => {
                             {renderRatings()}
 
                             {movie.categories && movie.categories.length > 0 && (
-                                <div className="categories">
+                                <div className={styles.categories}>
                                     {movie.categories.slice(0, 2).map((category) => (
-                                        <span key={category._id.toString()} className="category">
+                                        <span
+                                            key={category._id.toString()}
+                                            className={styles.category}
+                                        >
                                             {category.name}
                                         </span>
                                     ))}
                                 </div>
                             )}
 
-                            <p className="movie-description">{formatDescription()}</p>
+                            <p className={styles.description}>{formatDescription()}</p>
 
                             <Space direction="vertical" style={{ width: '100%' }} size="small">
                                 <Button
                                     type="primary"
                                     size="small"
                                     icon={<PlayCircleOutlined />}
-                                    className="watch-now-btn"
+                                    className={styles.watchNowBtn}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleViewMovie();
@@ -149,20 +154,20 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType }) => {
                     </div>
                 </div>
 
-                <div className="card-footer">
+                <div className={styles.footer}>
                     <Link href={`/phim/${movie.slug}`}>
-                        <h5 className="card-title">{movie.name}</h5>
+                        <h5 className={styles.footerTitle}>{movie.name}</h5>
                     </Link>
 
-                    <div className="card-meta">
+                    <div className={styles.footerMeta}>
                         {movie.year && (
-                            <span className="year-small">
+                            <span className={styles.yearSmall}>
                                 <CalendarOutlined /> {movie.year}
                             </span>
                         )}
 
                         {movie.episodeCurrent && (
-                            <span className="episode-small">{movie.episodeCurrent}</span>
+                            <span className={styles.episodeSmall}>{movie.episodeCurrent}</span>
                         )}
                     </div>
                 </div>

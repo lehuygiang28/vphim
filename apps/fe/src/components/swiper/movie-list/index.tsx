@@ -1,7 +1,5 @@
 import 'swiper/css';
 import 'swiper/css/navigation';
-import './movie-list.css';
-
 import React, { useRef, CSSProperties, useState, useEffect, useMemo, useCallback } from 'react';
 import { Grid, Skeleton } from 'antd';
 import Link from 'next/link';
@@ -14,6 +12,7 @@ import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
 
 import { MovieCard } from '@/components/card/movie-card';
 import { randomString } from '@/libs/utils/common';
+import styles from './movie-list.module.css';
 
 const { useBreakpoint } = Grid;
 const { Image: SkeletonImage } = Skeleton;
@@ -80,27 +79,27 @@ export default function MovieList({
     const breakpoints = useMemo(
         () => ({
             320: {
-                slidesPerView: 2.2,
-                spaceBetween: 12,
-            },
-            480: {
                 slidesPerView: 3.2,
                 spaceBetween: 12,
             },
-            640: {
+            480: {
                 slidesPerView: 4.2,
                 spaceBetween: 12,
             },
+            640: {
+                slidesPerView: 5.2,
+                spaceBetween: 12,
+            },
             768: {
-                slidesPerView: 4.2,
+                slidesPerView: 6.2,
                 spaceBetween: 16,
             },
             1024: {
-                slidesPerView: 5.2,
-                spaceBetween: 16,
+                slidesPerView: 7.2,
+                spaceBetween: 18,
             },
             1280: {
-                slidesPerView: 6.2,
+                slidesPerView: 8.2,
                 spaceBetween: 20,
             },
         }),
@@ -122,13 +121,7 @@ export default function MovieList({
         return Array(slideCount)
             .fill(null)
             .map((_, index) => (
-                <SwiperSlide
-                    key={`skeleton-${index}`}
-                    style={{
-                        overflow: 'visible',
-                        height: 'auto',
-                    }}
-                >
+                <SwiperSlide key={`skeleton-${index}`} className={styles.slide}>
                     <div
                         style={{
                             width: '100%',
@@ -155,7 +148,7 @@ export default function MovieList({
             prevEl: `#${prevButtonId}`,
             nextEl: `#${nextButtonId}`,
             enabled: !disableNavigation,
-            disabledClass: 'swiper-button-disabled',
+            disabledClass: styles.buttonDisabled,
             hiddenClass: 'swiper-button-hidden',
         }),
         [prevButtonId, nextButtonId, disableNavigation],
@@ -165,27 +158,27 @@ export default function MovieList({
         if (!isMobile) return null;
 
         return (
-            <div className="mobile-swipe-indicator">
-                <div className="indicator-dot"></div>
-                <div className="indicator-dot"></div>
-                <div className="indicator-dot"></div>
+            <div className={styles.mobileSwipeIndicator}>
+                <div className={styles.indicatorDot}></div>
+                <div className={styles.indicatorDot}></div>
+                <div className={styles.indicatorDot}></div>
             </div>
         );
     }, [isMobile]);
 
     return (
         <div
-            className="movie-list-container"
+            className={styles.container}
             style={style}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             ref={navContainerRef}
         >
             {title && (
-                <div className="list-header">
-                    <h3 className="list-title">{title}</h3>
+                <div className={styles.header}>
+                    <h3 className={styles.title}>{title}</h3>
                     {viewMoreHref && (
-                        <Link href={viewMoreHref} className="view-more">
+                        <Link href={viewMoreHref} className={styles.viewMore}>
                             <span>Xem thêm</span>
                             <ArrowRightOutlined />
                         </Link>
@@ -194,7 +187,7 @@ export default function MovieList({
             )}
 
             <Swiper
-                className="movie-swiper"
+                className={styles.swiper}
                 modules={[Navigation, FreeMode]}
                 slidesPerView={'auto'}
                 spaceBetween={md ? 16 : 12}
@@ -219,14 +212,12 @@ export default function MovieList({
                         <SwiperSlide
                             key={movie._id.toString()}
                             onClick={() => handleVisibleContentCard(index)}
-                            style={{ height: 'auto' }}
+                            className={styles.slide}
                         >
-                            <div className="movie-card">
-                                <MovieCard
-                                    movie={movie}
-                                    loadType={index < eagerLoad ? 'eager' : undefined}
-                                />
-                            </div>
+                            <MovieCard
+                                movie={movie}
+                                loadType={index < eagerLoad ? 'eager' : undefined}
+                            />
                         </SwiperSlide>
                     ))}
             </Swiper>
@@ -235,12 +226,12 @@ export default function MovieList({
 
             <button
                 id={prevButtonId}
-                className="swiper-button-prev"
+                className={styles.prevButton}
                 aria-label="Previous slide"
             ></button>
             <button
                 id={nextButtonId}
-                className="swiper-button-next"
+                className={styles.nextButton}
                 aria-label="Next slide"
             ></button>
         </div>

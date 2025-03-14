@@ -1,26 +1,27 @@
-.movie-card-container {
-    overflow: hidden;
+/* Base container */
+.container {
+    overflow: visible;
     border-radius: 0.5rem;
-    transition: all 0.25s ease;
     height: 100%;
     position: relative;
     cursor: pointer;
+    background: #181818;
+    transition: box-shadow 0.3s ease;
 }
 
-.movie-card-container:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+.container:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.movie-card-link {
+.link {
     display: block;
     color: inherit;
-    transition: all 0.3s ease;
     width: 100%;
     height: 100%;
+    position: relative;
 }
 
-.movie-poster {
+.poster {
     position: relative;
     width: 100%;
     height: 100%;
@@ -30,11 +31,22 @@
     background: #181818;
 }
 
-.episode-tag {
+/* Image wrapper to handle transform */
+.imageWrapper {
+    position: absolute;
+    inset: 0;
+    transition: transform 0.35s ease;
+}
+
+.container:hover .imageWrapper {
+    transform: scale(1.08);
+}
+
+.episodeTag {
     position: absolute;
     top: 8px;
     left: 8px;
-    z-index: 2;
+    z-index: 3;
     background-color: rgba(132, 90, 194, 0.8);
     color: white;
     font-weight: 600;
@@ -43,11 +55,11 @@
     backdrop-filter: blur(4px);
 }
 
-.rating-badge {
+.ratingBadge {
     position: absolute;
     top: 8px;
     left: 8px;
-    z-index: 2;
+    z-index: 3;
     background-color: rgba(255, 198, 0, 0.8);
     color: #000;
     font-weight: 600;
@@ -60,23 +72,21 @@
     gap: 3px;
 }
 
-.episode-tag + .rating-badge {
-    top: 38px; /* Position below episode tag if both are present */
+.episodeTag + .ratingBadge {
+    top: 38px;
 }
 
-.quality-tag-wrapper {
+.qualityTagWrapper {
     position: absolute;
     top: 8px;
     right: 8px;
-    z-index: 2;
+    z-index: 3;
 }
 
-.movie-overlay {
+.overlay {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 0;
+    inset: 0;
+    clip-path: inset(100% 0 0 0);
     background: linear-gradient(
         to top,
         rgba(0, 0, 0, 0.95) 0%,
@@ -84,29 +94,33 @@
         rgba(0, 0, 0, 0.4) 90%,
         transparent 100%
     );
-    opacity: 0;
-    transition: all 0.3s ease;
-    border-radius: 0 0 0.5rem 0.5rem;
+    opacity: 1;
+    transition: clip-path 0.3s ease-out;
+    border-radius: 0.5rem;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    z-index: 2;
 }
 
-.movie-card-link:hover .movie-overlay {
-    opacity: 1;
-    height: 100%;
+.container:hover .overlay {
+    clip-path: inset(0 0 0 0);
 }
 
-.overlay-content {
+.overlayContent {
     padding: 1rem;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s ease-out;
 }
 
-.movie-title {
+.container:hover .overlayContent {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.title {
     color: white;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
@@ -116,14 +130,14 @@
     overflow: hidden;
 }
 
-.movie-meta {
+.meta {
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.5rem;
     color: rgba(255, 255, 255, 0.7);
 }
 
-.card-ratings {
+.ratings {
     display: flex;
     justify-content: flex-start;
     gap: 0.5rem;
@@ -144,7 +158,7 @@
     border-radius: 2px;
 }
 
-.movie-description {
+.description {
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.75rem;
     line-height: 1.4;
@@ -155,7 +169,7 @@
     overflow: hidden;
 }
 
-.watch-now-btn {
+.watchNowBtn {
     width: 100%;
     background: var(--vphim-color-primary);
     border: none;
@@ -168,13 +182,12 @@
     position: relative;
 }
 
-.watch-now-btn:hover {
+.watchNowBtn:hover {
     background: var(--vphim-color-primary-hover);
     opacity: 0.9;
-    transform: translateY(-2px);
 }
 
-.view-details-btn {
+.viewDetailsBtn {
     width: 100%;
     border-radius: 4px;
     font-weight: 600;
@@ -182,23 +195,22 @@
     position: relative;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    color: var(--vphim-colorText);
+    color: var(--vphim-color-text);
 }
 
-.view-details-btn:hover {
+/* Remove transform from button hover */
+.viewDetailsBtn:hover {
     background-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
 }
 
-/* Footer visible without hover */
-.card-footer {
+.footer {
     padding: 0.5rem 0.2rem;
     background-color: #111;
     width: 100%;
     cursor: pointer;
 }
 
-.card-title {
+.footerTitle {
     color: white;
     font-size: 0.9rem;
     font-weight: 600;
@@ -208,15 +220,15 @@
     text-overflow: ellipsis;
 }
 
-.card-meta {
+.footerMeta {
     display: flex;
     justify-content: space-between;
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.6);
 }
 
-.year-small,
-.episode-small {
+.yearSmall,
+.episodeSmall {
     display: inline-flex;
     align-items: center;
     gap: 3px;
@@ -224,11 +236,11 @@
 
 /* Responsive styles */
 @media (min-width: 768px) {
-    .movie-title {
+    .title {
         font-size: 0.9rem;
     }
 
-    .movie-meta {
+    .meta {
         font-size: 0.75rem;
     }
 
@@ -236,42 +248,51 @@
         font-size: 0.7rem;
     }
 
-    .watch-now-btn {
+    .watchNowBtn {
         font-size: 0.8rem;
     }
 
-    .movie-description {
+    .description {
         font-size: 0.8rem;
     }
 
-    .card-title {
+    .footerTitle {
         font-size: 1rem;
     }
 
-    .card-meta {
+    .footerMeta {
         font-size: 0.8rem;
     }
 }
 
 @media (max-width: 767px) {
-    .movie-card-container:hover {
-        transform: translateY(-4px);
+    .container:hover .imageWrapper {
+        transform: scale(1.04);
     }
 
-    .movie-overlay {
-        opacity: 0;
-        height: 0;
+    .overlay {
+        clip-path: inset(100% 0 0 0);
+        opacity: 1;
     }
 
-    .overlay-content {
+    .container:active .overlay {
+        clip-path: inset(0 0 0 0);
+    }
+
+    .container:active .overlayContent {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .overlayContent {
         padding: 0.7rem;
     }
 
-    .movie-title {
+    .title {
         font-size: 0.8rem;
     }
 
-    .movie-meta {
+    .meta {
         font-size: 0.65rem;
     }
 
@@ -279,13 +300,7 @@
         font-size: 0.6rem;
     }
 
-    .watch-now-btn {
+    .watchNowBtn {
         font-size: 0.7rem;
-    }
-
-    /* Show basic info on tap for mobile */
-    .movie-card-container:active .movie-overlay {
-        opacity: 1;
-        height: 100%;
     }
 }

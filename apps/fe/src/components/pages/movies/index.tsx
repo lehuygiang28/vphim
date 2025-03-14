@@ -153,12 +153,9 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                         ),
                     }}
                     dataSource={data?.data}
-                    renderItem={(item: MovieType, index) => (
+                    renderItem={(item: MovieType) => (
                         <List.Item>
                             <div
-                                style={{
-                                    height: md ? '19rem' : '17rem',
-                                }}
                                 onClick={() => {
                                     router.push(`/phim/${item.slug}`);
                                 }}
