@@ -95,11 +95,11 @@ export default function MovieList({
                 spaceBetween: 16,
             },
             1024: {
-                slidesPerView: 7.2,
+                slidesPerView: 6.2,
                 spaceBetween: 18,
             },
             1280: {
-                slidesPerView: 8.2,
+                slidesPerView: 7.2,
                 spaceBetween: 20,
             },
         }),
