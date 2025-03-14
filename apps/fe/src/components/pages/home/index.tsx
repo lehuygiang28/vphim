@@ -60,6 +60,42 @@ const HOME_MOVIES_LIST_ASSET: {
         sorters: [{ field: 'view', order: 'desc' }],
         pagination: { current: 1, pageSize: 12 },
     },
+    {
+        title: 'THẾ GIỚI HỌC ĐƯỜNG',
+        filters: [{ field: 'categories', value: 'hoc-duong', operator: 'eq' }],
+        sorters: [{ field: 'view', order: 'desc' }],
+        pagination: { current: 1, pageSize: 12 },
+    },
+    {
+        title: 'VƯƠNG QUỐC TRẺ EM',
+        filters: [{ field: 'categories', value: 'tre-em', operator: 'eq' }],
+        sorters: [{ field: 'view', order: 'desc' }],
+        pagination: { current: 1, pageSize: 12 },
+    },
+    {
+        title: 'PHIM HÀNH ĐỘNG',
+        filters: [{ field: 'categories', value: 'hanh-dong', operator: 'eq' }],
+        sorters: [{ field: 'year', order: 'desc' }],
+        pagination: { current: 1, pageSize: 12 },
+    },
+    {
+        title: 'PHIM HOẠT HÌNH',
+        filters: [{ field: 'categories', value: 'hoat-hinh,', operator: 'eq' }],
+        sorters: [{ field: 'year', order: 'desc' }],
+        pagination: { current: 1, pageSize: 12 },
+    },
+    {
+        title: 'PHIM VIỄN TƯỞNG',
+        filters: [{ field: 'categories', value: 'vien-tuong,', operator: 'eq' }],
+        sorters: [{ field: 'year', order: 'desc' }],
+        pagination: { current: 1, pageSize: 12 },
+    },
+    {
+        title: 'PHIM THẦN THOẠI',
+        filters: [{ field: 'categories', value: 'than-thoai', operator: 'eq' }],
+        sorters: [{ field: 'year', order: 'desc' }],
+        pagination: { current: 1, pageSize: 12 },
+    },
 ];
 
 export default async function Home() {
