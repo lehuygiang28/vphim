@@ -1,16 +1,17 @@
 /* Base container */
 .container {
-    overflow: visible;
+    position: relative;
     border-radius: 0.5rem;
     height: 100%;
-    position: relative;
     cursor: pointer;
     background: #181818;
-    transition: box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    z-index: 1;
 }
 
 .container:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
 .link {
@@ -36,6 +37,7 @@
     position: absolute;
     inset: 0;
     transition: transform 0.35s ease;
+    z-index: 0;
 }
 
 .container:hover .imageWrapper {
@@ -83,41 +85,50 @@
     z-index: 3;
 }
 
+/* Completely new overlay approach */
 .overlay {
     position: absolute;
     inset: 0;
-    clip-path: inset(100% 0 0 0);
-    background: linear-gradient(
-        to top,
-        rgba(0, 0, 0, 0.95) 0%,
-        rgba(0, 0, 0, 0.8) 60%,
-        rgba(0, 0, 0, 0.4) 90%,
-        transparent 100%
-    );
-    opacity: 1;
-    transition: clip-path 0.3s ease-out;
+    z-index: 2;
     border-radius: 0.5rem;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    z-index: 2;
 }
 
-.container:hover .overlay {
-    clip-path: inset(0 0 0 0);
+/* Use a pseudo-element for the overlay background */
+.overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 0.98) 20%,
+        rgba(0, 0, 0, 0.9) 40%,
+        rgba(0, 0, 0, 0.8) 70%,
+        rgba(0, 0, 0, 0.6) 90%,
+        rgba(0, 0, 0, 0.5) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.container:hover .overlay::before {
+    opacity: 1;
 }
 
 .overlayContent {
     padding: 1rem;
-    transform: translateY(20px);
-    opacity: 0;
-    transition: all 0.3s ease-out;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 3;
 }
 
 .container:hover .overlayContent {
     transform: translateY(0);
-    opacity: 1;
 }
 
 .title {
@@ -198,7 +209,6 @@
     color: var(--vphim-color-text);
 }
 
-/* Remove transform from button hover */
 .viewDetailsBtn:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
@@ -270,18 +280,12 @@
         transform: scale(1.04);
     }
 
-    .overlay {
-        clip-path: inset(100% 0 0 0);
+    .container:active .overlay::before {
         opacity: 1;
-    }
-
-    .container:active .overlay {
-        clip-path: inset(0 0 0 0);
     }
 
     .container:active .overlayContent {
         transform: translateY(0);
-        opacity: 1;
     }
 
     .overlayContent {
