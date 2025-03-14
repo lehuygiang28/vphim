@@ -157,7 +157,7 @@
 
 .watch-now-btn {
     width: 100%;
-    background: var(--vphim-colorPrimary);
+    background: var(--vphim-color-primary);
     border: none;
     border-radius: 4px;
     font-weight: 600;
@@ -169,7 +169,7 @@
 }
 
 .watch-now-btn:hover {
-    background: var(--vphim-colorPrimary);
+    background: var(--vphim-color-primary-hover);
     opacity: 0.9;
     transform: translateY(-2px);
 }

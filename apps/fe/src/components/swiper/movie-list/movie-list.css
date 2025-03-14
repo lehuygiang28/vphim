@@ -1,11 +1,11 @@
 a.netflix-link {
-    color: var(--vphim-colorText);
+    color: var(--vphim-color-text);
     text-decoration: none;
     transition: all 0.3s ease;
 }
 
 a.netflix-link:hover {
-    color: var(--vphim-colorPrimary);
+    color: var(--vphim-color-primary-hover);
 }
 
 .movie-list-container {
@@ -138,7 +138,7 @@ a.netflix-link:hover {
 }
 
 .movie-list-container .view-more:hover {
-    color: var(--vphim-colorPrimary);
+    color: var(--vphim-color-primary);
 }
 
 .movie-list-container .view-more svg {
