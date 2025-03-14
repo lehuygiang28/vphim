@@ -15,6 +15,8 @@
   <h3>🌟 Your Personal Movie Library, Anytime, Anywhere 🌟</h3>
 </div>
 
+> ⚠️ **IMPORTANT LEGAL NOTICE**: This project is for educational purposes only. Please read the [DISCLAIMER.md](./DISCLAIMER.md) file before using this software.
+
 ## 📖 What is VePhim?
 
 VePhim is a feature-rich platform where you can watch movies online for free. Think of it as your personal movie library accessible anytime, anywhere with an internet connection. With a clean, modern interface and powerful features, VePhim delivers a premium streaming experience without the premium price tag.
@@ -301,30 +303,14 @@ This README provides an overview of VePhim. For detailed documentation, architec
 
 **IMPORTANT LEGAL NOTICE**
 
-This project is provided **STRICTLY FOR EDUCATIONAL AND DEMONSTRATION PURPOSES ONLY**. VePhim is designed to showcase advanced web and mobile application development techniques, including:
+This project is provided **STRICTLY FOR EDUCATIONAL AND DEMONSTRATION PURPOSES ONLY**. 
 
-- Monorepo architecture with Nx
-- Full-stack JavaScript/TypeScript development
-- Integration of AI services with web applications
-- Streaming media delivery techniques
-- Cross-platform mobile development
+For the full legal disclaimer, please refer to the [DISCLAIMER.md](./DISCLAIMER.md) file in this repository.
 
-**VePhim does not:**
-- Host, store, or distribute any movie content or media files
-- Upload, copy, or transfer copyrighted material
-- Circumvent any digital rights management technologies
-- Encourage or promote copyright infringement
-
-**All content accessed through VePhim:**
-- Is sourced exclusively from publicly available third-party sources
-- Remains on and is streamed directly from those third-party sources
-- Is not modified, copied, or stored on VePhim servers at any time
-
-**Legal Responsibilities:**
-- Users are solely responsible for ensuring their use of VePhim complies with local copyright laws and regulations
-- Users must have legal rights to access any content they view through VePhim
-- The authors and contributors of VePhim assume no liability for any misuse of this software
-
-By using VePhim, you acknowledge that you understand and accept these terms. If you intend to use any techniques demonstrated in this project, you agree to do so in a legal and ethical manner, respecting all applicable laws and intellectual property rights.
+In summary:
+- VePhim does not host, store, or distribute any movie content
+- All content is sourced from and streamed directly from third-party sources
+- Users are responsible for complying with their local laws and regulations
+- This project is designed to showcase development techniques, not to facilitate copyright infringement
 
 **THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.**
