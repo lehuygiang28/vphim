@@ -33,6 +33,7 @@ export const metadata: Metadata = {
     authors: [{ name: 'VePhim Team' }],
     creator: 'VePhim',
     publisher: 'VePhim',
+    applicationName: 'VePhim',
     formatDetection: {
         email: false,
         address: false,
@@ -104,6 +105,7 @@ export const metadata: Metadata = {
         apple: '/favicon.ico',
         shortcut: '/favicon.ico',
     },
+    manifest: '/site.webmanifest',
 };
 
 export default function DefaultNoLayoutStyle({
