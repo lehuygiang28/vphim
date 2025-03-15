@@ -80,7 +80,6 @@
         "swagger-themes": "*",
         "swagger-stats": "*",
         "copy-webpack-plugin": "*",
-        "@react-native-async-storage/async-storage": "*",
         "@apollo/client": "*",
         "@refinedev/core": "*",
         "graphql": "*",
