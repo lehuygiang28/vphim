@@ -17,7 +17,7 @@
         "assetBundlePatterns": ["**/*"],
         "ios": {
             "supportsTablet": true,
-            "newArchEnabled": true
+            "newArchEnabled": false
         },
         "android": {
             "package": "com.lehuygiang28.vephim",
@@ -25,7 +25,7 @@
                 "foregroundImage": "./assets/adaptive-icon.png",
                 "backgroundColor": "#000000"
             },
-            "newArchEnabled": true
+            "newArchEnabled": false
         },
         "web": {
             "favicon": "./assets/favicon.png",
@@ -48,10 +48,10 @@
                 "expo-build-properties",
                 {
                     "android": {
-                        "newArchEnabled": true
+                        "newArchEnabled": false
                     },
                     "ios": {
-                        "newArchEnabled": true
+                        "newArchEnabled": false
                     }
                 }
             ]
