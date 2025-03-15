@@ -10266,7 +10266,6 @@ __metadata:
     eslint-plugin-react: "npm:7.32.2"
     eslint-plugin-react-hooks: "npm:4.6.0"
     expo: "npm:^52.0.11"
-    expo-blur: "npm:~14.0.1"
     expo-build-properties: "npm:~0.13.1"
     expo-clipboard: "npm:~7.0.1"
     expo-image: "npm:~2.0.2"
@@ -15225,17 +15224,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/62a3541481e73ee815c7572ebde4397ee5f6d92fe74da22857d7cc0731caf7da270b5a2fada01d60a726c4e8dd8ad1554d070bfe576b64213957a0af41f289e0
-  languageName: node
-  linkType: hard
-
-"expo-blur@npm:~14.0.1":
-  version: 14.0.1
-  resolution: "expo-blur@npm:14.0.1"
-  peerDependencies:
-    expo: "*"
-    react: "*"
-    react-native: "*"
-  checksum: 10c0/c4e72872efbf8c58f1731926690157a9dd64a08eb5e5c10f0bb5dc88be357e9ab1207f89a0d1a837caaa315bd289ad4a6b69b9314851473636833209eeca0922
   languageName: node
   linkType: hard
 
