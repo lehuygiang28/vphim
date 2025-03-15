@@ -225,6 +225,8 @@ type CommentType {
   movieId: ID!
   content: String!
   parentComment: ID
+  rootParentComment: ID
+  nestingLevel: Float!
   replyCount: Float
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -411,6 +413,7 @@ input GetCommentRepliesInput {
   page: Float = 1
   parentCommentId: ID!
   movieId: ID!
+  includeNestedReplies: Boolean = false
 }
 
 type Mutation {

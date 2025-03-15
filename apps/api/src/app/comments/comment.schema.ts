@@ -19,6 +19,12 @@ export class Comment extends AbstractDocument {
     @Prop({ type: Types.ObjectId, ref: 'Comment', default: null })
     parentComment?: Types.ObjectId;
 
+    @Prop({ type: Number, default: 0 })
+    nestingLevel: number;
+
+    @Prop({ type: Types.ObjectId, ref: 'Comment', default: null })
+    rootParentComment?: Types.ObjectId;
+
     @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
     mentionedUsers?: Types.ObjectId[];
 

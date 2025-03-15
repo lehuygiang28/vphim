@@ -22,6 +22,12 @@ export class CommentType {
     @Field(() => ID, { nullable: true })
     parentComment?: Types.ObjectId | null;
 
+    @Field(() => ID, { nullable: true })
+    rootParentComment?: Types.ObjectId | null;
+
+    @Field(() => Number)
+    nestingLevel: number;
+
     @Field(() => Number, { nullable: true })
     replyCount?: number | null;
 

@@ -17,6 +17,7 @@ import { GetCommentRepliesInput } from './inputs/get-comment-replies.input';
 @Injectable()
 export class CommentService {
     private readonly logger = new Logger(CommentService.name);
+    private readonly MAX_NESTING_LEVEL = 5; // Maximum allowed nesting level
 
     constructor(
         private readonly commentRepository: CommentRepository,
@@ -90,11 +91,30 @@ export class CommentService {
 
             if (!movie) this.throwMovieNotFoundError();
 
+            let nestingLevel = 0;
+            let rootParentComment = null;
+
             if (parentCommentId) {
                 const parentComment = await this.commentRepository.findOne({
                     filterQuery: { _id: convertToObjectId(parentCommentId), movie: movie._id },
                 });
+
                 if (!parentComment) this.throwCommentNotFoundError();
+
+                // Calculate nesting level but cap it at MAX_NESTING_LEVEL
+                nestingLevel = Math.min(parentComment.nestingLevel + 1, this.MAX_NESTING_LEVEL);
+
+                // Find root parent if this is a nested reply
+                // For deeply nested comments, we'll use the root parent from the parent comment
+                rootParentComment = parentComment.rootParentComment || parentComment._id;
+
+                // If we've reached max nesting, we'll make this a reply to the root parent instead
+                if (nestingLevel === this.MAX_NESTING_LEVEL &&
+                    parentComment.nestingLevel === this.MAX_NESTING_LEVEL) {
+                    // We're at max nesting and trying to go deeper
+                    // So we'll attach this comment to the root parent instead of the immediate parent
+                    parentCommentId = rootParentComment.toString();
+                }
             }
 
             const [newComment] = await Promise.all([
@@ -106,11 +126,19 @@ export class CommentService {
                         editedAt: 0,
                         content: stripHtml(content).result,
                         parentComment: parentCommentId ? convertToObjectId(parentCommentId) : null,
+                        nestingLevel,
+                        rootParentComment: rootParentComment ? convertToObjectId(rootParentComment) : null,
                     },
                 }),
                 parentCommentId &&
                     this.commentRepository.findOneAndUpdate({
                         filterQuery: { _id: convertToObjectId(parentCommentId) },
+                        updateQuery: { $inc: { replyCount: 1 } },
+                    }),
+                // If there's a root parent that's different from the direct parent, increment its reply count too
+                rootParentComment && rootParentComment.toString() !== parentCommentId &&
+                    this.commentRepository.findOneAndUpdate({
+                        filterQuery: { _id: convertToObjectId(rootParentComment) },
                         updateQuery: { $inc: { replyCount: 1 } },
                     }),
             ]);
@@ -131,6 +159,8 @@ export class CommentService {
                         replyCount: 1,
                         movieId: 1,
                         parentComment: 1,
+                        rootParentComment: 1,
+                        nestingLevel: 1,
                         user: {
                             _id: 1,
                             fullName: 1,
@@ -187,16 +217,40 @@ export class CommentService {
             if (!comment) this.throwCommentNotFoundError();
             if (comment.user.toString() !== actor.userId) this.throwUnauthorizedError();
 
+            // Count all nested replies to update counts properly
+            const nestedRepliesCount = await this.commentRepository.count({
+                $or: [
+                    { parentComment: convertToObjectId(commentId) },
+                    {
+                        rootParentComment: convertToObjectId(commentId),
+                        _id: { $ne: convertToObjectId(commentId) }
+                    }
+                ]
+            });
+
             await Promise.all([
-                // Delete all replies to this comment
+                // Delete all replies to this comment (both direct and indirect)
                 this.commentRepository.deleteMany({
-                    filterQuery: { parentComment: convertToObjectId(comment._id) },
+                    filterQuery: {
+                        $or: [
+                            { parentComment: convertToObjectId(commentId) },
+                            { rootParentComment: convertToObjectId(commentId) }
+                        ]
+                    },
                 }),
                 this.commentRepository.deleteOne({ _id: convertToObjectId(commentId) }),
+                // Update reply count of parent comment if exists
                 comment.parentComment &&
                     this.commentRepository.findOneAndUpdate({
                         filterQuery: { _id: convertToObjectId(comment.parentComment) },
-                        updateQuery: { $inc: { replyCount: -1 } },
+                        updateQuery: { $inc: { replyCount: -(nestedRepliesCount + 1) } },
+                    }),
+                // Update reply count of root parent if it's different from direct parent
+                comment.rootParentComment &&
+                comment.rootParentComment.toString() !== comment.parentComment?.toString() &&
+                    this.commentRepository.findOneAndUpdate({
+                        filterQuery: { _id: convertToObjectId(comment.rootParentComment) },
+                        updateQuery: { $inc: { replyCount: -(nestedRepliesCount + 1) } },
                     }),
             ]);
 
@@ -232,6 +286,7 @@ export class CommentService {
                         editedAt: 1,
                         replyCount: 1,
                         movieId: 1,
+                        nestingLevel: 1,
                         user: {
                             _id: 1,
                             fullName: 1,
@@ -262,17 +317,31 @@ export class CommentService {
             });
             if (!parentComment) this.throwCommentNotFoundError();
 
-            const { limit = 5, page = 1 } = query;
+            const { limit = 5, page = 1, includeNestedReplies = false } = query;
+
+            // Construct match stage based on whether to include nested replies
+            const matchStage: PipelineStage = {
+                $match: includeNestedReplies
+                    ? {
+                          $or: [
+                              { parentComment: convertToObjectId(query.parentCommentId) },
+                              {
+                                  rootParentComment: convertToObjectId(query.parentCommentId),
+                                  _id: { $ne: convertToObjectId(query.parentCommentId) }
+                              }
+                          ],
+                          movie: convertToObjectId(query.movieId),
+                      }
+                    : {
+                          parentComment: convertToObjectId(query.parentCommentId),
+                          movie: convertToObjectId(query.movieId),
+                      }
+            };
 
             const pipeline: PipelineStage[] = [
-                {
-                    $match: {
-                        parentComment: convertToObjectId(query.parentCommentId),
-                        movie: convertToObjectId(query.movieId),
-                    },
-                },
-                // Sort by newest first for consistency
-                { $sort: { createdAt: -1 } },
+                matchStage,
+                // Sort by nesting level first (parent replies first), then by newest
+                { $sort: { nestingLevel: 1, createdAt: -1 } },
                 { $skip: (page - 1) * limit },
                 { $limit: limit },
                 this.userLookupStage(),
@@ -287,6 +356,9 @@ export class CommentService {
                         editedAt: 1,
                         movieId: 1,
                         parentComment: 1,
+                        rootParentComment: 1,
+                        nestingLevel: 1,
+                        replyCount: 1,
                         user: {
                             _id: 1,
                             fullName: 1,
@@ -296,11 +368,22 @@ export class CommentService {
                 },
             ];
 
+            // Build count filter based on same criteria
+            const countFilter = includeNestedReplies
+                ? {
+                      $or: [
+                          { parentComment: convertToObjectId(query.parentCommentId) },
+                          {
+                              rootParentComment: convertToObjectId(query.parentCommentId),
+                              _id: { $ne: convertToObjectId(query.parentCommentId) }
+                          }
+                      ],
+                  }
+                : { parentComment: convertToObjectId(query.parentCommentId) };
+
             const [replies, total] = await Promise.all([
                 this.commentRepository.aggregate<CommentType>(pipeline) as unknown as CommentType[],
-                this.commentRepository.count({
-                    parentComment: convertToObjectId(query.parentCommentId),
-                }),
+                this.commentRepository.count(countFilter),
             ]);
 
             const result = this.formatRepliesOutput(replies, total, page, limit);

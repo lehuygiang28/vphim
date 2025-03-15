@@ -1,5 +1,5 @@
 import { Field, ID, InputType, PartialType } from '@nestjs/graphql';
-import { IsMongoId, IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsMongoId, IsNotEmpty, IsOptional } from 'class-validator';
 
 import { PaginationInput } from 'apps/api/src/libs/inputs/pagination.input';
 
@@ -14,4 +14,9 @@ export class GetCommentRepliesInput extends PartialType(PaginationInput) {
     @IsNotEmpty()
     @IsMongoId()
     movieId: string;
+
+    @Field(() => Boolean, { nullable: true, defaultValue: false })
+    @IsOptional()
+    @IsBoolean()
+    includeNestedReplies?: boolean;
 }
