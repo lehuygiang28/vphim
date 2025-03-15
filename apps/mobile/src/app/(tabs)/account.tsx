@@ -9,17 +9,19 @@ import {
     Alert,
 } from 'react-native';
 import { Link } from 'expo-router';
-import { Text, useTheme, Spinner } from '@ui-kitten/components';
+import { Text, useTheme, Spinner, Avatar } from '@ui-kitten/components';
 import { User, Info, MessageSquare, ChevronRight, FileText, LogOut } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import authStore from '~mb/stores/authStore';
 import { refreshSession } from '~mb/libs/authActions';
+import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
 
 export default function AccountScreen() {
     const { session, isLoading, clearSession, setIsLoading } = authStore();
     const [refreshing, setRefreshing] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
+    const [avatarError, setAvatarError] = useState(false);
     const theme = useTheme();
 
     const menuItems = [
@@ -31,6 +33,7 @@ export default function AccountScreen() {
     const onRefresh = useCallback(async () => {
         try {
             setRefreshing(true);
+            setAvatarError(false);
             await refreshSession();
         } finally {
             setRefreshing(false);
@@ -51,6 +54,9 @@ export default function AccountScreen() {
                     onPress: async () => {
                         setLoggingOut(true);
                         clearSession();
+                        setTimeout(() => {
+                            setLoggingOut(false);
+                        }, 500);
                     },
                     style: 'destructive',
                 },
@@ -63,6 +69,16 @@ export default function AccountScreen() {
         setIsLoading(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Reset avatar error state when session changes
+    useEffect(() => {
+        setAvatarError(false);
+    }, [session]);
+
+    // Reset loggingOut state when session changes
+    useEffect(() => {
+        setLoggingOut(false);
+    }, [session]);
 
     if (isLoading && !refreshing) {
         return (
@@ -99,11 +115,29 @@ export default function AccountScreen() {
                         {session ? (
                             <View style={styles.profileInfo}>
                                 <View style={styles.avatarContainer}>
-                                    <User
-                                        color={theme['color-primary-100']}
-                                        size={64}
-                                        style={styles.profileIcon}
-                                    />
+                                    {session.user.avatar && !avatarError ? (
+                                        <Avatar
+                                            style={styles.avatar}
+                                            source={{
+                                                uri: getOptimizedImageUrl(
+                                                    session.user.avatar?.url,
+                                                    {
+                                                        height: 350,
+                                                        width: 350,
+                                                        quality: 100,
+                                                    },
+                                                ),
+                                            }}
+                                            onError={() => setAvatarError(true)}
+                                            size="giant"
+                                        />
+                                    ) : (
+                                        <User
+                                            color={theme['color-primary-100']}
+                                            size={64}
+                                            style={styles.profileIcon}
+                                        />
+                                    )}
                                 </View>
                                 <Text category="h5" style={styles.userName}>
                                     {session.user.fullName || 'Movie Lover'}
@@ -199,8 +233,8 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     headerContent: {
-        paddingTop: 16,
-        paddingBottom: 32,
+        paddingTop: 24,
+        paddingBottom: 36,
         paddingHorizontal: 16,
         alignItems: 'center',
     },
@@ -208,40 +242,64 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     avatarContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 110,
+        height: 110,
+        borderRadius: 55,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 16,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        overflow: 'hidden',
+    },
+    avatar: {
+        width: 110,
+        height: 110,
     },
     profileIcon: {
         marginBottom: 8,
     },
     userName: {
-        marginBottom: 4,
+        marginBottom: 8,
         color: 'white',
+        fontWeight: 'bold',
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     userEmail: {
         color: 'white',
+        opacity: 0.9,
     },
     ctaContainer: {
         alignItems: 'center',
     },
     ctaText: {
-        marginBottom: 16,
+        marginBottom: 20,
         textAlign: 'center',
         color: 'white',
+        fontWeight: 'bold',
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     ctaButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 12,
-        borderRadius: 8,
-        minWidth: 200,
+        padding: 14,
+        borderRadius: 12,
+        minWidth: 220,
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 3,
     },
     buttonIcon: {
         marginRight: 8,
@@ -249,19 +307,25 @@ const styles = StyleSheet.create({
     buttonText: {
         fontWeight: 'bold',
         color: 'white',
+        fontSize: 16,
     },
     contentContainer: {
         flex: 1,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
         paddingTop: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 5,
     },
     listItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        padding: 18,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0,0,0,0.1)',
+        borderBottomColor: 'rgba(0,0,0,0.05)',
     },
     listItemText: {
         flex: 1,
