@@ -138,7 +138,8 @@
         "@refinedev/simple-rest": "*",
         "@react-native-community/cli-server-api": "*",
         "expo@latest": "*",
-        "expo-build-properties": "*"
+        "expo-build-properties": "*",
+        "expo-web-browser": "*"
     },
     "scripts": {
         "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",

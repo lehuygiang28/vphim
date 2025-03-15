@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, SafeAreaView, Keyboard, Animated, View } from 'react-native';
 import { router } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
@@ -14,38 +14,41 @@ import {
 } from '@ui-kitten/components';
 import { Mail, ArrowLeft, Check } from 'lucide-react-native';
 
-import authStore from '~mb/stores/authStore';
+import { useAuth } from '~mb/hooks/use-auth';
+
+type AuthScreenState = 'EMAIL_INPUT' | 'OTP_INPUT';
 
 export default function AuthScreen() {
-    const {
-        session,
-        setSession: updateSession,
-        isLoading: sessionLoading,
-        setIsLoading: setSessionLoading,
-    } = authStore();
+    const { isLoading: authLoading, isAuthenticated, login, requestOTP } = useAuth();
 
+    // Form state
     const [email, setEmail] = useState('');
+    const [otp, setOTP] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [isValid, setIsValid] = useState(false);
-    const theme = useTheme();
-    const [keyboardHeight] = useState(new Animated.Value(0));
-    const [showOTP, setShowOTP] = useState(false);
-    const [otp, setOTP] = useState('');
-    const [countdown, setCountdown] = useState(180); // 3 minutes in seconds
-    const [otpSentTime, setOtpSentTime] = useState<number | null>(null); // Timestamp for OTP sent
+    const [screenState, setScreenState] = useState<AuthScreenState>('EMAIL_INPUT');
 
+    // Email validation
+    const [isEmailValid, setIsEmailValid] = useState(false);
+
+    // Keyboard handling
+    const [keyboardHeight] = useState(new Animated.Value(0));
+
+    // OTP timer state
+    const [otpSentTime, setOtpSentTime] = useState<number | null>(null);
+    const [countdown, setCountdown] = useState(180); // 3 minutes in seconds
+
+    // Theme
+    const theme = useTheme();
+
+    // Redirect if already authenticated
     useEffect(() => {
-        if (session) {
+        if (isAuthenticated) {
             router.back();
         }
-    }, [session]);
+    }, [isAuthenticated]);
 
-    useEffect(() => {
-        setSessionLoading(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
+    // Keyboard handling
     useEffect(() => {
         const keyboardWillShow = Keyboard.addListener('keyboardWillShow', (e) => {
             Animated.timing(keyboardHeight, {
@@ -69,99 +72,79 @@ export default function AuthScreen() {
         };
     }, [keyboardHeight]);
 
+    // OTP countdown timer
     useEffect(() => {
         if (otpSentTime) {
             const calculateRemainingTime = () => {
-                const currentTime = Math.floor(Date.now() / 1000); // Get current time in seconds
-                const elapsedTime = currentTime - otpSentTime; // Calculate time elapsed since OTP was sent
-                const remainingTime = Math.max(180 - elapsedTime, 0); // Calculate remaining countdown time
+                const currentTime = Math.floor(Date.now() / 1000);
+                const elapsedTime = currentTime - otpSentTime;
+                const remainingTime = Math.max(180 - elapsedTime, 0);
                 setCountdown(remainingTime);
             };
 
             const interval = setInterval(calculateRemainingTime, 1000);
-
-            return () => {
-                clearInterval(interval);
-            };
+            return () => clearInterval(interval);
         }
     }, [otpSentTime]);
 
-    const isValidEmail = (email: string) => {
+    // Email validation function
+    const validateEmail = useCallback((email: string): boolean => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
-    };
+    }, []);
 
-    const handleEmailChange = (text: string) => {
-        setEmail(text);
-        setError('');
-        setIsValid(isValidEmail(text));
-    };
+    // Handle email input change
+    const handleEmailChange = useCallback(
+        (text: string) => {
+            setEmail(text);
+            setError('');
+            setIsEmailValid(validateEmail(text));
+        },
+        [validateEmail],
+    );
 
-    const handleAuth = async () => {
+    // Request OTP
+    const handleRequestOTP = useCallback(async () => {
         setError('');
+
         if (!email) {
             setError('Email không được để trống!');
             return;
         }
-        if (!isValidEmail(email)) {
+
+        if (!isEmailValid) {
             setError('Email không hợp lệ!');
             return;
         }
+
         setIsLoading(true);
+
         try {
-            const endpoint = 'login/pwdless';
-            const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_API_URL}/api/auth/${endpoint}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email,
-                        returnUrl: process.env.EXPO_PUBLIC_BASE_PLAYER_URL,
-                    }),
-                },
-            );
-            if (response.ok) {
-                setShowOTP(true);
-                setOtpSentTime(Math.floor(Date.now() / 1000)); // Save the current timestamp in seconds
+            const success = await requestOTP(email);
+
+            if (success) {
+                setScreenState('OTP_INPUT');
+                setOtpSentTime(Math.floor(Date.now() / 1000));
             } else {
                 throw new Error('Authentication failed');
             }
         } catch (error) {
             setError('Gửi OTP thất bại. Vui lòng thử lại!');
-            setShowOTP(false);
+            setScreenState('EMAIL_INPUT');
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [email, isEmailValid, requestOTP]);
 
-    const handleGoogleAuth = () => {
-        alert('Chức năng đang cập nhật!');
-    };
-
-    const handleOTPSubmit = async () => {
+    // Handle OTP verification
+    const handleVerifyOTP = useCallback(async () => {
         setIsLoading(true);
         setError('');
-        try {
-            const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_API_URL}/api/auth/login/pwdless/validate`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        hash: otp,
-                        email: email,
-                    }),
-                },
-            );
 
-            if (response.ok) {
-                const data = await response.json();
-                updateSession({ user: data });
+        try {
+            const success = await login(email, otp);
+
+            if (success) {
                 router.replace('/');
             } else {
                 throw new Error('OTP validation failed');
@@ -171,24 +154,45 @@ export default function AuthScreen() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [email, otp, login]);
 
+    // Handle Google authentication
+    const handleGoogleAuth = useCallback(() => {
+        alert('Chức năng đang cập nhật!');
+    }, []);
+
+    // Format time for countdown display
     const formatTime = useCallback((time: number) => {
         const minutes = Math.floor(time / 60);
         const seconds = time % 60;
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }, []);
 
-    const BackAction = () => (
-        <TouchableOpacity>
-            <TopNavigationAction
-                icon={() => <ArrowLeft color={theme['text-basic-color']} />}
-                onPress={() => router.back()}
-            />
-        </TouchableOpacity>
+    // Back action component
+    const BackAction = useMemo(
+        () => () =>
+            (
+                <TouchableOpacity>
+                    <TopNavigationAction
+                        icon={() => <ArrowLeft color={theme['text-basic-color']} />}
+                        onPress={() => router.back()}
+                    />
+                </TouchableOpacity>
+            ),
+        [theme],
     );
 
-    if (!session && sessionLoading) {
+    // Handle primary button action based on current screen state
+    const handlePrimaryAction = useCallback(() => {
+        if (screenState === 'EMAIL_INPUT') {
+            return handleRequestOTP();
+        } else {
+            return handleVerifyOTP();
+        }
+    }, [screenState, handleRequestOTP, handleVerifyOTP]);
+
+    // Loading state UI
+    if (authLoading) {
         return (
             <SafeAreaView
                 style={[
@@ -205,7 +209,8 @@ export default function AuthScreen() {
         );
     }
 
-    if (session) {
+    // Hide component if already logged in
+    if (isAuthenticated) {
         return null;
     }
 
@@ -238,22 +243,22 @@ export default function AuthScreen() {
                         }}
                         accessoryRight={(props) => {
                             const { style, ...p } = props || {};
-                            return isValid ? (
+                            return isEmailValid ? (
                                 <Check {...p} color={theme['color-success-500']} />
                             ) : (
                                 // eslint-disable-next-line react/jsx-no-useless-fragment
                                 <></>
                             );
                         }}
-                        disabled={showOTP || isLoading}
+                        disabled={screenState === 'OTP_INPUT' || isLoading}
                         style={styles.input}
-                        status={error ? 'danger' : isValid ? 'success' : 'basic'}
+                        status={error ? 'danger' : isEmailValid ? 'success' : 'basic'}
                         caption={error ? () => <Text status="danger">{error}</Text> : undefined}
                     />
-                    {showOTP && (
+                    {screenState === 'OTP_INPUT' && (
                         <>
                             <Input
-                                placeholder="Enter OTP"
+                                placeholder="Nhập mã OTP"
                                 value={otp}
                                 onChangeText={setOTP}
                                 style={styles.input}
@@ -261,7 +266,7 @@ export default function AuthScreen() {
                             />
                             <View style={styles.resendContainer}>
                                 <TouchableOpacity
-                                    onPress={handleAuth}
+                                    onPress={handleRequestOTP}
                                     disabled={countdown > 0}
                                     style={[
                                         styles.resendButton,
@@ -282,8 +287,8 @@ export default function AuthScreen() {
                         </>
                     )}
                     <Button
-                        onPress={showOTP ? handleOTPSubmit : handleAuth}
-                        disabled={isLoading || (!showOTP && !isValid)}
+                        onPress={handlePrimaryAction}
+                        disabled={isLoading || (screenState === 'EMAIL_INPUT' && !isEmailValid)}
                         accessoryLeft={
                             isLoading
                                 ? (props) => {
@@ -295,7 +300,7 @@ export default function AuthScreen() {
                     >
                         {isLoading
                             ? 'Đang xử lý...'
-                            : showOTP
+                            : screenState === 'OTP_INPUT'
                             ? 'Xác nhận OTP'
                             : 'Tiếp tục với Email'}
                     </Button>

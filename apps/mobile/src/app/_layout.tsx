@@ -1,10 +1,12 @@
-import React from 'react';
-import { StatusBar } from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import * as eva from '@eva-design/eva';
 import { ApplicationProvider } from '@ui-kitten/components';
+import * as WebBrowser from 'expo-web-browser';
 
 import RefineContextProvider from './_refine_context';
+import { useAuth } from '~mb/hooks/use-auth';
 
 // Netflix-inspired theme based on frontend theme
 const netflixTheme: Record<keyof typeof eva.dark, string | number> = {
@@ -93,17 +95,52 @@ const netflixTheme: Record<keyof typeof eva.dark, string | number> = {
     'button-tiny-min-height': 24,
 };
 
+/**
+ * Authentication provider component that handles session management
+ * and browser warming for authentication flows
+ */
+function AuthProvider({ children }: { children: React.ReactNode }) {
+    // useAuth already handles session refresh and expiration
+    const auth = useAuth();
+
+    // Warm up the browser for authentication flow
+    useEffect(() => {
+        if (Platform.OS !== 'web') {
+            const warmUpBrowser = async () => {
+                try {
+                    await WebBrowser.warmUpAsync();
+                    console.log('Browser warmed up for auth flows');
+                } catch (error) {
+                    console.error('Failed to warm up browser:', error);
+                }
+            };
+
+            warmUpBrowser();
+
+            return () => {
+                WebBrowser.coolDownAsync().catch((error) => {
+                    console.error('Failed to cool down browser:', error);
+                });
+            };
+        }
+    }, []);
+
+    return <>{children}</>;
+}
+
 export default function AppLayout() {
     return (
         <RefineContextProvider>
             <ApplicationProvider {...eva} theme={{ ...eva.dark, ...netflixTheme }}>
-                <Stack>
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    <Stack.Screen name="search" options={{ headerShown: false }} />
-                    <Stack.Screen name="auth" options={{ headerShown: false }} />
-                    <Stack.Screen name="movie/[slug]" options={{ headerShown: false }} />
-                </Stack>
-                <StatusBar barStyle="light-content" />
+                <AuthProvider>
+                    <Stack>
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="search" options={{ headerShown: false }} />
+                        <Stack.Screen name="auth" options={{ headerShown: false }} />
+                        <Stack.Screen name="movie/[slug]" options={{ headerShown: false }} />
+                    </Stack>
+                    <StatusBar barStyle="light-content" />
+                </AuthProvider>
             </ApplicationProvider>
         </RefineContextProvider>
     );
