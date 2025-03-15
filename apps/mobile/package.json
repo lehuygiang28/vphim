@@ -139,7 +139,8 @@
         "@react-native-community/cli-server-api": "*",
         "expo@latest": "*",
         "expo-build-properties": "*",
-        "expo-web-browser": "*"
+        "expo-web-browser": "*",
+        "expo-image-picker": "*"
     },
     "scripts": {
         "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",

@@ -7,10 +7,19 @@ import {
     SafeAreaView,
     RefreshControl,
     Alert,
+    Image,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Text, useTheme, Spinner, Avatar } from '@ui-kitten/components';
-import { User, Info, MessageSquare, ChevronRight, FileText, LogOut } from 'lucide-react-native';
+import {
+    User,
+    Info,
+    MessageSquare,
+    ChevronRight,
+    FileText,
+    LogOut,
+    Edit,
+} from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import authStore from '~mb/stores/authStore';
@@ -145,6 +154,15 @@ export default function AccountScreen() {
                                 <Text category="s1" style={styles.userEmail}>
                                     {session.user.email}
                                 </Text>
+                                <Pressable
+                                    style={styles.editButton}
+                                    onPress={() => router.push('/edit-profile')}
+                                >
+                                    <Edit size={16} color="white" style={styles.editIcon} />
+                                    <Text category="s2" style={styles.editText}>
+                                        Chỉnh sửa
+                                    </Text>
+                                </Pressable>
                             </View>
                         ) : (
                             <View style={styles.ctaContainer}>
@@ -274,6 +292,7 @@ const styles = StyleSheet.create({
     userEmail: {
         color: 'white',
         opacity: 0.9,
+        marginBottom: 12,
     },
     ctaContainer: {
         alignItems: 'center',
@@ -336,5 +355,20 @@ const styles = StyleSheet.create({
     },
     logoutTextDisabled: {
         color: 'gray',
+    },
+    editButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 16,
+    },
+    editIcon: {
+        marginRight: 4,
+    },
+    editText: {
+        color: 'white',
+        fontWeight: 'bold',
     },
 });

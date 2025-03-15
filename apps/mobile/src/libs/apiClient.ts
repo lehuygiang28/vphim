@@ -1,6 +1,6 @@
 import { print } from 'graphql/language/printer';
 import type { DocumentNode } from 'graphql';
-import axios, { AxiosRequestConfig } from 'axios';
+import { AxiosRequestConfig } from 'axios';
 import axiosInstance from './axios';
 import authStore from '../stores/authStore';
 import { refreshSession } from './authActions';
@@ -58,7 +58,6 @@ export async function executeQuery<T = unknown>(
         const response = await axiosInstance.post<GraphQLResponse<T>>('/graphql', {
             query: print(query),
             variables: options.variables || {},
-            operationName: options.operationName,
         });
 
         if (response.data?.errors?.length) {
