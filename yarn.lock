@@ -10280,6 +10280,7 @@ __metadata:
     expo: "npm:^52.0.11"
     expo-blur: "npm:~14.0.1"
     expo-build-properties: "npm:~0.13.1"
+    expo-clipboard: "npm:^7.0.1"
     expo-image: "npm:~2.0.2"
     expo-image-picker: "npm:^16.0.6"
     expo-linear-gradient: "npm:~14.0.1"
@@ -15259,6 +15260,17 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 10c0/b565f6f995371ce0be526dcab45dba504f82934d8fffdf38ce2f46d1e7497e25df80d38e0fa4e4e7203a6d557bc4190a840e9eb8c94a5c205b0285777945c8fd
+  languageName: node
+  linkType: hard
+
+"expo-clipboard@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "expo-clipboard@npm:7.0.1"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/6b0727de25e9960a1bf6533b9fbec59933b8e071c1a2a94a38415f09cbed49d69a9275374e3a27e69b8cbf4af39de1a288ac3880b2e627f9fe1fe28c33290387
   languageName: node
   linkType: hard
 

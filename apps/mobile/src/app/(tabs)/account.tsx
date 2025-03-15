@@ -34,7 +34,7 @@ export default function AccountScreen() {
     const theme = useTheme();
 
     const menuItems = [
-        { title: 'Chính sách bảo vệ thông tin', icon: FileText, href: '/privacy-policy' },
+        { title: 'Chính sách sử dụng', icon: FileText, href: '/privacy-policy' },
         { title: 'Liên hệ', icon: MessageSquare, href: '/contact' },
         { title: 'Về ứng dụng', icon: Info, href: '/about' },
     ];
