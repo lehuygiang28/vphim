@@ -38,6 +38,7 @@
         },
         "owner": "lehuygiang28",
         "plugins": [
+            "expo-router",
             [
                 "expo-secure-store",
                 {
@@ -49,9 +50,7 @@
                 {
                     "android": {
                         "newArchEnabled": false,
-                        "kotlinVersion": "1.9.25",
-                        "compileSdkVersion": 33,
-                        "extraComposeCompilerArgs": ["suppressKotlinVersionCompatibilityCheck=true"]
+                        "kotlinVersion": "1.9.25"
                     },
                     "ios": {
                         "newArchEnabled": false
