@@ -9,7 +9,7 @@
         "splash": {
             "image": "./assets/splash.png",
             "resizeMode": "contain",
-            "backgroundColor": "#ffffff"
+            "backgroundColor": "#000000"
         },
         "updates": {
             "fallbackToCacheTimeout": 0
@@ -17,15 +17,15 @@
         "assetBundlePatterns": ["**/*"],
         "ios": {
             "supportsTablet": true,
-            "newArchEnabled": false
+            "newArchEnabled": true
         },
         "android": {
             "package": "com.lehuygiang28.vephim",
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
-                "backgroundColor": "#FFFFFF"
+                "backgroundColor": "#000000"
             },
-            "newArchEnabled": false
+            "newArchEnabled": true
         },
         "web": {
             "favicon": "./assets/favicon.png",
@@ -48,10 +48,10 @@
                 "expo-build-properties",
                 {
                     "android": {
-                        "newArchEnabled": false
+                        "newArchEnabled": true
                     },
                     "ios": {
-                        "newArchEnabled": false
+                        "newArchEnabled": true
                     }
                 }
             ]
