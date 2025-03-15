@@ -10280,16 +10280,16 @@ __metadata:
     expo: "npm:^52.0.11"
     expo-blur: "npm:~14.0.1"
     expo-build-properties: "npm:~0.13.1"
-    expo-clipboard: "npm:^7.0.1"
+    expo-clipboard: "npm:~7.0.1"
     expo-image: "npm:~2.0.2"
-    expo-image-picker: "npm:^16.0.6"
+    expo-image-picker: "npm:~16.0.6"
     expo-linear-gradient: "npm:~14.0.1"
     expo-linking: "npm:~7.0.3"
     expo-router: "npm:4.0.9"
     expo-secure-store: "npm:~14.0.0"
     expo-splash-screen: "npm:~0.29.13"
     expo-status-bar: "npm:~2.0.0"
-    expo-video: "npm:^2.0.2"
+    expo-video: "npm:~2.0.6"
     expo-web-browser: "npm:^14.0.2"
     google-auth-library: "npm:^9.14.0"
     graphql: "npm:^16.9.0"
@@ -15263,7 +15263,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-clipboard@npm:^7.0.1":
+"expo-clipboard@npm:~7.0.1":
   version: 7.0.1
   resolution: "expo-clipboard@npm:7.0.1"
   peerDependencies:
@@ -15320,7 +15320,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-image-picker@npm:^16.0.6":
+"expo-image-picker@npm:~16.0.6":
   version: 16.0.6
   resolution: "expo-image-picker@npm:16.0.6"
   dependencies:
@@ -15473,14 +15473,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-video@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "expo-video@npm:2.0.2"
+"expo-video@npm:~2.0.6":
+  version: 2.0.6
+  resolution: "expo-video@npm:2.0.6"
   peerDependencies:
     expo: "*"
     react: "*"
     react-native: "*"
-  checksum: 10c0/2db8d529472d279afcba11d9b9aa7da29db6712d33e44510ba4fa2ea567c861b5d04f1845164a6f72eeede3a53f32801ac74a75e93255f0da8112a99618a54d2
+  checksum: 10c0/46c5efea19c693ec4b3f1218acb499aa259fd4ae164e5301e09c81a7c577f3a5df3fd259f3bf94e75c89e463c466c81acaea66a55c7bbd47dcd725b9115c8684
   languageName: node
   linkType: hard
 
