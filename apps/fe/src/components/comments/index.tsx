@@ -5,13 +5,12 @@ import {
     List,
     Typography,
     Input,
-    Row,
-    Col,
     notification,
     Popconfirm,
     Space,
     Dropdown,
     Spin,
+    theme,
 } from 'antd';
 import {
     CommentOutlined,
@@ -21,8 +20,12 @@ import {
     DeleteOutlined,
     MoreOutlined,
     LoadingOutlined,
+    LikeOutlined,
+    DownOutlined,
+    RightOutlined,
 } from '@ant-design/icons';
 import { useCreate, useDelete, useUpdate, useInfiniteList } from '@refinedev/core';
+import styles from './styles/index.module.css';
 
 import type { CommentType } from 'apps/api/src/app/comments/comment.type';
 
@@ -44,6 +47,8 @@ interface CommentProps {
     currentUserId: string | undefined;
     refetch?: () => void;
     isNested?: boolean;
+    nestingLevel: number;
+    maxNestingLevel: number;
 }
 
 export const Comment: React.FC<CommentProps> = ({
@@ -52,7 +57,10 @@ export const Comment: React.FC<CommentProps> = ({
     currentUserId,
     refetch,
     isNested = false,
+    nestingLevel,
+    maxNestingLevel,
 }) => {
+    const { token } = theme.useToken();
     const [replyVisible, setReplyVisible] = useState(false);
     const [showReplies, setShowReplies] = useState(false);
     const [newComment, setNewComment] = useState('');
@@ -61,6 +69,19 @@ export const Comment: React.FC<CommentProps> = ({
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const editTextAreaRef = useRef<HTMLTextAreaElement>(null);
     const commentId = useMemo(() => comment._id?.toString(), [comment._id]);
+
+    // Calculate indentation for nested comments
+    const leftIndent = useMemo(
+        () => (nestingLevel > 0 ? `${Math.min(nestingLevel * 16, 64)}px` : '0px'),
+        [nestingLevel],
+    );
+
+    // Avatar class based on nesting level
+    const avatarClass = useMemo(() => {
+        if (nestingLevel >= 3) return styles.avatarSmall;
+        if (nestingLevel >= 1) return styles.avatarMedium;
+        return styles.avatarLarge;
+    }, [nestingLevel]);
 
     const {
         data: repliesData,
@@ -87,18 +108,29 @@ export const Comment: React.FC<CommentProps> = ({
                 operator: 'eq',
                 value: comment.movieId,
             },
+            {
+                field: 'includeNestedReplies',
+                operator: 'eq',
+                value: nestingLevel >= 3, // Use includeNestedReplies for deeply nested comments
+            },
         ],
         pagination: {
             pageSize: 5,
         },
         queryOptions: {
-            enabled: showReplies && !isNested
+            enabled: showReplies,
         },
     });
 
     const allReplies = useMemo(() => {
         return repliesData?.pages.flatMap((page) => page.data) || [];
     }, [repliesData]);
+
+    const validReplies = useMemo(() => {
+        return allReplies.filter(
+            (reply) => reply && reply._id && reply.user && reply.user._id && reply.content,
+        );
+    }, [allReplies]);
 
     const handleLoadMoreReplies = useCallback(() => {
         if (hasNextPage) {
@@ -208,6 +240,16 @@ export const Comment: React.FC<CommentProps> = ({
         const trimmedComment = newComment.trim();
         if (!trimmedComment) return;
 
+        if (!comment.movieId) {
+            notification.error({
+                type: 'error',
+                message: 'Lỗi',
+                description: 'Không thể xác định phim. Vui lòng thử lại sau!',
+                key: 'movie_id_missing',
+            });
+            return;
+        }
+
         createComment(
             {
                 values: {
@@ -223,8 +265,11 @@ export const Comment: React.FC<CommentProps> = ({
                     refetch?.();
 
                     // Only fetch replies if this comment's replies are currently shown
-                    if (showReplies && !isNested) {
+                    if (showReplies) {
                         refetchReplies();
+                    } else {
+                        // If replies weren't shown, show them now
+                        setShowReplies(true);
                     }
                 },
             },
@@ -256,46 +301,225 @@ export const Comment: React.FC<CommentProps> = ({
         );
     };
 
-    const isCommentOwner = currentUserId === comment.user._id?.toString();
+    const isCommentOwner = currentUserId === comment.user?._id?.toString();
     const hasBeenEdited = !!comment.editedAt;
     const hasReplies = comment?.replyCount > 0;
 
+    // Display different visual treatment for deep nested comments
+    const isDeepNested = nestingLevel >= 3;
+
+    // Render replies with proper nesting
+    const renderReplies = useCallback(() => {
+        if (!showReplies) return null;
+
+        if (isLoadingReplies) {
+            return (
+                <div className={styles.loadingContainer}>
+                    <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+                </div>
+            );
+        }
+
+        if (validReplies.length === 0) {
+            return <div className={styles.noReplies}>Chưa có phản hồi nào</div>;
+        }
+
+        return (
+            <div className={styles.nestedCommentsContainer}>
+                {/* Connecting line */}
+                <div className={styles.connectingLine} />
+
+                <List
+                    dataSource={validReplies}
+                    renderItem={(reply) => (
+                        <List.Item
+                            style={{
+                                padding: '0.5rem 0',
+                                borderBottom: 'none',
+                            }}
+                        >
+                            <Comment
+                                comment={reply}
+                                isLoggedIn={isLoggedIn}
+                                currentUserId={currentUserId}
+                                isNested={true}
+                                refetch={() => {
+                                    refetch?.();
+                                    refetchReplies();
+                                }}
+                                nestingLevel={nestingLevel + 1}
+                                maxNestingLevel={maxNestingLevel}
+                            />
+                        </List.Item>
+                    )}
+                />
+                {hasNextPage && (
+                    <div style={{ textAlign: 'center', marginTop: 8, paddingBottom: 8 }}>
+                        <Button
+                            onClick={handleLoadMoreReplies}
+                            disabled={isFetchingNextPage}
+                            type="link"
+                            className={styles.loadMoreButton}
+                            size="small"
+                        >
+                            {isFetchingNextPage ? (
+                                <LoadingOutlined style={{ fontSize: 14 }} />
+                            ) : (
+                                'Xem thêm phản hồi'
+                            )}
+                        </Button>
+                    </div>
+                )}
+            </div>
+        );
+    }, [
+        showReplies,
+        isLoadingReplies,
+        validReplies,
+        hasNextPage,
+        isFetchingNextPage,
+        handleLoadMoreReplies,
+        isLoggedIn,
+        currentUserId,
+        refetch,
+        refetchReplies,
+        nestingLevel,
+        maxNestingLevel,
+    ]);
+
+    // Apply style for comment container
+    const commentWrapperStyle = useMemo(
+        () => ({
+            position: 'relative' as const,
+            width: '100%',
+            marginBottom: nestingLevel === 0 ? '8px' : '0px',
+        }),
+        [nestingLevel],
+    );
+
+    // Facebook-style comment bubble style
+    const commentBubbleStyle = useMemo(
+        () => ({
+            backgroundColor: isDeepNested
+                ? `rgba(${token.colorPrimaryBg.split('rgb(')[1]?.split(')')[0] || '0,0,0'}, 0.05)`
+                : token.colorBgElevated,
+            borderRadius: '18px',
+            padding: '8px 12px',
+            boxShadow: isDeepNested ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.05)',
+            width: 'fit-content',
+            maxWidth: '100%',
+        }),
+        [isDeepNested, token.colorPrimaryBg, token.colorBgElevated],
+    );
+
     return (
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-            <Row gutter={[12, 12]} align="top" wrap={false}>
-                <Col flex="none" style={{ top: '0.5rem' }}>
+        <div style={commentWrapperStyle}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                {/* Avatar with potential badge for deep nesting */}
+                <div className={styles.avatarContainer}>
                     <Avatar
                         src={
                             comment.user?.avatar?.url &&
                             getOptimizedImageUrl(comment.user.avatar.url, {
-                                width: isNested ? 25 : 40,
-                                height: isNested ? 25 : 40,
+                                width: nestingLevel >= 3 ? 28 : nestingLevel >= 1 ? 32 : 40,
+                                height: nestingLevel >= 3 ? 28 : nestingLevel >= 1 ? 32 : 40,
                                 quality: 70,
                             })
                         }
-                        alt={comment.user.fullName}
+                        alt={comment.user?.fullName || 'Người dùng'}
                         icon={<UserOutlined />}
-                        style={isNested ? { width: 25, height: 25 } : { width: 40, height: 40 }}
+                        className={avatarClass}
                     />
-                </Col>
+                </div>
 
-                <Col flex="auto" style={{ minWidth: 0 }}>
-                    <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                            <Space size={8} style={{ flexWrap: 'wrap', rowGap: 0 }}>
-                                <Text strong ellipsis style={{ maxWidth: 200 }}>
-                                    {comment.user.fullName}
-                                </Text>
-                                <Text type="secondary" style={{ fontSize: 13 }}>
-                                    {relativeDate(new Date(comment.createdAt))}
-                                    {hasBeenEdited && (
-                                        <span style={{ marginLeft: 8, fontStyle: 'italic' }}>
-                                            (đã chỉnh sửa)
-                                        </span>
-                                    )}
-                                </Text>
-                            </Space>
+                {/* Comment content area */}
+                <div className={styles.commentWrapper}>
+                    {/* Comment bubble */}
+                    <div className={styles.commentContent}>
+                        {/* Username and comment content */}
+                        <div className={styles.commentInner}>
+                            <Text strong className={styles.commentAuthor}>
+                                {comment.user?.fullName || 'Người dùng'}
+                            </Text>
 
+                            {isEditing ? (
+                                <div className={styles.editContainer}>
+                                    <TextArea
+                                        ref={editTextAreaRef}
+                                        value={editedContent}
+                                        onChange={(e) => setEditedContent(e.target.value)}
+                                        autoSize={{ minRows: 2, maxRows: 6 }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleEditComment();
+                                            }
+                                        }}
+                                        className={styles.editInput}
+                                    />
+                                    <Space className={styles.editActions}>
+                                        <Button
+                                            type="primary"
+                                            onClick={handleEditComment}
+                                            loading={isUpdating}
+                                            disabled={editedContent.trim() === comment.content}
+                                            size="small"
+                                        >
+                                            Lưu
+                                        </Button>
+                                        <Button
+                                            onClick={() => {
+                                                setIsEditing(false);
+                                                setEditedContent(comment.content);
+                                            }}
+                                            disabled={isUpdating}
+                                            size="small"
+                                        >
+                                            Hủy
+                                        </Button>
+                                    </Space>
+                                </div>
+                            ) : (
+                                <Paragraph
+                                    className={styles.commentBody}
+                                    ellipsis={{ rows: 5, expandable: true, symbol: 'Xem thêm' }}
+                                >
+                                    {comment.content}
+                                </Paragraph>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Comment metadata and action buttons */}
+                    <div className={styles.commentMeta}>
+                        {/* Time and edit indicator */}
+                        <Text className={styles.commentDate}>
+                            {comment.createdAt ? relativeDate(new Date(comment.createdAt)) : ''}
+                            {hasBeenEdited && comment.editedAt && (
+                                <span className={styles.editedIndicator}>(đã chỉnh sửa)</span>
+                            )}
+                        </Text>
+
+                        {/* Action buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            {/* Like button (placeholder for future functionality) */}
+                            <Button type="text" size="small" className={styles.commentActionButton}>
+                                Thích
+                            </Button>
+
+                            {/* Reply button */}
+                            {!isEditing && isLoggedIn && (
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    onClick={() => setReplyVisible(!replyVisible)}
+                                    className={styles.commentActionButton}
+                                >
+                                    {replyVisible ? 'Hủy trả lời' : 'Trả lời'}
+                                </Button>
+                            )}
+
+                            {/* Edit/Delete dropdown for owner */}
                             {isCommentOwner && !isEditing && (
                                 <Dropdown
                                     menu={{
@@ -326,164 +550,88 @@ export const Comment: React.FC<CommentProps> = ({
                                 >
                                     <Button
                                         type="text"
-                                        icon={<MoreOutlined />}
-                                        style={{ marginLeft: 'auto' }}
+                                        size="small"
+                                        icon={<MoreOutlined style={{ fontSize: '0.9rem' }} />}
+                                        style={{
+                                            padding: 0,
+                                            height: 'auto',
+                                            color: token.colorTextSecondary,
+                                        }}
                                     />
                                 </Dropdown>
                             )}
                         </div>
+                    </div>
 
-                        {isEditing ? (
-                            <div style={{ position: 'relative' }}>
-                                <TextArea
-                                    ref={editTextAreaRef}
-                                    value={editedContent}
-                                    onChange={(e) => setEditedContent(e.target.value)}
-                                    autoSize={{ minRows: 2, maxRows: 6 }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleEditComment();
-                                        }
-                                    }}
-                                />
-                                <Space style={{ marginTop: 8 }}>
-                                    <Button
-                                        type="primary"
-                                        onClick={handleEditComment}
-                                        loading={isUpdating}
-                                        disabled={editedContent.trim() === comment.content}
+                    {/* Show replies button */}
+                    {hasReplies && (
+                        <div className={styles.replyToggleContainer}>
+                            <Button
+                                type="text"
+                                size="small"
+                                onClick={() => setShowReplies(!showReplies)}
+                                className={styles.replyToggleButton}
+                                icon={
+                                    <span
+                                        className={`${styles.arrow} ${
+                                            showReplies ? styles.arrowRotated : ''
+                                        }`}
                                     >
-                                        Lưu
-                                    </Button>
-                                    <Button
-                                        onClick={() => {
-                                            setIsEditing(false);
-                                            setEditedContent(comment.content);
-                                        }}
-                                        disabled={isUpdating}
-                                    >
-                                        Hủy
-                                    </Button>
-                                </Space>
-                            </div>
-                        ) : (
-                            <Paragraph
-                                ellipsis={{ rows: 5, expandable: true, symbol: 'Xem thêm' }}
-                                style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}
-                            >
-                                {comment.content}
-                            </Paragraph>
-                        )}
-
-                        <Space size={12}>
-                            {!isEditing && isLoggedIn && (
-                                <Button
-                                    type="text"
-                                    size="small"
-                                    icon={<CommentOutlined />}
-                                    onClick={() => setReplyVisible(!replyVisible)}
-                                    style={{ paddingLeft: 0, height: 'auto' }}
-                                >
-                                    <Text strong>{replyVisible ? 'Hủy trả lời' : 'Trả lời'}</Text>
-                                </Button>
-                            )}
-                            {!isNested && hasReplies && (
-                                <Button
-                                    type="text"
-                                    size="small"
-                                    onClick={() => setShowReplies(!showReplies)}
-                                    style={{ paddingLeft: 0, height: 'auto' }}
-                                >
-                                    <Text strong>{showReplies ? 'Ẩn phản hồi' : `Xem ${comment.replyCount} phản hồi`}</Text>
-                                </Button>
-                            )}
-                        </Space>
-                    </Space>
-                </Col>
-            </Row>
-
-            {replyVisible && (
-                <div style={{ marginLeft: 30 }}>
-                    <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                        <TextArea
-                            ref={textAreaRef}
-                            rows={3}
-                            placeholder="Viết bình luận của bạn..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            maxLength={1000}
-                            showCount
-                            disabled={isCreating}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleCreateComment();
+                                        {showReplies ? <DownOutlined /> : <RightOutlined />}
+                                    </span>
                                 }
-                            }}
-                        />
-                        <div style={{ display: 'flex', gap: 8 }}>
-                            <Button
-                                type="primary"
-                                icon={<SendOutlined />}
-                                onClick={handleCreateComment}
-                                loading={isCreating}
-                                disabled={!newComment.trim()}
                             >
-                                Gửi
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    setReplyVisible(false);
-                                    setNewComment('');
-                                }}
-                                disabled={isCreating}
-                            >
-                                Hủy
-                            </Button>
-                        </div>
-                    </Space>
-                </div>
-            )}
-
-            {!isNested && showReplies && (
-                <div style={{ marginLeft: 30 }}>
-                    <List
-                        loading={isLoadingReplies}
-                        dataSource={allReplies}
-                        renderItem={(reply) => (
-                            <List.Item
-                                style={{
-                                    padding: '1rem 0',
-                                    borderBottom: 'none',
-                                }}
-                            >
-                                <Comment
-                                    comment={reply}
-                                    isLoggedIn={isLoggedIn}
-                                    currentUserId={currentUserId}
-                                    isNested={true}
-                                    refetch={() => {
-                                        refetch?.();
-                                        refetchReplies();
-                                    }}
-                                />
-                            </List.Item>
-                        )}
-                    />
-                    {hasNextPage && (
-                        <div style={{ textAlign: 'center', marginTop: 16 }}>
-                            <Button onClick={handleLoadMoreReplies} disabled={isFetchingNextPage}>
-                                {isFetchingNextPage ? (
-                                    <LoadingOutlined />
-                                ) : (
-                                    'Xem thêm phản hồi'
-                                )}
+                                {showReplies ? 'Ẩn phản hồi' : `${comment.replyCount} phản hồi`}
                             </Button>
                         </div>
                     )}
+
+                    {/* Reply input area */}
+                    {replyVisible && (
+                        <div className={styles.replyContainer}>
+                            <div className={styles.replyForm}>
+                                <Avatar
+                                    size={32}
+                                    icon={<UserOutlined />}
+                                    className={styles.replyAvatar}
+                                />
+                                <div className={styles.replyInputWrapper}>
+                                    <TextArea
+                                        ref={textAreaRef}
+                                        rows={2}
+                                        placeholder="Viết phản hồi..."
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        maxLength={1000}
+                                        className={styles.replyInput}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleCreateComment();
+                                            }
+                                        }}
+                                    />
+                                    <div className={styles.replyActions}>
+                                        <Button
+                                            type="primary"
+                                            icon={<SendOutlined />}
+                                            loading={isCreating}
+                                            disabled={!newComment.trim()}
+                                            onClick={handleCreateComment}
+                                            className={styles.replySubmitButton}
+                                        >
+                                            Gửi
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Replies container */}
+                    {renderReplies()}
                 </div>
-            )}
-        </Space>
+            </div>
+        </div>
     );
 };

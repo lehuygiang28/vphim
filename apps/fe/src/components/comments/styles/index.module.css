@@ -1,0 +1,279 @@
+.commentContainer {
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.avatarContainer {
+    flex-shrink: 0;
+    position: relative;
+    margin-right: 6px;
+}
+
+.commentContent {
+    position: relative;
+    border-radius: 16px;
+    padding: 16px 20px;
+    background-color: var(--vphim-color-bg-elevated);
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.commentMeta {
+    display: flex;
+    align-items: center;
+    margin: 6px 0 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.commentAuthor {
+    font-weight: 500;
+    margin-right: 8px;
+    color: var(--vphim-color-text);
+}
+
+.commentDate {
+    font-size: 0.85rem;
+    color: var(--vphim-color-text-secondary);
+}
+
+.commentBody {
+    color: var(--vphim-color-text);
+    margin-bottom: 12px;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.commentActions {
+    display: flex;
+    gap: 24px;
+    margin-top: 12px;
+}
+
+.commentActionButton {
+    color: var(--vphim-color-text-secondary);
+    padding: 0;
+    margin: 0;
+    height: auto;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.commentActionButton:hover {
+    color: var(--vphim-color-primary);
+}
+
+.nestedCommentsContainer {
+    position: relative;
+    padding-left: 40px;
+    margin-top: 16px;
+}
+
+.connectingLine {
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 8px;
+    width: 1.5px;
+    background: linear-gradient(
+        to bottom,
+        var(--vphim-color-primary),
+        var(--vphim-color-text-secondary)
+    );
+    opacity: 0.5;
+}
+
+.nestedCommentContent {
+    border-left: 2px solid var(--vphim-color-border-secondary);
+}
+
+.replyContainer {
+    margin-top: 16px;
+    padding-left: 40px;
+}
+
+.replyForm {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.replyInput {
+    flex: 1;
+    border-radius: 18px;
+    resize: none;
+    min-height: 42px;
+    padding: 10px 16px;
+    background-color: var(--vphim-color-bg-container);
+}
+
+.replySubmitButton {
+    padding: 6px 16px;
+    border-radius: 18px;
+    margin-top: 8px;
+}
+
+.replyToggleButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+    padding: 4px 8px;
+    color: var(--vphim-color-primary);
+    font-size: 14px;
+    border-radius: 12px;
+}
+
+.replyToggleButton:hover {
+    background-color: rgba(229, 9, 20, 0.05);
+}
+
+.arrow {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+    transition: transform 0.3s ease;
+    font-size: 13px;
+    color: var(--vphim-color-primary);
+}
+
+.arrowRotated {
+    transform: rotate(180deg);
+}
+
+.editInput {
+    margin-bottom: 12px;
+    resize: none;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.noReplies {
+    padding: 12px 0;
+    color: var(--vphim-color-text-secondary);
+    text-align: center;
+    font-style: italic;
+}
+
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.loadMoreButton {
+    margin-top: 12px;
+    padding: 4px 12px;
+}
+
+.avatarSmall {
+    width: 32px;
+    height: 32px;
+}
+
+.avatarMedium {
+    width: 36px;
+    height: 36px;
+}
+
+.avatarLarge {
+    width: 42px;
+    height: 42px;
+}
+
+.commentWrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: calc(100% - 60px);
+    flex: 1;
+}
+
+.commentInner {
+    width: 100%;
+}
+
+.editContainer {
+    margin-top: 12px;
+    width: 100%;
+}
+
+.editActions {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+}
+
+.editedIndicator {
+    margin-left: 6px;
+    font-style: italic;
+}
+
+.replyToggleContainer {
+    margin-top: 8px;
+    margin-left: 12px;
+}
+
+.replyAvatar {
+    flex-shrink: 0;
+}
+
+.replyInputWrapper {
+    flex: 1;
+}
+
+.replyActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .nestedCommentsContainer {
+        padding-left: 32px;
+    }
+
+    .replyContainer {
+        padding-left: 32px;
+    }
+
+    .connectingLine {
+        left: 16px;
+    }
+
+    .commentWrapper {
+        max-width: calc(100% - 50px);
+    }
+}
+
+@media (max-width: 576px) {
+    .nestedCommentsContainer {
+        padding-left: 24px;
+    }
+
+    .replyContainer {
+        padding-left: 24px;
+    }
+
+    .connectingLine {
+        left: 12px;
+    }
+
+    .commentActions {
+        gap: 16px;
+    }
+
+    .commentWrapper {
+        max-width: calc(100% - 40px);
+    }
+}

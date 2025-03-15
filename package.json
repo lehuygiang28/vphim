@@ -82,6 +82,7 @@
         "expo-status-bar": "~2.0.1",
         "expo-video": "~2.0.6",
         "expo-web-browser": "^14.0.2",
+        "framer-motion": "^12.5.0",
         "google-auth-library": "^9.14.0",
         "graphql": "^16.9.0",
         "graphql-tag": "^2.12.6",

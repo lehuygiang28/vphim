@@ -1,20 +1,20 @@
 import gql from 'graphql-tag';
 
+// Get comments for a movie (top level comments)
 export const COMMENT_LIST_QUERY = gql`
     query GetComments($input: GetCommentsInput!) {
         movieComments(input: $input) {
-            total
-            count
-            hasMore
-            currentPage
             data {
                 _id
                 content
                 movieId
+                parentComment
+                rootParentComment
+                nestingLevel
+                replyCount
                 createdAt
                 updatedAt
                 editedAt
-                replyCount
                 user {
                     _id
                     fullName
@@ -23,22 +23,26 @@ export const COMMENT_LIST_QUERY = gql`
                     }
                 }
             }
+            total
+            count
+            hasMore
+            currentPage
         }
     }
 `;
 
+// Get replies for a comment (nested comments)
 export const COMMENT_REPLIES_QUERY = gql`
     query GetCommentReplies($input: GetCommentRepliesInput!) {
         commentReplies(input: $input) {
-            total
-            count
-            hasMore
-            currentPage
             data {
                 _id
-                movieId
                 content
+                movieId
                 parentComment
+                rootParentComment
+                nestingLevel
+                replyCount
                 createdAt
                 updatedAt
                 editedAt
@@ -50,21 +54,28 @@ export const COMMENT_REPLIES_QUERY = gql`
                     }
                 }
             }
+            total
+            count
+            hasMore
+            currentPage
         }
     }
 `;
 
+// Create
 export const CREATE_COMMENT_MUTATION = gql`
     mutation CreateComment($input: CreateCommentInput!) {
         createComment(input: $input) {
             _id
             content
             movieId
+            parentComment
+            rootParentComment
+            nestingLevel
+            replyCount
             createdAt
             updatedAt
             editedAt
-            replyCount
-            parentComment
             user {
                 _id
                 fullName
@@ -76,17 +87,20 @@ export const CREATE_COMMENT_MUTATION = gql`
     }
 `;
 
+// Update
 export const UPDATE_COMMENT_MUTATION = gql`
     mutation UpdateComment($input: UpdateCommentInput!) {
         updateComment(input: $input) {
             _id
             content
             movieId
+            parentComment
+            rootParentComment
+            nestingLevel
+            replyCount
             createdAt
             updatedAt
             editedAt
-            replyCount
-            parentComment
             user {
                 _id
                 fullName
@@ -98,6 +112,7 @@ export const UPDATE_COMMENT_MUTATION = gql`
     }
 `;
 
+// Delete
 export const DELETE_COMMENT_MUTATION = gql`
     mutation DeleteComment($input: DeleteCommentInput!) {
         deleteComment(input: $input)
