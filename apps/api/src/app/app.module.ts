@@ -3,8 +3,11 @@ import { ConditionalModule, ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { HttpModule } from '@nestjs/axios';
 
 import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
 import appConfig from './config/app-config';
 import { RedisModule, RedisService } from '../libs/modules/redis';
 import { MongodbModule } from '../libs/modules/mongodb';
@@ -27,6 +30,7 @@ import { MovieCrawlerModule } from './crawlers';
             isGlobal: true,
             load: [appConfig],
         }),
+        HttpModule,
         PinoModule,
         MongodbModule,
         RedisModule,
@@ -70,6 +74,6 @@ import { MovieCrawlerModule } from './crawlers';
         ),
     ],
     controllers: [AppController],
-    providers: [],
+    providers: [AppService],
 })
 export class AppModule {}
