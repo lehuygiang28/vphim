@@ -23,6 +23,9 @@ export class EpisodeServerData implements Omit<OPhimServerData, 'link_embed' | '
 
     @Prop({ type: String, default: null })
     linkM3u8: string;
+
+    @Prop({ type: String, default: null })
+    originSrc?: string;
 }
 
 export class Episode {
