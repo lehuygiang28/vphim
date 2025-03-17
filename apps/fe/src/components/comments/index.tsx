@@ -13,14 +13,12 @@ import {
     theme,
 } from 'antd';
 import {
-    CommentOutlined,
     UserOutlined,
     SendOutlined,
     EditOutlined,
     DeleteOutlined,
     MoreOutlined,
     LoadingOutlined,
-    LikeOutlined,
     DownOutlined,
     RightOutlined,
 } from '@ant-design/icons';
@@ -502,11 +500,6 @@ export const Comment: React.FC<CommentProps> = ({
 
                         {/* Action buttons */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            {/* Like button (placeholder for future functionality) */}
-                            <Button type="text" size="small" className={styles.commentActionButton}>
-                                Thích
-                            </Button>
-
                             {/* Reply button */}
                             {!isEditing && isLoggedIn && (
                                 <Button
