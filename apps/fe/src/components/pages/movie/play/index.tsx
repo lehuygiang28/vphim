@@ -576,7 +576,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
             localStorage.setItem('vphim_adblock_preference', String(newValue));
         } catch (e) {
             // Silent fail if localStorage is not available
-            console.warn('Failed to save ad blocking preference to localStorage');
+            console.warn('Failed to save ad blocking preference to localStorage:', e);
         }
     }, []);
 
@@ -644,10 +644,10 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                                   processedUrl,
                                               )}?movieSlug=${encodeURIComponent(
                                                   movie?.slug,
-                                              )}&ep=${encodeURIComponent(selectedEpisode.slug)}${
-                                                  useProcessedM3u8
-                                                      ? '&useProcessor=true'
-                                                      : '&useProcessor=false'
+                                              )}&ep=${encodeURIComponent(
+                                                  selectedEpisode.slug,
+                                              )}&useProcessor=${
+                                                  useProcessedM3u8 ? 'true' : 'false'
                                               }&provider=${getProviderFromOriginSrc(
                                                   selectedEpisode?.originSrc || '',
                                               )}`

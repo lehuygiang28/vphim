@@ -372,17 +372,25 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         });
     };
 
-    // Determine the source to use for the player
+    // Update the playerSrc useMemo to correctly handle the toggle
     const playerSrc = useMemo(() => {
-        if (useClientProcessor && processedSrc) {
-            // Use type assertion to avoid type errors
+        // If client processing is disabled or there was an error, use direct URL
+        if (!useClientProcessor || processorError) {
+            return sourceUrl;
+        }
+
+        // If we have a processed source and client processing is enabled, use it
+        if (processedSrc) {
             return {
                 src: processedSrc.src,
                 type: 'application/x-mpegurl',
             } satisfies HLSSrc;
         }
-        return sourceUrl; // Use direct URL string if processing is disabled or not ready
-    }, [useClientProcessor, processedSrc, sourceUrl]);
+
+        // Fall back to direct URL if processing hasn't completed yet
+        // (this case shouldn't normally be reached due to loading state)
+        return sourceUrl;
+    }, [useClientProcessor, processedSrc, processorError, sourceUrl]);
 
     return (
         <Layout style={containerStyle}>

@@ -1,5 +1,6 @@
+import { useState, useEffect, useRef } from 'react';
+import { type HLSSrc } from '@vidstack/react';
 import { resolveUrl } from 'apps/api/src/libs/utils/common';
-import { useState, useEffect } from 'react';
 
 type ProcessorOptions = {
     provider: 'o' | 'k';
@@ -8,7 +9,7 @@ type ProcessorOptions = {
 
 type ProcessorState = {
     isProcessing: boolean;
-    processedSrc: { src: string; type: string } | null;
+    processedSrc: HLSSrc | null;
     error: Error | null;
 };
 
@@ -36,7 +37,7 @@ const fetchWithTimeout = async (
 /**
  * A hook that processes M3U8 content client-side
  *
- * @param m3u8Url - The URL of the M3U8 playlist to process
+ * @param m3u8Url - The URL of the M3U8 playlist to process, or null to disable processing
  * @param options - Processing options including provider and indices to remove
  * @returns A state object with processing status, processed source, and error
  */
@@ -50,18 +51,39 @@ export function useM3u8Processor(
         error: null,
     });
 
+    // Store the last created blob URL for cleanup
+    const blobUrlRef = useRef<string | null>(null);
+
     useEffect(() => {
+        // Clear previous state when URL changes
+        setState((prev) => ({
+            ...prev,
+            isProcessing: Boolean(m3u8Url),
+            error: null,
+        }));
+
+        // If URL is null, explicitly disable processing
         if (!m3u8Url) {
             setState({
                 isProcessing: false,
                 processedSrc: null,
                 error: null,
             });
+
+            // Clean up any previous blob URL
+            if (blobUrlRef.current) {
+                try {
+                    URL.revokeObjectURL(blobUrlRef.current);
+                    blobUrlRef.current = null;
+                } catch (e) {
+                    console.warn('Failed to revoke blob URL', e);
+                }
+            }
+
             return;
         }
 
         let isMounted = true;
-        const blobUrls: string[] = [];
 
         const processM3u8 = async () => {
             try {
@@ -101,10 +123,22 @@ export function useM3u8Processor(
 
                 const processedContent = removeDiscontinuitySections(content, indices, baseUrl);
 
+                // Clean up previous blob URL
+                if (blobUrlRef.current) {
+                    try {
+                        URL.revokeObjectURL(blobUrlRef.current);
+                        blobUrlRef.current = null;
+                    } catch (e) {
+                        console.warn('Failed to revoke previous blob URL', e);
+                    }
+                }
+
                 // Create a blob URL for the processed content
-                const blob = new Blob([processedContent], { type: 'application/x-mpegurl' });
+                const blob = new Blob([processedContent], {
+                    type: 'application/x-mpegurl',
+                });
                 const blobUrl = URL.createObjectURL(blob);
-                blobUrls.push(blobUrl);
+                blobUrlRef.current = blobUrl;
 
                 if (isMounted) {
                     setState({
@@ -132,16 +166,24 @@ export function useM3u8Processor(
 
         return () => {
             isMounted = false;
-            // Clean up any blob URLs created during processing
-            blobUrls.forEach((url) => {
-                try {
-                    URL.revokeObjectURL(url);
-                } catch (e) {
-                    console.warn('Failed to revoke blob URL', e);
-                }
-            });
+            // Don't revoke the blob URL here, as it will be reused until the component unmounts
+            // or the m3u8Url changes
         };
     }, [m3u8Url, options.provider, options.removalIndices]);
+
+    // Clean up blob URL when component unmounts
+    useEffect(() => {
+        return () => {
+            if (blobUrlRef.current) {
+                try {
+                    URL.revokeObjectURL(blobUrlRef.current);
+                    blobUrlRef.current = null;
+                } catch (e) {
+                    console.warn('Failed to revoke blob URL on unmount', e);
+                }
+            }
+        };
+    }, []);
 
     return state;
 }
