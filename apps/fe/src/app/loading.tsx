@@ -11,14 +11,16 @@ const Loading = () => {
                 alignItems: 'center',
                 height: '100vh',
                 width: '100vw',
-                backgroundColor: '#000',
+                backgroundColor: 'var(--vphim-color-bg-base, #141414)',
             }}
         >
             <Spin
                 size="large"
-                indicator={<LoadingOutlined spin />}
+                indicator={<LoadingOutlined spin style={{ fontSize: 36 }} />}
                 tip="Loading..."
-                style={{ color: '#642ab5' }}
+                style={{
+                    color: 'var(--vphim-color-primary, #E50914)',
+                }}
             />
         </div>
     );
