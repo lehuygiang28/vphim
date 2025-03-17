@@ -387,20 +387,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     return (
         <Layout style={containerStyle}>
             <Content style={{ width: '100%', height: '100%', padding: 0 }}>
-                {isProcessing ? (
-                    <div
-                        style={{
-                            color: 'white',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Spin size="large" />
-                        <div style={{ marginTop: '10px' }}>Đang xử lý video...</div>
-                    </div>
-                ) : (
+                {!isProcessing && (
                     <PlayerWrapper
                         src={playerSrc}
                         player={player}
