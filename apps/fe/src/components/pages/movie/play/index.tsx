@@ -71,17 +71,8 @@ const constructPlayerUrl = (data: {
     // Get provider from currentServer.originSrc
     const provider = getProviderFromOriginSrc(data.currentServer.originSrc);
 
-    // Build the base URL efficiently with URLSearchParams for proper encoding
-    const params = new URLSearchParams();
-    params.append('p', provider);
-    params.append('u', data.m3u8Url);
-
-    // Add removal indices if specified
-    if (data.removalIndices && data.removalIndices.length > 0) {
-        params.append('i', data.removalIndices.join(','));
-    }
-
-    return `${process.env.NEXT_PUBLIC_API_URL}/api/p3?${params.toString()}`;
+    // With client-side processing, we just pass the URL and parameters
+    return data.m3u8Url;
 };
 
 export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
@@ -653,7 +644,13 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                                   processedUrl,
                                               )}?movieSlug=${encodeURIComponent(
                                                   movie?.slug,
-                                              )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
+                                              )}&ep=${encodeURIComponent(selectedEpisode.slug)}${
+                                                  useProcessedM3u8
+                                                      ? '&useProcessor=true'
+                                                      : '&useProcessor=false'
+                                              }&provider=${getProviderFromOriginSrc(
+                                                  selectedEpisode?.originSrc || '',
+                                              )}`
                                     }
                                     title={movie?.name || 'Movie Player'}
                                     allowFullScreen

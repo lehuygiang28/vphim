@@ -3,10 +3,10 @@
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 
-import React, { CSSProperties, useRef, useEffect, useState } from 'react';
+import React, { CSSProperties, useRef, useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Layout, Modal, Button } from 'antd';
+import { Layout, Modal, Button, Spin } from 'antd';
 import {
     MediaPlayer,
     MediaPlayerInstance,
@@ -16,12 +16,14 @@ import {
     SeekButton,
     useMediaState,
     type MediaViewType,
+    type HLSSrc,
 } from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { SeekForward10Icon, SeekBackward10Icon } from '@vidstack/react/icons';
 import { useUpdate } from '@refinedev/core';
 
 import { vietnameseLayoutTranslations } from './translate';
+import { useM3u8Processor } from '@/hooks/useM3u8Processor';
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { removeLeadingTrailingSlashes } from '@/libs/utils/common';
@@ -38,6 +40,8 @@ export type PlayerPageProps = {
         lang?: string;
         name?: string;
         ep?: string;
+        provider?: string;
+        useProcessor?: string;
     };
 };
 
@@ -124,7 +128,7 @@ function PlayerWrapper({
     searchParams,
     translations,
 }: {
-    src: string;
+    src: string | HLSSrc;
     player: React.RefObject<MediaPlayerInstance>;
     searchParams: PlayerPageProps['searchParams'];
     translations: Record<string, string>;
@@ -222,6 +226,36 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const [showResumeModal, setShowResumeModal] = useState(false);
     const [savedTime, setSavedTime] = useState(0);
     const [loadError, setLoadError] = useState(false);
+
+    // Get the source URL from the params
+    const sourceUrl = useMemo(() => decodeURIComponent(params.m3u8), [params.m3u8]);
+
+    // Parse provider from searchParams
+    const provider = useMemo(
+        () => (searchParams.provider === 'k' ? 'k' : 'o') as 'o' | 'k',
+        [searchParams.provider],
+    );
+
+    // Check if we should use the client-side processor
+    const useClientProcessor = useMemo(
+        () => searchParams.useProcessor !== 'false',
+        [searchParams.useProcessor],
+    );
+
+    // Use our M3U8 processor hook if processing is enabled
+    const {
+        isProcessing,
+        processedSrc,
+        error: processorError,
+    } = useM3u8Processor(useClientProcessor ? sourceUrl : null, { provider });
+
+    // Show error if processor encountered problems
+    useEffect(() => {
+        if (processorError) {
+            console.error('Error processing M3U8:', processorError);
+            setLoadError(true);
+        }
+    }, [processorError]);
 
     const { mutate: updateView } = useUpdate({
         errorNotification: false,
@@ -338,15 +372,44 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         });
     };
 
+    // Determine the source to use for the player
+    const playerSrc = useMemo(() => {
+        if (useClientProcessor && processedSrc) {
+            // Use type assertion to avoid type errors
+            return {
+                src: processedSrc.src,
+                type: 'application/x-mpegurl',
+            } satisfies HLSSrc;
+        }
+        return sourceUrl; // Use direct URL string if processing is disabled or not ready
+    }, [useClientProcessor, processedSrc, sourceUrl]);
+
     return (
         <Layout style={containerStyle}>
             <Content style={{ width: '100%', height: '100%', padding: 0 }}>
-                <PlayerWrapper
-                    src={decodeURIComponent(params.m3u8)}
-                    player={player}
-                    searchParams={searchParams}
-                    translations={searchParams?.lang === 'en' ? {} : vietnameseLayoutTranslations}
-                />
+                {isProcessing ? (
+                    <div
+                        style={{
+                            color: 'white',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Spin size="large" />
+                        <div style={{ marginTop: '10px' }}>Đang xử lý video...</div>
+                    </div>
+                ) : (
+                    <PlayerWrapper
+                        src={playerSrc}
+                        player={player}
+                        searchParams={searchParams}
+                        translations={
+                            searchParams?.lang === 'en' ? {} : vietnameseLayoutTranslations
+                        }
+                    />
+                )}
 
                 <Modal
                     title="Tiếp tục phát?"
