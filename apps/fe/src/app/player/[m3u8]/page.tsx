@@ -231,10 +231,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const sourceUrl = useMemo(() => decodeURIComponent(params.m3u8), [params.m3u8]);
 
     // Parse provider from searchParams
-    const provider = useMemo(
-        () => (searchParams.provider === 'k' ? 'k' : 'o') as 'o' | 'k',
-        [searchParams.provider],
-    );
+    const provider = useMemo(() => searchParams.provider as 'o' | 'k', [searchParams.provider]);
 
     // Check if we should use the client-side processor
     const useClientProcessor = useMemo(

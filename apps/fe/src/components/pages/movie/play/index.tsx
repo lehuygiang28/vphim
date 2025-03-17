@@ -49,7 +49,7 @@ const easeInOutQuad = (t: number) => {
 // Extract the provider character from originSrc
 const getProviderFromOriginSrc = (originSrc?: string): 'o' | 'k' => {
     if (!originSrc || originSrc.length === 0) {
-        return 'o'; // Default to 'o' if no originSrc
+        return null;
     }
     // Get first character and map it to provider format
     const firstChar = originSrc.charAt(0).toLowerCase();
@@ -67,9 +67,6 @@ const constructPlayerUrl = (data: {
         // Use direct M3U8 link without processing
         return data.m3u8Url;
     }
-
-    // Get provider from currentServer.originSrc
-    const provider = getProviderFromOriginSrc(data.currentServer.originSrc);
 
     // With client-side processing, we just pass the URL and parameters
     return data.m3u8Url;
@@ -649,7 +646,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                               )}&useProcessor=${
                                                   useProcessedM3u8 ? 'true' : 'false'
                                               }&provider=${getProviderFromOriginSrc(
-                                                  selectedEpisode?.originSrc || '',
+                                                  movie?.episode?.[selectedServerIndex]?.originSrc,
                                               )}`
                                     }
                                     title={movie?.name || 'Movie Player'}
