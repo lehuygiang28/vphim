@@ -24,9 +24,6 @@ export class EpisodeServerDataType implements EpisodeServerData {
 
     @Field({ nullable: true })
     linkEmbed: string;
-
-    @Field({ nullable: true })
-    originSrc?: string;
 }
 
 @InputType('EpisodeInputType')
