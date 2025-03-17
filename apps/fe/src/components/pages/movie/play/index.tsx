@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Typography, Grid, Divider, Button, Space, Alert, Row, Col, Switch, Tooltip } from 'antd';
+import { Typography, Grid, Divider, Button, Space, Alert, Row, Col, Tooltip } from 'antd';
 import {
     StepForwardOutlined,
     StepBackwardOutlined,
@@ -557,6 +557,30 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         }
     };
 
+    // Load user preference for ad blocking from localStorage
+    useEffect(() => {
+        try {
+            const savedPreference = localStorage.getItem('vphim_adblock_preference');
+            if (savedPreference !== null) {
+                setUseProcessedM3u8(savedPreference === 'true');
+            }
+        } catch (e) {
+            // Silent fail if localStorage is not available
+            console.warn('Failed to load ad blocking preference from localStorage');
+        }
+    }, []);
+
+    // Save user preference for ad blocking to localStorage
+    const toggleAdBlocking = useCallback((newValue: boolean) => {
+        setUseProcessedM3u8(newValue);
+        try {
+            localStorage.setItem('vphim_adblock_preference', String(newValue));
+        } catch (e) {
+            // Silent fail if localStorage is not available
+            console.warn('Failed to save ad blocking preference to localStorage');
+        }
+    }, []);
+
     return (
         <div
             style={{
@@ -660,10 +684,20 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                             <BlockOutlined />
                                         )
                                     }
-                                    onClick={() => setUseProcessedM3u8(!useProcessedM3u8)}
+                                    onClick={() => toggleAdBlocking(!useProcessedM3u8)}
                                     size={md ? 'middle' : 'small'}
                                     type={useProcessedM3u8 ? 'primary' : 'default'}
                                     className={useProcessedM3u8 ? styles.adBlockActiveButton : ''}
+                                    style={
+                                        useProcessedM3u8
+                                            ? {
+                                                  backgroundColor:
+                                                      'var(--vphim-color-success, #52c41a)',
+                                                  borderColor:
+                                                      'var(--vphim-color-success, #52c41a)',
+                                              }
+                                            : undefined
+                                    }
                                 >
                                     {md
                                         ? useProcessedM3u8
@@ -673,6 +707,20 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                 </Button>
                             </Tooltip>
                         </Space>
+                        <div className={styles.playerTip}>
+                            <Alert
+                                message="Nếu video không phát được, hãy thử tắt chức năng chặn quảng cáo hoặc đổi máy chủ"
+                                type="info"
+                                showIcon
+                                className={styles.adBlockTip}
+                                style={{
+                                    backgroundColor:
+                                        'var(--vphim-color-info-bg, rgba(24, 144, 255, 0.1))',
+                                    borderColor:
+                                        'var(--vphim-color-info-border, rgba(24, 144, 255, 0.2))',
+                                }}
+                            />
+                        </div>
                     </div>
                 </>
             )}

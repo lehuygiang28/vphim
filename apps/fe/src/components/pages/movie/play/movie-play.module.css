@@ -302,13 +302,13 @@
 
 /* Ad block button styles */
 .adBlockActiveButton {
-    background-color: #52c41a !important;
-    border-color: #52c41a !important;
+    background-color: var(--vphim-color-success) !important;
+    border-color: var(--vphim-color-success) !important;
 }
 
 .lightsOff .adBlockActiveButton {
-    background-color: #389e0d !important;
-    border-color: #389e0d !important;
+    background-color: var(--vphim-color-success) !important;
+    border-color: var(--vphim-color-success) !important;
     box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
 }
 
@@ -316,5 +316,34 @@
 @media (max-width: 768px) {
     .adBlockActiveButton {
         padding: 0 6px !important;
+    }
+}
+
+/* Player tip styles */
+.playerTip {
+    max-width: 1000px;
+    margin: 10px auto 0;
+    text-align: center;
+}
+
+.adBlockTip {
+    font-size: 13px;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.lightsOff .adBlockTip {
+    opacity: 0.8;
+}
+
+/* Mobile adjustments for player tips */
+@media (max-width: 768px) {
+    .playerTip {
+        margin-top: 8px;
+    }
+
+    .adBlockTip {
+        font-size: 12px;
+        padding: 3px;
     }
 }
