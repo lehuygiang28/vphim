@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -61,6 +61,7 @@ const constructPlayerUrl = (data: {
     m3u8Url: string;
     currentServer?: EpisodeType;
     enable: boolean;
+    removalIndices?: number[];
 }): string => {
     if (!data.enable || !data.currentServer?.originSrc) {
         // Use direct M3U8 link without processing
@@ -70,10 +71,17 @@ const constructPlayerUrl = (data: {
     // Get provider from currentServer.originSrc
     const provider = getProviderFromOriginSrc(data.currentServer.originSrc);
 
-    // Use processing API endpoint
-    return `${process.env.NEXT_PUBLIC_API_URL}/api/p3?p=${provider}&u=${encodeURIComponent(
-        data.m3u8Url,
-    )}`;
+    // Build the base URL efficiently with URLSearchParams for proper encoding
+    const params = new URLSearchParams();
+    params.append('p', provider);
+    params.append('u', data.m3u8Url);
+
+    // Add removal indices if specified
+    if (data.removalIndices && data.removalIndices.length > 0) {
+        params.append('i', data.removalIndices.join(','));
+    }
+
+    return `${process.env.NEXT_PUBLIC_API_URL}/api/p3?${params.toString()}`;
 };
 
 export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
@@ -581,6 +589,23 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         }
     }, []);
 
+    // Add useMemo for computed values that don't need to be recalculated on every render
+    const currentServer = useMemo(
+        () => movie?.episode?.[selectedServerIndex],
+        [movie, selectedServerIndex],
+    );
+
+    // Use useMemo for the processed URL to avoid recalculating it on every render
+    const processedUrl = useMemo(() => {
+        if (!selectedEpisode?.linkM3u8 || !currentServer) return '';
+
+        return constructPlayerUrl({
+            m3u8Url: selectedEpisode.linkM3u8,
+            currentServer,
+            enable: useProcessedM3u8,
+        });
+    }, [selectedEpisode, currentServer, useProcessedM3u8]);
+
     return (
         <div
             style={{
@@ -625,12 +650,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                         !isM3u8Available || useEmbedLink
                                             ? selectedEpisode.linkEmbed
                                             : `${host}/player/${encodeURIComponent(
-                                                  constructPlayerUrl({
-                                                      m3u8Url: selectedEpisode.linkM3u8,
-                                                      currentServer:
-                                                          movie?.episode?.[selectedServerIndex],
-                                                      enable: useProcessedM3u8,
-                                                  }),
+                                                  processedUrl,
                                               )}?movieSlug=${encodeURIComponent(
                                                   movie?.slug,
                                               )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
