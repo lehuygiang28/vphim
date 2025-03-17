@@ -33,7 +33,7 @@ export class AppController {
         @Res() res: Response,
     ) {
         // Validate provider input
-        if (provider !== 'op' && provider !== 'kk') {
+        if (provider !== 'o' && provider !== 'k') {
             throw new BadRequestException();
         }
 
@@ -46,7 +46,7 @@ export class AppController {
         try {
             // Process the m3u8 file via AppService
             const processedContent = await this.appService.processM3U8(
-                provider as 'o' | 'k',
+                provider === 'o' ? 'o' : 'k',
                 m3u8Url,
                 index,
             );
