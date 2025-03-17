@@ -3,26 +3,32 @@ import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { URL } from 'url';
 import { resolveUrl } from '../libs/utils';
+import { RedisService } from '../libs/modules/redis';
 
 @Injectable()
 export class AppService {
     private readonly logger = new Logger(AppService.name);
-    constructor(private readonly httpService: HttpService) {}
+    private readonly CACHE_PREFIX = 'CACHE_M3U8:';
+    private readonly CACHE_TTL = 3600000; // 1 hour cache TTL in milliseconds
+
+    constructor(
+        private readonly httpService: HttpService,
+        private readonly redisService: RedisService,
+    ) {}
 
     /**
      * Extracts the base URL from an m3u8 URL by removing the last segment.
-     * For example, given:
-     *   https://vip.opstream13.com/20240106/2130_b3a9de4c/3000k/hls/mixed.m3u8
-     * it returns:
-     *   https://vip.opstream13.com/20240106/2130_b3a9de4c/3000k/hls/
-     *
-     * @param m3u8Url The full m3u8 URL.
-     * @returns The extracted base URL.
      */
     private extractBaseUrl(m3u8Url: string): string {
+        const lastSlashIndex = m3u8Url.lastIndexOf('/');
+        if (lastSlashIndex !== -1) {
+            return m3u8Url.substring(0, lastSlashIndex + 1);
+        }
+
+        // Fallback to URL parsing if simple string manipulation fails
         const urlObj = new URL(m3u8Url);
         const segments = urlObj.pathname.split('/');
-        segments.pop(); // Remove the last segment (e.g., 'mixed.m3u8')
+        segments.pop();
         urlObj.pathname = segments.join('/') + '/';
         return urlObj.toString();
     }
@@ -37,7 +43,7 @@ export class AppService {
             Accept: '*/*',
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept-Encoding': 'gzip, deflate, br',
-            Origin: baseUrl ? new URL(baseUrl).origin : 'https://www.google.com',
+            Origin: baseUrl ? new URL(baseUrl).origin : baseUrl,
         };
     }
 
@@ -47,39 +53,53 @@ export class AppService {
      *  - If the downloaded content is a master playlist (contains #EXT-X-STREAM-INF),
      *    extract the variant playlist URL and download that.
      *  - Removing the nth occurrence of '#EXT-X-DISCONTINUITY' (discontinuity marker),
-     *    where the nth occurrence is determined by the removalIndex parameter.
-     *    If removalIndex is not provided, it defaults based on the provider:
-     *      - 'op' => 16
-     *      - 'kk' => 1
+     *    where the nth occurrences are determined by the removalIndices parameter.
+     *    If removalIndices is not provided, it defaults based on the provider:
+     *      - 'o' => [16]
+     *      - 'k' => [1]
      *  - Appending the base URL to any relative segment URLs.
      *    If baseUrl is not provided, it is extracted from the m3u8Url.
      *
-     * @param provider - A provider name ('op' or 'kk').
+     * @param provider - A provider name ('o' or 'k').
      * @param m3u8Url - The URL to download the m3u8 playlist.
-     * @param removalIndex - (Optional) The nth discontinuity marker to remove.
+     * @param removalIndices - (Optional) Array of discontinuity markers to remove.
      * @param baseUrl - (Optional) Base URL to prepend to relative segment URLs.
      * @returns The updated m3u8 file content.
      */
     async processM3U8(
         provider: 'o' | 'k',
         m3u8Url: string,
-        removalIndex?: number,
+        removalIndices?: number | number[],
         baseUrl?: string,
     ): Promise<string> {
-        // Set default removalIndex based on provider if not provided.
-        if (removalIndex === undefined) {
-            removalIndex = provider === 'o' ? 16 : 1;
+        // Set default removalIndices based on provider if not provided
+        if (removalIndices === undefined) {
+            removalIndices = provider === 'o' ? [16, 17] : [1];
         }
 
-        // If baseUrl is not provided, extract it from the m3u8Url.
+        // Convert to array and sort unique indices for optimal processing
+        const indices = Array.isArray(removalIndices)
+            ? [...new Set(removalIndices)].sort((a, b) => a - b)
+            : [removalIndices];
+
+        // Create a cache key from URL and indices
+        const cacheKey = `${this.CACHE_PREFIX}${m3u8Url}:${indices.join(',')}`;
+
+        // Check cache first
+        const cachedResult = await this.redisService.get<string>(cacheKey);
+        if (cachedResult) {
+            return cachedResult;
+        }
+
+        // If baseUrl is not provided, extract it from the m3u8Url
         if (!baseUrl) {
             baseUrl = this.extractBaseUrl(m3u8Url);
         }
 
-        // Define custom headers to mimic a browser.
-        const headers = this.getRequestHeaders();
+        // Define custom headers to mimic a browser request
+        const headers = this.getRequestHeaders(baseUrl);
 
-        // Download the m3u8 file content with custom headers.
+        // Download the m3u8 file content with custom headers
         let responseData: string;
         try {
             const response = await lastValueFrom(
@@ -91,32 +111,30 @@ export class AppService {
             throw new BadRequestException();
         }
 
-        // If the downloaded content is a master playlist, extract and download the variant playlist.
+        // If the downloaded content is a master playlist, extract and download the variant playlist
         if (responseData.includes('#EXT-X-STREAM-INF')) {
             const lines = responseData.split('\n');
             let variantUrl: string | undefined;
+
+            // Quick scan for variant URL
             for (let i = 0; i < lines.length; i++) {
                 if (lines[i].startsWith('#EXT-X-STREAM-INF')) {
-                    if (i + 1 < lines.length) {
-                        variantUrl = lines[i + 1].trim();
-                        break;
-                    }
+                    variantUrl = i + 1 < lines.length ? lines[i + 1].trim() : undefined;
+                    break;
                 }
             }
+
             if (!variantUrl) {
                 this.logger.error(`Variant playlist not found in the master playlist: ${m3u8Url}`);
                 throw new BadRequestException();
             }
 
             // Resolve the variant URL if it's relative
-            let fullVariantUrl: string;
-            if (!variantUrl.startsWith('http://') && !variantUrl.startsWith('https://')) {
-                fullVariantUrl = resolveUrl(variantUrl, baseUrl);
-            } else {
-                fullVariantUrl = variantUrl;
-            }
+            const fullVariantUrl = !variantUrl.startsWith('http')
+                ? resolveUrl(variantUrl, baseUrl)
+                : variantUrl;
 
-            // Download the variant playlist with custom headers.
+            // Download the variant playlist with custom headers
             try {
                 const variantResponse = await lastValueFrom(
                     this.httpService.get(fullVariantUrl, {
@@ -134,11 +152,26 @@ export class AppService {
             }
         }
 
-        // Process the m3u8 content by removing the specified discontinuity section
-        const lines = responseData.split('\n');
-        const newLines: string[] = [];
+        // Process the m3u8 content more efficiently
+        const processedContent = this.removeDiscontinuitySections(responseData, indices, baseUrl);
 
-        // Find all discontinuity markers
+        // Cache the result in Redis
+        await this.redisService.set(cacheKey, processedContent, this.CACHE_TTL);
+
+        return processedContent;
+    }
+
+    /**
+     * Efficiently removes discontinuity sections from m3u8 content
+     */
+    private removeDiscontinuitySections(
+        content: string,
+        indices: number[],
+        baseUrl: string,
+    ): string {
+        const lines = content.split('\n');
+
+        // Find all discontinuity markers (single pass)
         const discontinuityIndices: number[] = [];
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim() === '#EXT-X-DISCONTINUITY') {
@@ -146,43 +179,78 @@ export class AppService {
             }
         }
 
-        // Determine the section to remove
-        let startRemove = -1;
-        let endRemove = -1;
+        // Fast path - if no discontinuities or nothing to remove, just resolve URLs
+        if (discontinuityIndices.length === 0 || indices.length === 0) {
+            return this.resolveSegmentUrls(lines, baseUrl);
+        }
 
-        if (discontinuityIndices.length >= removalIndex) {
-            startRemove = discontinuityIndices[removalIndex - 1];
+        // Create a map of lines to keep (true) or remove (false)
+        const keepLine = new Array(lines.length).fill(true);
 
-            // If this is the last discontinuity, remove until end of file
-            // Otherwise, remove until the next discontinuity (exclusive)
-            if (removalIndex >= discontinuityIndices.length) {
-                endRemove = lines.length;
-            } else {
-                endRemove = discontinuityIndices[removalIndex];
+        // Mark sections to remove
+        for (const index of indices) {
+            if (index > 0 && index <= discontinuityIndices.length) {
+                const startIndex = discontinuityIndices[index - 1];
+                const endIndex =
+                    index === discontinuityIndices.length
+                        ? lines.length
+                        : discontinuityIndices[index];
+
+                // Mark all lines in this section for removal
+                for (let i = startIndex; i < endIndex; i++) {
+                    keepLine[i] = false;
+                }
             }
         }
 
-        // Add all lines except those in the section to remove
+        // Build the result with a single pass, resolving URLs as needed
+        const result: string[] = [];
         for (let i = 0; i < lines.length; i++) {
-            // Skip lines in the section to remove
-            if (i >= startRemove && i < endRemove) {
-                continue;
-            }
+            if (!keepLine[i]) continue;
 
-            const trimmedLine = lines[i].trim();
+            const line = lines[i].trim();
 
-            // For segment URLs, append the baseUrl if they are relative
-            if (trimmedLine && !trimmedLine.startsWith('#')) {
-                if (!trimmedLine.startsWith('http://') && !trimmedLine.startsWith('https://')) {
-                    const updatedSegment = resolveUrl(trimmedLine, baseUrl);
-                    newLines.push(updatedSegment);
+            // For segment URLs, resolve if they are relative
+            if (line && !line.startsWith('#')) {
+                if (!line.startsWith('http')) {
+                    result.push(resolveUrl(line, baseUrl));
                     continue;
                 }
             }
 
-            newLines.push(trimmedLine);
+            result.push(line);
         }
 
-        return newLines.join('\n');
+        return result.join('\n');
+    }
+
+    /**
+     * Just resolves segment URLs without removing sections
+     */
+    private resolveSegmentUrls(lines: string[], baseUrl: string): string {
+        const result: string[] = [];
+
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+
+            // For segment URLs, resolve if they are relative
+            if (trimmedLine && !trimmedLine.startsWith('#')) {
+                if (!trimmedLine.startsWith('http')) {
+                    result.push(resolveUrl(trimmedLine, baseUrl));
+                    continue;
+                }
+            }
+
+            result.push(trimmedLine);
+        }
+
+        return result.join('\n');
+    }
+
+    /**
+     * Clear all m3u8 cache entries from Redis
+     */
+    public async clearM3U8Cache(): Promise<number> {
+        return this.redisService.clearByPattern(`${this.CACHE_PREFIX}*`);
     }
 }
