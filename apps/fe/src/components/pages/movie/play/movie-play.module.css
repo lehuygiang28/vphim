@@ -245,3 +245,76 @@
         transform: rotate(360deg);
     }
 }
+
+/* Ad block toggle styles */
+.adBlockToggle {
+    display: flex;
+    align-items: center;
+    background-color: #f0f0f0;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid #d9d9d9;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.lightsOff .adBlockToggle {
+    background-color: rgba(30, 30, 30, 0.9);
+    border-color: #555;
+}
+
+.adBlockSwitch {
+    margin-right: 5px !important;
+}
+
+.adBlockActiveText {
+    color: #52c41a;
+    font-size: 13px;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.adBlockInactiveText {
+    color: #666;
+    font-size: 13px;
+    transition: color 0.3s;
+}
+
+.lightsOff .adBlockActiveText {
+    color: #73d13d;
+}
+
+.lightsOff .adBlockInactiveText {
+    color: #aaa;
+}
+
+/* Mobile adjustments for ad block toggle */
+@media (max-width: 768px) {
+    .adBlockToggle {
+        padding: 2px 6px;
+    }
+
+    .adBlockActiveText,
+    .adBlockInactiveText {
+        font-size: 12px;
+    }
+}
+
+/* Ad block button styles */
+.adBlockActiveButton {
+    background-color: #52c41a !important;
+    border-color: #52c41a !important;
+}
+
+.lightsOff .adBlockActiveButton {
+    background-color: #389e0d !important;
+    border-color: #389e0d !important;
+    box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+}
+
+/* Mobile adjustments for ad block button */
+@media (max-width: 768px) {
+    .adBlockActiveButton {
+        padding: 0 6px !important;
+    }
+}

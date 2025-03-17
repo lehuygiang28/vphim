@@ -4,12 +4,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Typography, Grid, Divider, Button, Space, Alert, Row, Col } from 'antd';
+import { Typography, Grid, Divider, Button, Space, Alert, Row, Col, Switch, Tooltip } from 'antd';
 import {
     StepForwardOutlined,
     StepBackwardOutlined,
     BulbOutlined,
     BulbFilled,
+    BlockOutlined,
+    CheckCircleOutlined,
 } from '@ant-design/icons';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -44,6 +46,36 @@ const easeInOutQuad = (t: number) => {
     return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 };
 
+// Extract the provider character from originSrc
+const getProviderFromOriginSrc = (originSrc?: string): 'o' | 'k' => {
+    if (!originSrc || originSrc.length === 0) {
+        return 'o'; // Default to 'o' if no originSrc
+    }
+    // Get first character and map it to provider format
+    const firstChar = originSrc.charAt(0).toLowerCase();
+    return firstChar === 'k' ? 'k' : 'o';
+};
+
+// Function to construct the player URL based on settings
+const constructPlayerUrl = (data: {
+    m3u8Url: string;
+    currentServer?: EpisodeType;
+    enable: boolean;
+}): string => {
+    if (!data.enable || !data.currentServer?.originSrc) {
+        // Use direct M3U8 link without processing
+        return data.m3u8Url;
+    }
+
+    // Get provider from currentServer.originSrc
+    const provider = getProviderFromOriginSrc(data.currentServer.originSrc);
+
+    // Use processing API endpoint
+    return `${process.env.NEXT_PUBLIC_API_URL}/api/p3?p=${provider}&u=${encodeURIComponent(
+        data.m3u8Url,
+    )}`;
+};
+
 export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -62,6 +94,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const [isScrolling, setIsScrolling] = useState<boolean>(false);
     const [isLightsOff, setIsLightsOff] = useState<boolean>(false);
     const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
+    const [useProcessedM3u8, setUseProcessedM3u8] = useState<boolean>(true);
 
     // Access the header visibility controls from the store
     const { hideHeader, enableAutoControl, showHeader } = useHeaderVisibilityStore();
@@ -497,8 +530,10 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         };
     }, [toggleLights]); // Update dependency to the memoized function
 
+    // Modify goToAdjacentEpisode
     const goToAdjacentEpisode = (direction: 'prev' | 'next') => {
         const currentServer = movie?.episode?.[selectedServerIndex];
+
         if (currentServer) {
             const currentEpisodeIndex = currentServer.serverData.findIndex(
                 (ep) => ep.slug === selectedEpisode?.slug,
@@ -566,7 +601,12 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                         !isM3u8Available || useEmbedLink
                                             ? selectedEpisode.linkEmbed
                                             : `${host}/player/${encodeURIComponent(
-                                                  selectedEpisode.linkM3u8,
+                                                  constructPlayerUrl({
+                                                      m3u8Url: selectedEpisode.linkM3u8,
+                                                      currentServer:
+                                                          movie?.episode?.[selectedServerIndex],
+                                                      enable: useProcessedM3u8,
+                                                  }),
                                               )}?movieSlug=${encodeURIComponent(
                                                   movie?.slug,
                                               )}&ep=${encodeURIComponent(selectedEpisode.slug)}`
@@ -605,6 +645,33 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                             >
                                 {md && 'Tập tiếp theo'}
                             </Button>
+                            <Tooltip
+                                title={
+                                    useProcessedM3u8
+                                        ? 'Đang chặn quảng cáo - Nhấn để tắt'
+                                        : 'Bật chặn quảng cáo (có thể ảnh hưởng đến phát video)'
+                                }
+                            >
+                                <Button
+                                    icon={
+                                        useProcessedM3u8 ? (
+                                            <CheckCircleOutlined />
+                                        ) : (
+                                            <BlockOutlined />
+                                        )
+                                    }
+                                    onClick={() => setUseProcessedM3u8(!useProcessedM3u8)}
+                                    size={md ? 'middle' : 'small'}
+                                    type={useProcessedM3u8 ? 'primary' : 'default'}
+                                    className={useProcessedM3u8 ? styles.adBlockActiveButton : ''}
+                                >
+                                    {md
+                                        ? useProcessedM3u8
+                                            ? 'Tắt chặn quảng cáo'
+                                            : 'Bật chặn quảng cáo'
+                                        : ''}
+                                </Button>
+                            </Tooltip>
                         </Space>
                     </div>
                 </>

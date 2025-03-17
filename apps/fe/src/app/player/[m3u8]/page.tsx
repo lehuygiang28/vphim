@@ -54,17 +54,6 @@ const containerStyle: CSSProperties = {
     padding: 0,
 };
 
-// Adaptive player style that works better with various aspect ratios
-const playerStyle: CSSProperties = {
-    width: '100%',
-    height: '100%',
-    background: 'black',
-    border: 'none',
-    objectFit: 'contain',
-    margin: 0,
-    padding: 0,
-};
-
 // Custom styles to inject for better UI in iframe context
 const customPlayerCss = `
 .vds-video-layout {

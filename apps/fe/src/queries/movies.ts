@@ -53,6 +53,7 @@ export const GET_MOVIE_QUERY = gql`
                     linkEmbed
                 }
                 serverName
+                originSrc
             }
             imdb {
                 id
