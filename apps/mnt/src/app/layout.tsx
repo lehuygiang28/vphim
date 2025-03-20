@@ -7,6 +7,14 @@ export const metadata: Metadata = {
     title: 'VePhim Admin',
     description: 'VePhim Admin',
     applicationName: 'VePhim Admin',
+    robots: {
+        index: false,
+        follow: false,
+        googleBot: {
+            index: false,
+            follow: false,
+        },
+    },
     icons: {
         icon: '/favicon.ico',
         apple: '/favicon.ico',
