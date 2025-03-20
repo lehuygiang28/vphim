@@ -127,11 +127,16 @@ export default function DefaultNoLayoutStyle({
                 <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL} />
                 <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
 
-                <link rel="dns-prefetch" href={'https://api.themoviedb.org'} />
-                <link rel="preconnect" href={'https://api.themoviedb.org'} />
+                <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_IMAGES_URL} />
+                <link rel="preconnect" href={process.env.NEXT_PUBLIC_IMAGES_URL} />
 
-                <link rel="dns-prefetch" href={'https://data.ratings.media-imdb.com'} />
-                <link rel="preconnect" href={'https://data.ratings.media-imdb.com'} />
+                {process.env.DNS_PREFETCH_URLS &&
+                    process.env.DNS_PREFETCH_URLS.split(',').map((url) => (
+                        <>
+                            <link rel="dns-prefetch" href={url} />
+                            <link rel="preconnect" href={url} />
+                        </>
+                    ))}
             </head>
             <body>
                 <AntdRegistry ssrInline defaultCache>
