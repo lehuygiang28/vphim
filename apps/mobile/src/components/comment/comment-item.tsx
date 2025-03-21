@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Avatar, Text, Input, useTheme, Button, Spinner } from '@ui-kitten/components';
 import { MessageCircle, MoreHorizontal, User, Send } from 'lucide-react-native';
-import { useCreate, useDelete, useUpdate } from '@refinedev/core';
+import { useCreate, useDelete, useUpdate, useInfiniteList } from '@refinedev/core';
 import { noop } from 'lodash';
 
 import type { CommentType } from '~api/app/comments/comment.type';
@@ -21,6 +21,7 @@ import {
     CREATE_COMMENT_MUTATION,
     DELETE_COMMENT_MUTATION,
     UPDATE_COMMENT_MUTATION,
+    COMMENT_REPLIES_QUERY,
 } from '~fe/queries/comment';
 import { relativeDate } from '~fe/libs/utils/relative-date';
 import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
@@ -31,7 +32,7 @@ interface CommentItemProps {
     currentUserId: string | undefined;
     refetch?: () => void;
     user?: UserType;
-    isNested?: boolean;
+    nestingLevel?: number;
 }
 
 export function CommentItem(
@@ -41,19 +42,73 @@ export function CommentItem(
         currentUserId: undefined,
         refetch: noop,
         user: undefined,
-        isNested: false,
+        nestingLevel: 0,
     },
 ) {
-    const { comment, isLoggedIn, currentUserId, refetch, user, isNested } = props;
+    const { comment, isLoggedIn, currentUserId, refetch, user, nestingLevel = 0 } = props;
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
 
     const [replyVisible, setReplyVisible] = useState(false);
+    const [showReplies, setShowReplies] = useState(false);
     const [newComment, setNewComment] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState(comment.content);
     const [showOptions, setShowOptions] = useState(false);
+
+    const commentId = useMemo(() => comment._id?.toString(), [comment._id]);
+    const isNested = useMemo(() => comment.nestingLevel > 0, [comment.nestingLevel]);
+
+    // Fetch replies when needed
+    const {
+        data: repliesData,
+        isLoading: isLoadingReplies,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        refetch: refetchReplies,
+    } = useInfiniteList<CommentType>({
+        resource: 'comments',
+        dataProviderName: 'graphql',
+        meta: {
+            gqlQuery: COMMENT_REPLIES_QUERY,
+            operation: 'commentReplies',
+        },
+        filters: [
+            {
+                field: 'parentCommentId',
+                operator: 'eq',
+                value: commentId,
+            },
+            {
+                field: 'movieId',
+                operator: 'eq',
+                value: comment.movieId,
+            },
+            {
+                field: 'includeNestedReplies',
+                operator: 'eq',
+                value: nestingLevel >= 3, // Use includeNestedReplies for deeply nested comments
+            },
+        ],
+        pagination: {
+            pageSize: 5,
+        },
+        queryOptions: {
+            enabled: showReplies,
+        },
+    });
+
+    const allReplies = useMemo(() => {
+        return repliesData?.pages.flatMap((page) => page.data) || [];
+    }, [repliesData]);
+
+    const handleLoadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     const { mutate: createComment, isLoading: isCreating } = useCreate({
         dataProviderName: 'graphql',
@@ -83,8 +138,8 @@ export function CommentItem(
         createComment(
             {
                 values: {
-                    movieId: comment.movie?.toString(),
-                    parentCommentId: comment?.parentComment?.toString() || comment._id?.toString(),
+                    movieId: comment.movieId?.toString(),
+                    parentCommentId: comment.parentComment?.toString() || comment._id?.toString(),
                     content: newComment,
                 },
             },
@@ -93,10 +148,22 @@ export function CommentItem(
                     setNewComment('');
                     setReplyVisible(false);
                     refetch?.();
+                    if (showReplies) {
+                        refetchReplies();
+                    }
                 },
             },
         );
-    }, [comment._id, comment.movie, comment?.parentComment, createComment, newComment, refetch]);
+    }, [
+        comment._id,
+        comment.movieId,
+        comment.parentComment,
+        createComment,
+        newComment,
+        refetch,
+        refetchReplies,
+        showReplies,
+    ]);
 
     const handleEditComment = useCallback(() => {
         if (isNullOrUndefined(editedContent) || editedContent.trim() === '') {
@@ -116,10 +183,13 @@ export function CommentItem(
                     setIsEditing(false);
                     setShowOptions(false);
                     refetch?.();
+                    if (showReplies) {
+                        refetchReplies();
+                    }
                 },
             },
         );
-    }, [editComment, comment._id, editedContent, refetch]);
+    }, [editComment, comment._id, editedContent, refetch, refetchReplies, showReplies]);
 
     const handleDeleteComment = useCallback(() => {
         deleteComment(
@@ -200,8 +270,13 @@ export function CommentItem(
         }
     }, [confirmDelete]);
 
+    const toggleReplies = useCallback(() => {
+        setShowReplies((prev) => !prev);
+    }, []);
+
     const isCommentOwner = currentUserId === comment.user._id?.toString();
     const avatarSize = !isNested ? 'small' : 'tiny';
+    const hasReplies = (comment.replyCount || 0) > 0;
 
     return (
         <View style={[styles.container, isNested && styles.nestedContainer]}>
@@ -266,6 +341,7 @@ export function CommentItem(
                         )}
                         <Text category="c1" style={styles.timestamp}>
                             {relativeDate(new Date(comment.createdAt))}
+                            {comment.editedAt ? ' (đã chỉnh sửa)' : ''}
                         </Text>
                     </View>
                 </View>
@@ -367,21 +443,58 @@ export function CommentItem(
                 </View>
             )}
 
-            {comment?.replies && (comment?.replies?.data?.length || 0) > 0 && (
+            {hasReplies && (
+                <View style={styles.repliesToggleContainer}>
+                    <TouchableOpacity onPress={toggleReplies} style={styles.repliesToggle}>
+                        <Text category="c1" style={styles.repliesToggleText}>
+                            {showReplies ? 'Ẩn trả lời' : `Xem ${comment.replyCount} trả lời`}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {showReplies && (
                 <View style={styles.repliesContainer}>
-                    {comment?.replies?.data?.map((reply) => (
-                        <CommentItem
-                            key={`${reply._id?.toString()}-${new Date(
-                                reply?.updatedAt,
-                            )?.getTime()}`}
-                            comment={{ ...reply, _id: reply._id }}
-                            isLoggedIn={isLoggedIn}
-                            currentUserId={currentUserId}
-                            refetch={refetch}
-                            user={user}
-                            isNested
-                        />
-                    ))}
+                    {isLoadingReplies ? (
+                        <View style={styles.loadingReplies}>
+                            <Spinner size="small" />
+                            <Text category="c1" style={styles.loadingText}>
+                                Đang tải trả lời...
+                            </Text>
+                        </View>
+                    ) : (
+                        <>
+                            {allReplies.map((reply) => (
+                                <CommentItem
+                                    key={`${reply._id?.toString()}-${new Date(
+                                        reply.updatedAt,
+                                    )?.getTime()}`}
+                                    comment={reply}
+                                    isLoggedIn={isLoggedIn}
+                                    currentUserId={currentUserId}
+                                    refetch={refetch}
+                                    user={user}
+                                    nestingLevel={reply.nestingLevel}
+                                />
+                            ))}
+
+                            {hasNextPage && (
+                                <TouchableOpacity
+                                    style={styles.loadMoreButton}
+                                    onPress={handleLoadMore}
+                                    disabled={isFetchingNextPage}
+                                >
+                                    {isFetchingNextPage ? (
+                                        <Spinner size="tiny" />
+                                    ) : (
+                                        <Text category="c1" style={styles.loadMoreText}>
+                                            Xem thêm trả lời
+                                        </Text>
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                        </>
+                    )}
                 </View>
             )}
             {isDeleting && (
@@ -402,6 +515,8 @@ const createStyles = (theme: Record<string, string>) =>
         nestedContainer: {
             marginLeft: 24,
             paddingLeft: 16,
+            borderLeftWidth: 1,
+            borderLeftColor: theme['border-basic-color-3'],
         },
         commentHeader: {
             flexDirection: 'row',
@@ -482,7 +597,18 @@ const createStyles = (theme: Record<string, string>) =>
             color: theme['text-basic-color'],
         },
         repliesContainer: {
-            marginTop: 16,
+            marginTop: 12,
+        },
+        repliesToggleContainer: {
+            marginTop: 8,
+            marginLeft: 48,
+        },
+        repliesToggle: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        repliesToggleText: {
+            color: theme['color-primary-500'],
         },
         avatarIconContainer: {
             width: 40,
@@ -525,5 +651,23 @@ const createStyles = (theme: Record<string, string>) =>
             backgroundColor: 'rgba(0, 0, 0, 0.6)',
             justifyContent: 'center',
             alignItems: 'center',
+        },
+        loadingReplies: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 8,
+        },
+        loadingText: {
+            marginLeft: 8,
+            color: theme['text-hint-color'],
+        },
+        loadMoreButton: {
+            padding: 8,
+            alignItems: 'center',
+            marginTop: 8,
+        },
+        loadMoreText: {
+            color: theme['color-primary-500'],
         },
     });

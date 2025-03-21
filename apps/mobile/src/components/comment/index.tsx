@@ -25,7 +25,7 @@ interface MovieCommentsProps {
     movieId: string;
 }
 
-export function MovieComments({ movieId }: MovieCommentsProps = { movieId: 'default-movie-id' }) {
+export function MovieComments({ movieId }: MovieCommentsProps) {
     const { session, isLoading: sessionLoading } = authStore();
 
     const router = useRouter();
@@ -107,6 +107,7 @@ export function MovieComments({ movieId }: MovieCommentsProps = { movieId: 'defa
                 currentUserId={session?.user?._id?.toString()}
                 refetch={refetch}
                 user={session?.user}
+                nestingLevel={item.nestingLevel}
             />
         ),
         [session, refetch],
