@@ -12,7 +12,6 @@ VePhim is designed to showcase advanced web and mobile application development t
 - Integration of AI services with web applications
 - HTTP Live Streaming (HLS) and media delivery techniques
 - Cross-platform mobile development with React Native
-- Distributed system design with microservices
 - Data indexing and retrieval optimization
 
 ## Usage Limitations
@@ -62,6 +61,6 @@ By using VePhim, you acknowledge that you have read, understood, and agree to be
 
 ---
 
-*Last Updated: June 27, 2024*
+*Last Updated: March 21, 2025*
 
 For questions about this disclaimer, please contact the project maintainer at lehuygiang28@gmail.com. 

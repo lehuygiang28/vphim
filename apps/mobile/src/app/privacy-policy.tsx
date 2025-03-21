@@ -113,7 +113,7 @@ export default function PrivacyPolicyScreen() {
 
                 <View style={styles.footer}>
                     <Text category="c1" appearance="hint">
-                        Cập nhật lần cuối: Tháng 6 năm 2024
+                        Cập nhật lần cuối: Tháng 3 năm 2025
                     </Text>
                     <Text category="c1" appearance="hint" style={styles.contactFooter}>
                         Để biết thêm thông tin, vui lòng liên hệ:{' '}
