@@ -3,7 +3,8 @@
 /* Global spacing variables */
 :root {
     --layout-container-margin-desktop: 3rem;
-    --layout-container-margin-mobile: 0.7rem;
+    --layout-container-margin-mobile: 0.5rem;
+    --layout-container-padding-mobile-header: 0.7rem;
     --layout-padding-vertical: 2rem;
     --layout-margin-top: 3rem;
     --layout-margin-top-mobile: 1.5rem;
@@ -138,6 +139,11 @@ a {
 
     .footer-margin {
         margin-top: var(--layout-margin-top-mobile);
+    }
+
+    /* Reduce Ant Design Layout header padding on small screens */
+    .ant-layout-header {
+        padding: 0 var(--layout-container-padding-mobile-header) !important;
     }
 }
 

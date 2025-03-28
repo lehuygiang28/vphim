@@ -54,23 +54,28 @@ export default function HeaderUser() {
                     type="text"
                     href={'#'}
                     onClick={(e) => e.preventDefault()}
-                    style={{ display: 'flex', alignItems: 'center' }}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: screens.md ? '4px 8px' : '2px 4px',
+                    }}
                 >
                     <Avatar
                         src={
                             user.avatar?.url
                                 ? getOptimizedImageUrl(user.avatar?.url, {
-                                      width: 32,
-                                      height: 32,
+                                      width: screens.md ? 32 : 24,
+                                      height: screens.md ? 32 : 24,
                                       quality: 30,
                                   })
                                 : null
                         }
                         icon={<UserOutlined />}
                         style={{ marginRight: '0.3rem' }}
+                        size={screens.md ? 'default' : 'small'}
                     />
                     {screens?.md && <span style={{ marginRight: '0.3rem' }}>{user.fullName}</span>}
-                    <DownOutlined />
+                    <DownOutlined style={{ fontSize: screens.md ? 12 : 10 }} />
                 </Button>
             </Dropdown>
         );
@@ -84,6 +89,8 @@ export default function HeaderUser() {
                 onClick={() =>
                     router.push(`${RouteNameEnum.LOGIN_PAGE}?to=${encodeURIComponent(pathname)}`)
                 }
+                size={screens.md ? 'middle' : 'small'}
+                style={{ padding: screens.md ? undefined : '0 8px' }}
             />
         </Tooltip>
     );

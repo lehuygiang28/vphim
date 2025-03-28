@@ -189,15 +189,15 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                 style={{
                     display: 'flex',
                     alignItems: 'center',
-                    marginRight: '1rem',
+                    marginRight: screens.md ? '1rem' : '0.3rem',
                     height: '100%',
                 }}
             >
                 <Image
                     src="/assets/images/logo-mini.png"
                     alt="vphim Logo"
-                    width={128}
-                    height={30}
+                    width={screens.md ? 128 : 100}
+                    height={screens.md ? 30 : 24}
                     priority
                 />
             </Link>
@@ -230,7 +230,7 @@ export default function HeaderCom({ categoryMenu = [], regionMenu = [] }: Header
                             className="netflix-mobile-menu-btn"
                             icon={<MenuOutlined />}
                             onClick={showDrawer}
-                            style={{ marginRight: '0.5rem' }}
+                            style={{ marginRight: '0.3rem', padding: '4px 8px' }}
                         />
                     </Badge>
                 )}

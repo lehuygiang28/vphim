@@ -92,7 +92,7 @@ export default function HeaderSearch() {
                         type="text"
                         icon={<SearchOutlined />}
                         onClick={toggleSearch}
-                        style={{ marginRight: '0.5rem' }}
+                        style={{ marginRight: '0.3rem', padding: '4px 8px' }}
                     />
                     <Drawer
                         title="Search"

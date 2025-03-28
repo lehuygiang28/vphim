@@ -127,7 +127,7 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .netflix-header {
-        padding: 0 16px;
+        padding: 0 8px;
         height: 60px;
     }
 
