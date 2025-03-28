@@ -79,26 +79,30 @@ export default function MovieList({
     const breakpoints = useMemo(
         () => ({
             320: {
-                slidesPerView: 2.2,
-                spaceBetween: 12,
+                slidesPerView: 2.1,
+                spaceBetween: 8,
             },
             480: {
+                slidesPerView: 3.1,
+                spaceBetween: 10,
+            },
+            640: {
                 slidesPerView: 3.2,
                 spaceBetween: 12,
             },
-            640: {
-                slidesPerView: 4.2,
-                spaceBetween: 12,
-            },
             768: {
-                slidesPerView: 5.2,
+                slidesPerView: 4.2,
                 spaceBetween: 16,
             },
             1024: {
-                slidesPerView: 6.2,
+                slidesPerView: 5.2,
                 spaceBetween: 18,
             },
             1280: {
+                slidesPerView: 6.2,
+                spaceBetween: 20,
+            },
+            1536: {
                 slidesPerView: 7.2,
                 spaceBetween: 20,
             },
@@ -116,7 +120,7 @@ export default function MovieList({
     );
 
     const renderSkeleton = useCallback(() => {
-        const slideCount = isMobile ? 3 : lg ? 5 : xl ? 6 : 4;
+        const slideCount = isMobile ? 4 : lg ? 6 : xl ? 7 : 5;
 
         return Array(slideCount)
             .fill(null)
