@@ -44,12 +44,11 @@ type AppProps = {
 const App = (props: React.PropsWithChildren<AppProps>) => {
     const axiosAuth = useAxiosAuth({ baseURL: process.env.NEXT_PUBLIC_API_URL });
     const { status } = useSession();
+    const defaultMode = props?.defaultMode;
 
     if (status === 'loading') {
         return <></>;
     }
-
-    const defaultMode = props?.defaultMode;
 
     return (
         <>
