@@ -5,12 +5,25 @@ import { resolveUrl } from 'apps/api/src/libs/utils/common';
 type ProcessorOptions = {
     provider: 'o' | 'k';
     removalIndices?: number | number[];
+    proxy?: boolean; // Whether to proxy segment URLs
+    removeAds?: boolean; // Whether to remove discontinuity sections (ads)
+};
+
+// Default options if not specified
+const DEFAULT_OPTIONS: Partial<ProcessorOptions> = {
+    removeAds: true,
+    proxy: false,
 };
 
 type ProcessorState = {
     isProcessing: boolean;
     processedSrc: HLSSrc | null;
     error: Error | null;
+};
+
+// Get proxy URL from environment variables
+const getProxyUrl = (): string => {
+    return process.env.NEXT_PUBLIC_STREAM_PROXY_URL || 'https://stream.vephim.online/?url=';
 };
 
 // Helper function to add timeout to fetch requests
@@ -38,13 +51,16 @@ const fetchWithTimeout = async (
  * A hook that processes M3U8 content client-side
  *
  * @param m3u8Url - The URL of the M3U8 playlist to process, or null to disable processing
- * @param options - Processing options including provider and indices to remove
+ * @param options - Processing options including provider, indices to remove, and proxy settings
  * @returns A state object with processing status, processed source, and error
  */
 export function useM3u8Processor(
     m3u8Url: string | null,
     options: ProcessorOptions,
 ): ProcessorState {
+    // Apply default options
+    const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+
     const [state, setState] = useState<ProcessorState>({
         isProcessing: Boolean(m3u8Url),
         processedSrc: null,
@@ -113,15 +129,23 @@ export function useM3u8Processor(
                 }
 
                 // Process the content (remove discontinuities and resolve URLs)
-                const indices = Array.isArray(options.removalIndices)
-                    ? [...new Set(options.removalIndices)].sort((a, b) => a - b)
-                    : options.removalIndices
-                    ? [options.removalIndices]
-                    : options.provider === 'o'
-                    ? [16, 17]
-                    : [1];
+                const indices =
+                    mergedOptions.removeAds === false
+                        ? [] // Skip discontinuity removal if removeAds is false
+                        : Array.isArray(mergedOptions.removalIndices)
+                        ? [...new Set(mergedOptions.removalIndices)].sort((a, b) => a - b)
+                        : mergedOptions.removalIndices
+                        ? [mergedOptions.removalIndices]
+                        : mergedOptions.provider === 'o'
+                        ? [16, 17]
+                        : [1];
 
-                const processedContent = removeDiscontinuitySections(content, indices, baseUrl);
+                const processedContent = removeDiscontinuitySections(
+                    content,
+                    indices,
+                    baseUrl,
+                    mergedOptions.proxy,
+                );
 
                 // Clean up previous blob URL
                 if (blobUrlRef.current) {
@@ -169,7 +193,13 @@ export function useM3u8Processor(
             // Don't revoke the blob URL here, as it will be reused until the component unmounts
             // or the m3u8Url changes
         };
-    }, [m3u8Url, options.provider, options.removalIndices]);
+    }, [
+        m3u8Url,
+        mergedOptions.provider,
+        mergedOptions.removalIndices,
+        mergedOptions.proxy,
+        mergedOptions.removeAds,
+    ]);
 
     // Clean up blob URL when component unmounts
     useEffect(() => {
@@ -223,7 +253,12 @@ function extractVariantUrl(content: string, baseUrl: string): string | null {
     return !variantUrl.startsWith('http') ? resolveUrl(variantUrl, baseUrl) : variantUrl;
 }
 
-function removeDiscontinuitySections(content: string, indices: number[], baseUrl: string): string {
+function removeDiscontinuitySections(
+    content: string,
+    indices: number[],
+    baseUrl: string,
+    useProxy = false,
+): string {
     const lines = content.split('\n');
 
     // Find all discontinuity markers
@@ -236,7 +271,7 @@ function removeDiscontinuitySections(content: string, indices: number[], baseUrl
 
     // Fast path - if no discontinuities or nothing to remove, just resolve URLs
     if (discontinuityIndices.length === 0 || indices.length === 0) {
-        return resolveSegmentUrls(lines, baseUrl);
+        return resolveSegmentUrls(lines, baseUrl, useProxy);
     }
 
     // Create a map of lines to keep (true) or remove (false)
@@ -266,7 +301,16 @@ function removeDiscontinuitySections(content: string, indices: number[], baseUrl
         // For segment URLs, resolve if they are relative
         if (line && !line.startsWith('#')) {
             if (!line.startsWith('http')) {
-                result.push(resolveUrl(line, baseUrl));
+                const resolvedUrl = resolveUrl(line, baseUrl);
+                if (useProxy) {
+                    result.push(`${getProxyUrl()}${encodeURIComponent(resolvedUrl)}`);
+                } else {
+                    result.push(resolvedUrl);
+                }
+                continue;
+            } else if (useProxy) {
+                // If it's already an absolute URL but we need to proxy it
+                result.push(`${getProxyUrl()}${encodeURIComponent(line)}`);
                 continue;
             }
         }
@@ -277,7 +321,7 @@ function removeDiscontinuitySections(content: string, indices: number[], baseUrl
     return result.join('\n');
 }
 
-function resolveSegmentUrls(lines: string[], baseUrl: string): string {
+function resolveSegmentUrls(lines: string[], baseUrl: string, useProxy = false): string {
     const result: string[] = [];
 
     for (const line of lines) {
@@ -286,7 +330,16 @@ function resolveSegmentUrls(lines: string[], baseUrl: string): string {
         // For segment URLs, resolve if they are relative
         if (trimmedLine && !trimmedLine.startsWith('#')) {
             if (!trimmedLine.startsWith('http')) {
-                result.push(resolveUrl(trimmedLine, baseUrl));
+                const resolvedUrl = resolveUrl(trimmedLine, baseUrl);
+                if (useProxy) {
+                    result.push(`${getProxyUrl()}${encodeURIComponent(resolvedUrl)}`);
+                } else {
+                    result.push(resolvedUrl);
+                }
+                continue;
+            } else if (useProxy) {
+                // If it's already an absolute URL but we need to proxy it
+                result.push(`${getProxyUrl()}${encodeURIComponent(trimmedLine)}`);
                 continue;
             }
         }

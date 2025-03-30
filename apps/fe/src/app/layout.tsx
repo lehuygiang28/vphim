@@ -130,12 +130,15 @@ export default function DefaultNoLayoutStyle({
                 <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_IMAGES_URL} />
                 <link rel="preconnect" href={process.env.NEXT_PUBLIC_IMAGES_URL} />
 
+                <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_STREAM_PROXY_URL} />
+                <link rel="preconnect" href={process.env.NEXT_PUBLIC_STREAM_PROXY_URL} />
+
                 {process.env.DNS_PREFETCH_URLS &&
                     process.env.DNS_PREFETCH_URLS.split(',').map((url) => (
-                        <>
+                        <React.Fragment key={url}>
                             <link rel="dns-prefetch" href={url} />
                             <link rel="preconnect" href={url} />
-                        </>
+                        </React.Fragment>
                     ))}
             </head>
             <body>

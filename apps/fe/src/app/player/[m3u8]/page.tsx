@@ -6,7 +6,7 @@ import '@vidstack/react/player/styles/default/layouts/video.css';
 import React, { CSSProperties, useRef, useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Layout, Modal, Button, Spin } from 'antd';
+import { Layout, Modal, Button } from 'antd';
 import {
     MediaPlayer,
     MediaPlayerInstance,
@@ -42,6 +42,8 @@ export type PlayerPageProps = {
         ep?: string;
         provider?: string;
         useProcessor?: string;
+        proxy?: string;
+        removeAds?: string;
     };
 };
 
@@ -244,7 +246,11 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         isProcessing,
         processedSrc,
         error: processorError,
-    } = useM3u8Processor(useClientProcessor ? sourceUrl : null, { provider });
+    } = useM3u8Processor(useClientProcessor ? sourceUrl : null, {
+        provider,
+        proxy: searchParams?.proxy === 'true',
+        removeAds: searchParams?.removeAds === 'true',
+    });
 
     // Show error if processor encountered problems
     useEffect(() => {

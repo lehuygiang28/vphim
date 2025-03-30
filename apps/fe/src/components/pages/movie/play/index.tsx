@@ -12,6 +12,7 @@ import {
     BulbFilled,
     BlockOutlined,
     CheckCircleOutlined,
+    GlobalOutlined,
 } from '@ant-design/icons';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -91,6 +92,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const [isLightsOff, setIsLightsOff] = useState<boolean>(false);
     const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
     const [useProcessedM3u8, setUseProcessedM3u8] = useState<boolean>(true);
+    const [useProxyStreaming, setUseProxyStreaming] = useState<boolean>(false);
 
     // Access the header visibility controls from the store
     const { hideHeader, enableAutoControl, showHeader } = useHeaderVisibilityStore();
@@ -553,16 +555,21 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         }
     };
 
-    // Load user preference for ad blocking from localStorage
+    // Load user preferences from localStorage
     useEffect(() => {
         try {
-            const savedPreference = localStorage.getItem('vphim_adblock_preference');
-            if (savedPreference !== null) {
-                setUseProcessedM3u8(savedPreference === 'true');
+            const savedAdBlockPreference = localStorage.getItem('vphim_adblock_preference');
+            if (savedAdBlockPreference !== null) {
+                setUseProcessedM3u8(savedAdBlockPreference === 'true');
+            }
+
+            const savedProxyPreference = localStorage.getItem('vphim_proxy_preference');
+            if (savedProxyPreference !== null) {
+                setUseProxyStreaming(savedProxyPreference === 'true');
             }
         } catch (e) {
             // Silent fail if localStorage is not available
-            console.warn('Failed to load ad blocking preference from localStorage');
+            console.warn('Failed to load user preferences from localStorage');
         }
     }, []);
 
@@ -574,6 +581,17 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         } catch (e) {
             // Silent fail if localStorage is not available
             console.warn('Failed to save ad blocking preference to localStorage:', e);
+        }
+    }, []);
+
+    // Save user preference for proxy streaming to localStorage
+    const toggleProxyStreaming = useCallback((newValue: boolean) => {
+        setUseProxyStreaming(newValue);
+        try {
+            localStorage.setItem('vphim_proxy_preference', String(newValue));
+        } catch (e) {
+            // Silent fail if localStorage is not available
+            console.warn('Failed to save proxy preference to localStorage:', e);
         }
     }, []);
 
@@ -645,6 +663,8 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                                   selectedEpisode.slug,
                                               )}&useProcessor=${
                                                   useProcessedM3u8 ? 'true' : 'false'
+                                              }&proxy=${
+                                                  useProxyStreaming ? 'true' : 'false'
                                               }&provider=${getProviderFromOriginSrc(
                                                   movie?.episode?.[selectedServerIndex]?.originSrc,
                                               )}`
@@ -702,16 +722,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                     size={md ? 'middle' : 'small'}
                                     type={useProcessedM3u8 ? 'primary' : 'default'}
                                     className={useProcessedM3u8 ? styles.adBlockActiveButton : ''}
-                                    style={
-                                        useProcessedM3u8
-                                            ? {
-                                                  backgroundColor:
-                                                      'var(--vphim-color-success, #52c41a)',
-                                                  borderColor:
-                                                      'var(--vphim-color-success, #52c41a)',
-                                              }
-                                            : undefined
-                                    }
                                 >
                                     {md
                                         ? useProcessedM3u8
@@ -720,10 +730,27 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                         : ''}
                                 </Button>
                             </Tooltip>
+                            <Tooltip
+                                title={
+                                    useProxyStreaming
+                                        ? 'Đang sử dụng proxy - Nhấn để tắt'
+                                        : 'Bật proxy (tăng tốc độ phát trong giờ cao điểm)'
+                                }
+                            >
+                                <Button
+                                    icon={<GlobalOutlined />}
+                                    onClick={() => toggleProxyStreaming(!useProxyStreaming)}
+                                    size={md ? 'middle' : 'small'}
+                                    type={useProxyStreaming ? 'primary' : 'default'}
+                                    className={useProxyStreaming ? styles.proxyActiveButton : ''}
+                                >
+                                    {md ? (useProxyStreaming ? 'Tắt proxy' : 'Bật proxy') : ''}
+                                </Button>
+                            </Tooltip>
                         </Space>
                         <div className={styles.playerTip}>
                             <Alert
-                                message="Nếu video không phát được, hãy thử tắt chức năng chặn quảng cáo hoặc đổi máy chủ"
+                                message="Nếu video không phát được, hãy thử tắt chặn quảng cáo, bật proxy hoặc đổi máy chủ"
                                 type="info"
                                 showIcon
                                 className={styles.adBlockTip}
