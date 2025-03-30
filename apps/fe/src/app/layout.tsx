@@ -117,9 +117,9 @@ export default function DefaultNoLayoutStyle({
     noauth: React.ReactNode;
     auth: React.ReactNode;
 }>) {
-    const cookieStore = cookies();
-    const theme = cookieStore.get('theme');
-    const defaultMode = theme?.value === 'light' ? 'light' : 'dark';
+    // const cookieStore = cookies();
+    // const theme = cookieStore.get('theme');
+    // const defaultMode = theme?.value === 'light' ? 'light' : 'dark';
 
     return (
         <html lang="en" className={customFont.className}>
@@ -147,7 +147,7 @@ export default function DefaultNoLayoutStyle({
                         <CopilotKit
                             runtimeUrl={`${process.env.NEXT_PUBLIC_API_URL}/api/copilotkit`}
                         >
-                            <RefineContext defaultMode={defaultMode}>
+                            <RefineContext defaultMode={'dark'}>
                                 {children}
                                 {auth}
                                 {noauth}
