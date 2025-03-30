@@ -6,6 +6,8 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { CopilotKit } from '@copilotkit/react-core';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 
 import '@/styles/global.css';
 import '@/components/layout/layout.css';
@@ -108,7 +110,7 @@ export const metadata: Metadata = {
     manifest: '/site.webmanifest',
 };
 
-export default function DefaultNoLayoutStyle({
+export default async function DefaultNoLayoutStyle({
     children,
     noauth,
     auth,
@@ -121,8 +123,12 @@ export default function DefaultNoLayoutStyle({
     const theme = cookieStore.get('theme');
     const defaultMode = theme?.value === 'light' ? 'light' : 'dark';
 
+    const locale = await getLocale();
+    // Providing all messages to the client side is the easiest way to get started
+    const messages = await getMessages();
+
     return (
-        <html lang="en" className={customFont.className}>
+        <html lang={locale ?? 'en'} className={customFont.className}>
             <head>
                 <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL} />
                 <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
@@ -147,11 +153,13 @@ export default function DefaultNoLayoutStyle({
                         <CopilotKit
                             runtimeUrl={`${process.env.NEXT_PUBLIC_API_URL}/api/copilotkit`}
                         >
-                            <RefineContext defaultMode={defaultMode}>
-                                {children}
-                                {auth}
-                                {noauth}
-                            </RefineContext>
+                            <NextIntlClientProvider messages={messages} locale={locale}>
+                                <RefineContext defaultMode={defaultMode}>
+                                    {children}
+                                    {auth}
+                                    {noauth}
+                                </RefineContext>
+                            </NextIntlClientProvider>
                         </CopilotKit>
                     </Suspense>
                 </AntdRegistry>
