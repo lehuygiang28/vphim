@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Typography, Grid, Divider, Button, Space, Alert, Row, Col, Tooltip } from 'antd';
+import { Typography, Grid, Divider, Button, Space, Alert, Row, Col, Tooltip, Dropdown } from 'antd';
 import {
     StepForwardOutlined,
     StepBackwardOutlined,
@@ -13,14 +13,17 @@ import {
     BlockOutlined,
     CheckCircleOutlined,
     GlobalOutlined,
+    MenuOutlined,
 } from '@ant-design/icons';
 import { useDebouncedCallback } from 'use-debounce';
+import type { MenuProps } from 'antd';
 
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
 import { useHeaderVisibilityStore } from '@/hooks/useHeaderVisibility';
 import useHeaderVisibility from '@/hooks/useHeaderVisibility';
+import { usePlayerSettings } from '@/hooks/usePlayerSettings';
 
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
@@ -57,20 +60,206 @@ const getProviderFromOriginSrc = (originSrc?: string): 'o' | 'k' => {
     return firstChar === 'k' ? 'k' : 'o';
 };
 
-// Function to construct the player URL based on settings
-const constructPlayerUrl = (data: {
-    m3u8Url: string;
-    currentServer?: EpisodeType;
-    enable: boolean;
-    removalIndices?: number[];
-}): string => {
-    if (!data.enable || !data.currentServer?.originSrc) {
-        // Use direct M3U8 link without processing
-        return data.m3u8Url;
+// Replace the iframe JSX with a cleaner PlayerIframe component
+type PlayerIframeProps = {
+    isM3u8Available: boolean;
+    useEmbedLink: boolean;
+    selectedEpisode: EpisodeServerDataType;
+    processedUrl: string;
+    movie: MovieType;
+    host: string;
+    selectedServerIndex: number;
+    handleVideoError: () => void;
+    handleVideoLoad: () => void;
+};
+
+const PlayerIframe: React.FC<PlayerIframeProps> = ({
+    isM3u8Available,
+    useEmbedLink,
+    selectedEpisode,
+    processedUrl,
+    movie,
+    host,
+    selectedServerIndex,
+    handleVideoError,
+    handleVideoLoad,
+}) => {
+    // Get player settings directly from Zustand store
+    const { useAdBlocker, useProxyStreaming } = usePlayerSettings();
+
+    // For embed links, use them directly
+    if (!isM3u8Available || useEmbedLink) {
+        return (
+            <iframe
+                id="video-player"
+                width="100%"
+                height="100%"
+                src={selectedEpisode.linkEmbed}
+                title={movie?.name || 'Movie Player'}
+                allowFullScreen
+                allow="autoplay; fullscreen; picture-in-picture"
+                onError={handleVideoError}
+                onLoad={handleVideoLoad}
+            />
+        );
     }
 
-    // With client-side processing, we just pass the URL and parameters
-    return data.m3u8Url;
+    // Build the player URL with all necessary parameters
+    const playerUrl = `${host}/player/${encodeURIComponent(processedUrl)}`;
+    const params = new URLSearchParams({
+        movieSlug: movie?.slug || '',
+        ep: selectedEpisode.slug || '',
+        useProcessor: useAdBlocker || useProxyStreaming ? 'true' : 'false',
+        proxy: useProxyStreaming ? 'true' : 'false',
+        removeAds: useAdBlocker ? 'true' : 'false',
+        provider: getProviderFromOriginSrc(movie?.episode?.[selectedServerIndex]?.originSrc) || '',
+    });
+
+    return (
+        <iframe
+            id="video-player"
+            width="100%"
+            height="100%"
+            src={`${playerUrl}?${params.toString()}`}
+            title={movie?.name || 'Movie Player'}
+            allowFullScreen
+            allow="autoplay; fullscreen; picture-in-picture"
+            onError={handleVideoError}
+            onLoad={handleVideoLoad}
+        />
+    );
+};
+
+// Define control buttons as a separate component
+type PlayerControlsProps = {
+    isLightsOff: boolean;
+    hasPrevEpisode: boolean;
+    hasNextEpisode: boolean;
+    toggleLights: () => void;
+    goToAdjacentEpisode: (direction: 'prev' | 'next') => void;
+    md: boolean;
+};
+
+const PlayerControls: React.FC<PlayerControlsProps> = ({
+    isLightsOff,
+    hasPrevEpisode,
+    hasNextEpisode,
+    toggleLights,
+    goToAdjacentEpisode,
+    md,
+}) => {
+    // Get player settings directly from Zustand store
+    const { useAdBlocker, useProxyStreaming, toggleAdBlocking, toggleProxyStreaming } =
+        usePlayerSettings();
+
+    // Define settings dropdown menu items
+    const settingsMenuItems: MenuProps['items'] = [
+        {
+            key: 'lights',
+            label: isLightsOff ? 'Bật đèn' : 'Tắt đèn',
+            icon: isLightsOff ? <BulbFilled /> : <BulbOutlined />,
+            onClick: toggleLights,
+        },
+        {
+            key: 'adblock',
+            label: useAdBlocker ? 'Tắt chặn quảng cáo' : 'Bật chặn quảng cáo',
+            icon: useAdBlocker ? <CheckCircleOutlined /> : <BlockOutlined />,
+            onClick: () => toggleAdBlocking(),
+        },
+        {
+            key: 'proxy',
+            label: useProxyStreaming ? 'Tắt proxy' : 'Bật proxy',
+            icon: <GlobalOutlined />,
+            onClick: () => toggleProxyStreaming(),
+        },
+    ];
+
+    // For mobile view, show a more compact UI with a dropdown menu
+    if (!md) {
+        return (
+            <Space className={styles.controls}>
+                <Button
+                    icon={<StepBackwardOutlined />}
+                    onClick={() => goToAdjacentEpisode('prev')}
+                    disabled={!hasPrevEpisode}
+                    size="small"
+                />
+                <Button
+                    icon={<StepForwardOutlined />}
+                    onClick={() => goToAdjacentEpisode('next')}
+                    disabled={!hasNextEpisode}
+                    size="small"
+                />
+                <Dropdown menu={{ items: settingsMenuItems }} trigger={['click']}>
+                    <Button icon={<MenuOutlined />} size="small" />
+                </Dropdown>
+            </Space>
+        );
+    }
+
+    // For desktop view, show all buttons with text
+    return (
+        <Space className={styles.controls}>
+            <Button
+                icon={<StepBackwardOutlined />}
+                onClick={() => goToAdjacentEpisode('prev')}
+                disabled={!hasPrevEpisode}
+                size="middle"
+            >
+                Tập trước
+            </Button>
+            <Button
+                icon={<StepForwardOutlined />}
+                onClick={() => goToAdjacentEpisode('next')}
+                disabled={!hasNextEpisode}
+                size="middle"
+            >
+                Tập tiếp theo
+            </Button>
+            <Button
+                icon={isLightsOff ? <BulbFilled /> : <BulbOutlined />}
+                onClick={toggleLights}
+                size="middle"
+                className={styles.lightsToggleButton}
+            >
+                {isLightsOff ? 'Bật đèn' : 'Tắt đèn'}
+            </Button>
+            <Tooltip
+                title={
+                    useAdBlocker
+                        ? 'Đang chặn quảng cáo - Nhấn để tắt'
+                        : 'Bật chặn quảng cáo (có thể ảnh hưởng đến phát video)'
+                }
+            >
+                <Button
+                    icon={useAdBlocker ? <CheckCircleOutlined /> : <BlockOutlined />}
+                    onClick={() => toggleAdBlocking()}
+                    size="middle"
+                    type={useAdBlocker ? 'primary' : 'default'}
+                    className={useAdBlocker ? styles.adBlockActiveButton : ''}
+                >
+                    {useAdBlocker ? 'Tắt chặn quảng cáo' : 'Bật chặn quảng cáo'}
+                </Button>
+            </Tooltip>
+            <Tooltip
+                title={
+                    useProxyStreaming
+                        ? 'Đang sử dụng proxy - Nhấn để tắt'
+                        : 'Bật proxy (tăng tốc độ phát trong giờ cao điểm)'
+                }
+            >
+                <Button
+                    icon={<GlobalOutlined />}
+                    onClick={() => toggleProxyStreaming()}
+                    size="middle"
+                    type={useProxyStreaming ? 'primary' : 'default'}
+                    className={useProxyStreaming ? styles.proxyActiveButton : ''}
+                >
+                    {useProxyStreaming ? 'Tắt proxy' : 'Bật proxy'}
+                </Button>
+            </Tooltip>
+        </Space>
+    );
 };
 
 export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
@@ -91,8 +280,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const [isScrolling, setIsScrolling] = useState<boolean>(false);
     const [isLightsOff, setIsLightsOff] = useState<boolean>(false);
     const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
-    const [useProcessedM3u8, setUseProcessedM3u8] = useState<boolean>(true);
-    const [useProxyStreaming, setUseProxyStreaming] = useState<boolean>(false);
 
     // Access the header visibility controls from the store
     const { hideHeader, enableAutoControl, showHeader } = useHeaderVisibilityStore();
@@ -555,46 +742,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         }
     };
 
-    // Load user preferences from localStorage
-    useEffect(() => {
-        try {
-            const savedAdBlockPreference = localStorage.getItem('vphim_adblock_preference');
-            if (savedAdBlockPreference !== null) {
-                setUseProcessedM3u8(savedAdBlockPreference === 'true');
-            }
-
-            const savedProxyPreference = localStorage.getItem('vphim_proxy_preference');
-            if (savedProxyPreference !== null) {
-                setUseProxyStreaming(savedProxyPreference === 'true');
-            }
-        } catch (e) {
-            // Silent fail if localStorage is not available
-            console.warn('Failed to load user preferences from localStorage');
-        }
-    }, []);
-
-    // Save user preference for ad blocking to localStorage
-    const toggleAdBlocking = useCallback((newValue: boolean) => {
-        setUseProcessedM3u8(newValue);
-        try {
-            localStorage.setItem('vphim_adblock_preference', String(newValue));
-        } catch (e) {
-            // Silent fail if localStorage is not available
-            console.warn('Failed to save ad blocking preference to localStorage:', e);
-        }
-    }, []);
-
-    // Save user preference for proxy streaming to localStorage
-    const toggleProxyStreaming = useCallback((newValue: boolean) => {
-        setUseProxyStreaming(newValue);
-        try {
-            localStorage.setItem('vphim_proxy_preference', String(newValue));
-        } catch (e) {
-            // Silent fail if localStorage is not available
-            console.warn('Failed to save proxy preference to localStorage:', e);
-        }
-    }, []);
-
     // Add useMemo for computed values that don't need to be recalculated on every render
     const currentServer = useMemo(
         () => movie?.episode?.[selectedServerIndex],
@@ -605,12 +752,8 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const processedUrl = useMemo(() => {
         if (!selectedEpisode?.linkM3u8 || !currentServer) return '';
 
-        return constructPlayerUrl({
-            m3u8Url: selectedEpisode.linkM3u8,
-            currentServer,
-            enable: useProcessedM3u8,
-        });
-    }, [selectedEpisode, currentServer, useProcessedM3u8]);
+        return selectedEpisode?.linkM3u8;
+    }, [selectedEpisode, currentServer]);
 
     return (
         <div
@@ -648,105 +791,28 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                         >
                             {isVideoLoading && <div className={styles.loadingIndicator} />}
                             {selectedEpisode && (
-                                <iframe
-                                    id="video-player"
-                                    width="100%"
-                                    height="100%"
-                                    src={
-                                        !isM3u8Available || useEmbedLink
-                                            ? selectedEpisode.linkEmbed
-                                            : `${host}/player/${encodeURIComponent(
-                                                  processedUrl,
-                                              )}?movieSlug=${encodeURIComponent(
-                                                  movie?.slug,
-                                              )}&ep=${encodeURIComponent(
-                                                  selectedEpisode.slug,
-                                              )}&useProcessor=${
-                                                  useProcessedM3u8 ? 'true' : 'false'
-                                              }&proxy=${
-                                                  useProxyStreaming ? 'true' : 'false'
-                                              }&provider=${getProviderFromOriginSrc(
-                                                  movie?.episode?.[selectedServerIndex]?.originSrc,
-                                              )}`
-                                    }
-                                    title={movie?.name || 'Movie Player'}
-                                    allowFullScreen
-                                    allow="autoplay; fullscreen; picture-in-picture"
-                                    onError={handleVideoError}
-                                    onLoad={handleVideoLoad}
+                                <PlayerIframe
+                                    isM3u8Available={isM3u8Available}
+                                    useEmbedLink={useEmbedLink}
+                                    selectedEpisode={selectedEpisode}
+                                    processedUrl={processedUrl}
+                                    movie={movie}
+                                    host={host}
+                                    selectedServerIndex={selectedServerIndex}
+                                    handleVideoError={handleVideoError}
+                                    handleVideoLoad={handleVideoLoad}
                                 />
                             )}
                         </div>
                         <Space ref={controlsRef} className={styles.controls}>
-                            <Button
-                                icon={isLightsOff ? <BulbFilled /> : <BulbOutlined />}
-                                onClick={toggleLights}
-                                size={md ? 'middle' : 'small'}
-                                className={styles.lightsToggleButton}
-                                title={`${isLightsOff ? 'Bật đèn' : 'Tắt đèn'} (phím L)`}
-                            >
-                                {md ? (isLightsOff ? 'Bật đèn' : 'Tắt đèn') : ''}
-                            </Button>
-                            <Button
-                                icon={<StepBackwardOutlined />}
-                                onClick={() => goToAdjacentEpisode('prev')}
-                                disabled={!hasPrevEpisode}
-                                size={md ? 'middle' : 'small'}
-                            >
-                                {md && 'Tập trước'}
-                            </Button>
-                            <Button
-                                icon={<StepForwardOutlined />}
-                                onClick={() => goToAdjacentEpisode('next')}
-                                disabled={!hasNextEpisode}
-                                size={md ? 'middle' : 'small'}
-                            >
-                                {md && 'Tập tiếp theo'}
-                            </Button>
-                            <Tooltip
-                                title={
-                                    useProcessedM3u8
-                                        ? 'Đang chặn quảng cáo - Nhấn để tắt'
-                                        : 'Bật chặn quảng cáo (có thể ảnh hưởng đến phát video)'
-                                }
-                            >
-                                <Button
-                                    icon={
-                                        useProcessedM3u8 ? (
-                                            <CheckCircleOutlined />
-                                        ) : (
-                                            <BlockOutlined />
-                                        )
-                                    }
-                                    onClick={() => toggleAdBlocking(!useProcessedM3u8)}
-                                    size={md ? 'middle' : 'small'}
-                                    type={useProcessedM3u8 ? 'primary' : 'default'}
-                                    className={useProcessedM3u8 ? styles.adBlockActiveButton : ''}
-                                >
-                                    {md
-                                        ? useProcessedM3u8
-                                            ? 'Tắt chặn quảng cáo'
-                                            : 'Bật chặn quảng cáo'
-                                        : ''}
-                                </Button>
-                            </Tooltip>
-                            <Tooltip
-                                title={
-                                    useProxyStreaming
-                                        ? 'Đang sử dụng proxy - Nhấn để tắt'
-                                        : 'Bật proxy (tăng tốc độ phát trong giờ cao điểm)'
-                                }
-                            >
-                                <Button
-                                    icon={<GlobalOutlined />}
-                                    onClick={() => toggleProxyStreaming(!useProxyStreaming)}
-                                    size={md ? 'middle' : 'small'}
-                                    type={useProxyStreaming ? 'primary' : 'default'}
-                                    className={useProxyStreaming ? styles.proxyActiveButton : ''}
-                                >
-                                    {md ? (useProxyStreaming ? 'Tắt proxy' : 'Bật proxy') : ''}
-                                </Button>
-                            </Tooltip>
+                            <PlayerControls
+                                isLightsOff={isLightsOff}
+                                hasPrevEpisode={hasPrevEpisode}
+                                hasNextEpisode={hasNextEpisode}
+                                toggleLights={toggleLights}
+                                goToAdjacentEpisode={goToAdjacentEpisode}
+                                md={md}
+                            />
                         </Space>
                         <div className={styles.playerTip}>
                             <Alert

@@ -236,9 +236,10 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     const provider = useMemo(() => searchParams.provider as 'o' | 'k', [searchParams.provider]);
 
     // Check if we should use the client-side processor
+    // Keep processing enabled if proxy is needed, even if ad blocking is disabled
     const useClientProcessor = useMemo(
-        () => searchParams.useProcessor !== 'false',
-        [searchParams.useProcessor],
+        () => searchParams.useProcessor !== 'false' || searchParams.proxy === 'true',
+        [searchParams.useProcessor, searchParams.proxy],
     );
 
     // Use our M3U8 processor hook if processing is enabled
@@ -249,7 +250,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
     } = useM3u8Processor(useClientProcessor ? sourceUrl : null, {
         provider,
         proxy: searchParams?.proxy === 'true',
-        removeAds: searchParams?.removeAds === 'true',
+        removeAds: searchParams?.removeAds !== 'false',
     });
 
     // Show error if processor encountered problems
