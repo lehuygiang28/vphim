@@ -1,0 +1,13 @@
+{
+    "name": "stream-proxy",
+    "version": "1.0.0",
+    "description": "High-performance Bun proxy server with advanced streaming and load protection",
+    "main": "proxy.ts",
+    "type": "module",
+    "scripts": {
+        "start": "bun proxy.ts"
+    },
+    "dependencies": {
+        "@types/bun": "latest"
+    }
+}
