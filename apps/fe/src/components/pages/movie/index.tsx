@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb } from 'antd';
 import { useGetIdentity, useOne, useUpdate } from '@refinedev/core';
 import {
@@ -13,6 +13,7 @@ import {
     HeartOutlined,
     HomeOutlined,
     PlayCircleOutlined,
+    SearchOutlined,
 } from '@ant-design/icons';
 
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
@@ -76,8 +77,12 @@ export type MovieProps = {
 export function Movie({ slug, movie: movieProp }: MovieProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { md } = useBreakpoint();
     const [isFollowing, setIsFollowing] = useState(false);
+
+    // Get the referrer search parameters if they exist
+    const referrerSearch = searchParams?.get('from') || '';
 
     const { data: { data: movieQuery } = {} } = useOne<MovieType>({
         dataProviderName: 'graphql',
@@ -317,7 +322,25 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                             ),
                         },
                         {
-                            title: <Link href={'/danh-sach-phim'}>Danh sách phim</Link>,
+                            title: referrerSearch ? (
+                                <Tooltip title="Quay lại kết quả tìm kiếm">
+                                    <Link href={`/danh-sach-phim?${referrerSearch}`}>
+                                        <span
+                                            style={{ display: 'inline-flex', alignItems: 'center' }}
+                                        >
+                                            <SearchOutlined
+                                                style={{
+                                                    marginRight: '0.5rem',
+                                                    fontSize: '0.8rem',
+                                                }}
+                                            />
+                                            Danh sách phim
+                                        </span>
+                                    </Link>
+                                </Tooltip>
+                            ) : (
+                                <Link href="/danh-sach-phim">Danh sách phim</Link>
+                            ),
                         },
                         {
                             title: <Link href={`/phim/${movie?.slug}`}>{movie?.name}</Link>,
@@ -474,7 +497,7 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                         <Link
                                             href={`/phim/${movie?.slug}/${getFirstEpisodeSlug(
                                                 movie,
-                                            )}`}
+                                            )}${referrerSearch ? `?from=${referrerSearch}` : ''}`}
                                         >
                                             <Button
                                                 type="primary"

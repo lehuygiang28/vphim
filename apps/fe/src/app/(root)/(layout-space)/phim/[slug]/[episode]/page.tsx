@@ -1,12 +1,10 @@
 import React from 'react';
-import { Breadcrumb } from 'antd';
 import { Metadata, ResolvingMetadata } from 'next';
-import Link from 'next/link';
-import { HomeOutlined } from '@ant-design/icons';
 
 import { MoviePlay } from '@/components/pages/movie/play';
 import { getEpisodeNameBySlug, getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import { getMovieBySlug } from '@/services/movies';
+import { EpisodeBreadcrumb } from '@/components/breadcrumbs/episode-breadcrumb';
 
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
@@ -95,31 +93,10 @@ export default async function MovieEpisodePage({ params }: MovieEpisodePageProps
 
     return (
         <>
-            <Breadcrumb
-                style={{ marginBottom: '1rem' }}
-                items={[
-                    {
-                        title: (
-                            <Link href={'/'}>
-                                <HomeOutlined style={{ marginRight: '0.5rem' }} />
-                                Trang chủ
-                            </Link>
-                        ),
-                    },
-                    {
-                        title: <Link href={'/danh-sach-phim'}>Danh sách phim</Link>,
-                    },
-                    {
-                        title: <Link href={`/phim/${movie.slug}`}>{movie.name}</Link>,
-                    },
-                    {
-                        title: (
-                            <Link href={`/phim/${movie.slug}/${params.episode}`}>
-                                {episodeName}
-                            </Link>
-                        ),
-                    },
-                ]}
+            <EpisodeBreadcrumb
+                movie={movie}
+                episodeSlug={params.episode}
+                episodeName={episodeName}
             />
             <MoviePlay movie={movie} episodeSlug={params.episode} />
         </>

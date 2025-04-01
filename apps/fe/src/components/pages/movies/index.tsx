@@ -3,7 +3,7 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Divider, Space, Breadcrumb, List, Grid, Empty } from 'antd';
+import { Divider, Space, Breadcrumb, List, Empty } from 'antd';
 import { useTable, CrudSort, CrudFilters } from '@refinedev/core';
 import { parseTableParams } from '@refinedev/nextjs-router';
 
@@ -13,8 +13,6 @@ import { sortedStringify } from '@/libs/utils/common';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieCard } from '@/components/card/movie-card';
 import { MovieFilters } from './movie-filter';
-
-const { useBreakpoint } = Grid;
 
 export type LocalQuery = {
     pagination: {
@@ -32,10 +30,10 @@ export type MoviePageProps = {
 const PAGE_SIZE = 24;
 
 export default function MoviePage({ breadcrumbs }: MoviePageProps) {
-    const router = useRouter();
-    const { md } = useBreakpoint();
     const search = useSearchParams();
-    const [parsedQuery, setParsedQuery] = useState(parseTableParams(search?.toString()));
+    // Store the current search query string to use in breadcrumbs
+    const currentSearchString = search?.toString() || '';
+    const [parsedQuery, setParsedQuery] = useState(parseTableParams(currentSearchString));
     const [query, setQuery] = useState<undefined | LocalQuery>(undefined);
 
     const {
@@ -116,11 +114,23 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
         }
     };
 
+    // Modify the breadcrumbs to include search parameters
+    const enhancedBreadcrumbs = breadcrumbs.map((item, index) => {
+        // Only modify the "Danh sách phim" breadcrumb to include search params
+        if (item.url === '/danh-sach-phim' && currentSearchString) {
+            return {
+                ...item,
+                url: `/danh-sach-phim?${currentSearchString}`,
+            };
+        }
+        return item;
+    });
+
     return (
         <div style={{ width: '100%' }}>
             <Space direction="vertical" size={0} style={{ width: '100%' }}>
                 <Breadcrumb>
-                    {breadcrumbs.map((item, index) => (
+                    {enhancedBreadcrumbs.map((item, index) => (
                         <Breadcrumb.Item key={`breadcrumb-movies-page-${index}`}>
                             {item.url ? <Link href={item.url}>{item.label}</Link> : item.label}
                         </Breadcrumb.Item>
@@ -155,13 +165,13 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                     dataSource={data?.data}
                     renderItem={(item: MovieType) => (
                         <List.Item>
-                            <div
-                                onClick={() => {
-                                    router.push(`/phim/${item.slug}`);
-                                }}
+                            <Link
+                                href={`/phim/${item.slug}?from=${encodeURIComponent(
+                                    currentSearchString,
+                                )}`}
                             >
                                 <MovieCard movie={item} />
-                            </div>
+                            </Link>
                         </List.Item>
                     )}
                     pagination={
