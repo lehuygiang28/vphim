@@ -165,13 +165,7 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                     dataSource={data?.data}
                     renderItem={(item: MovieType) => (
                         <List.Item>
-                            <Link
-                                href={`/phim/${item.slug}?from=${encodeURIComponent(
-                                    currentSearchString,
-                                )}`}
-                            >
-                                <MovieCard movie={item} />
-                            </Link>
+                            <MovieCard movie={item} fromParam={currentSearchString} />
                         </List.Item>
                     )}
                     pagination={

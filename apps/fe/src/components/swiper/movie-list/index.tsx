@@ -213,14 +213,11 @@ export default function MovieList({
                 {!isLoading &&
                     movies?.length > 0 &&
                     movies.map((movie, index) => (
-                        <SwiperSlide
-                            key={movie._id.toString()}
-                            onClick={() => handleVisibleContentCard(index)}
-                            className={styles.slide}
-                        >
+                        <SwiperSlide key={movie._id.toString()} className={styles.slide}>
                             <MovieCard
                                 movie={movie}
                                 loadType={index < eagerLoad ? 'eager' : undefined}
+                                hoverDelay={300}
                             />
                         </SwiperSlide>
                     ))}
