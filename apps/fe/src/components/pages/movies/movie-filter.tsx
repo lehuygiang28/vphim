@@ -1,5 +1,7 @@
 'use client';
 
+import './movie-filter.css';
+
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     Row,
@@ -13,9 +15,21 @@ import {
     Grid,
     Tooltip,
     Typography,
+    Modal,
+    Badge,
+    Collapse,
+    Card,
+    Switch,
 } from 'antd';
 import { LogicalFilter, useList } from '@refinedev/core';
-import { FilterOutlined, CloseOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import {
+    FilterOutlined,
+    CloseOutlined,
+    QuestionCircleOutlined,
+    SearchOutlined,
+    SortAscendingOutlined,
+    RobotOutlined,
+} from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
 import { useCopilotReadable } from '@copilotkit/react-core';
 
@@ -32,6 +46,7 @@ import { SearchInput } from './search-input';
 const { Text } = Typography;
 const { Option } = Select;
 const { useBreakpoint } = Grid;
+const { Panel } = Collapse;
 
 interface MovieFiltersProps {
     isSearching?: boolean;
@@ -61,11 +76,13 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
     applySearch,
     isSearching = false,
 }) => {
-    const { md } = useBreakpoint();
+    const { xs, sm, md } = useBreakpoint();
+    const isMobile = xs || sm;
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 124 }, (_, i) => currentYear - i);
     const [keywordsInput, setKeywordsInput] = useState<string | undefined>(undefined);
-    const [drawerVisible, setDrawerVisible] = useState(false);
+    const [filterVisible, setFilterVisible] = useState(false);
+    const [movieCountData, setMovieCountData] = useState<number | undefined>(undefined);
 
     const { data: categories } = useList<Category>({
         dataProviderName: 'graphql',
@@ -113,6 +130,19 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         setKeywordsInput(keywordsFilter?.[0] || undefined);
     }, [query, getFilterValue]);
 
+    // Calculate total active filters for the badge
+    const getActiveFilterCount = useCallback(() => {
+        let count = 0;
+        query?.filters?.forEach((filter) => {
+            const f = filter as LogicalFilter;
+            if (f.field !== 'keywords' && f.field !== 'useAI') {
+                const values = f.value.toString().split(',');
+                count += values.filter((v) => v).length;
+            }
+        });
+        return count;
+    }, [query?.filters]);
+
     const handleFilterChange = (key: string, value: unknown) => {
         let newFilters = query?.filters?.filter((x) => (x as LogicalFilter)?.field !== key);
 
@@ -149,113 +179,152 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         }
     };
 
-    const renderFilters = () => (
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            <Select
-                style={{ width: '100%' }}
-                placeholder="Chọn định dạng"
-                value={getFilterValue('type')?.[0] || undefined}
-                onChange={(value) => handleFilterChange('type', value)}
-                allowClear
-                onClear={() => handleFilterChange('type', undefined)}
+    const renderFilterForm = () => (
+        <div className="filters-form">
+            <Collapse
+                defaultActiveKey={['format', 'categories', 'countries']}
+                ghost
+                bordered={false}
             >
-                {Object.entries(movieTypeTranslations).map(([key, value]) => (
-                    <Option key={key} value={key}>
-                        {value}
-                    </Option>
-                ))}
-            </Select>
-            <Select
-                mode="multiple"
-                style={{ width: '100%' }}
-                placeholder="Chọn năm phát hành"
-                value={getFilterValue('years')}
-                onChange={(value) => handleFilterChange('years', value)}
-                allowClear
-                onClear={() => handleFilterChange('years', undefined)}
-                maxTagCount={6}
-            >
-                {yearOptions.map((year) => (
-                    <Option key={year} value={year.toString()}>
-                        {year}
-                    </Option>
-                ))}
-            </Select>
-            <Select
-                mode="multiple"
-                allowClear
-                style={{ width: '100%' }}
-                placeholder="Chọn thể loại"
-                value={getFilterValue('categories')}
-                onChange={(value) => handleFilterChange('categories', value)}
-                onClear={() => handleFilterChange('categories', undefined)}
-                onSearch={(keyword) => {
-                    const regex = createRegex(keyword);
-                    return categories?.data?.filter(
-                        (category) => regex.test(category.name) || regex.test(category.slug),
-                    );
-                }}
-                maxTagCount={6}
-            >
-                {categories?.data?.map((category) => (
-                    <Option key={category.slug} value={category.slug}>
-                        {category.name}
-                    </Option>
-                ))}
-            </Select>
-            <Select
-                mode="multiple"
-                allowClear
-                style={{ width: '100%' }}
-                placeholder="Chọn quốc gia"
-                value={getFilterValue('countries')}
-                onChange={(value) => handleFilterChange('countries', value)}
-                onClear={() => handleFilterChange('countries', undefined)}
-                onSearch={(keyword) => {
-                    const regex = createRegex(keyword);
-                    return regions?.data?.filter(
-                        (country) => regex.test(country.name) || regex.test(country.slug),
-                    );
-                }}
-                maxTagCount={6}
-            >
-                {regions?.data?.map((country) => (
-                    <Option key={country.slug} value={country.slug}>
-                        {country.name}
-                    </Option>
-                ))}
-            </Select>
-            <Select
-                style={{ width: '100%' }}
-                placeholder="Chọn trạng thái"
-                value={getFilterValue('status')?.[0] || undefined}
-                onChange={(value) => handleFilterChange('status', value)}
-                allowClear
-                onClear={() => handleFilterChange('status', undefined)}
-            >
-                {statusOptions.map((option) => (
-                    <Option key={option.value} value={option.value}>
-                        {option.label}
-                    </Option>
-                ))}
-            </Select>
-            <Space direction="horizontal" size="middle" style={{ width: '100%' }}>
-                <Checkbox
-                    checked={getFilterValue('cinemaRelease')?.[0]?.toString() === 'true'}
-                    onChange={(e) => handleFilterChange('cinemaRelease', e.target.checked)}
-                >
-                    Phim chiếu rạp
-                </Checkbox>
-            </Space>
-            <Space direction="horizontal" size="middle" style={{ width: '100%' }}>
-                <Checkbox
-                    checked={getFilterValue('isCopyright')?.[0]?.toString() === 'true'}
-                    onChange={(e) => handleFilterChange('isCopyright', e.target.checked)}
-                >
-                    Phim bản quyền
-                </Checkbox>
-            </Space>
-        </Space>
+                <Panel header={<Text strong>Định dạng phim</Text>} key="format">
+                    <div className="filter-chip-group">
+                        {Object.entries(movieTypeTranslations).map(([key, value]) => (
+                            <div
+                                key={key}
+                                className={`filter-chip ${
+                                    getFilterValue('type')[0] === key ? 'active' : ''
+                                }`}
+                                onClick={() => {
+                                    const currentValue = getFilterValue('type')[0];
+                                    handleFilterChange(
+                                        'type',
+                                        currentValue === key ? undefined : key,
+                                    );
+                                }}
+                            >
+                                {value}
+                            </div>
+                        ))}
+                    </div>
+                </Panel>
+
+                <Panel header={<Text strong>Thể loại</Text>} key="categories">
+                    <Select
+                        mode="multiple"
+                        className="filter-select"
+                        placeholder="Chọn thể loại"
+                        value={getFilterValue('categories')}
+                        onChange={(value) => handleFilterChange('categories', value)}
+                        allowClear
+                        showSearch
+                        optionFilterProp="label"
+                        onClear={() => handleFilterChange('categories', undefined)}
+                        onSearch={(keyword) => {
+                            const regex = createRegex(keyword);
+                            return categories?.data?.filter(
+                                (category) =>
+                                    regex.test(category.name) || regex.test(category.slug),
+                            );
+                        }}
+                        maxTagCount={isMobile ? 1 : 3}
+                    >
+                        {categories?.data?.map((category) => (
+                            <Option key={category.slug} value={category.slug} label={category.name}>
+                                {category.name}
+                            </Option>
+                        ))}
+                    </Select>
+                </Panel>
+
+                <Panel header={<Text strong>Quốc gia</Text>} key="countries">
+                    <Select
+                        mode="multiple"
+                        className="filter-select"
+                        placeholder="Chọn quốc gia"
+                        value={getFilterValue('countries')}
+                        onChange={(value) => handleFilterChange('countries', value)}
+                        allowClear
+                        showSearch
+                        optionFilterProp="label"
+                        onClear={() => handleFilterChange('countries', undefined)}
+                        onSearch={(keyword) => {
+                            const regex = createRegex(keyword);
+                            return regions?.data?.filter(
+                                (country) => regex.test(country.name) || regex.test(country.slug),
+                            );
+                        }}
+                        maxTagCount={isMobile ? 1 : 3}
+                    >
+                        {regions?.data?.map((country) => (
+                            <Option key={country.slug} value={country.slug} label={country.name}>
+                                {country.name}
+                            </Option>
+                        ))}
+                    </Select>
+                </Panel>
+
+                <Panel header={<Text strong>Năm phát hành</Text>} key="years">
+                    <Select
+                        mode="multiple"
+                        className="filter-select"
+                        placeholder="Chọn năm phát hành"
+                        value={getFilterValue('years')}
+                        onChange={(value) => handleFilterChange('years', value)}
+                        allowClear
+                        onClear={() => handleFilterChange('years', undefined)}
+                        maxTagCount={isMobile ? 1 : 3}
+                    >
+                        {yearOptions.map((year) => (
+                            <Option key={year} value={year.toString()}>
+                                {year}
+                            </Option>
+                        ))}
+                    </Select>
+                </Panel>
+
+                <Panel header={<Text strong>Trạng thái</Text>} key="status">
+                    <div className="filter-chip-group">
+                        {statusOptions.map((option) => (
+                            <div
+                                key={option.value}
+                                className={`filter-chip ${
+                                    getFilterValue('status')[0] === option.value ? 'active' : ''
+                                }`}
+                                onClick={() => {
+                                    const currentValue = getFilterValue('status')[0];
+                                    handleFilterChange(
+                                        'status',
+                                        currentValue === option.value ? undefined : option.value,
+                                    );
+                                }}
+                            >
+                                {option.label}
+                            </div>
+                        ))}
+                    </div>
+                </Panel>
+
+                <Panel header={<Text strong>Tùy chọn khác</Text>} key="other">
+                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                        <Checkbox
+                            checked={getFilterValue('cinemaRelease')[0]?.toString() === 'true'}
+                            onChange={(e) => handleFilterChange('cinemaRelease', e.target.checked)}
+                            className="filter-checkbox"
+                        >
+                            Phim chiếu rạp
+                        </Checkbox>
+
+                        <Checkbox
+                            checked={getFilterValue('isCopyright')[0]?.toString() === 'true'}
+                            onChange={(e) => handleFilterChange('isCopyright', e.target.checked)}
+                            className="filter-checkbox"
+                        >
+                            Phim bản quyền
+                        </Checkbox>
+                    </Space>
+                </Panel>
+            </Collapse>
+        </div>
     );
 
     const renderFilterTags = () => {
@@ -296,7 +365,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                 ] || value;
                             break;
                         case 'years':
-                            label = 'Năm phát hành';
+                            label = 'Năm';
                             break;
                         case 'categories':
                             label = 'Thể loại';
@@ -334,6 +403,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                             <Tag
                                 key={`${filter.field}-${value}`}
                                 closable
+                                className="filter-tag"
                                 onClose={() => {
                                     const newValues = values.filter((v) => v !== value);
                                     handleFilterChange(
@@ -342,7 +412,8 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                     );
                                 }}
                             >
-                                {label}: {displayValue}
+                                <span className="filter-tag-label">{label}:</span>
+                                <span className="filter-tag-content">{displayValue}</span>
                             </Tag>,
                         );
                     }
@@ -358,6 +429,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         setKeywordsInput('');
     };
 
+    // Copilot readable values
     useCopilotReadable({
         value: getFilterValue('keywords')[0] || '',
         description: 'Search terms for movie titles, actors, directors, or content',
@@ -434,33 +506,129 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         convert: (description, value) => (Array.isArray(value) ? value.join(', ') : String(value)),
     });
 
-    return (
+    // Filter content for both Modal and Drawer
+    const filterContent = (
         <>
-            <Row gutter={[16, 16]} align="middle">
-                <Col xs={24} md={12} lg={12}>
-                    <SearchInput
-                        value={keywordsInput}
-                        onChange={setKeywordsInput}
-                        onSearch={(value) => {
-                            const newFilters = handleFilterChange('keywords', value || undefined);
-                            applySearch({ ...query, filters: newFilters });
-                        }}
-                        isAIMode={getFilterValue('useAI')?.[0]?.toString() === 'true'}
-                        loading={isSearching}
-                        placeholder="Tìm phim theo tên phim, diễn viên, đạo diễn hoặc nội dung"
-                        aiPlaceholder="Mô tả chi tiết phim bạn muốn tìm (ví dụ: phim về phép thuật)"
-                    />
+            <div style={{ padding: '0 var(--filter-spacing-lg)' }}>{renderFilterForm()}</div>
+            <div className="filter-drawer-footer">
+                <Button
+                    className="filter-button filter-reset-button"
+                    onClick={clearAllFilters}
+                    icon={<CloseOutlined />}
+                >
+                    Xóa bộ lọc
+                </Button>
+                <Button
+                    type="primary"
+                    className="filter-button filter-apply-button"
+                    onClick={() => {
+                        setFilterVisible(false);
+                        applySearch(query);
+                    }}
+                    icon={<SearchOutlined />}
+                >
+                    Áp dụng
+                    {movieCountData !== undefined && (
+                        <span className="results-count">{movieCountData}</span>
+                    )}
+                </Button>
+            </div>
+        </>
+    );
+
+    return (
+        <div className="filters-container">
+            <Row gutter={[16, 16]} align="top" className="filter-row">
+                <Col xs={24} md={16} lg={16}>
+                    <Card bordered={false} className="search-card">
+                        <Row gutter={[8, 8]}>
+                            <Col span={24}>
+                                <SearchInput
+                                    value={keywordsInput}
+                                    onChange={setKeywordsInput}
+                                    onSearch={(value) => {
+                                        const newFilters = handleFilterChange(
+                                            'keywords',
+                                            value || undefined,
+                                        );
+                                        applySearch({ ...query, filters: newFilters });
+                                    }}
+                                    isAIMode={getFilterValue('useAI')[0]?.toString() === 'true'}
+                                    loading={isSearching}
+                                    placeholder="Tìm phim theo tên phim, diễn viên, đạo diễn hoặc nội dung"
+                                    aiPlaceholder="Mô tả chi tiết phim bạn muốn tìm (ví dụ: phim về phép thuật)"
+                                />
+                            </Col>
+                            <Col span={24} style={{ paddingTop: '0.5rem' }}>
+                                <Row align="middle" justify="space-between">
+                                    <Col>
+                                        <Space size="small">
+                                            <Badge
+                                                dot
+                                                status={
+                                                    getFilterValue('useAI')[0]?.toString() ===
+                                                    'true'
+                                                        ? 'processing'
+                                                        : 'default'
+                                                }
+                                                offset={[0, 0]}
+                                            >
+                                                <Switch
+                                                    size="small"
+                                                    checked={
+                                                        getFilterValue('useAI')[0]?.toString() ===
+                                                        'true'
+                                                    }
+                                                    onChange={(checked) =>
+                                                        handleFilterChange('useAI', checked)
+                                                    }
+                                                    checkedChildren={<RobotOutlined />}
+                                                    unCheckedChildren={<SearchOutlined />}
+                                                />
+                                            </Badge>
+                                            <Text
+                                                type={
+                                                    getFilterValue('useAI')[0]?.toString() ===
+                                                    'true'
+                                                        ? 'success'
+                                                        : 'secondary'
+                                                }
+                                                strong={
+                                                    getFilterValue('useAI')[0]?.toString() ===
+                                                    'true'
+                                                }
+                                                style={{ fontSize: '0.875rem' }}
+                                            >
+                                                Tìm kiếm với AI
+                                            </Text>
+                                            <Tooltip title="Nhập mô tả chi tiết về nội dung, cảnh phim hoặc cảm xúc bạn muốn tìm. AI sẽ giúp bạn tìm những bộ phim phù hợp.">
+                                                <QuestionCircleOutlined
+                                                    style={{
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.875rem',
+                                                    }}
+                                                />
+                                            </Tooltip>
+                                        </Space>
+                                    </Col>
+                                </Row>
+                            </Col>
+                        </Row>
+                    </Card>
                 </Col>
-                <Col xs={14} md={4} lg={3}>
+
+                <Col xs={10} md={4} lg={3}>
                     <Select
                         placeholder="Xắp xếp theo"
+                        className="filter-select"
                         value={
                             query?.sorters?.[0]?.field && query?.sorters?.[0]?.order
                                 ? `${query?.sorters?.[0]?.field},${query?.sorters?.[0]?.order}`
                                 : 'view,desc'
                         }
-                        style={{ width: '100%' }}
                         onChange={handleSorterChange}
+                        suffixIcon={<SortAscendingOutlined />}
+                        size={isMobile ? 'middle' : 'large'}
                     >
                         {sortOptions.map((option) => (
                             <Option key={option.value} value={option.value}>
@@ -469,72 +637,71 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         ))}
                     </Select>
                 </Col>
-                <Col xs={10} md={3} lg={2}>
-                    <Button
-                        onClick={() => setDrawerVisible(true)}
-                        icon={<FilterOutlined />}
-                        block
-                        aria-label="Mở bộ lọc"
+
+                <Col xs={10} md={4} lg={3}>
+                    <Badge
+                        count={getActiveFilterCount()}
+                        size="small"
+                        offset={[-5, 5]}
+                        className="filter-button-badge"
                     >
-                        Bộ lọc
-                    </Button>
-                </Col>
-            </Row>
-            <Row gutter={[16, 16]} align="middle" style={{ marginTop: 8 }}>
-                <Col>
-                    <Space align={'center'} size={'small'}>
-                        <Checkbox
-                            checked={getFilterValue('useAI')?.[0]?.toString() === 'true'}
-                            onChange={(e) => handleFilterChange('useAI', e.target.checked)}
-                        >
-                            <Text>Tìm kiếm với AI</Text>
-                        </Checkbox>
-                        <Tooltip title="Nhập mô tả chi tiết về nội dung, cảnh phim hoặc cảm xúc bạn muốn tìm. AI sẽ giúp bạn tìm những bộ phim phù hợp.">
-                            <QuestionCircleOutlined style={{ cursor: 'pointer' }} />
-                        </Tooltip>
-                    </Space>
-                </Col>
-            </Row>
-            {renderFilterTags().length > 0 && (
-                <Row style={{ marginTop: 16 }}>
-                    <Col span={24}>
-                        <Space wrap>{renderFilterTags()}</Space>
-                    </Col>
-                </Row>
-            )}
-            <Drawer
-                title="Bộ lọc nâng cao"
-                placement="right"
-                onClose={() => setDrawerVisible(false)}
-                open={drawerVisible}
-                width={320}
-            >
-                {renderFilters()}
-                <Row style={{ marginTop: 16 }} gutter={[8, 8]}>
-                    <Col span={10}>
                         <Button
-                            onClick={clearAllFilters}
-                            icon={<CloseOutlined />}
+                            onClick={() => setFilterVisible(true)}
+                            icon={<FilterOutlined />}
+                            className="filter-button"
+                            aria-label="Mở bộ lọc"
                             block
-                            aria-label="Xóa tất cả bộ lọc"
-                        >
-                            Xóa bộ lọc
-                        </Button>
-                    </Col>
-                    <Col span={14}>
-                        <Button
+                            size={isMobile ? 'middle' : 'large'}
                             type="primary"
-                            onClick={() => {
-                                setDrawerVisible(false);
-                                applySearch(query);
-                            }}
-                            block
+                            ghost
                         >
-                            Áp dụng bộ lọc
+                            Bộ lọc {!isMobile && 'nâng cao'}
                         </Button>
-                    </Col>
-                </Row>
-            </Drawer>
-        </>
+                    </Badge>
+                </Col>
+            </Row>
+
+            {renderFilterTags().length > 0 && (
+                <div className="filter-tags-container">
+                    {renderFilterTags()}
+                    {renderFilterTags().length > 0 && (
+                        <Button
+                            size="small"
+                            icon={<CloseOutlined />}
+                            onClick={clearAllFilters}
+                            className="filter-tag"
+                        >
+                            Xóa tất cả
+                        </Button>
+                    )}
+                </div>
+            )}
+
+            {/* Use conditional rendering instead of dynamic component */}
+            {isMobile ? (
+                <Modal
+                    open={filterVisible}
+                    onCancel={() => setFilterVisible(false)}
+                    footer={null}
+                    title="Bộ lọc nâng cao"
+                    bodyStyle={{ padding: 0, height: '80vh', overflowY: 'auto' }}
+                    className="filter-modal"
+                >
+                    {filterContent}
+                </Modal>
+            ) : (
+                <Drawer
+                    open={filterVisible}
+                    onClose={() => setFilterVisible(false)}
+                    title="Bộ lọc nâng cao"
+                    placement="right"
+                    width={md ? 380 : 320}
+                    className="filter-drawer"
+                    bodyStyle={{ padding: 0 }}
+                >
+                    {filterContent}
+                </Drawer>
+            )}
+        </div>
     );
 };

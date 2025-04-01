@@ -1,0 +1,372 @@
+/* Movie Filter Component Styles */
+:root {
+    --filter-border-radius: 0.5rem;
+    --filter-font-size-base: 1rem;
+    --filter-font-size-sm: 0.875rem;
+    --filter-font-size-xs: 0.75rem;
+    --filter-spacing-xs: 0.25rem;
+    --filter-spacing-sm: 0.5rem;
+    --filter-spacing-md: 0.75rem;
+    --filter-spacing-lg: 1rem;
+    --filter-spacing-xl: 1.5rem;
+    --filter-tag-height: 1.75rem;
+    --filter-input-height: 2.5rem;
+    --filter-mobile-input-height: 3rem;
+    --filter-input-font-size: 0.875rem;
+    --filter-mobile-input-font-size: 1rem;
+    --filter-animation-duration: 0.2s;
+    --filter-tag-border-radius: 1rem;
+    --filter-transition: all 0.2s ease;
+}
+
+/* Filter container */
+.filters-container {
+    width: 100%;
+    position: relative;
+}
+
+/* Filter row */
+.filter-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: var(--filter-spacing-md);
+    gap: var(--filter-spacing-sm);
+}
+
+/* Tags styling */
+.filter-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin: var(--filter-spacing-sm) 0;
+    gap: var(--filter-spacing-xs);
+}
+
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    height: var(--filter-tag-height);
+    background-color: var(--vphim-color-primary-bg);
+    border: 0.0625rem solid var(--vphim-color-primary);
+    color: var(--vphim-color-text);
+    transition: var(--filter-transition);
+    font-size: var(--filter-font-size-sm);
+    padding: 0 var(--filter-spacing-md);
+    border-radius: var(--filter-tag-border-radius);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filter-tag:hover {
+    opacity: 0.9;
+    transform: translateY(-0.0625rem);
+    background-color: var(--vphim-color-primary-hover-bg);
+}
+
+.filter-tag .anticon {
+    color: var(--vphim-color-text-secondary);
+    transition: var(--filter-transition);
+    font-size: var(--filter-font-size-xs);
+    margin-left: var(--filter-spacing-sm);
+}
+
+.filter-tag:hover .anticon {
+    color: var(--vphim-color-text);
+}
+
+.filter-tag-label {
+    font-weight: 500;
+    margin-right: var(--filter-spacing-xs);
+}
+
+.filter-tag-content {
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Filter drawer and modal styles */
+.filter-drawer .ant-drawer-body,
+.filter-modal .ant-modal-body {
+    background-color: var(--vphim-color-bg-container);
+    padding: var(--filter-spacing-lg);
+}
+
+.filter-drawer .ant-drawer-header,
+.filter-modal .ant-modal-header {
+    background-color: var(--vphim-color-bg-elevated);
+    border-bottom: 0.0625rem solid var(--vphim-color-border);
+    padding: var(--filter-spacing-md) var(--filter-spacing-lg);
+}
+
+.filter-drawer .ant-drawer-title,
+.filter-modal .ant-modal-title {
+    color: var(--vphim-color-text);
+    font-size: var(--filter-font-size-base);
+    font-weight: 600;
+}
+
+.filter-drawer .ant-drawer-footer,
+.filter-modal .ant-modal-footer {
+    border-top: 0.0625rem solid var(--vphim-color-border);
+    padding: var(--filter-spacing-md) var(--filter-spacing-lg);
+    background-color: var(--vphim-color-bg-container);
+}
+
+/* Sticky footer for filter drawer */
+.filter-drawer-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: var(--vphim-color-bg-container);
+    padding: var(--filter-spacing-md) 0;
+    border-top: 0.0625rem solid var(--vphim-color-border);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--filter-spacing-sm);
+    margin-top: var(--filter-spacing-lg);
+}
+
+/* Buttons styling */
+.filter-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--filter-input-height) !important;
+    font-size: var(--filter-input-font-size);
+    border-radius: var(--filter-border-radius);
+    transition: var(--filter-transition);
+}
+
+.filter-button:hover {
+    transform: translateY(-0.0625rem);
+}
+
+.filter-apply-button {
+    background-color: var(--vphim-color-primary);
+    border-color: var(--vphim-color-primary);
+    color: white;
+    font-weight: 500;
+}
+
+.filter-apply-button:hover {
+    background-color: var(--vphim-color-primary-hover);
+    border-color: var(--vphim-color-primary-hover);
+    color: white;
+}
+
+.filter-reset-button {
+    background-color: transparent;
+    border-color: var(--vphim-color-border);
+    color: var(--vphim-color-text);
+}
+
+/* Filter sections */
+.filter-section {
+    margin-bottom: var(--filter-spacing-lg);
+}
+
+.filter-section-title {
+    margin-bottom: var(--filter-spacing-sm);
+    font-weight: 500;
+    color: var(--vphim-color-text);
+    font-size: var(--filter-font-size-sm);
+}
+
+/* Form controls */
+.filter-select,
+.filter-input {
+    width: 100%;
+    height: var(--filter-input-height);
+    font-size: var(--filter-input-font-size);
+    border-radius: var(--filter-border-radius);
+}
+
+.filter-select .ant-select-selector,
+.filter-input {
+    height: var(--filter-input-height) !important;
+    border-radius: var(--filter-border-radius) !important;
+    display: flex;
+    align-items: center;
+    background-color: var(--vphim-color-bg-container) !important;
+    border-color: var(--vphim-color-border) !important;
+}
+
+.filter-select .ant-select-selection-item {
+    line-height: var(--filter-input-height) !important;
+    font-size: var(--filter-input-font-size);
+}
+
+.filter-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--filter-spacing-xs);
+    margin-bottom: var(--filter-spacing-sm);
+}
+
+.filter-chip {
+    border-radius: var(--filter-tag-border-radius);
+    padding: var(--filter-spacing-xs) var(--filter-spacing-md);
+    font-size: var(--filter-font-size-sm);
+    cursor: pointer;
+    transition: var(--filter-transition);
+    border: 0.0625rem solid var(--vphim-color-border);
+    background-color: var(--vphim-color-bg-container);
+}
+
+.filter-chip:hover {
+    border-color: var(--vphim-color-primary);
+    color: var(--vphim-color-primary);
+}
+
+.filter-chip.active {
+    background-color: var(--vphim-color-primary-bg);
+    border-color: var(--vphim-color-primary);
+    color: var(--vphim-color-primary);
+}
+
+/* Results count badge */
+.results-count {
+    display: inline-block;
+    background-color: var(--vphim-color-primary-bg);
+    color: var(--vphim-color-primary);
+    font-size: var(--filter-font-size-xs);
+    padding: 0 var(--filter-spacing-sm);
+    border-radius: 1rem;
+    margin-left: var(--filter-spacing-sm);
+    font-weight: 500;
+}
+
+/* Filter checkbox */
+.filter-checkbox {
+    margin-right: var(--filter-spacing-sm);
+}
+
+/* Search input container */
+.filter-search-container {
+    width: 100%;
+}
+
+/* AI search toggle */
+.ai-search-toggle {
+    display: flex;
+    align-items: center;
+    margin-top: var(--filter-spacing-sm);
+}
+
+/* Add styles for the search card */
+.search-card {
+    border-radius: var(--filter-border-radius);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    background-color: var(--vphim-color-bg-container);
+}
+
+.search-card .ant-card-body {
+    padding: var(--filter-spacing-sm) var(--filter-spacing-md) !important;
+    padding-top: 0 !important;
+}
+
+/* Adjust spacing for AI search toggle */
+.ai-search-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    margin-top: var(--filter-spacing-xs);
+}
+
+/* Adjust filter button styles */
+.filter-button.ant-btn-primary.ant-btn-background-ghost {
+    border-color: var(--vphim-color-primary);
+    color: var(--vphim-color-primary);
+    transition: var(--filter-transition);
+}
+
+.filter-button.ant-btn-primary.ant-btn-background-ghost:hover {
+    background-color: var(--vphim-color-primary-bg);
+    border-color: var(--vphim-color-primary);
+    color: var(--vphim-color-primary);
+}
+
+/* Adjust the badge position */
+.filter-button-badge .ant-badge-count {
+    background-color: var(--vphim-color-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 48rem) {
+    /* 768px - tablets */
+    .filter-row {
+        gap: var(--filter-spacing-xs);
+    }
+
+    .filter-tag {
+        font-size: var(--filter-font-size-xs);
+        height: calc(var(--filter-tag-height) - 0.25rem);
+        padding: 0 var(--filter-spacing-sm);
+    }
+
+    .filter-tag-content {
+        max-width: 6rem;
+    }
+
+    .filter-select,
+    .filter-input,
+    .filter-button {
+        height: var(--filter-mobile-input-height) !important;
+        font-size: var(--filter-mobile-input-font-size);
+    }
+
+    .filter-select .ant-select-selector {
+        height: var(--filter-mobile-input-height) !important;
+        line-height: var(--filter-mobile-input-height) !important;
+    }
+
+    .filter-section {
+        margin-bottom: var(--filter-spacing-md);
+    }
+
+    .search-card {
+        margin-bottom: var(--filter-spacing-xs);
+    }
+
+    .filter-select,
+    .filter-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 30rem) {
+    /* 480px - mobile phones */
+    .filter-tag {
+        padding: 0 var(--filter-spacing-xs);
+        height: calc(var(--filter-tag-height) - 0.5rem);
+        font-size: 0.6875rem;
+    }
+
+    .filter-tag-content {
+        max-width: 5rem;
+    }
+
+    .filter-tag .anticon {
+        font-size: 0.625rem;
+        margin-left: var(--filter-spacing-xs);
+    }
+
+    .filter-drawer .ant-drawer-body {
+        padding: var(--filter-spacing-md);
+    }
+
+    .filter-section-title {
+        font-size: 0.8125rem;
+    }
+
+    .filter-chip {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.5rem;
+    }
+
+    .search-card .ant-card-body {
+        padding: var(--filter-spacing-xs) var(--filter-spacing-sm) !important;
+    }
+}
