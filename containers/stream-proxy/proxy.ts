@@ -17,6 +17,19 @@ const CONFIG = {
     logFilePath: process.env.LOG_FILE_PATH || './logs/proxy-server.log',
     referrerTracking: process.env.REFERRER_TRACKING === 'true' || true,
     referrerLogInterval: parseInt(process.env.REFERRER_LOG_INTERVAL || '3600000', 10), // Default to hourly
+    // CORS configuration
+    cors: {
+        enabled: process.env.CORS_ENABLED !== 'false', // Enabled by default
+        allowOrigin: process.env.CORS_ALLOW_ORIGIN || '*', // Allow all origins by default
+        allowMethods: process.env.CORS_ALLOW_METHODS || 'GET, POST, PUT, DELETE, OPTIONS',
+        allowHeaders:
+            process.env.CORS_ALLOW_HEADERS ||
+            'Content-Type, Authorization, Range, Origin, X-Requested-With',
+        exposeHeaders:
+            process.env.CORS_EXPOSE_HEADERS || 'Content-Length, Content-Range, Content-Disposition',
+        allowCredentials: process.env.CORS_ALLOW_CREDENTIALS === 'true' || false,
+        maxAge: parseInt(process.env.CORS_MAX_AGE || '86400', 10), // 24 hours by default
+    },
 };
 
 // Logger implementation
@@ -489,6 +502,30 @@ Bun.serve({
         const url = new URL(request.url);
         const method = request.method;
 
+        // Handle OPTIONS requests for CORS preflight
+        if (method === 'OPTIONS' && CONFIG.cors.enabled) {
+            logger.debug(`[${requestId}] Handling CORS preflight request`);
+
+            const headers = new Headers();
+            headers.set('Access-Control-Allow-Origin', CONFIG.cors.allowOrigin);
+            headers.set('Access-Control-Allow-Methods', CONFIG.cors.allowMethods);
+            headers.set('Access-Control-Allow-Headers', CONFIG.cors.allowHeaders);
+            headers.set('Access-Control-Max-Age', CONFIG.cors.maxAge.toString());
+
+            if (CONFIG.cors.allowCredentials) {
+                headers.set('Access-Control-Allow-Credentials', 'true');
+            }
+
+            // Add request ID and timing for consistency
+            headers.set('X-Request-ID', requestId);
+            headers.set('X-Proxy-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+
+            return new Response(null, {
+                status: 204,
+                headers,
+            });
+        }
+
         // Extract and track referrer information
         const { referrerUrl, referrerDomain } = extractReferrerInfo(request);
         if (CONFIG.referrerTracking && referrerUrl) {
@@ -737,16 +774,19 @@ Bun.serve({
                 new Date(Date.now() + tenYearsInSeconds * 1000).toUTCString(),
             );
             responseHeaders.set('X-Proxy-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
-            responseHeaders.set('Access-Control-Allow-Origin', '*');
-            responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-            responseHeaders.set(
-                'Access-Control-Allow-Headers',
-                'Content-Type, Authorization, Range',
-            );
-            responseHeaders.set(
-                'Access-Control-Expose-Headers',
-                'Content-Length, Content-Range, Content-Disposition',
-            );
+
+            // Apply CORS headers according to configuration
+            if (CONFIG.cors.enabled) {
+                responseHeaders.set('Access-Control-Allow-Origin', CONFIG.cors.allowOrigin);
+                responseHeaders.set('Access-Control-Allow-Methods', CONFIG.cors.allowMethods);
+                responseHeaders.set('Access-Control-Allow-Headers', CONFIG.cors.allowHeaders);
+                responseHeaders.set('Access-Control-Expose-Headers', CONFIG.cors.exposeHeaders);
+                responseHeaders.set('Access-Control-Max-Age', CONFIG.cors.maxAge.toString());
+
+                if (CONFIG.cors.allowCredentials) {
+                    responseHeaders.set('Access-Control-Allow-Credentials', 'true');
+                }
+            }
 
             // Support for range requests (essential for video streaming)
             if (request.headers.has('range')) {
@@ -825,6 +865,11 @@ logger.info(`🚀 High-performance proxy server running on http://localhost:${CO
     configuration: {
         ...CONFIG,
         logFilePath: process.env.LOG_TO_FILE === 'true' ? CONFIG.logFilePath : 'disabled',
+        cors: {
+            ...CONFIG.cors,
+            status: CONFIG.cors.enabled ? 'enabled' : 'disabled',
+            allowOrigin: CONFIG.cors.allowOrigin,
+        },
     },
 });
 
