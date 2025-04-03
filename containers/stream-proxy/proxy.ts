@@ -7,15 +7,15 @@ declare const Bun: any;
 
 // Configuration
 const CONFIG = {
-    port: 3001,
-    maxConcurrentRequests: 500,
-    timeoutMs: 30000,
-    rateLimitPerMinute: 700, // Per IP
+    port: parseInt(process.env.PORT || '3001', 10),
+    maxConcurrentRequests: parseInt(process.env.MAX_CONCURRENT_REQUESTS || '500', 10),
+    timeoutMs: parseInt(process.env.TIMEOUT_MS || '30000', 10),
+    rateLimitPerMinute: parseInt(process.env.RATE_LIMIT_PER_MINUTE || '700', 10), // Per IP
     logLevel: process.env.LOG_LEVEL || 'info', // 'debug' | 'info' | 'warn' | 'error'
     logFormat: process.env.LOG_FORMAT || 'json', // 'json' | 'text'
-    logToFile: false, // Disabled by default, enable with LOG_TO_FILE=true
+    logToFile: process.env.LOG_TO_FILE === 'true', // Disabled by default
     logFilePath: process.env.LOG_FILE_PATH || './logs/proxy-server.log',
-    referrerTracking: process.env.REFERRER_TRACKING === 'true' || true,
+    referrerTracking: process.env.REFERRER_TRACKING !== 'false', // Enabled by default
     referrerLogInterval: parseInt(process.env.REFERRER_LOG_INTERVAL || '3600000', 10), // Default to hourly
     // CORS configuration
     cors: {
