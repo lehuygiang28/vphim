@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb } from 'antd';
+import { Button, Col, Grid, Row, Space, Tag, Typography, Tooltip, Breadcrumb, Divider } from 'antd';
 import { useGetIdentity, useOne, useUpdate } from '@refinedev/core';
 import {
     CalendarOutlined,
@@ -14,6 +14,12 @@ import {
     HomeOutlined,
     PlayCircleOutlined,
     SearchOutlined,
+    TagsOutlined,
+    TeamOutlined,
+    UserOutlined,
+    GlobalOutlined,
+    ClockCircleOutlined,
+    InfoCircleOutlined,
 } from '@ant-design/icons';
 
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
@@ -33,6 +39,9 @@ import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
 import { IMDBRating } from '@/components/card/imdb-rating';
 import { TMDBRating } from '@/components/card/tmdb-rating';
 import { MovieEpisode } from './movie-episode';
+import { stringifyTableParams } from '@/libs/utils/url.util';
+import { RouteNameEnum } from '@/constants/route.constant';
+
 const MovieRelated = dynamic(() => import('./movie-related').then((mod) => mod.MovieRelated), {
     ssr: true,
 });
@@ -46,26 +55,28 @@ const InfoItem = ({
     content,
     md = false,
     ellipsis = true,
+    icon,
 }: {
     title: string;
     content: React.ReactNode;
     md?: boolean;
     ellipsis?: boolean;
+    icon?: React.ReactNode;
 }) => (
     <Paragraph
         ellipsis={ellipsis ? { rows: 5, expandable: false } : false}
-        style={{ maxWidth: md ? '50vw' : '100vw', marginBottom: '0.1rem' }}
+        style={{ maxWidth: md ? '50vw' : '100vw', marginBottom: '0.8rem' }}
     >
         <Title
-            italic
             type="secondary"
             level={5}
-            style={{ display: 'inline-block', marginBottom: '0' }}
+            style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '0' }}
         >
+            {icon && <span style={{ marginRight: '8px' }}>{icon}</span>}
             {title}:
         </Title>
         {'  '}
-        <>{content}</>
+        <div style={{ display: 'inline-block' }}>{content}</div>
     </Paragraph>
 );
 
@@ -176,99 +187,353 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
         );
     };
 
+    const createSearchUrl = (field: string, value: string) => {
+        // Different entities have different field structures in the filter system
+        let filterField = field;
+
+        // Map the entity fields to their correct filter field names
+        if (field === 'actor') filterField = 'keywords';
+        if (field === 'director') filterField = 'keywords';
+        if (field === 'category.slug') filterField = 'categories';
+        if (field === 'country.slug') filterField = 'countries';
+
+        const queryString = stringifyTableParams({
+            filters: [
+                {
+                    field: filterField,
+                    operator: 'eq',
+                    value,
+                },
+            ],
+            sorters: [],
+        });
+
+        return `${RouteNameEnum.MOVIE_LIST_PAGE}?${queryString}`;
+    };
+
     const renderMovieInfoSection = () => {
         return (
-            <Space size={0} direction="vertical" className="movieInfo">
+            <Space
+                size="small"
+                direction="vertical"
+                className="movieInfo"
+                style={{ width: '100%' }}
+            >
                 <InfoItem
                     md={md}
                     title="Định dạng"
+                    icon={<InfoCircleOutlined />}
                     content={
-                        <Text>
-                            {movie?.type && movieTypeTranslations[movie.type as MovieTypeEnum]
-                                ? movieTypeTranslations[movie.type as MovieTypeEnum]
-                                : 'N/A'}
-                        </Text>
+                        movie?.type ? (
+                            <Link href={createSearchUrl('type', movie.type)}>
+                                <Tag
+                                    color="cyan"
+                                    style={{
+                                        cursor: 'pointer',
+                                        borderRadius: '12px',
+                                        padding: '0 8px',
+                                    }}
+                                >
+                                    {movieTypeTranslations[movie.type as MovieTypeEnum] ||
+                                        movie.type}
+                                </Tag>
+                            </Link>
+                        ) : (
+                            <Text strong>N/A</Text>
+                        )
                     }
                 />
+
                 <InfoItem
                     md={md}
-                    title="Quốc gia"
+                    title="Thời lượng"
+                    icon={<ClockCircleOutlined />}
+                    content={<Text strong>{movie?.time || 'N/A'}</Text>}
+                />
+
+                <InfoItem
+                    md={md}
+                    title="Năm phát hành"
+                    icon={<CalendarOutlined />}
                     content={
-                        <Text>{movie?.countries?.map((country) => country?.name).join(', ')}</Text>
+                        movie?.year ? (
+                            <Link href={createSearchUrl('years', movie.year.toString())}>
+                                <Tag
+                                    color="magenta"
+                                    style={{
+                                        cursor: 'pointer',
+                                        borderRadius: '12px',
+                                        padding: '0 8px',
+                                    }}
+                                >
+                                    {movie.year}
+                                </Tag>
+                            </Link>
+                        ) : (
+                            <Text strong>N/A</Text>
+                        )
                     }
                 />
+
+                <InfoItem
+                    md={md}
+                    title="Đánh giá"
+                    icon={<InfoCircleOutlined />}
+                    content={
+                        <Space size={12}>
+                            {movie?.imdb?.id && (
+                                <IMDBRating id={movie?.imdb?.id} size={md ? 'middle' : 'small'} />
+                            )}
+                            {movie?.tmdb?.id && (
+                                <TMDBRating
+                                    id={movie?.tmdb?.id}
+                                    type={movie?.tmdb?.type}
+                                    size={md ? 'middle' : 'small'}
+                                />
+                            )}
+                            {!movie?.imdb?.id && !movie?.tmdb?.id && <Text>Chưa có đánh giá</Text>}
+                        </Space>
+                    }
+                />
+
                 <InfoItem
                     md={md}
                     title="Thể loại"
-                    content={<Text>{movie?.categories?.map((c) => c?.name)?.join(', ')}</Text>}
+                    icon={<TagsOutlined />}
+                    content={
+                        <Space size={[4, 8]} wrap>
+                            {movie?.categories?.map((category) => (
+                                <Link
+                                    key={category?.slug}
+                                    href={createSearchUrl('category.slug', category?.slug || '')}
+                                >
+                                    <Tag
+                                        color="green"
+                                        style={{
+                                            cursor: 'pointer',
+                                            borderRadius: '12px',
+                                            padding: '0 8px',
+                                        }}
+                                    >
+                                        {category?.name}
+                                    </Tag>
+                                </Link>
+                            ))}
+                        </Space>
+                    }
                 />
+
+                <InfoItem
+                    md={md}
+                    title="Quốc gia"
+                    icon={<GlobalOutlined />}
+                    content={
+                        <Space size={[4, 8]} wrap>
+                            {movie?.countries?.map((country) => (
+                                <Link
+                                    key={country?.slug}
+                                    href={createSearchUrl('country.slug', country?.slug || '')}
+                                >
+                                    <Tag
+                                        color="blue"
+                                        style={{
+                                            cursor: 'pointer',
+                                            borderRadius: '12px',
+                                            padding: '0 8px',
+                                        }}
+                                    >
+                                        {country?.name}
+                                    </Tag>
+                                </Link>
+                            ))}
+                        </Space>
+                    }
+                />
+
                 <InfoItem
                     md={md}
                     title="Trạng thái"
+                    icon={<InfoCircleOutlined />}
                     content={
-                        <Text>
-                            {movie?.status &&
-                            movieStatusTranslations[movie.status as MovieStatusEnum]
-                                ? movieStatusTranslations[movie.status as MovieStatusEnum]
-                                : 'N/A'}
-                        </Text>
+                        movie?.status ? (
+                            <Link href={createSearchUrl('status', movie.status)}>
+                                <Tag
+                                    color="volcano"
+                                    style={{
+                                        cursor: 'pointer',
+                                        borderRadius: '12px',
+                                        padding: '0 8px',
+                                    }}
+                                >
+                                    {movieStatusTranslations[movie.status as MovieStatusEnum] ||
+                                        movie.status}
+                                </Tag>
+                            </Link>
+                        ) : (
+                            <Text strong>N/A</Text>
+                        )
                     }
                 />
+
                 <InfoItem
                     md={md}
                     title="Chiếu rạp"
-                    content={<Text>{movie?.cinemaRelease ? 'Có' : 'Không'}</Text>}
+                    icon={<InfoCircleOutlined />}
+                    content={
+                        <Link
+                            href={createSearchUrl(
+                                'cinemaRelease',
+                                movie?.cinemaRelease ? 'true' : 'false',
+                            )}
+                        >
+                            <Tag
+                                color={movie?.cinemaRelease ? 'gold' : 'default'}
+                                style={{
+                                    cursor: 'pointer',
+                                    borderRadius: '12px',
+                                    padding: '0 8px',
+                                }}
+                            >
+                                {movie?.cinemaRelease ? 'Có' : 'Không'}
+                            </Tag>
+                        </Link>
+                    }
                 />
-                <InfoItem md={md} title="Thời lượng" content={<Text>{movie?.time}</Text>} />
+
                 {movie?.directors && movie?.directors?.length > 0 && (
                     <InfoItem
                         md={md}
                         title="Đạo diễn"
-                        content={movie?.directors?.map((director, index) => {
-                            if (director?.tmdbPersonId)
-                                return (
-                                    <>
-                                        <Link
-                                            key={`${director?._id?.toString()}-${
-                                                director?.tmdbPersonId
-                                            }`}
-                                            target="_blank"
-                                            href={`https://www.themoviedb.org/person/${director.tmdbPersonId}`}
-                                        >
-                                            {director?.name}
-                                        </Link>
-                                        {index < movie?.directors?.length - 1 && ', '}
-                                    </>
-                                );
-
-                            return index < movie?.directors?.length - 1
-                                ? `${director?.name}, `
-                                : director?.name;
-                        })}
+                        icon={<UserOutlined />}
+                        content={
+                            <Space size={[4, 8]} wrap>
+                                {movie?.directors?.map((director) => (
+                                    <React.Fragment key={`${director?._id?.toString()}`}>
+                                        {director?.tmdbPersonId ? (
+                                            <Space size={4}>
+                                                <Link
+                                                    href={createSearchUrl(
+                                                        'director',
+                                                        director?.name || '',
+                                                    )}
+                                                >
+                                                    <Tag
+                                                        color="purple"
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            borderRadius: '12px',
+                                                            padding: '0 8px',
+                                                        }}
+                                                    >
+                                                        {director?.name}
+                                                    </Tag>
+                                                </Link>
+                                                <Link
+                                                    target="_blank"
+                                                    href={`https://www.themoviedb.org/person/${director.tmdbPersonId}`}
+                                                >
+                                                    <Tooltip title="Xem trên TMDB">
+                                                        <Button
+                                                            type="text"
+                                                            size="small"
+                                                            style={{ padding: '0 4px' }}
+                                                        >
+                                                            <InfoCircleOutlined />
+                                                        </Button>
+                                                    </Tooltip>
+                                                </Link>
+                                            </Space>
+                                        ) : (
+                                            <Link
+                                                href={createSearchUrl(
+                                                    'director',
+                                                    director?.name || '',
+                                                )}
+                                            >
+                                                <Tag
+                                                    color="purple"
+                                                    style={{
+                                                        cursor: 'pointer',
+                                                        borderRadius: '12px',
+                                                        padding: '0 8px',
+                                                    }}
+                                                >
+                                                    {director?.name}
+                                                </Tag>
+                                            </Link>
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </Space>
+                        }
                     />
                 )}
                 <InfoItem
                     md={md}
                     title="Diễn viên"
-                    content={movie?.actors?.map((actor, index) => {
-                        if (actor?.tmdbPersonId)
-                            return (
-                                <>
-                                    <Link
-                                        key={`${actor?._id?.toString()}-${actor?.tmdbPersonId}`}
-                                        target="_blank"
-                                        href={`https://www.themoviedb.org/person/${actor.tmdbPersonId}`}
-                                    >
-                                        {actor?.name}
-                                    </Link>
-                                    {index < movie?.actors?.length - 1 && ', '}
-                                </>
-                            );
-
-                        return index < movie?.actors?.length - 1 ? `${actor?.name}, ` : actor?.name;
-                    })}
+                    icon={<TeamOutlined />}
+                    content={
+                        <Space size={[4, 8]} wrap>
+                            {movie?.actors?.map((actor) => (
+                                <React.Fragment key={`${actor?._id?.toString()}`}>
+                                    {actor?.tmdbPersonId ? (
+                                        <Space size={4}>
+                                            <Link
+                                                href={createSearchUrl('actor', actor?.name || '')}
+                                            >
+                                                <Tag
+                                                    color="orange"
+                                                    style={{
+                                                        cursor: 'pointer',
+                                                        borderRadius: '12px',
+                                                        padding: '0 8px',
+                                                    }}
+                                                >
+                                                    {actor?.name}
+                                                </Tag>
+                                            </Link>
+                                            <Link
+                                                target="_blank"
+                                                href={`https://www.themoviedb.org/person/${actor.tmdbPersonId}`}
+                                            >
+                                                <Tooltip title="Xem trên TMDB">
+                                                    <Button
+                                                        type="text"
+                                                        size="small"
+                                                        style={{ padding: '0 4px' }}
+                                                    >
+                                                        <InfoCircleOutlined />
+                                                    </Button>
+                                                </Tooltip>
+                                            </Link>
+                                        </Space>
+                                    ) : (
+                                        <Link href={createSearchUrl('actor', actor?.name || '')}>
+                                            <Tag
+                                                color="orange"
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    borderRadius: '12px',
+                                                    padding: '0 8px',
+                                                }}
+                                            >
+                                                {actor?.name}
+                                            </Tag>
+                                        </Link>
+                                    )}
+                                </React.Fragment>
+                            ))}
+                        </Space>
+                    }
                 />
-                <InfoItem md={md} title="Tóm tắt" content={movie?.content} ellipsis={false} />
+                <Divider style={{ margin: '12px 0' }} />
+                <InfoItem
+                    md={md}
+                    title="Tóm tắt"
+                    content={movie?.content}
+                    ellipsis={false}
+                    icon={<InfoCircleOutlined />}
+                />
             </Space>
         );
     };
@@ -353,6 +618,12 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                         width: '100%',
                         height: '100%',
                         minHeight: md ? '36vh' : '28vh',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        background: 'rgba(0, 0, 0, 0.2)',
+                        backdropFilter: 'blur(5px)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        padding: md ? '16px' : '8px',
                     }}
                     gutter={[16, 16]}
                 >
@@ -382,7 +653,7 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                         height={854}
                                         style={{
                                             borderRadius: '0.5rem',
-                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                                            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.3)',
                                             transition: 'transform 0.5s ease',
                                             width: '100%',
                                             height: '100%',
@@ -419,10 +690,18 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                 }}
                             >
                                 <div>
-                                    <Title level={md ? 1 : 4} style={{ marginBottom: '0' }}>
+                                    <Title
+                                        level={md ? 1 : 4}
+                                        style={{ marginBottom: '0', color: '#fff' }}
+                                    >
                                         {movie?.name}
                                     </Title>
-                                    <Text type="secondary">{movie?.originName}</Text>
+                                    <Text
+                                        type="secondary"
+                                        style={{ fontSize: md ? '1rem' : '0.8rem' }}
+                                    >
+                                        {movie?.originName}
+                                    </Text>
                                     <div style={{ marginTop: '0.5rem' }}>
                                         <Space wrap size={[8, 8]}>
                                             <MovieQualityTag quality={movie?.quality || 'N/A'} />
@@ -458,41 +737,12 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                             </Space>
                                         </Space>
                                     </div>
-                                    {(movie?.tmdb?.id || movie?.imdb?.id) && (
-                                        <div style={{ marginTop: '0.5rem' }}>
-                                            {movie?.imdb?.id && (
-                                                <IMDBRating
-                                                    id={movie?.imdb?.id}
-                                                    size={md ? 'middle' : 'small'}
-                                                />
-                                            )}
-                                            {movie?.tmdb?.id && (
-                                                <TMDBRating
-                                                    id={movie?.tmdb?.id}
-                                                    type={movie?.tmdb?.type}
-                                                    size={md ? 'middle' : 'small'}
-                                                />
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div style={{ marginTop: '0.5rem' }}>
-                                        {movie?.categories?.map((category) => (
-                                            <Tag
-                                                key={category?.slug}
-                                                style={{
-                                                    fontSize: md ? '0.7rem' : '0.5rem',
-                                                    background: 'rgba(0 0 0 / 0.4)',
-                                                    border: 'none',
-                                                }}
-                                            >
-                                                {category?.name}
-                                            </Tag>
-                                        ))}
-                                    </div>
                                 </div>
                                 {md && renderMovieInfoSection()}
-                                <Row gutter={[8, 8]} style={{ width: md ? '30%' : 'auto' }}>
+                                <Row
+                                    gutter={[8, 8]}
+                                    style={{ width: md ? '30%' : 'auto', marginTop: '12px' }}
+                                >
                                     <Col span={18}>
                                         <Link
                                             href={`/phim/${movie?.slug}/${getFirstEpisodeSlug(
@@ -501,10 +751,14 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                         >
                                             <Button
                                                 type="primary"
-                                                size="middle"
+                                                size={md ? 'large' : 'middle'}
                                                 icon={<PlayCircleOutlined />}
                                                 style={{
                                                     width: '100%',
+                                                    height: md ? '40px' : '36px',
+                                                    borderRadius: '8px',
+                                                    fontWeight: 'bold',
+                                                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
                                                 }}
                                             >
                                                 Xem ngay
@@ -519,10 +773,14 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                             trigger={'hover'}
                                         >
                                             <Button
-                                                type="default"
-                                                size="middle"
+                                                type={isFollowing ? 'default' : 'primary'}
+                                                ghost={!isFollowing}
+                                                size={md ? 'large' : 'middle'}
                                                 style={{
                                                     width: '100%',
+                                                    height: md ? '40px' : '36px',
+                                                    borderRadius: '8px',
+                                                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
                                                 }}
                                                 onClick={() =>
                                                     handleFollowMovie(movie, !isFollowing)
@@ -542,7 +800,7 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                     </Col>
                 </Row>
                 {!md && (
-                    <Row>
+                    <Row style={{ marginTop: '1rem' }}>
                         <Col span={24}>{renderMovieInfoSection()}</Col>
                     </Row>
                 )}
