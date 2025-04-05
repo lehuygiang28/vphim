@@ -75,3 +75,4 @@ npm-debug.*
 web-build/
 cache/
 android/
+.local/
