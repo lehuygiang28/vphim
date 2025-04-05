@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Divider, Space, Breadcrumb, List, Empty } from 'antd';
 import { useTable, CrudSort, CrudFilters } from '@refinedev/core';
 import { parseTableParams } from '@refinedev/nextjs-router';
@@ -13,6 +13,9 @@ import { sortedStringify } from '@/libs/utils/common';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { MovieCard } from '@/components/card/movie-card';
 import { MovieFilters } from './movie-filter';
+
+import type { Category } from 'apps/api/src/app/categories/category.schema';
+import type { Region } from 'apps/api/src/app/regions/region.schema';
 
 export type LocalQuery = {
     pagination: {
@@ -25,11 +28,13 @@ export type LocalQuery = {
 
 export type MoviePageProps = {
     breadcrumbs: { label: string | ReactNode; url?: string }[];
+    categories: Category[];
+    regions: Region[];
 };
 
 const PAGE_SIZE = 24;
 
-export default function MoviePage({ breadcrumbs }: MoviePageProps) {
+export default function MoviePage({ breadcrumbs, categories, regions }: MoviePageProps) {
     const search = useSearchParams();
     // Store the current search query string to use in breadcrumbs
     const currentSearchString = search?.toString() || '';
@@ -142,6 +147,8 @@ export default function MoviePage({ breadcrumbs }: MoviePageProps) {
                     setQuery={setQuery}
                     isSearching={isLoading || isRefetching}
                     applySearch={applySearch}
+                    categories={categories}
+                    regions={regions}
                 />
                 <Divider />
                 <List

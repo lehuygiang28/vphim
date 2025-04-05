@@ -21,7 +21,7 @@ import {
     Card,
     Switch,
 } from 'antd';
-import { LogicalFilter, useList } from '@refinedev/core';
+import { LogicalFilter } from '@refinedev/core';
 import {
     FilterOutlined,
     CloseOutlined,
@@ -37,8 +37,6 @@ import type { Category } from 'apps/api/src/app/categories/category.schema';
 import type { Region } from 'apps/api/src/app/regions/region.schema';
 
 import { movieTypeTranslations } from '@/constants/translation-enum';
-import { CATEGORIES_LIST_QUERY } from '@/queries/categories';
-import { REGIONS_LIST_QUERY } from '@/queries/regions';
 
 import { LocalQuery } from './index';
 import { SearchInput } from './search-input';
@@ -53,6 +51,8 @@ interface MovieFiltersProps {
     query: LocalQuery;
     setQuery: React.Dispatch<React.SetStateAction<undefined | LocalQuery>>;
     applySearch: (localQuery: LocalQuery) => void;
+    categories: Category[];
+    regions: Region[];
 }
 
 const sortOptions = [
@@ -75,6 +75,8 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
     setQuery,
     applySearch,
     isSearching = false,
+    categories,
+    regions,
 }) => {
     const { xs, sm, md } = useBreakpoint();
     const isMobile = xs || sm;
@@ -83,32 +85,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
     const [keywordsInput, setKeywordsInput] = useState<string | undefined>(undefined);
     const [filterVisible, setFilterVisible] = useState(false);
     const [movieCountData, setMovieCountData] = useState<number | undefined>(undefined);
-
-    const { data: categories } = useList<Category>({
-        dataProviderName: 'graphql',
-        resource: 'categories',
-        meta: {
-            gqlQuery: CATEGORIES_LIST_QUERY,
-            operation: 'categories',
-        },
-        pagination: {
-            current: 1,
-            pageSize: 1000,
-        },
-    });
-
-    const { data: regions } = useList<Region>({
-        dataProviderName: 'graphql',
-        resource: 'regions',
-        meta: {
-            gqlQuery: REGIONS_LIST_QUERY,
-            operation: 'regions',
-        },
-        pagination: {
-            current: 1,
-            pageSize: 1000,
-        },
-    });
 
     const getFilterValue = useCallback(
         (field: string) => {
@@ -219,16 +195,13 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         showSearch
                         optionFilterProp="label"
                         onClear={() => handleFilterChange('categories', undefined)}
-                        onSearch={(keyword) => {
-                            const regex = createRegex(keyword);
-                            return categories?.data?.filter(
-                                (category) =>
-                                    regex.test(category.name) || regex.test(category.slug),
-                            );
-                        }}
                         maxTagCount={isMobile ? 1 : 3}
+                        filterOption={(input, option) => {
+                            const regex = createRegex(input);
+                            return regex.test(option?.label?.toString() || '');
+                        }}
                     >
-                        {categories?.data?.map((category) => (
+                        {categories?.map((category) => (
                             <Option key={category.slug} value={category.slug} label={category.name}>
                                 {category.name}
                             </Option>
@@ -247,15 +220,13 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         showSearch
                         optionFilterProp="label"
                         onClear={() => handleFilterChange('countries', undefined)}
-                        onSearch={(keyword) => {
-                            const regex = createRegex(keyword);
-                            return regions?.data?.filter(
-                                (country) => regex.test(country.name) || regex.test(country.slug),
-                            );
+                        filterOption={(input, option) => {
+                            const regex = createRegex(input);
+                            return regex.test(option?.label?.toString() || '');
                         }}
                         maxTagCount={isMobile ? 1 : 3}
                     >
-                        {regions?.data?.map((country) => (
+                        {regions?.map((country) => (
                             <Option key={country.slug} value={country.slug} label={country.name}>
                                 {country.name}
                             </Option>
@@ -370,12 +341,12 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         case 'categories':
                             label = 'Thể loại';
                             displayValue =
-                                categories?.data?.find((cat) => cat.slug === value)?.name || value;
+                                categories?.find((cat) => cat.slug === value)?.name || value;
                             break;
                         case 'countries':
                             label = 'Quốc gia';
                             displayValue =
-                                regions?.data?.find((reg) => reg.slug === value)?.name || value;
+                                regions?.find((reg) => reg.slug === value)?.name || value;
                             break;
                         case 'cinemaRelease':
                             label = 'Chiếu rạp';
@@ -488,7 +459,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
 
     useCopilotReadable({
         value: getFilterValue('categories').map(
-            (slug) => categories?.data?.find((cat) => cat.slug === slug)?.name || slug,
+            (slug) => categories?.find((cat) => cat.slug === slug)?.name || slug,
         ),
         description: 'Full names of selected movie categories/genres',
         categories: ['display-names', 'genres'],
@@ -498,7 +469,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
 
     useCopilotReadable({
         value: getFilterValue('countries').map(
-            (slug) => regions?.data?.find((reg) => reg.slug === slug)?.name || slug,
+            (slug) => regions?.find((reg) => reg.slug === slug)?.name || slug,
         ),
         description: 'Full names of selected countries/regions',
         categories: ['display-names', 'geographical-data'],
