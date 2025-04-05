@@ -78,8 +78,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
     categories,
     regions,
 }) => {
-    const { xs, sm, md } = useBreakpoint();
-    const isMobile = xs || sm;
+    const { md } = useBreakpoint();
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 124 }, (_, i) => currentYear - i);
     const [keywordsInput, setKeywordsInput] = useState<string | undefined>(undefined);
@@ -187,7 +186,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 <Panel header={<Text strong>Thể loại</Text>} key="categories">
                     <Select
                         mode="multiple"
-                        className="filter-select"
                         placeholder="Chọn thể loại"
                         value={getFilterValue('categories')}
                         onChange={(value) => handleFilterChange('categories', value)}
@@ -195,7 +193,8 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         showSearch
                         optionFilterProp="label"
                         onClear={() => handleFilterChange('categories', undefined)}
-                        maxTagCount={isMobile ? 1 : 3}
+                        maxTagCount={5}
+                        style={{ width: '100%' }}
                         filterOption={(input, option) => {
                             const regex = createRegex(input);
                             return regex.test(option?.label?.toString() || '');
@@ -212,7 +211,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 <Panel header={<Text strong>Quốc gia</Text>} key="countries">
                     <Select
                         mode="multiple"
-                        className="filter-select"
                         placeholder="Chọn quốc gia"
                         value={getFilterValue('countries')}
                         onChange={(value) => handleFilterChange('countries', value)}
@@ -224,7 +222,8 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                             const regex = createRegex(input);
                             return regex.test(option?.label?.toString() || '');
                         }}
-                        maxTagCount={isMobile ? 1 : 3}
+                        maxTagCount={5}
+                        style={{ width: '100%' }}
                     >
                         {regions?.map((country) => (
                             <Option key={country.slug} value={country.slug} label={country.name}>
@@ -237,13 +236,13 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 <Panel header={<Text strong>Năm phát hành</Text>} key="years">
                     <Select
                         mode="multiple"
-                        className="filter-select"
                         placeholder="Chọn năm phát hành"
                         value={getFilterValue('years')}
                         onChange={(value) => handleFilterChange('years', value)}
                         allowClear
                         onClear={() => handleFilterChange('years', undefined)}
-                        maxTagCount={isMobile ? 1 : 3}
+                        maxTagCount={5}
+                        style={{ width: '100%' }}
                     >
                         {yearOptions.map((year) => (
                             <Option key={year} value={year.toString()}>
@@ -591,7 +590,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 <Col xs={10} md={4} lg={3}>
                     <Select
                         placeholder="Xắp xếp theo"
-                        className="filter-select"
+                        style={{ width: '100%' }}
                         value={
                             query?.sorters?.[0]?.field && query?.sorters?.[0]?.order
                                 ? `${query?.sorters?.[0]?.field},${query?.sorters?.[0]?.order}`
@@ -599,7 +598,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         }
                         onChange={handleSorterChange}
                         suffixIcon={<SortAscendingOutlined />}
-                        size={isMobile ? 'middle' : 'large'}
+                        size={'middle'}
                     >
                         {sortOptions.map((option) => (
                             <Option key={option.value} value={option.value}>
@@ -622,11 +621,11 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                             className="filter-button"
                             aria-label="Mở bộ lọc"
                             block
-                            size={isMobile ? 'middle' : 'large'}
+                            size={'middle'}
                             type="primary"
                             ghost
                         >
-                            Bộ lọc {!isMobile && 'nâng cao'}
+                            Bộ lọc
                         </Button>
                     </Badge>
                 </Col>
@@ -648,31 +647,16 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 </div>
             )}
 
-            {/* Use conditional rendering instead of dynamic component */}
-            {isMobile ? (
-                <Modal
-                    open={filterVisible}
-                    onCancel={() => setFilterVisible(false)}
-                    footer={null}
-                    title="Bộ lọc nâng cao"
-                    bodyStyle={{ padding: 0, height: '80vh', overflowY: 'auto' }}
-                    className="filter-modal"
-                >
-                    {filterContent}
-                </Modal>
-            ) : (
-                <Drawer
-                    open={filterVisible}
-                    onClose={() => setFilterVisible(false)}
-                    title="Bộ lọc nâng cao"
-                    placement="right"
-                    width={md ? 380 : 320}
-                    className="filter-drawer"
-                    bodyStyle={{ padding: 0 }}
-                >
-                    {filterContent}
-                </Drawer>
-            )}
+            <Modal
+                open={filterVisible}
+                onCancel={() => setFilterVisible(false)}
+                footer={null}
+                title="Bộ lọc nâng cao"
+                bodyStyle={{ padding: 0, height: '80vh', overflowY: 'auto' }}
+                className="filter-modal"
+            >
+                {filterContent}
+            </Modal>
         </div>
     );
 };

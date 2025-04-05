@@ -176,7 +176,6 @@
 }
 
 /* Form controls */
-.filter-select,
 .filter-input {
     width: 100%;
     height: var(--filter-input-height);
@@ -184,7 +183,6 @@
     border-radius: var(--filter-border-radius);
 }
 
-.filter-select .ant-select-selector,
 .filter-input {
     height: var(--filter-input-height) !important;
     border-radius: var(--filter-border-radius) !important;
@@ -192,11 +190,6 @@
     align-items: center;
     background-color: var(--vphim-color-bg-container) !important;
     border-color: var(--vphim-color-border) !important;
-}
-
-.filter-select .ant-select-selection-item {
-    line-height: var(--filter-input-height) !important;
-    font-size: var(--filter-input-font-size);
 }
 
 .filter-chip-group {
@@ -310,16 +303,9 @@
         max-width: 6rem;
     }
 
-    .filter-select,
-    .filter-input,
     .filter-button {
         height: var(--filter-mobile-input-height) !important;
         font-size: var(--filter-mobile-input-font-size);
-    }
-
-    .filter-select .ant-select-selector {
-        height: var(--filter-mobile-input-height) !important;
-        line-height: var(--filter-mobile-input-height) !important;
     }
 
     .filter-section {
@@ -330,7 +316,6 @@
         margin-bottom: var(--filter-spacing-xs);
     }
 
-    .filter-select,
     .filter-button {
         width: 100%;
     }
