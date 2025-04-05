@@ -183,6 +183,28 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     </div>
                 </Panel>
 
+                <Panel header={<Text strong>Trạng thái</Text>} key="status">
+                    <div className="filter-chip-group">
+                        {statusOptions.map((option) => (
+                            <div
+                                key={option.value}
+                                className={`filter-chip ${
+                                    getFilterValue('status')[0] === option.value ? 'active' : ''
+                                }`}
+                                onClick={() => {
+                                    const currentValue = getFilterValue('status')[0];
+                                    handleFilterChange(
+                                        'status',
+                                        currentValue === option.value ? undefined : option.value,
+                                    );
+                                }}
+                            >
+                                {option.label}
+                            </div>
+                        ))}
+                    </div>
+                </Panel>
+
                 <Panel header={<Text strong>Thể loại</Text>} key="categories">
                     <Select
                         mode="multiple"
@@ -252,28 +274,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     </Select>
                 </Panel>
 
-                <Panel header={<Text strong>Trạng thái</Text>} key="status">
-                    <div className="filter-chip-group">
-                        {statusOptions.map((option) => (
-                            <div
-                                key={option.value}
-                                className={`filter-chip ${
-                                    getFilterValue('status')[0] === option.value ? 'active' : ''
-                                }`}
-                                onClick={() => {
-                                    const currentValue = getFilterValue('status')[0];
-                                    handleFilterChange(
-                                        'status',
-                                        currentValue === option.value ? undefined : option.value,
-                                    );
-                                }}
-                            >
-                                {option.label}
-                            </div>
-                        ))}
-                    </div>
-                </Panel>
-
                 <Panel header={<Text strong>Tùy chọn khác</Text>} key="other">
                     <Space direction="vertical" style={{ width: '100%' }} size="middle">
                         <Checkbox
@@ -311,83 +311,172 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             'status',
         ];
 
-        // Sort filters based on the defined order
-        const sortedFilters = query?.filters?.sort((a, b) => {
-            const aIndex = filterOrder.indexOf((a as LogicalFilter).field);
-            const bIndex = filterOrder.indexOf((b as LogicalFilter).field);
-            return aIndex - bIndex;
-        });
+        // Group filters by field
+        const groupedFilters: Record<string, string[]> = {};
 
-        sortedFilters?.forEach((_filter) => {
+        query?.filters?.forEach((_filter) => {
             const filter = _filter as LogicalFilter;
             if (filter.field !== 'keywords' && filter.field !== 'useAI') {
                 const values = filter.value.toString().split(',');
-                values.forEach((value: string) => {
-                    let label = '';
+                if (values.filter((v) => v).length > 0) {
+                    groupedFilters[filter.field] = values.filter((v) => v);
+                }
+            }
+        });
+
+        // Sort filter groups based on the defined order
+        const sortedFilterFields = Object.keys(groupedFilters).sort((a, b) => {
+            const aIndex = filterOrder.indexOf(a);
+            const bIndex = filterOrder.indexOf(b);
+            return aIndex - bIndex;
+        });
+
+        sortedFilterFields.forEach((field) => {
+            const values = groupedFilters[field];
+
+            if (values.length === 0) return;
+
+            let label = '';
+
+            switch (field) {
+                case 'type':
+                    label = 'Định dạng';
+                    break;
+                case 'years':
+                    label = 'Năm';
+                    break;
+                case 'categories':
+                    label = 'Thể loại';
+                    break;
+                case 'countries':
+                    label = 'Quốc gia';
+                    break;
+                case 'cinemaRelease':
+                    label = 'Chiếu rạp';
+                    break;
+                case 'isCopyright':
+                    label = 'Bản quyền';
+                    break;
+                case 'status':
+                    label = 'Trạng thái';
+                    break;
+                default:
+                    label = field;
+            }
+
+            // For boolean filters or single value filters
+            if (
+                field === 'cinemaRelease' ||
+                field === 'isCopyright' ||
+                field === 'type' ||
+                field === 'status'
+            ) {
+                const value = values[0];
+                let displayValue = value;
+
+                if (field === 'type') {
+                    displayValue =
+                        movieTypeTranslations[value as keyof typeof movieTypeTranslations] || value;
+                } else if (field === 'cinemaRelease' || field === 'isCopyright') {
+                    displayValue = value?.toString() === 'true' ? 'Có' : 'Không';
+                } else if (field === 'status') {
+                    displayValue =
+                        statusOptions.find((option) => option.value === value)?.label || value;
+                }
+
+                tags.push(
+                    <Tag
+                        key={`${field}-${value}`}
+                        closable
+                        className="filter-tag"
+                        onClose={() => handleFilterChange(field, undefined)}
+                    >
+                        <span className="filter-tag-label">{label}:</span>
+                        <span className="filter-tag-content">{displayValue}</span>
+                    </Tag>,
+                );
+            }
+            // For multi-value filters (categories, countries, years)
+            else if (values.length > 0) {
+                // If there's only one value, show it normally
+                if (values.length === 1) {
+                    const value = values[0];
                     let displayValue = value;
 
-                    switch (filter.field) {
-                        case 'type':
-                            label = 'Định dạng';
-                            displayValue =
-                                movieTypeTranslations[
-                                    value as keyof typeof movieTypeTranslations
-                                ] || value;
-                            break;
-                        case 'years':
-                            label = 'Năm';
-                            break;
-                        case 'categories':
-                            label = 'Thể loại';
-                            displayValue =
-                                categories?.find((cat) => cat.slug === value)?.name || value;
-                            break;
-                        case 'countries':
-                            label = 'Quốc gia';
-                            displayValue =
-                                regions?.find((reg) => reg.slug === value)?.name || value;
-                            break;
-                        case 'cinemaRelease':
-                            label = 'Chiếu rạp';
-                            displayValue = value?.toString() === 'true' ? 'Có' : 'Không';
-                            break;
-                        case 'isCopyright':
-                            label = 'Bản quyền';
-                            displayValue = value?.toString() === 'true' ? 'Có' : 'Không';
-                            break;
-                        case 'status':
-                            label = 'Trạng thái';
-                            displayValue =
-                                statusOptions.find((option) => option.value === value)?.label ||
-                                value;
-                            break;
-                        default:
-                            label = filter.field;
+                    if (field === 'categories') {
+                        displayValue = categories?.find((cat) => cat.slug === value)?.name || value;
+                    } else if (field === 'countries') {
+                        displayValue = regions?.find((reg) => reg.slug === value)?.name || value;
                     }
-                    if (
-                        displayValue !== undefined &&
-                        displayValue !== null &&
-                        displayValue !== ''
-                    ) {
-                        tags.push(
+
+                    tags.push(
+                        <Tag
+                            key={`${field}-${value}`}
+                            closable
+                            className="filter-tag"
+                            onClose={() => handleFilterChange(field, undefined)}
+                        >
+                            <span className="filter-tag-label">{label}:</span>
+                            <span className="filter-tag-content">{displayValue}</span>
+                        </Tag>,
+                    );
+                }
+                // If there are multiple values, show a summary tag
+                else {
+                    tags.push(
+                        <Tooltip
+                            key={`${field}-multiple`}
+                            title={
+                                <div>
+                                    {values.map((value) => {
+                                        let displayValue = value;
+
+                                        if (field === 'categories') {
+                                            displayValue =
+                                                categories?.find((cat) => cat.slug === value)
+                                                    ?.name || value;
+                                        } else if (field === 'countries') {
+                                            displayValue =
+                                                regions?.find((reg) => reg.slug === value)?.name ||
+                                                value;
+                                        }
+
+                                        return (
+                                            <Tag
+                                                key={`tooltip-${field}-${value}`}
+                                                closable
+                                                onClose={(e) => {
+                                                    e.stopPropagation();
+                                                    const newValues = values.filter(
+                                                        (v) => v !== value,
+                                                    );
+                                                    handleFilterChange(
+                                                        field,
+                                                        newValues.length ? newValues : undefined,
+                                                    );
+                                                }}
+                                                style={{ margin: '2px' }}
+                                            >
+                                                {displayValue}
+                                            </Tag>
+                                        );
+                                    })}
+                                </div>
+                            }
+                            placement="bottom"
+                        >
                             <Tag
-                                key={`${filter.field}-${value}`}
+                                key={`${field}-group`}
                                 closable
                                 className="filter-tag"
-                                onClose={() => {
-                                    const newValues = values.filter((v) => v !== value);
-                                    handleFilterChange(
-                                        filter.field,
-                                        newValues.length ? newValues : undefined,
-                                    );
-                                }}
+                                onClose={() => handleFilterChange(field, undefined)}
                             >
                                 <span className="filter-tag-label">{label}:</span>
-                                <span className="filter-tag-content">{displayValue}</span>
-                            </Tag>,
-                        );
-                    }
-                });
+                                <span className="filter-tag-content">{values.length} đã chọn</span>
+                            </Tag>
+                        </Tooltip>,
+                    );
+                }
             }
         });
 
