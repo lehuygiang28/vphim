@@ -304,7 +304,7 @@ export default function AuthScreen() {
                             ? 'Xác nhận OTP'
                             : 'Tiếp tục với Email'}
                     </Button>
-                    <Text style={styles.orText} category="s1">
+                    {/* <Text style={styles.orText} category="s1">
                         hoặc
                     </Text>
                     <Button
@@ -324,7 +324,7 @@ export default function AuthScreen() {
                         style={styles.googleButton}
                     >
                         Tiếp tục với Google
-                    </Button>
+                    </Button> */}
                 </Card>
             </Animated.View>
         </SafeAreaView>
