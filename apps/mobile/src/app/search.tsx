@@ -30,6 +30,8 @@ import {
     SortDesc,
     AlertCircle,
     Zap,
+    EyeIcon,
+    Calendar,
 } from 'lucide-react-native';
 import { useInfiniteList, CrudFilters, LogicalFilter, useList } from '@refinedev/core';
 import { useDebounce } from 'use-debounce';
@@ -295,37 +297,15 @@ export default function SearchScreen() {
                 layout={LinearTransition}
                 style={styles.movieItemContainer}
             >
-                <ListItem
-                    title={(evaProps) => (
-                        <Text
-                            {...evaProps}
-                            style={[
-                                evaProps?.style,
-                                styles.movieTitle,
-                                { color: theme['text-basic-color'] },
-                            ]}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                        >
-                            {item.name}
-                        </Text>
-                    )}
-                    description={(evaProps) => (
-                        <Text
-                            {...evaProps}
-                            style={[evaProps?.style, { color: theme['text-hint-color'] }]}
-                            numberOfLines={2}
-                            ellipsizeMode="tail"
-                        >
-                            {`${item.originName ? `${item.originName} • ` : ''}${
-                                item.year || 'N/A'
-                            } • ${item.quality?.toUpperCase() || 'HD'} • ${
-                                capitalize(item.lang) || 'Đang cập nhật...'
-                            }`}
-                        </Text>
-                    )}
+                <TouchableOpacity
+                    activeOpacity={0.7}
                     onPress={() => router.push(`/movie/${item.slug}`)}
-                    accessoryLeft={() => (
+                    style={[
+                        styles.movieItemTouchable,
+                        { backgroundColor: theme['background-basic-color-1'] },
+                    ]}
+                >
+                    <View style={styles.posterContainer}>
                         <Image
                             source={{
                                 uri: getOptimizedImageUrl(item?.posterUrl || item?.thumbUrl, {
@@ -338,12 +318,113 @@ export default function SearchScreen() {
                             style={styles.poster}
                             resizeMode="cover"
                         />
-                    )}
-                    style={[
-                        styles.listItem,
-                        { backgroundColor: theme['background-basic-color-1'] },
-                    ]}
-                />
+                        {item.quality && (
+                            <View
+                                style={[
+                                    styles.qualityBadge,
+                                    { backgroundColor: theme['color-primary-500'] },
+                                ]}
+                            >
+                                <Text style={styles.qualityText}>{item.quality.toUpperCase()}</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    <View style={styles.movieInfo}>
+                        <Text
+                            style={[styles.movieTitle, { color: theme['text-basic-color'] }]}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                        >
+                            {item.name}
+                        </Text>
+
+                        {item.originName && (
+                            <Text
+                                style={[styles.originalTitle, { color: theme['text-hint-color'] }]}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
+                                {item.originName}
+                            </Text>
+                        )}
+
+                        <View style={styles.metaInfo}>
+                            {item.year && (
+                                <View style={styles.metaItem}>
+                                    <Calendar size={12} color={theme['text-hint-color']} />
+                                    <Text
+                                        style={[
+                                            styles.metaText,
+                                            { color: theme['text-hint-color'] },
+                                        ]}
+                                    >
+                                        {item.year}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {item.type &&
+                                movieTypeTranslations[
+                                    item.type as keyof typeof movieTypeTranslations
+                                ] && (
+                                    <View
+                                        style={[
+                                            styles.typeBadge,
+                                            {
+                                                backgroundColor:
+                                                    theme['color-basic-transparent-200'],
+                                            },
+                                        ]}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.typeText,
+                                                { color: theme['text-hint-color'] },
+                                            ]}
+                                        >
+                                            {
+                                                movieTypeTranslations[
+                                                    item.type as keyof typeof movieTypeTranslations
+                                                ]
+                                            }
+                                        </Text>
+                                    </View>
+                                )}
+                        </View>
+
+                        <View style={styles.statsContainer}>
+                            <View style={styles.stat}>
+                                <EyeIcon size={12} color={theme['text-hint-color']} />
+                                <Text
+                                    style={[styles.statText, { color: theme['text-hint-color'] }]}
+                                >
+                                    {item?.view && item?.view > 1000
+                                        ? `${(item?.view / 1000).toFixed(1)}k`
+                                        : item?.view || '0'}
+                                </Text>
+                            </View>
+
+                            {item.lang && (
+                                <View
+                                    style={[
+                                        styles.langBadge,
+                                        { backgroundColor: theme['color-basic-transparent-200'] },
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.langText,
+                                            { color: theme['text-hint-color'] },
+                                        ]}
+                                    >
+                                        {capitalize(item.lang)}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </TouchableOpacity>
             </Animated.View>
         ),
         [router, theme],
@@ -984,10 +1065,9 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
     },
     poster: {
-        width: 50,
-        height: 75,
+        width: 70,
+        height: 100,
         borderRadius: 8,
-        marginRight: 10,
     },
     skeletonContainer: {
         flex: 1,
@@ -1020,14 +1100,95 @@ const styles = StyleSheet.create({
         borderRadius: 4,
     },
     movieItemContainer: {
-        marginVertical: 4,
+        marginVertical: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+        borderRadius: 12,
     },
-    listItem: {
-        borderRadius: 8,
-        paddingVertical: 8,
+    movieItemTouchable: {
+        flexDirection: 'row',
+        borderRadius: 12,
+        overflow: 'hidden',
+        padding: 10,
+    },
+    posterContainer: {
+        position: 'relative',
+    },
+    movieInfo: {
+        flex: 1,
+        marginLeft: 12,
+        justifyContent: 'space-between',
     },
     movieTitle: {
+        fontSize: 16,
         fontWeight: 'bold',
+        marginBottom: 2,
+    },
+    originalTitle: {
+        fontSize: 13,
+        marginBottom: 4,
+    },
+    metaInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        marginBottom: 6,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    metaText: {
+        fontSize: 12,
+        marginLeft: 3,
+    },
+    statsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+    },
+    stat: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    statText: {
+        fontSize: 12,
+        marginLeft: 3,
+    },
+    qualityBadge: {
+        position: 'absolute',
+        top: 5,
+        left: 5,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    qualityText: {
+        color: 'white',
+        fontSize: 10,
+        fontWeight: 'bold',
+    },
+    typeBadge: {
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginRight: 6,
+    },
+    typeText: {
+        fontSize: 10,
+    },
+    langBadge: {
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    langText: {
+        fontSize: 10,
     },
     emptyStateContainer: {
         flex: 1,
