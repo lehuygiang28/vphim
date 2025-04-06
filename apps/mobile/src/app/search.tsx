@@ -12,6 +12,7 @@ import { MovieType } from '~api/app/movies/movie.type';
 
 import { MOVIES_LIST_QUERY } from '~fe/queries/movies';
 import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
+import { removeStyleProperty } from '~mb/libs/utils';
 
 const SkeletonLoader = () => {
     const theme = useTheme();
@@ -166,7 +167,11 @@ export default function SearchScreen() {
                         onChangeText={handleInputChange}
                         style={styles.searchInput}
                         accessoryRight={(props) => (
-                            <Search {...props} color={theme['text-basic-color']} size={20} />
+                            <Search
+                                {...removeStyleProperty(props)}
+                                color={theme['text-basic-color']}
+                                size={20}
+                            />
                         )}
                     />
                 </Animated.View>

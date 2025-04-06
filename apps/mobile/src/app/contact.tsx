@@ -20,6 +20,7 @@ import {
 } from '@ui-kitten/components';
 import { ArrowLeft, Mail, Facebook, Twitter, Send, Copy, ExternalLink } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
+import { removeStyleProperty } from '~mb/libs/utils';
 
 // Define proper icon props type
 type IconProps = {
@@ -27,12 +28,6 @@ type IconProps = {
     size?: number | string;
     color?: string;
     [key: string]: unknown;
-};
-
-// Helper function to filter out problematic style props from UI Kitten
-const filterIconProps = <T extends { style?: unknown }>(props: T): Omit<T, 'style'> => {
-    const { style, ...otherProps } = props;
-    return otherProps;
 };
 
 // Interface for contact info items
@@ -115,7 +110,7 @@ export default function ContactScreen() {
 
     const BackAction = () => (
         <TopNavigationAction
-            icon={(props) => <ArrowLeft {...filterIconProps(props || {})} />}
+            icon={(props) => <ArrowLeft {...removeStyleProperty(props || {})} />}
             onPress={handleBack}
         />
     );
@@ -225,7 +220,7 @@ export default function ContactScreen() {
                         accessoryLeft={
                             isSubmitting
                                 ? (props) => <Spinner size="small" status="control" />
-                                : (props) => <Send size={16} {...filterIconProps(props || {})} />
+                                : (props) => <Send size={16} {...removeStyleProperty(props || {})} />
                         }
                     >
                         {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
@@ -261,7 +256,7 @@ export default function ContactScreen() {
                         size="tiny"
                         status="basic"
                         accessoryLeft={(props) => (
-                            <ExternalLink size={14} {...filterIconProps(props || {})} />
+                            <ExternalLink size={14} {...removeStyleProperty(props || {})} />
                         )}
                         onPress={() => Linking.openURL('mailto:contact@vephim.online')}
                     >

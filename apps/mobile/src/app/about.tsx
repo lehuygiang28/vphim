@@ -11,12 +11,7 @@ import {
 } from '@ui-kitten/components';
 import { ArrowLeft, ExternalLink } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
-// Helper function to filter out problematic style props from UI Kitten
-const filterIconProps = (props: any) => {
-    const { style, ...otherProps } = props;
-    return otherProps;
-};
+import { removeStyleProperty } from '~mb/libs/utils';
 
 export default function AboutScreen() {
     const theme = useTheme();
@@ -63,7 +58,7 @@ export default function AboutScreen() {
 
     const BackAction = () => (
         <TopNavigationAction
-            icon={(props) => <ArrowLeft {...filterIconProps(props)} />}
+            icon={(props) => <ArrowLeft {...removeStyleProperty(props)} />}
             onPress={handleBack}
         />
     );
@@ -199,7 +194,7 @@ export default function AboutScreen() {
                             size="tiny"
                             status="basic"
                             accessoryLeft={(props) => (
-                                <ExternalLink size={14} {...filterIconProps(props)} />
+                                <ExternalLink size={14} {...removeStyleProperty(props)} />
                             )}
                             onPress={() => Linking.openURL('mailto:contact@vephim.online')}
                         >

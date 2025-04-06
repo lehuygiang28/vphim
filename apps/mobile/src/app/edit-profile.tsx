@@ -26,15 +26,10 @@ import authStore from '~mb/stores/authStore';
 import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
 import { executeMutation, apiCall } from '~mb/libs/apiClient';
 import { MUTATION_ME_QUERY } from '~fe/queries/users';
+import { removeStyleProperty } from '~mb/libs/utils';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-
-// Helper function to filter out problematic style props from UI Kitten
-const filterIconProps = (props: any) => {
-    const { style, ...otherProps } = props;
-    return otherProps;
-};
 
 export default function EditProfileScreen() {
     const { session, setSession } = authStore();
@@ -257,7 +252,7 @@ export default function EditProfileScreen() {
 
     const BackAction = () => (
         <TopNavigationAction
-            icon={(props) => <ArrowLeft {...filterIconProps(props)} />}
+            icon={(props) => <ArrowLeft {...removeStyleProperty(props)} />}
             onPress={handleBack}
         />
     );
@@ -352,7 +347,7 @@ export default function EditProfileScreen() {
                         onChangeText={setFullName}
                         style={styles.input}
                         accessoryLeft={(props) => (
-                            <UserIcon {...filterIconProps(props)} size={20} />
+                            <UserIcon {...removeStyleProperty(props)} size={20} />
                         )}
                     />
 

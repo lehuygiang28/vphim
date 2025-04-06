@@ -11,12 +11,7 @@ import {
     Button,
 } from '@ui-kitten/components';
 import { ArrowLeft, Shield, AlertTriangle, ExternalLink } from 'lucide-react-native';
-
-// Helper function to filter out problematic style props from UI Kitten
-const filterIconProps = (props: any) => {
-    const { style, ...otherProps } = props;
-    return otherProps;
-};
+import { removeStyleProperty } from '~mb/libs/utils';
 
 export default function PrivacyPolicyScreen() {
     const theme = useTheme();
@@ -30,43 +25,43 @@ export default function PrivacyPolicyScreen() {
             title: 'Tuyên bố mục đích giáo dục',
             content:
                 'Dự án phần mềm này ("VePhim") được cung cấp CHỈ DÀNH CHO MỤC ĐÍCH GIÁO DỤC VÀ TRÌNH DIỄN. VePhim được thiết kế để trình diễn kỹ thuật phát triển ứng dụng web và di động tiên tiến.',
-            icon: (props: any) => <Shield {...filterIconProps(props)} />,
+            icon: (props: any) => <Shield {...removeStyleProperty(props)} />,
         },
         {
             title: 'Hạn chế sử dụng',
             content:
                 'Khi truy cập, tải xuống, cài đặt hoặc sử dụng VePhim, bạn xác nhận và đồng ý rằng:\n\n1. VePhim không lưu trữ, tải lên hoặc phân phối bất kỳ nội dung phim, tệp phương tiện hoặc tài liệu có bản quyền nào trên máy chủ của mình.\n\n2. VePhim chỉ hoạt động như một ứng dụng thu thập nội dung từ các nguồn công khai, tổng hợp danh mục và công nghệ khám phá.\n\n3. Tất cả nội dung phương tiện có thể truy cập thông qua VePhim đều được lấy từ các nguồn bên thứ ba và vẫn được lưu trữ trên các nguồn đó.',
-            icon: (props: any) => <AlertTriangle {...filterIconProps(props)} />,
+            icon: (props: any) => <AlertTriangle {...removeStyleProperty(props)} />,
         },
         {
             title: 'Trách nhiệm của người dùng',
             content:
                 'Người dùng VePhim hoàn toàn chịu trách nhiệm về:\n\n1. Đảm bảo việc sử dụng VePhim tuân thủ tất cả các luật và quy định hiện hành liên quan đến bản quyền, quyền sở hữu trí tuệ, quyền riêng tư dữ liệu và truy cập nội dung.\n\n2. Xác minh họ có quyền hợp pháp để truy cập bất kỳ nội dung nào họ xem thông qua VePhim.\n\n3. Sử dụng các khái niệm công nghệ được trình diễn trong VePhim chỉ theo cách hợp pháp và đạo đức.',
-            icon: (props: any) => <AlertTriangle {...filterIconProps(props)} />,
+            icon: (props: any) => <AlertTriangle {...removeStyleProperty(props)} />,
         },
         {
             title: 'Giới hạn trách nhiệm',
             content:
                 'PHẦN MỀM VEPHIM ĐƯỢC CUNG CẤP "NGUYÊN TRẠNG", KHÔNG CÓ BẢO ĐẢM DƯỚI BẤT KỲ HÌNH THỨC NÀO, RÕ RÀNG HAY NGỤ Ý.\n\nTÁC GIẢ VÀ NGƯỜI ĐÓNG GÓP CỦA VEPHIM ĐẶC BIỆT TỪ CHỐI MỌI TRÁCH NHIỆM VỀ BẤT KỲ HÀNH VI SỬ DỤNG SAI MỤC ĐÍCH NÀO CỦA PHẦN MỀM HOẶC BẤT KỲ HOẠT ĐỘNG BẤT HỢP PHÁP NÀO ĐƯỢC TIẾN HÀNH VỚI PHẦN MỀM.',
-            icon: (props: any) => <AlertTriangle {...filterIconProps(props)} />,
+            icon: (props: any) => <AlertTriangle {...removeStyleProperty(props)} />,
         },
         {
             title: 'Sở hữu trí tuệ',
             content:
                 'VePhim tôn trọng quyền sở hữu trí tuệ và mong đợi người dùng của mình cũng làm như vậy. Nếu bạn tin rằng tác phẩm có bản quyền của bạn đã được sử dụng theo cách cấu thành vi phạm bản quyền, vui lòng liên hệ với người bảo trì dự án ngay lập tức.',
-            icon: (props: any) => <Shield {...filterIconProps(props)} />,
+            icon: (props: any) => <Shield {...removeStyleProperty(props)} />,
         },
         {
             title: 'Chấp nhận điều khoản',
             content:
                 'Bằng cách sử dụng VePhim, bạn xác nhận rằng bạn đã đọc, hiểu và đồng ý bị ràng buộc bởi tuyên bố miễn trừ trách nhiệm này. Nếu bạn không đồng ý với bất kỳ phần nào của tuyên bố miễn trừ trách nhiệm này, bạn không được sử dụng VePhim.',
-            icon: (props: any) => <Shield {...filterIconProps(props)} />,
+            icon: (props: any) => <Shield {...removeStyleProperty(props)} />,
         },
     ];
 
     const BackAction = () => (
         <TopNavigationAction
-            icon={(props) => <ArrowLeft {...filterIconProps(props)} />}
+            icon={(props) => <ArrowLeft {...removeStyleProperty(props)} />}
             onPress={handleBack}
         />
     );
@@ -130,7 +125,7 @@ export default function PrivacyPolicyScreen() {
                         size="tiny"
                         status="basic"
                         accessoryLeft={(props) => (
-                            <ExternalLink size={14} {...filterIconProps(props)} />
+                            <ExternalLink size={14} {...removeStyleProperty(props)} />
                         )}
                         onPress={() => Linking.openURL('mailto:contact@vephim.online')}
                     >
