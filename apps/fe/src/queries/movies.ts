@@ -111,6 +111,7 @@ export const MOVIES_LIST_QUERY = gql`
                 content
                 time
                 lang
+                view
             }
             total
         }
