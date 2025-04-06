@@ -676,7 +676,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     </Card>
                 </Col>
 
-                <Col xs={10} md={4} lg={3}>
+                <Col xs={12} md={6} lg={4}>
                     <Select
                         placeholder="Xắp xếp theo"
                         style={{ width: '100%' }}
@@ -687,7 +687,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         }
                         onChange={handleSorterChange}
                         suffixIcon={<SortAscendingOutlined />}
-                        size={'middle'}
+                        size={md ? 'middle' : 'small'}
                     >
                         {sortOptions.map((option) => (
                             <Option key={option.value} value={option.value}>
@@ -697,20 +697,18 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     </Select>
                 </Col>
 
-                <Col xs={10} md={4} lg={3}>
+                <Col xs={8} md={4} lg={3}>
                     <Badge
                         count={getActiveFilterCount()}
-                        size="small"
+                        size={md ? 'default' : 'small'}
                         offset={[-5, 5]}
-                        className="filter-button-badge"
                     >
                         <Button
                             onClick={() => setFilterVisible(true)}
                             icon={<FilterOutlined />}
-                            className="filter-button"
                             aria-label="Mở bộ lọc"
                             block
-                            size={'middle'}
+                            size={md ? 'middle' : 'small'}
                             type="primary"
                             ghost
                         >
@@ -736,16 +734,30 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 </div>
             )}
 
-            <Modal
-                open={filterVisible}
-                onCancel={() => setFilterVisible(false)}
-                footer={null}
-                title="Bộ lọc nâng cao"
-                bodyStyle={{ padding: 0, height: '80vh', overflowY: 'auto' }}
-                className="filter-modal"
-            >
-                {filterContent}
-            </Modal>
+            {md ? (
+                <Modal
+                    open={filterVisible}
+                    onCancel={() => setFilterVisible(false)}
+                    footer={null}
+                    title="Bộ lọc nâng cao"
+                    bodyStyle={{ padding: 0, height: '80vh', overflowY: 'auto' }}
+                    className="filter-modal"
+                >
+                    {filterContent}
+                </Modal>
+            ) : (
+                <Drawer
+                    open={filterVisible}
+                    onClose={() => setFilterVisible(false)}
+                    title="Bộ lọc nâng cao"
+                    placement="right"
+                    width={md ? 380 : 320}
+                    className="filter-drawer"
+                    bodyStyle={{ padding: 0 }}
+                >
+                    {filterContent}
+                </Drawer>
+            )}
         </div>
     );
 };
