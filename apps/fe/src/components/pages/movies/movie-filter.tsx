@@ -20,6 +20,7 @@ import {
     Collapse,
     Card,
     Switch,
+    Alert,
 } from 'antd';
 import { LogicalFilter } from '@refinedev/core';
 import {
@@ -29,6 +30,7 @@ import {
     SearchOutlined,
     SortAscendingOutlined,
     RobotOutlined,
+    InfoCircleOutlined,
 } from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
 import { useCopilotReadable } from '@copilotkit/react-core';
@@ -717,6 +719,42 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     </Badge>
                 </Col>
             </Row>
+
+            {getFilterValue('useAI')[0]?.toString() === 'true' &&
+                query?.sorters?.[0]?.field !== 'bestMatch' && (
+                    <Row
+                        className="ai-suggestion-row"
+                        gutter={[8, 8]}
+                        align="middle"
+                        style={{ marginTop: '8px', marginBottom: '8px' }}
+                    >
+                        <Col span={24}>
+                            <Alert
+                                type="info"
+                                showIcon
+                                icon={<InfoCircleOutlined type="info" />}
+                                message={
+                                    <Space align="center" size="small">
+                                        <span>
+                                            Gợi ý: Chọn sắp xếp theo &quot;Phù hợp nhất&quot; để có
+                                            kết quả tốt hơn với tìm kiếm AI
+                                        </span>
+                                        <Button
+                                            type="link"
+                                            size="small"
+                                            onClick={() => {
+                                                handleSorterChange('bestMatch,asc');
+                                            }}
+                                            style={{ padding: '0 4px' }}
+                                        >
+                                            Đổi ngay
+                                        </Button>
+                                    </Space>
+                                }
+                            />
+                        </Col>
+                    </Row>
+                )}
 
             {renderFilterTags().length > 0 && (
                 <div className="filter-tags-container">
