@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { useTheme } from '@ui-kitten/components';
-import { Home, Compass, User } from 'lucide-react-native';
+import { Home, User } from 'lucide-react-native';
 
 import AppHeader from '~mb/components/app-header';
 
@@ -15,8 +15,6 @@ export default function TabsLayout() {
                     switch (route.name) {
                         case 'index':
                             return <Home size={size} color={color} />;
-                        case 'explore':
-                            return <Compass size={size} color={color} />;
                         case 'account':
                             return <User size={size} color={color} />;
                     }
@@ -30,7 +28,6 @@ export default function TabsLayout() {
             })}
         >
             <Tabs.Screen name="index" options={{ title: 'Trang Chủ' }} />
-            <Tabs.Screen name="explore" options={{ title: 'Khám Phá' }} />
             <Tabs.Screen name="account" options={{ title: 'Cá Nhân' }} />
         </Tabs>
     );
