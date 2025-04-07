@@ -161,7 +161,7 @@ export default function EpisodeSelector({
                     numberOfLines={1}
                     ellipsizeMode="tail"
                 >
-                    {episodes[selectedServerIndex]?.serverName || 'Select Server'}
+                    {episodes[selectedServerIndex]?.serverName || 'Chọn máy chủ'}
                 </Text>
                 <ChevronDown color={theme['text-control-color']} size={16} />
             </TouchableOpacity>
@@ -174,7 +174,7 @@ export default function EpisodeSelector({
                     numberOfLines={1}
                     ellipsizeMode="tail"
                 >
-                    {selectedEpisode?.name || 'Select Episode'}
+                    {selectedEpisode?.name || 'Chọn tập phim'}
                 </Text>
                 <ChevronDown color={theme['text-control-color']} size={16} />
             </TouchableOpacity>
@@ -186,7 +186,7 @@ export default function EpisodeSelector({
             >
                 <Card disabled style={{ backgroundColor: theme['background-basic-color-1'] }}>
                     <View style={styles.modalHeader}>
-                        <Text category="h6">Select Server</Text>
+                        <Text category="h6">Chọn máy chủ</Text>
                         <TouchableOpacity onPress={closeServerModal}>
                             <X color={theme['text-basic-color']} size={24} />
                         </TouchableOpacity>
@@ -207,7 +207,7 @@ export default function EpisodeSelector({
             >
                 <Card disabled style={{ backgroundColor: theme['background-basic-color-1'] }}>
                     <View style={styles.modalHeader}>
-                        <Text category="h6">Select Episode</Text>
+                        <Text category="h6">Chọn tập phim</Text>
                         <TouchableOpacity onPress={closeEpisodeModal}>
                             <X color={theme['text-basic-color']} size={24} />
                         </TouchableOpacity>
@@ -221,7 +221,7 @@ export default function EpisodeSelector({
                                     color: theme['text-basic-color'],
                                 },
                             ]}
-                            placeholder="Search episodes..."
+                            placeholder="Tìm kiếm tập phim..."
                             placeholderTextColor={theme['text-hint-color']}
                             value={searchQuery}
                             onChangeText={setSearchQuery}

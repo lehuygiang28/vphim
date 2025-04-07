@@ -54,7 +54,7 @@ export default function MovieInfo({ movie }: MovieInfoProps) {
             {(movie.imdb?.id || movie.tmdb?.id) && (
                 <>
                     <Text category="s1" style={styles.categoriesTitle}>
-                        Ratings:
+                        Đánh giá:
                     </Text>
                     <MovieRatings
                         imdbId={movie.imdb?.id}
@@ -70,7 +70,7 @@ export default function MovieInfo({ movie }: MovieInfoProps) {
             {movie.categories && movie.categories.length > 0 && (
                 <View style={styles.categoriesContainer}>
                     <Text category="s1" style={styles.categoriesTitle}>
-                        Categories:
+                        Thể loại:
                     </Text>
                     <View style={styles.categoriesList}>
                         {movie.categories.map((category) => (

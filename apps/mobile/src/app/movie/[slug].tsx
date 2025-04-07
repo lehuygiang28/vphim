@@ -92,7 +92,7 @@ export default function MovieScreen() {
     );
 
     const handleVideoError = useCallback(() => {
-        setError('Unable to play video. Please try again later or choose a different source.');
+        setError('Không thể phát video. Vui lòng thử lại sau hoặc chọn nguồn khác.');
         setIsErrorModalVisible(true);
         setIsPlaying(false);
     }, []);
