@@ -281,33 +281,30 @@ export function CommentItem(
     return (
         <View style={[styles.container, isNested && styles.nestedContainer]}>
             <View style={styles.commentHeader}>
-                <View style={styles.avatarContainer}>
-                    <Avatar
-                        size={avatarSize}
-                        source={{
-                            uri: comment.user?.avatar?.url
-                                ? getOptimizedImageUrl(comment.user.avatar.url, {
-                                      width: 40,
-                                      height: 40,
-                                      quality: 80,
-                                  })
-                                : undefined,
-                        }}
-                        ImageComponent={() => (
-                            <View
-                                style={[
-                                    styles.avatarIconContainer,
-                                    isNested && styles.nestedAvatarIconContainer,
-                                ]}
-                            >
-                                <User
-                                    size={!isNested ? 24 : 20}
-                                    color={theme['text-basic-color']}
-                                />
-                            </View>
-                        )}
-                    />
-                </View>
+                {comment.user?.avatar?.url ? (
+                    <View style={styles.avatarContainer}>
+                        <Avatar
+                            size={avatarSize}
+                            source={{
+                                uri: getOptimizedImageUrl(comment.user.avatar.url, {
+                                    width: 40,
+                                    height: 40,
+                                    quality: 80,
+                                }),
+                            }}
+                        />
+                    </View>
+                ) : (
+                    <View
+                        style={[
+                            styles.avatarIconContainer,
+                            isNested && styles.nestedAvatarIconContainer,
+                        ]}
+                    >
+                        <User size={!isNested ? 24 : 20} color={theme['text-basic-color']} />
+                    </View>
+                )}
+
                 <View style={styles.commentContent}>
                     <View style={[styles.commentBubble, isNested && styles.nestedCommentBubble]}>
                         <Text category="s1" style={styles.username}>
