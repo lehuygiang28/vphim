@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { Connection, Model } from 'mongoose';
+import { Connection, Model, PipelineStage, ProjectionType, QueryOptions } from 'mongoose';
 import { AbstractRepository } from '../../libs/abstract/abstract.repository';
 import { Comment } from './comment.schema';
 
@@ -13,5 +13,23 @@ export class CommentRepository extends AbstractRepository<Comment> {
         @InjectConnection() connection: Connection,
     ) {
         super(commentModel, connection);
+    }
+
+    async countDocuments(filterQuery = {}): Promise<number> {
+        return this.count(filterQuery);
+    }
+
+    async find(
+        filterQuery = {},
+        options: { sort?: Record<string, number>; limit?: number; skip?: number } = {},
+    ) {
+        const { sort, limit, skip } = options;
+        const queryOptions: Partial<QueryOptions<Comment>> = {};
+
+        if (sort) queryOptions.sort = sort;
+        if (limit) queryOptions.limit = limit;
+        if (skip) queryOptions.skip = skip;
+
+        return super.find({ filterQuery, queryOptions });
     }
 }

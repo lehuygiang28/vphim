@@ -26,10 +26,7 @@ export class CommentService {
     ) {}
 
     private throwError(message: string, status = HttpStatus.UNPROCESSABLE_ENTITY): never {
-        throw new HttpException(
-            { status, errors: { message } },
-            status,
-        );
+        throw new HttpException({ status, errors: { message } }, status);
     }
 
     private throwMovieNotFoundError(): never {
@@ -59,7 +56,12 @@ export class CommentService {
         return { $addFields: { movieId: '$movie' } };
     }
 
-    private formatCommentsOutput(comments: CommentType[], total: number, page: number, limit: number): GetCommentsOutput {
+    private formatCommentsOutput(
+        comments: CommentType[],
+        total: number,
+        page: number,
+        limit: number,
+    ): GetCommentsOutput {
         return {
             data: comments,
             total,
@@ -69,7 +71,12 @@ export class CommentService {
         };
     }
 
-    private formatRepliesOutput(replies: CommentType[], total: number, page: number, limit: number): GetCommentRepliesOutput {
+    private formatRepliesOutput(
+        replies: CommentType[],
+        total: number,
+        page: number,
+        limit: number,
+    ): GetCommentRepliesOutput {
         return {
             data: replies,
             total,
@@ -109,8 +116,10 @@ export class CommentService {
                 rootParentComment = parentComment.rootParentComment || parentComment._id;
 
                 // If we've reached max nesting, we'll make this a reply to the root parent instead
-                if (nestingLevel === this.MAX_NESTING_LEVEL &&
-                    parentComment.nestingLevel === this.MAX_NESTING_LEVEL) {
+                if (
+                    nestingLevel === this.MAX_NESTING_LEVEL &&
+                    parentComment.nestingLevel === this.MAX_NESTING_LEVEL
+                ) {
                     // We're at max nesting and trying to go deeper
                     // So we'll attach this comment to the root parent instead of the immediate parent
                     parentCommentId = rootParentComment.toString();
@@ -127,7 +136,9 @@ export class CommentService {
                         content: stripHtml(content).result,
                         parentComment: parentCommentId ? convertToObjectId(parentCommentId) : null,
                         nestingLevel,
-                        rootParentComment: rootParentComment ? convertToObjectId(rootParentComment) : null,
+                        rootParentComment: rootParentComment
+                            ? convertToObjectId(rootParentComment)
+                            : null,
                     },
                 }),
                 parentCommentId &&
@@ -136,7 +147,8 @@ export class CommentService {
                         updateQuery: { $inc: { replyCount: 1 } },
                     }),
                 // If there's a root parent that's different from the direct parent, increment its reply count too
-                rootParentComment && rootParentComment.toString() !== parentCommentId &&
+                rootParentComment &&
+                    rootParentComment.toString() !== parentCommentId &&
                     this.commentRepository.findOneAndUpdate({
                         filterQuery: { _id: convertToObjectId(rootParentComment) },
                         updateQuery: { $inc: { replyCount: 1 } },
@@ -178,7 +190,10 @@ export class CommentService {
         }
     }
 
-    async updateComment({ _id: commentId, content }: UpdateCommentInput, actor: UserJwt): Promise<Comment> {
+    async updateComment(
+        { _id: commentId, content }: UpdateCommentInput,
+        actor: UserJwt,
+    ): Promise<Comment> {
         try {
             const comment = await this.commentRepository.findOne({
                 filterQuery: {
@@ -223,9 +238,9 @@ export class CommentService {
                     { parentComment: convertToObjectId(commentId) },
                     {
                         rootParentComment: convertToObjectId(commentId),
-                        _id: { $ne: convertToObjectId(commentId) }
-                    }
-                ]
+                        _id: { $ne: convertToObjectId(commentId) },
+                    },
+                ],
             });
 
             await Promise.all([
@@ -234,8 +249,8 @@ export class CommentService {
                     filterQuery: {
                         $or: [
                             { parentComment: convertToObjectId(commentId) },
-                            { rootParentComment: convertToObjectId(commentId) }
-                        ]
+                            { rootParentComment: convertToObjectId(commentId) },
+                        ],
                     },
                 }),
                 this.commentRepository.deleteOne({ _id: convertToObjectId(commentId) }),
@@ -247,7 +262,7 @@ export class CommentService {
                     }),
                 // Update reply count of root parent if it's different from direct parent
                 comment.rootParentComment &&
-                comment.rootParentComment.toString() !== comment.parentComment?.toString() &&
+                    comment.rootParentComment.toString() !== comment.parentComment?.toString() &&
                     this.commentRepository.findOneAndUpdate({
                         filterQuery: { _id: convertToObjectId(comment.rootParentComment) },
                         updateQuery: { $inc: { replyCount: -(nestedRepliesCount + 1) } },
@@ -327,15 +342,15 @@ export class CommentService {
                               { parentComment: convertToObjectId(query.parentCommentId) },
                               {
                                   rootParentComment: convertToObjectId(query.parentCommentId),
-                                  _id: { $ne: convertToObjectId(query.parentCommentId) }
-                              }
+                                  _id: { $ne: convertToObjectId(query.parentCommentId) },
+                              },
                           ],
                           movie: convertToObjectId(query.movieId),
                       }
                     : {
                           parentComment: convertToObjectId(query.parentCommentId),
                           movie: convertToObjectId(query.movieId),
-                      }
+                      },
             };
 
             const pipeline: PipelineStage[] = [
@@ -375,8 +390,8 @@ export class CommentService {
                           { parentComment: convertToObjectId(query.parentCommentId) },
                           {
                               rootParentComment: convertToObjectId(query.parentCommentId),
-                              _id: { $ne: convertToObjectId(query.parentCommentId) }
-                          }
+                              _id: { $ne: convertToObjectId(query.parentCommentId) },
+                          },
                       ],
                   }
                 : { parentComment: convertToObjectId(query.parentCommentId) };
@@ -393,5 +408,37 @@ export class CommentService {
             if (error instanceof HttpException) throw error;
             throw new HttpException('Error fetching replies', HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * Get an accurate count of all comments in the system
+     */
+    async countComments(): Promise<number> {
+        return this.commentRepository.countDocuments({});
+    }
+
+    /**
+     * Get an accurate count of comments posted within a specific date range
+     */
+    async countCommentsByDateRange(startDate: Date, endDate: Date): Promise<number> {
+        return this.commentRepository.countDocuments({
+            createdAt: { $gte: startDate, $lt: endDate },
+        });
+    }
+
+    /**
+     * Get the most recent comments with their complete data
+     */
+    async getRecentComments(limit = 5): Promise<any[]> {
+        // Get the most recent comments first
+        return this.commentRepository.find(
+            {
+                rootParentComment: { $exists: false }, // Only get top-level comments for better dashboard display
+            },
+            {
+                sort: { createdAt: -1 },
+                limit,
+            },
+        );
     }
 }

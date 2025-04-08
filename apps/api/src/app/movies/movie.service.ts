@@ -858,4 +858,117 @@ export class MovieService {
             this.logger.error(`Error during revalidateMovies: ${error}`);
         }
     }
+
+    async countMovies(): Promise<number> {
+        return this.movieRepo.countDocuments({});
+    }
+
+    async countCategories(): Promise<number> {
+        const aggregation = await this.movieRepo.aggregate<{ count: number }>([
+            { $unwind: '$categories' },
+            { $group: { _id: '$categories._id' } },
+            { $count: 'count' },
+        ]);
+
+        return aggregation.length > 0 ? aggregation[0].count : 0;
+    }
+
+    async countMoviesByType(): Promise<{ type: string; count: number }[]> {
+        const aggregation = await this.movieRepo.aggregate<{ _id: string; count: number }>([
+            { $group: { _id: '$type', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+        ]);
+
+        return aggregation.map((item) => ({
+            type: item._id,
+            count: item.count,
+        }));
+    }
+
+    async getTopViewedMovies(limit = 5): Promise<any[]> {
+        const movies = await this.movieRepo.find({
+            filterQuery: {},
+            queryOptions: {
+                sort: { view: -1 },
+                limit,
+            },
+        });
+
+        return movies.map((movie) => ({
+            _id: movie._id.toString(),
+            name: movie.name,
+            slug: movie.slug,
+            thumbUrl: movie.thumbUrl,
+            view: movie.view,
+        }));
+    }
+
+    async countMoviesByDateRange(startDate: Date, endDate: Date): Promise<number> {
+        return this.movieRepo.countDocuments({
+            createdAt: { $gte: startDate, $lt: endDate },
+        });
+    }
+
+    /**
+     * Gets accurate count of movies created today
+     */
+    async countMoviesCreatedBetween(startDate: Date, endDate: Date): Promise<number> {
+        return this.movieRepo.countDocuments({
+            createdAt: { $gte: startDate, $lt: endDate },
+        });
+    }
+
+    /**
+     * Gets accurate count of movies updated today
+     */
+    async countMoviesUpdatedBetween(startDate: Date, endDate: Date): Promise<number> {
+        return this.movieRepo.countDocuments({
+            updatedAt: { $gte: startDate, $lt: endDate },
+            createdAt: { $lt: startDate }, // Ensure we only count updates, not new creations
+        });
+    }
+
+    async getTrendingMovies(startDate: Date, limit = 5): Promise<any[]> {
+        // Enhanced implementation that uses the actual update date
+        // and view count to determine trending movies
+        const movies = await this.movieRepo.find({
+            filterQuery: {
+                updatedAt: { $gte: startDate },
+            },
+            queryOptions: {
+                sort: { view: -1, updatedAt: -1 },
+                limit,
+            },
+        });
+
+        // Return more detailed information about trending movies
+        return movies.map((movie) => ({
+            _id: movie._id.toString(),
+            name: movie.name,
+            slug: movie.slug,
+            thumbUrl: movie.thumbUrl,
+            viewsToday: movie.view,
+            updatedAt: movie.updatedAt,
+        }));
+    }
+
+    async getRecentlyUpdatedMovies(limit = 5): Promise<any[]> {
+        return this.movieRepo.find({
+            filterQuery: {},
+            queryOptions: {
+                sort: { updatedAt: -1 },
+                limit,
+            },
+        });
+    }
+
+    async getRecentlyAddedMovies(limit = 5): Promise<any[]> {
+        return this.movieRepo.find({
+            filterQuery: {},
+            queryOptions: {
+                sort: { createdAt: -1 },
+                limit,
+            },
+        });
+    }
 }

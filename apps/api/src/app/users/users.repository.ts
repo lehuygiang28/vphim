@@ -15,4 +15,8 @@ export class UsersRepository extends AbstractRepository<User> {
         super(userModel, connection);
         this.logger = new Logger(UsersRepository.name);
     }
+
+    async countDocuments(filterQuery = {}): Promise<number> {
+        return this.count(filterQuery);
+    }
 }

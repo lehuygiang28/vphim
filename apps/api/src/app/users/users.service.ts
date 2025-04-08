@@ -498,4 +498,20 @@ export class UsersService {
 
     private readonly isRootAdmin = (user: User | UserDto) =>
         user.email === this.configService.get('auth.adminEmail', { infer: true });
+
+    /**
+     * Get an accurate count of all users in the system
+     */
+    async countUsers(): Promise<number> {
+        return this.usersRepository.countDocuments({});
+    }
+
+    /**
+     * Get an accurate count of users registered within a specific date range
+     */
+    async countUsersByDateRange(startDate: Date, endDate: Date): Promise<number> {
+        return this.usersRepository.countDocuments({
+            createdAt: { $gte: startDate, $lt: endDate },
+        });
+    }
 }

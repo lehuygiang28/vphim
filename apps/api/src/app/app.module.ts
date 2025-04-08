@@ -23,6 +23,7 @@ import { ImagesModule } from './images';
 import { CommentsModule } from './comments/comments.module';
 import { CopilotkitModule } from './copilotkit/copilotkit.module';
 import { MovieCrawlerModule } from './crawlers';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
     imports: [
@@ -68,6 +69,7 @@ import { MovieCrawlerModule } from './crawlers';
         DirectorModule,
         CommentsModule,
         CopilotkitModule,
+        DashboardModule,
         ConditionalModule.registerWhen(
             MovieCrawlerModule,
             (env: NodeJS.ProcessEnv) => !env?.DISABLE_CRAWL || env?.DISABLE_CRAWL === 'false',

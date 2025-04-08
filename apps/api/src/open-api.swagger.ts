@@ -13,6 +13,7 @@ import { CategoryModule } from './app/categories';
 import { DirectorModule } from './app/directors';
 import { RegionsModule } from './app/regions';
 import { MovieModule } from './app/movies';
+import { DashboardModule } from './app/dashboard';
 
 export function openApiSwagger(app: INestApplication, path = '/open-api'): void {
     const swaggerDocumentConfig = new DocumentBuilder()
@@ -27,7 +28,14 @@ export function openApiSwagger(app: INestApplication, path = '/open-api'): void 
 
     const swaggerDocumentOptions: SwaggerDocumentOptions = {
         extraModels: [ProblemDetails],
-        include: [MovieModule, ActorModule, CategoryModule, DirectorModule, RegionsModule],
+        include: [
+            MovieModule,
+            ActorModule,
+            CategoryModule,
+            DirectorModule,
+            RegionsModule,
+            DashboardModule,
+        ],
     };
     const document = SwaggerModule.createDocument(
         app,

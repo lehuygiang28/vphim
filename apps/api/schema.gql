@@ -249,6 +249,79 @@ type GetCommentRepliesOutput {
   currentPage: Float!
 }
 
+type StatOverview {
+  totalMovies: Int!
+  totalUsers: Int!
+  totalComments: Int!
+  totalCategories: Int!
+  moviesAddedToday: Int!
+  moviesUpdatedToday: Int!
+  commentsToday: Int!
+  newUsersToday: Int!
+}
+
+type MoviesByType {
+  type: String!
+  count: Int!
+}
+
+type TopViewedMovie {
+  _id: String!
+  name: String!
+  slug: String!
+  thumbUrl: String!
+  view: Int
+}
+
+type RecentComment {
+  _id: String!
+  content: String!
+  movieId: String!
+  movieName: String!
+  movieSlug: String!
+  userName: String!
+  createdAt: DateTime!
+}
+
+type UserGrowth {
+  date: DateTime!
+  count: Int!
+}
+
+type MovieGrowth {
+  date: DateTime!
+  count: Int!
+}
+
+type TrendingMovie {
+  _id: String!
+  name: String!
+  slug: String!
+  thumbUrl: String!
+  viewsToday: Int
+  updatedAt: DateTime
+}
+
+type RecentActivity {
+  type: String!
+  message: String!
+  entityId: String
+  entityName: String
+  entitySlug: String
+  timestamp: DateTime!
+}
+
+type DashboardData {
+  overview: StatOverview!
+  moviesByType: [MoviesByType!]!
+  topViewedMovies: [TopViewedMovie!]!
+  recentComments: [RecentComment!]!
+  userGrowth: [UserGrowth!]!
+  movieGrowth: [MovieGrowth!]!
+  trendingToday: [TrendingMovie!]!
+  recentActivities: [RecentActivity!]!
+}
+
 input EpisodeServerDataInputType {
   slug: String
   name: String
@@ -308,6 +381,7 @@ type Query {
     """
     input: GetCommentRepliesInput!
   ): GetCommentRepliesOutput!
+  getDashboard: DashboardData!
 }
 
 input GetMovieInput {
