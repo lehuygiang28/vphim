@@ -14,9 +14,12 @@ import {
     CheckCircleOutlined,
     GlobalOutlined,
     MenuOutlined,
+    LockOutlined,
+    LoginOutlined,
 } from '@ant-design/icons';
 import { useDebouncedCallback } from 'use-debounce';
 import type { MenuProps } from 'antd';
+import { useIsAuthenticated } from '@refinedev/core';
 
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
@@ -71,6 +74,7 @@ type PlayerIframeProps = {
     selectedServerIndex: number;
     handleVideoError: () => void;
     handleVideoLoad: () => void;
+    isAuthenticated: boolean;
 };
 
 const PlayerIframe: React.FC<PlayerIframeProps> = ({
@@ -83,6 +87,7 @@ const PlayerIframe: React.FC<PlayerIframeProps> = ({
     selectedServerIndex,
     handleVideoError,
     handleVideoLoad,
+    isAuthenticated,
 }) => {
     // Get player settings directly from Zustand store
     const { useAdBlocker, useProxyStreaming } = usePlayerSettings();
@@ -109,9 +114,9 @@ const PlayerIframe: React.FC<PlayerIframeProps> = ({
     const params = new URLSearchParams({
         movieSlug: movie?.slug || '',
         ep: selectedEpisode.slug || '',
-        useProcessor: useAdBlocker || useProxyStreaming ? 'true' : 'false',
-        proxy: useProxyStreaming ? 'true' : 'false',
-        removeAds: useAdBlocker ? 'true' : 'false',
+        useProcessor: isAuthenticated && (useAdBlocker || useProxyStreaming) ? 'true' : 'false',
+        proxy: isAuthenticated && useProxyStreaming ? 'true' : 'false',
+        removeAds: isAuthenticated && useAdBlocker ? 'true' : 'false',
         provider: getProviderFromOriginSrc(movie?.episode?.[selectedServerIndex]?.originSrc) || '',
     });
 
@@ -138,6 +143,7 @@ type PlayerControlsProps = {
     toggleLights: () => void;
     goToAdjacentEpisode: (direction: 'prev' | 'next') => void;
     md: boolean;
+    isAuthenticated: boolean;
 };
 
 const PlayerControls: React.FC<PlayerControlsProps> = ({
@@ -147,10 +153,16 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     toggleLights,
     goToAdjacentEpisode,
     md,
+    isAuthenticated,
 }) => {
     // Get player settings directly from Zustand store
     const { useAdBlocker, useProxyStreaming, toggleAdBlocking, toggleProxyStreaming } =
         usePlayerSettings();
+    const router = useRouter();
+
+    const goToLogin = () => {
+        router.push('/dang-nhap');
+    };
 
     // Define settings dropdown menu items
     const settingsMenuItems: MenuProps['items'] = [
@@ -163,14 +175,26 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
         {
             key: 'adblock',
             label: useAdBlocker ? 'Tắt chặn quảng cáo' : 'Bật chặn quảng cáo',
-            icon: useAdBlocker ? <CheckCircleOutlined /> : <BlockOutlined />,
-            onClick: () => toggleAdBlocking(),
+            icon: isAuthenticated ? (
+                useAdBlocker ? (
+                    <CheckCircleOutlined />
+                ) : (
+                    <BlockOutlined />
+                )
+            ) : (
+                <LockOutlined />
+            ),
+            onClick: () => (isAuthenticated ? toggleAdBlocking() : goToLogin()),
+            disabled: !isAuthenticated,
+            style: !isAuthenticated ? { opacity: 0.8 } : {},
         },
         {
             key: 'proxy',
             label: useProxyStreaming ? 'Tắt proxy' : 'Bật proxy',
-            icon: <GlobalOutlined />,
-            onClick: () => toggleProxyStreaming(),
+            icon: isAuthenticated ? <GlobalOutlined /> : <LockOutlined />,
+            onClick: () => (isAuthenticated ? toggleProxyStreaming() : goToLogin()),
+            disabled: !isAuthenticated,
+            style: !isAuthenticated ? { opacity: 0.8 } : {},
         },
     ];
 
@@ -224,45 +248,86 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
             >
                 {isLightsOff ? 'Bật đèn' : 'Tắt đèn'}
             </Button>
-            <Tooltip
-                title={
-                    useAdBlocker
-                        ? 'Đang chặn quảng cáo - Nhấn để tắt'
-                        : 'Bật chặn quảng cáo (có thể ảnh hưởng đến phát video)'
-                }
-            >
-                <Button
-                    icon={useAdBlocker ? <CheckCircleOutlined /> : <BlockOutlined />}
-                    onClick={() => toggleAdBlocking()}
-                    size="middle"
-                    type={useAdBlocker ? 'primary' : 'default'}
-                    className={useAdBlocker ? styles.adBlockActiveButton : ''}
-                >
-                    {useAdBlocker ? 'Tắt chặn quảng cáo' : 'Bật chặn quảng cáo'}
-                </Button>
-            </Tooltip>
-            <Tooltip
-                title={
-                    useProxyStreaming
-                        ? 'Đang sử dụng proxy - Nhấn để tắt'
-                        : 'Bật proxy (tăng tốc độ phát trong giờ cao điểm)'
-                }
-            >
-                <Button
-                    icon={<GlobalOutlined />}
-                    onClick={() => toggleProxyStreaming()}
-                    size="middle"
-                    type={useProxyStreaming ? 'primary' : 'default'}
-                    className={useProxyStreaming ? styles.proxyActiveButton : ''}
-                >
-                    {useProxyStreaming ? 'Tắt proxy' : 'Bật proxy'}
-                </Button>
-            </Tooltip>
+
+            {isAuthenticated ? (
+                <>
+                    <Tooltip
+                        title={
+                            useAdBlocker
+                                ? 'Đang chặn quảng cáo - Nhấn để tắt'
+                                : 'Bật chặn quảng cáo (có thể ảnh hưởng đến phát video)'
+                        }
+                    >
+                        <Button
+                            icon={useAdBlocker ? <CheckCircleOutlined /> : <BlockOutlined />}
+                            onClick={toggleAdBlocking}
+                            size="middle"
+                            type={useAdBlocker ? 'primary' : 'default'}
+                            className={useAdBlocker ? styles.adBlockActiveButton : ''}
+                        >
+                            {useAdBlocker ? 'Tắt chặn quảng cáo' : 'Bật chặn quảng cáo'}
+                        </Button>
+                    </Tooltip>
+                    <Tooltip
+                        title={
+                            useProxyStreaming
+                                ? 'Đang sử dụng proxy - Nhấn để tắt'
+                                : 'Bật proxy (tăng tốc độ phát trong giờ cao điểm)'
+                        }
+                    >
+                        <Button
+                            icon={<GlobalOutlined />}
+                            onClick={toggleProxyStreaming}
+                            size="middle"
+                            type={useProxyStreaming ? 'primary' : 'default'}
+                            className={useProxyStreaming ? styles.proxyActiveButton : ''}
+                        >
+                            {useProxyStreaming ? 'Tắt proxy' : 'Bật proxy'}
+                        </Button>
+                    </Tooltip>
+                </>
+            ) : (
+                <>
+                    <Tooltip title="Đăng nhập để sử dụng tính năng chặn quảng cáo" color="#f50">
+                        <div className={styles.premiumButtonWrapper}>
+                            <Button
+                                icon={<BlockOutlined />}
+                                onClick={goToLogin}
+                                size="middle"
+                                className={styles.premiumFeatureButton}
+                            >
+                                Chặn quảng cáo
+                            </Button>
+                            <span className={styles.lockBadge}>
+                                <LockOutlined />
+                            </span>
+                        </div>
+                    </Tooltip>
+                    <Tooltip title="Đăng nhập để sử dụng tính năng proxy" color="#f50">
+                        <div className={styles.premiumButtonWrapper}>
+                            <Button
+                                icon={<GlobalOutlined />}
+                                onClick={goToLogin}
+                                size="middle"
+                                className={styles.premiumFeatureButton}
+                            >
+                                Proxy
+                            </Button>
+                            <span className={styles.lockBadge}>
+                                <LockOutlined />
+                            </span>
+                        </div>
+                    </Tooltip>
+                </>
+            )}
         </Space>
     );
 };
 
 export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
+    const { data: authenticatedData, isLoading: isAuthenticatedLoading } = useIsAuthenticated();
+    const isAuthenticated = authenticatedData?.authenticated;
+
     const router = useRouter();
     const searchParams = useSearchParams();
     const { md } = useBreakpoint();
@@ -295,6 +360,10 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const debouncedSetHeaderPositionFixed = useDebouncedCallback((fixed: boolean) => {
         setHeaderPositionFixed(fixed);
     }, 20);
+
+    // Access player settings for usage and to modify when auth changes
+    const { useAdBlocker, useProxyStreaming, toggleAdBlocking, toggleProxyStreaming } =
+        usePlayerSettings();
 
     const preFetchM3u8 = useCallback(async (url: string) => {
         try {
@@ -755,6 +824,26 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         return selectedEpisode?.linkM3u8;
     }, [selectedEpisode, currentServer]);
 
+    // Disable premium features when user logs out
+    useEffect(() => {
+        if (!isAuthenticatedLoading && !isAuthenticated) {
+            // If ad blocker or proxy is enabled, disable them
+            if (useAdBlocker) {
+                toggleAdBlocking();
+            }
+            if (useProxyStreaming) {
+                toggleProxyStreaming();
+            }
+        }
+    }, [
+        isAuthenticated,
+        isAuthenticatedLoading,
+        useAdBlocker,
+        useProxyStreaming,
+        toggleAdBlocking,
+        toggleProxyStreaming,
+    ]);
+
     return (
         <div
             style={{
@@ -801,6 +890,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                     selectedServerIndex={selectedServerIndex}
                                     handleVideoError={handleVideoError}
                                     handleVideoLoad={handleVideoLoad}
+                                    isAuthenticated={isAuthenticated}
                                 />
                             )}
                         </div>
@@ -812,11 +902,30 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                 toggleLights={toggleLights}
                                 goToAdjacentEpisode={goToAdjacentEpisode}
                                 md={md}
+                                isAuthenticated={isAuthenticated}
                             />
                         </Space>
                         <div className={styles.playerTip}>
                             <Alert
-                                message="Nếu video không phát được, hãy thử tắt chặn quảng cáo, bật proxy hoặc đổi máy chủ"
+                                message={
+                                    isAuthenticated ? (
+                                        'Nếu video không phát được, hãy thử tắt chặn quảng cáo, bật proxy hoặc đổi máy chủ'
+                                    ) : (
+                                        <span>
+                                            <Button
+                                                type="link"
+                                                size="small"
+                                                onClick={() => router.push('/dang-nhap')}
+                                                icon={<LoginOutlined />}
+                                                style={{ marginRight: 8 }}
+                                            >
+                                                Đăng nhập
+                                            </Button>
+                                            để sử dụng tính năng chặn quảng cáo và proxy - giúp phát
+                                            video mượt mà hơn
+                                        </span>
+                                    )
+                                }
                                 type="info"
                                 showIcon
                                 className={styles.adBlockTip}
