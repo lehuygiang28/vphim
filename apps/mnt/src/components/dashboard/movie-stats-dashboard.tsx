@@ -502,7 +502,9 @@ const MovieStatsDashboard: React.FC = () => {
                                             : 'orange',
                                     children: (
                                         <>
-                                            <p>{activity.message}</p>
+                                            <p>{`Phim "${activity.entityName}" đã được ${
+                                                activity.type === 'movie_add' ? 'thêm' : 'cập nhật'
+                                            }`}</p>
                                             <Text type="secondary">
                                                 {new Date(activity.timestamp).toLocaleString(
                                                     'vi-VN',
