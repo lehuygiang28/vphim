@@ -49,7 +49,7 @@ export function AuthWrapper({ children, accessType }: AuthWrapperProps) {
 
         case 'not-authenticated': {
             if (isAuthenticated) {
-                router.replace('/movies');
+                router.replace('/dashboard');
             } else {
                 return <>{children}</>;
             }

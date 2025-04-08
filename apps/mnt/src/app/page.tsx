@@ -22,5 +22,5 @@ export default function Index() {
         return router.replace('/login');
     }
 
-    return router.replace('/movies');
+    return router.replace('/dashboard');
 }

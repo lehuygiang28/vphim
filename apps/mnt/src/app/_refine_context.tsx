@@ -66,6 +66,10 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                             authProvider={authProvider(undefined, axiosAuth)}
                             resources={[
                                 {
+                                    name: 'dashboard',
+                                    list: '/dashboard',
+                                },
+                                {
                                     name: 'movies',
                                     meta: {
                                         icon: <PlaySquareOutlined />,
