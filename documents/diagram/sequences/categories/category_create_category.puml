@@ -1,0 +1,57 @@
+@startuml Category - Create Category
+
+actor "Admin" as Client
+participant "CategoryResolver" as Resolver
+participant "RequiredRoles Guard" as Guard
+participant "CategoryService" as Service
+participant "CategoryRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Resolver: mutation createCategory(input)
+activate Resolver
+
+Resolver -> Guard: check admin role
+activate Guard
+alt user is admin
+    Guard --> Resolver: allow
+else user is not admin
+    Guard --> Client: throw ForbiddenException
+    deactivate Resolver
+    deactivate Guard
+end
+deactivate Guard
+
+Resolver -> Service: createCategory(input)
+activate Service
+
+Service -> Repo: findOne(filterQuery: {slug})
+activate Repo
+Repo -> DB: findOne({slug})
+activate DB
+DB --> Repo: return existing category or null
+deactivate DB
+Repo --> Service: return result
+deactivate Repo
+
+alt slug already exists
+    Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
+else slug is unique
+    Service -> Service: process slug (removeDiacritics, removeTone)
+    
+    Service -> Repo: create(document)
+    activate Repo
+    Repo -> DB: save new category
+    activate DB
+    DB --> Repo: return saved category
+    deactivate DB
+    Repo --> Service: return new category
+    deactivate Repo
+    
+    Service --> Resolver: return new category
+end
+
+deactivate Service
+Resolver --> Client: return created category
+deactivate Resolver
+
+@enduml 

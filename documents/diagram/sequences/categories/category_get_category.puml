@@ -1,0 +1,53 @@
+@startuml Category - Get Single Category
+
+actor Client
+participant "CategoryResolver" as Resolver
+participant "CategoryService" as Service
+participant "CategoryRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Resolver: query category(input)
+activate Resolver
+Resolver -> Service: getCategory(input)
+activate Service
+
+alt input contains _id
+    Service -> Repo: findOneOrThrow(filterQuery: {_id})
+    activate Repo
+    Repo -> DB: findOne(query)
+    activate DB
+    DB --> Repo: return category or null
+    deactivate DB
+    
+    alt category found
+        Repo --> Service: return category
+    else not found
+        Repo --> Service: throw NotFoundException
+    end
+    deactivate Repo
+    
+else input contains slug
+    Service -> Repo: findOneOrThrow(filterQuery: {slug})
+    activate Repo
+    Repo -> DB: findOne(query)
+    activate DB
+    DB --> Repo: return category or null
+    deactivate DB
+    
+    alt category found
+        Repo --> Service: return category
+    else not found
+        Repo --> Service: throw NotFoundException
+    end
+    deactivate Repo
+    
+else no valid input
+    Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
+end
+
+Service --> Resolver: return category
+deactivate Service
+Resolver --> Client: return category
+deactivate Resolver
+
+@enduml 

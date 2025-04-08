@@ -1,0 +1,41 @@
+@startuml Category - Delete Category
+
+actor "Admin" as Client
+participant "CategoryResolver" as Resolver
+participant "RequiredRoles Guard" as Guard
+participant "CategoryService" as Service
+participant "CategoryRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Resolver: mutation deleteCategory(input)
+activate Resolver
+
+Resolver -> Guard: check admin role
+activate Guard
+alt user is admin
+    Guard --> Resolver: allow
+else user is not admin
+    Guard --> Client: throw ForbiddenException
+    deactivate Resolver
+    deactivate Guard
+end
+deactivate Guard
+
+Resolver -> Service: deleteCategory(input)
+activate Service
+
+Service -> Repo: deleteOne({_id})
+activate Repo
+Repo -> DB: deleteOne({_id})
+activate DB
+DB --> Repo: return delete result
+deactivate DB
+Repo --> Service: return delete result
+deactivate Repo
+
+Service --> Resolver: return 1 (success)
+deactivate Service
+Resolver --> Client: return 1 (success)
+deactivate Resolver
+
+@enduml 

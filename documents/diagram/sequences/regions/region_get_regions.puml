@@ -1,0 +1,53 @@
+@startuml Region - Get Regions
+
+actor Client
+participant "RegionController" as Controller
+participant "RegionsService" as Service
+participant "RedisService" as Redis
+participant "RegionRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Controller: GET /regions
+activate Controller
+Controller -> Service: getRegions(query)
+activate Service
+
+Service -> Redis: get(cacheKey)
+activate Redis
+Redis --> Service: return cached data (if exists)
+deactivate Redis
+
+alt data from cache exists
+    Service --> Controller: return cached data
+else no cached data
+    Service -> Repo: find(filterQuery, query)
+    activate Repo
+    Repo -> DB: find regions
+    activate DB
+    DB --> Repo: return regions
+    deactivate DB
+    Repo --> Service: return regions
+    deactivate Repo
+
+    Service -> Repo: count(filterQuery)
+    activate Repo
+    Repo -> DB: count regions
+    activate DB
+    DB --> Repo: return count
+    deactivate DB
+    Repo --> Service: return count
+    deactivate Repo
+
+    Service -> Redis: set(cacheKey, result, expiry)
+    activate Redis
+    Redis --> Service: confirm cache set
+    deactivate Redis
+
+    Service --> Controller: return result {data, total, count}
+end
+
+Controller --> Client: return regions
+deactivate Service
+deactivate Controller
+
+@enduml 

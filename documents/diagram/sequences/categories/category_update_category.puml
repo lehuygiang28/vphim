@@ -1,0 +1,46 @@
+@startuml Category - Update Category
+
+actor "Admin" as Client
+participant "CategoryResolver" as Resolver
+participant "RequiredRoles Guard" as Guard
+participant "CategoryService" as Service
+participant "CategoryRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Resolver: mutation updateCategory(input)
+activate Resolver
+
+Resolver -> Guard: check admin role
+activate Guard
+alt user is admin
+    Guard --> Resolver: allow
+else user is not admin
+    Guard --> Client: throw ForbiddenException
+    deactivate Resolver
+    deactivate Guard
+end
+deactivate Guard
+
+Resolver -> Service: updateCategory(input)
+activate Service
+
+Service -> Repo: findOneAndUpdateOrThrow(filterQuery, updateQuery)
+activate Repo
+Repo -> DB: findOneAndUpdate(query)
+activate DB
+DB --> Repo: return updated category or null
+deactivate DB
+
+alt category found and updated
+    Repo --> Service: return updated category
+else category not found
+    Repo --> Service: throw NotFoundException
+end
+deactivate Repo
+
+Service --> Resolver: return updated category
+deactivate Service
+Resolver --> Client: return updated category
+deactivate Resolver
+
+@enduml 

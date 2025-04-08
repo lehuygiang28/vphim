@@ -1,0 +1,57 @@
+@startuml Region - Create Region
+
+actor "Admin" as Client
+participant "RegionResolver" as Resolver
+participant "RequiredRoles Guard" as Guard
+participant "RegionsService" as Service
+participant "RegionRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Resolver: mutation createRegion(input)
+activate Resolver
+
+Resolver -> Guard: check admin role
+activate Guard
+alt user is admin
+    Guard --> Resolver: allow
+else user is not admin
+    Guard --> Client: throw ForbiddenException
+    deactivate Resolver
+    deactivate Guard
+end
+deactivate Guard
+
+Resolver -> Service: createRegion(input)
+activate Service
+
+Service -> Repo: findOne(filterQuery: {slug})
+activate Repo
+Repo -> DB: findOne({slug})
+activate DB
+DB --> Repo: return existing region or null
+deactivate DB
+Repo --> Service: return result
+deactivate Repo
+
+alt slug already exists
+    Service --> Resolver: throw BadRequestException
+else slug is unique
+    Service -> Service: process slug (removeDiacritics, removeTone)
+    
+    Service -> Repo: create(document)
+    activate Repo
+    Repo -> DB: save new region
+    activate DB
+    DB --> Repo: return saved region
+    deactivate DB
+    Repo --> Service: return new region
+    deactivate Repo
+    
+    Service --> Resolver: return new region
+end
+
+deactivate Service
+Resolver --> Client: return created region
+deactivate Resolver
+
+@enduml 

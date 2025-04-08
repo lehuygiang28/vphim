@@ -1,0 +1,46 @@
+@startuml Region - Update Region
+
+actor "Admin" as Client
+participant "RegionResolver" as Resolver
+participant "RequiredRoles Guard" as Guard
+participant "RegionsService" as Service
+participant "RegionRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Resolver: mutation updateRegion(input)
+activate Resolver
+
+Resolver -> Guard: check admin role
+activate Guard
+alt user is admin
+    Guard --> Resolver: allow
+else user is not admin
+    Guard --> Client: throw ForbiddenException
+    deactivate Resolver
+    deactivate Guard
+end
+deactivate Guard
+
+Resolver -> Service: updateRegion(input)
+activate Service
+
+Service -> Repo: findOneAndUpdateOrThrow(filterQuery, updateQuery)
+activate Repo
+Repo -> DB: findOneAndUpdate(query)
+activate DB
+DB --> Repo: return updated region or null
+deactivate DB
+
+alt region found and updated
+    Repo --> Service: return updated region
+else region not found
+    Repo --> Service: throw NotFoundException
+end
+deactivate Repo
+
+Service --> Resolver: return updated region
+deactivate Service
+Resolver --> Client: return updated region
+deactivate Resolver
+
+@enduml 

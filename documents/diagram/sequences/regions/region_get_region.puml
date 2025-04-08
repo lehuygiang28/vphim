@@ -1,0 +1,53 @@
+@startuml Region - Get Single Region
+
+actor Client
+participant "RegionResolver" as Resolver
+participant "RegionsService" as Service
+participant "RegionRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Resolver: query region(input)
+activate Resolver
+Resolver -> Service: getRegion(input)
+activate Service
+
+alt input contains _id
+    Service -> Repo: findOneOrThrow(filterQuery: {_id})
+    activate Repo
+    Repo -> DB: findOne(query)
+    activate DB
+    DB --> Repo: return region or null
+    deactivate DB
+    
+    alt region found
+        Repo --> Service: return region
+    else not found
+        Repo --> Service: throw NotFoundException
+    end
+    deactivate Repo
+    
+else input contains slug
+    Service -> Repo: findOneOrThrow(filterQuery: {slug})
+    activate Repo
+    Repo -> DB: findOne(query)
+    activate DB
+    DB --> Repo: return region or null
+    deactivate DB
+    
+    alt region found
+        Repo --> Service: return region
+    else not found
+        Repo --> Service: throw NotFoundException
+    end
+    deactivate Repo
+    
+else no valid input
+    Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
+end
+
+Service --> Resolver: return region
+deactivate Service
+Resolver --> Client: return region
+deactivate Resolver
+
+@enduml 
