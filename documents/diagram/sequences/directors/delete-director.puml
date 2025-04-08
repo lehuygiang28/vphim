@@ -1,0 +1,53 @@
+@startuml Delete Director Flow
+
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title Delete Director Flow (GraphQL)
+
+actor "Admin User" as Admin
+participant "GraphQL Server" as GraphQL
+participant "Auth Guard" as Auth
+participant "Director Resolver" as Resolver
+participant "Director Service" as Service
+participant "Director Repository" as Repository
+database "MongoDB" as DB
+
+Admin -> GraphQL : Mutation deleteDirector(input: {_id})
+activate GraphQL
+
+GraphQL -> Auth : Check user role
+activate Auth
+Auth --> GraphQL : Validate admin role
+deactivate Auth
+
+GraphQL -> Resolver : deleteDirector(input)
+activate Resolver
+
+Resolver -> Service : deleteDirector({_id})
+activate Service
+
+Service -> Repository : deleteOne({_id: convertToObjectId(_id)})
+activate Repository
+Repository -> DB : Delete director by _id
+activate DB
+DB --> Repository : Deletion result
+deactivate DB
+Repository --> Service : Return result
+deactivate Repository
+
+Service --> Resolver : Return 1 (success count)
+deactivate Service
+
+Resolver --> GraphQL : Return Integer (1)
+deactivate Resolver
+
+GraphQL --> Admin : JSON Response
+deactivate GraphQL
+
+@enduml 

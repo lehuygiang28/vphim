@@ -1,0 +1,67 @@
+@startuml Update Actor Flow
+
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title Update Actor Flow (GraphQL)
+
+actor "Admin User" as Admin
+participant "GraphQL Server" as GraphQL
+participant "Auth Guard" as Auth
+participant "Actor Resolver" as Resolver
+participant "Actor Service" as Service
+participant "Actor Repository" as Repository
+database "MongoDB" as DB
+
+Admin -> GraphQL : Mutation updateActor(input: {_id, name, ...})
+activate GraphQL
+
+GraphQL -> Auth : Check user role
+activate Auth
+Auth --> GraphQL : Validate admin role
+deactivate Auth
+
+GraphQL -> Resolver : updateActor(input)
+activate Resolver
+
+Resolver -> Service : updateActor({_id, name, ...})
+activate Service
+
+Service -> Repository : findOneAndUpdateOrThrow(filterQuery, updateQuery)
+activate Repository
+note right of Repository
+  filterQuery: { _id: convertToObjectId(_id) }
+  updateQuery: { name, originalName, posterUrl }
+end note
+
+Repository -> DB : Find and update actor
+activate DB
+alt actor found
+    DB --> Repository : Return updated actor
+else actor not found
+    DB --> Repository : Return null
+end
+deactivate DB
+
+alt actor found and updated
+    Repository --> Service : Return updated actor
+else actor not found
+    Repository --> Service : Throw exception
+end
+deactivate Repository
+
+Service --> Resolver : Return updated actor or throw error
+deactivate Service
+
+Resolver --> GraphQL : Return ActorType or error
+deactivate Resolver
+
+GraphQL --> Admin : JSON Response or Error
+deactivate GraphQL
+
+@enduml 

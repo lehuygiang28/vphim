@@ -1,0 +1,78 @@
+@startuml Get Single Actor Flow
+
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title Get Single Actor Flow (GraphQL)
+
+actor Client
+participant "GraphQL Server" as GraphQL
+participant "Actor Resolver" as Resolver
+participant "Actor Service" as Service
+participant "Actor Repository" as Repository
+database "MongoDB" as DB
+
+Client -> GraphQL : Query actor(input: {_id or slug})
+activate GraphQL
+GraphQL -> Resolver : getActor(input)
+activate Resolver
+
+Resolver -> Service : getActor({_id, slug})
+activate Service
+
+alt _id parameter provided
+    Service -> Repository : findOneOrThrow(filterQuery: {_id})
+    activate Repository
+    
+    Repository -> DB : Find actor by _id
+    activate DB
+    DB --> Repository : Return actor or null
+    deactivate DB
+    
+    alt actor found
+        Repository --> Service : Return actor
+    else actor not found
+        Repository --> Service : Throw exception
+    end
+    
+    deactivate Repository
+else slug parameter provided
+    Service -> Repository : findOneOrThrow(filterQuery: {slug})
+    activate Repository
+    
+    Repository -> DB : Find actor by slug
+    activate DB
+    DB --> Repository : Return actor or null
+    deactivate DB
+    
+    alt actor found
+        Repository --> Service : Return actor
+    else actor not found
+        Repository --> Service : Throw exception
+    end
+    
+    deactivate Repository
+else no parameters provided
+    Service --> Resolver : Throw HTTP 422 Exception\n(Unprocessable Entity)
+end
+
+alt success
+    Service --> Resolver : Return actor
+    Resolver --> GraphQL : Return ActorType
+    GraphQL --> Client : JSON Response
+else error
+    Service --> Resolver : Throw exception
+    Resolver --> GraphQL : Return error
+    GraphQL --> Client : Error Response
+end
+
+deactivate Service
+deactivate Resolver
+deactivate GraphQL
+
+@enduml 

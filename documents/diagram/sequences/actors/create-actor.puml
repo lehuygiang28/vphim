@@ -1,0 +1,71 @@
+@startuml Create Actor Flow
+
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title Create Actor Flow (GraphQL)
+
+actor "Admin User" as Admin
+participant "GraphQL Server" as GraphQL
+participant "Auth Guard" as Auth
+participant "Actor Resolver" as Resolver
+participant "Actor Service" as Service
+participant "Actor Repository" as Repository
+database "MongoDB" as DB
+
+Admin -> GraphQL : Mutation createActor(input: {name, slug, ...})
+activate GraphQL
+
+GraphQL -> Auth : Check user role
+activate Auth
+Auth --> GraphQL : Validate admin role
+deactivate Auth
+
+GraphQL -> Resolver : createActor(input)
+activate Resolver
+
+Resolver -> Service : createActor({name, slug, ...})
+activate Service
+
+Service -> Repository : findOne(filterQuery: {slug})
+activate Repository
+Repository -> DB : Find actor by slug
+activate DB
+DB --> Repository : Return actor or null
+deactivate DB
+Repository --> Service : Return existing actor or null
+deactivate Repository
+
+alt slug already exists
+    Service --> Resolver : Throw BadRequestException\n(Slug already exists)
+else slug is unique
+    note right of Service
+        Process slug by removing diacritics 
+        and tones if needed
+    end note
+    
+    Service -> Repository : create({name, originalName, slug, posterUrl})
+    activate Repository
+    Repository -> DB : Insert new actor document
+    activate DB
+    DB --> Repository : Return created actor
+    deactivate DB
+    Repository --> Service : Return created actor
+    deactivate Repository
+    
+    Service --> Resolver : Return new actor
+end
+
+Resolver --> GraphQL : Return ActorType or error
+deactivate Service
+deactivate Resolver
+
+GraphQL --> Admin : JSON Response or Error
+deactivate GraphQL
+
+@enduml 

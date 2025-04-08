@@ -1,0 +1,73 @@
+@startuml GraphQL Get Actors Flow
+
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title GraphQL Get Actors Flow
+
+actor Client
+participant "GraphQL Server" as GraphQL
+participant "Actor Resolver" as Resolver
+participant "Actor Service" as Service
+participant "Redis Service" as Redis
+participant "Actor Repository" as Repository
+database "MongoDB" as DB
+
+Client -> GraphQL : Query actors(input: {keywords, limit, page})
+activate GraphQL
+GraphQL -> Resolver : actors(input)
+activate Resolver
+
+Resolver -> Service : getActors(input)
+activate Service
+
+Service -> Redis : get(cacheKey)
+activate Redis
+note right of Redis
+  Cache key: CACHED:ACTORS:{sorted query string}
+end note
+Redis --> Service : cache result or null
+deactivate Redis
+
+alt cache hit
+    Service --> Resolver : Return cached data with\nDate objects converted
+else cache miss
+    Service -> Repository : find(filters, query)
+    activate Repository
+    Repository -> DB : Find actors matching filters
+    activate DB
+    DB --> Repository : Return actors
+    deactivate DB
+    Repository --> Service : Return actors
+    deactivate Repository
+    
+    Service -> Repository : count(filters)
+    activate Repository
+    Repository -> DB : Count actors matching filters
+    activate DB
+    DB --> Repository : Return count
+    deactivate DB
+    Repository --> Service : Return count
+    deactivate Repository
+    
+    Service -> Redis : set(cacheKey, result, 10s)
+    activate Redis
+    Redis --> Service : Cache set
+    deactivate Redis
+    
+    Service --> Resolver : Return { data, total, count }
+end
+
+Resolver --> GraphQL : Return GetActorsOutput
+deactivate Service
+deactivate Resolver
+
+GraphQL --> Client : JSON Response
+deactivate GraphQL
+
+@enduml 

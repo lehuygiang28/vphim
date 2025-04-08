@@ -1,0 +1,66 @@
+@startuml Get Directors Flow
+
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title Get Directors Flow
+
+actor User
+participant "API Controller" as Controller
+participant "Director Service" as Service
+participant "Redis Service" as Redis
+participant "Director Repository" as Repository
+database "MongoDB" as DB
+
+User -> Controller : GET /directors?keywords=&limit=&page=
+activate Controller
+Controller -> Service : getDirectors(query)
+activate Service
+
+Service -> Redis : get(cacheKey)
+activate Redis
+note right of Redis
+  Cache key: CACHED:DIRECTORS:{sorted query string}
+end note
+Redis --> Service : cache result or null
+deactivate Redis
+
+alt cache hit
+    Service --> Controller : Return cached data
+else cache miss
+    Service -> Repository : find(filters, query)
+    activate Repository
+    Repository -> DB : Find directors matching filters
+    activate DB
+    DB --> Repository : Return directors
+    deactivate DB
+    Repository --> Service : Return directors
+    deactivate Repository
+    
+    Service -> Repository : count(filters)
+    activate Repository
+    Repository -> DB : Count directors matching filters
+    activate DB
+    DB --> Repository : Return count
+    deactivate DB
+    Repository --> Service : Return count
+    deactivate Repository
+    
+    Service -> Redis : set(cacheKey, result, 10s)
+    activate Redis
+    Redis --> Service : Cache set
+    deactivate Redis
+    
+    Service --> Controller : Return { data, total, count }
+end
+
+Controller --> User : Return GetDirectorsOutput
+deactivate Service
+deactivate Controller
+
+@enduml 

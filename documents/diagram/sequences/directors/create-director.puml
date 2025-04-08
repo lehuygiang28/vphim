@@ -1,0 +1,71 @@
+@startuml Create Director Flow
+
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title Create Director Flow (GraphQL)
+
+actor "Admin User" as Admin
+participant "GraphQL Server" as GraphQL
+participant "Auth Guard" as Auth
+participant "Director Resolver" as Resolver
+participant "Director Service" as Service
+participant "Director Repository" as Repository
+database "MongoDB" as DB
+
+Admin -> GraphQL : Mutation createDirector(input: {name, slug, ...})
+activate GraphQL
+
+GraphQL -> Auth : Check user role
+activate Auth
+Auth --> GraphQL : Validate admin role
+deactivate Auth
+
+GraphQL -> Resolver : createDirector(input)
+activate Resolver
+
+Resolver -> Service : createDirector({name, slug, ...})
+activate Service
+
+Service -> Repository : findOne(filterQuery: {slug})
+activate Repository
+Repository -> DB : Find director by slug
+activate DB
+DB --> Repository : Return director or null
+deactivate DB
+Repository --> Service : Return existing director or null
+deactivate Repository
+
+alt slug already exists
+    Service --> Resolver : Throw BadRequestException\n(Slug already exists)
+else slug is unique
+    note right of Service
+        Process slug by removing diacritics 
+        and tones if needed
+    end note
+    
+    Service -> Repository : create({name, originalName, slug, posterUrl})
+    activate Repository
+    Repository -> DB : Insert new director document
+    activate DB
+    DB --> Repository : Return created director
+    deactivate DB
+    Repository --> Service : Return created director
+    deactivate Repository
+    
+    Service --> Resolver : Return new director
+end
+
+Resolver --> GraphQL : Return DirectorType or error
+deactivate Service
+deactivate Resolver
+
+GraphQL --> Admin : JSON Response or Error
+deactivate GraphQL
+
+@enduml 
