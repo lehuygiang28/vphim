@@ -28,7 +28,11 @@ export default function CreateCategory() {
     });
 
     return (
-        <Create saveButtonProps={saveButtonProps} headerButtons={<ClearFormButton />}>
+        <Create
+            title="Thêm thể loại"
+            saveButtonProps={saveButtonProps}
+            headerButtons={<ClearFormButton />}
+        >
             <BaseResourceForm
                 formProps={{
                     ...formProps,

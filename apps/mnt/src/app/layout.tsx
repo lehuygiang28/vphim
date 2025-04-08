@@ -4,9 +4,9 @@ import React, { Suspense, PropsWithChildren } from 'react';
 import { RefineContext } from './_refine_context';
 
 export const metadata: Metadata = {
-    title: 'VePhim Admin',
-    description: 'VePhim Admin',
-    applicationName: 'VePhim Admin',
+    title: 'VePhim Quản Trị',
+    description: 'VePhim Quản Trị',
+    applicationName: 'VePhim Quản Trị',
     robots: {
         index: false,
         follow: false,
@@ -29,7 +29,7 @@ export default function DefaultNoLayoutStyle({ children }: Readonly<PropsWithChi
     const defaultMode = theme?.value === 'light' ? 'light' : 'dark';
 
     return (
-        <html lang="en">
+        <html lang="vi">
             <body>
                 <Suspense>
                     <RefineContext defaultMode={defaultMode}>

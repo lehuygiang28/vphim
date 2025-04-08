@@ -7,6 +7,7 @@ import { SimpleResourceList } from '~mnt/components/list/simple-resource-list';
 export default function RegionList() {
     return (
         <SimpleResourceList
+            title="Danh sách quốc gia"
             createPath="/countries/create"
             deleteOperation="deleteRegion"
             gqlQuery={MNT_REGIONS_LIST_QUERY}

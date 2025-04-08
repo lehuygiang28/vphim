@@ -29,7 +29,7 @@ export const SlugFormItem: React.FC<SlugFormItemProps> = ({
                 <span>
                     Slug
                     {!disabled && (
-                        <Tooltip title={autoSlug ? 'Disable auto-slug' : 'Enable auto-slug'}>
+                        <Tooltip title={autoSlug ? 'Tắt tự tạo slug' : 'Bật tự tạo slug'}>
                             <LinkOutlined
                                 style={{
                                     marginLeft: '8px',
@@ -44,25 +44,25 @@ export const SlugFormItem: React.FC<SlugFormItemProps> = ({
             }
             help={
                 isCheckingSlug
-                    ? 'Checking slug availability...'
+                    ? 'Đang kiểm tra slug...'
                     : slugExists
-                    ? 'This slug already exists'
+                    ? 'Slug này đã tồn tại'
                     : value
-                    ? 'Slug is available'
+                    ? 'Slug khả dụng'
                     : ''
             }
             validateStatus={
                 isCheckingSlug ? 'validating' : slugExists ? 'error' : value ? 'success' : undefined
             }
             rules={[
-                { required: true, message: 'Please enter slug' },
+                { required: true, message: 'Vui lòng nhập slug' },
                 {
                     pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-                    message: 'Invalid slug format',
+                    message: 'Định dạng slug không hợp lệ',
                 },
             ]}
         >
-            <Input disabled={disabled || autoSlug} onChange={onChange} placeholder="your-slug" />
+            <Input disabled={disabled || autoSlug} onChange={onChange} placeholder="slug-cua-ban" />
         </Form.Item>
     );
 };

@@ -27,7 +27,10 @@ export default function EditActor({ params }: EditActorPageProps) {
     });
 
     return (
-        <Edit saveButtonProps={saveButtonProps}>
+        <Edit
+            title={`Chỉnh sửa diễn viên "${formProps.initialValues?.name}"`}
+            saveButtonProps={saveButtonProps}
+        >
             <PersonResourceForm
                 formProps={formProps}
                 gqlQuery={MNT_ACTOR_QUERY}

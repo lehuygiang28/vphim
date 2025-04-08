@@ -264,19 +264,22 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
 
     return (
         <Show
+            title={`Chi tiết phim "${record?.originName}"`}
             isLoading={isLoading}
             headerButtons={({ refreshButtonProps }) => (
                 <>
                     {params?.id && (
                         <>
                             <EditMovieButton id={params.id?.toString()} />
-                            <DeleteButton recordItemId={params.id?.toString()} />
+                            <DeleteButton recordItemId={params.id?.toString()}>Xóa</DeleteButton>
                             <RefreshButton
                                 {...refreshButtonProps}
                                 id={params.id?.toString()}
                                 resource="movies"
                                 dataProviderName="graphql"
-                            />
+                            >
+                                Làm mới
+                            </RefreshButton>
                         </>
                     )}
                 </>

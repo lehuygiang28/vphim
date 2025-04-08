@@ -1,7 +1,7 @@
 'use client';
 
 import { Descriptions, Tag, Typography, Image, Row, Col, Divider } from 'antd';
-import { Show } from '@refinedev/antd';
+import { Show, ListButton } from '@refinedev/antd';
 import { useParsed, useShow } from '@refinedev/core';
 
 import { type UserType } from '~api/app/users/user.type';
@@ -23,9 +23,10 @@ export default function UserShow() {
         <Show
             canEdit={false}
             isLoading={isLoading}
-            headerButtons={({ defaultButtons }) => (
+            title="Thông tin người dùng"
+            headerButtons={({ listButtonProps }) => (
                 <>
-                    {defaultButtons}
+                    <ListButton {...listButtonProps}>Danh sách người dùng</ListButton>
                     <BlockOrUnblockUser idParam={id} user={record} />
                     <UpdateUserRole user={record} idParam={id} />
                 </>
@@ -34,38 +35,36 @@ export default function UserShow() {
             <div>
                 <Row style={{ width: '100%' }}>
                     <Col xs={24} md={4}>
-                        <Image src={record?.avatar?.url} width={100} alt="user avatar" />
+                        <Image src={record?.avatar?.url} width={100} alt="Ảnh đại diện" />
                     </Col>
                     <Col xs={24} md={18}>
                         <Descriptions>
                             <Descriptions.Item label="ID">
                                 <Text copyable>{record?._id.toString()}</Text>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Full Name">
-                                {record?.fullName}
-                            </Descriptions.Item>
+                            <Descriptions.Item label="Họ tên">{record?.fullName}</Descriptions.Item>
                             <Descriptions.Item label="Email">
                                 <Text copyable>{record?.email}</Text>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Email Verified">
+                            <Descriptions.Item label="Xác thực email">
                                 <Tag color={record?.emailVerified ? 'green' : 'red'}>
-                                    {record?.emailVerified ? 'verified' : 'unverified'}
+                                    {record?.emailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
                                 </Tag>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Role">
+                            <Descriptions.Item label="Vai trò">
                                 <Tag color={record?.role === 'admin' ? 'geekblue' : 'green'}>
-                                    {record?.role}
+                                    {record?.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
                                 </Tag>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Status">
+                            <Descriptions.Item label="Trạng thái">
                                 <Tag color={record?.block?.isBlocked ? 'red' : 'green'}>
-                                    {record?.block?.isBlocked ? 'blocked' : 'active'}
+                                    {record?.block?.isBlocked ? 'Đã khóa' : 'Đang hoạt động'}
                                 </Tag>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Created At">
+                            <Descriptions.Item label="Ngày tạo">
                                 {record?.createdAt && formatDateToHumanReadable(record?.createdAt)}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Updated At">
+                            <Descriptions.Item label="Cập nhật lần cuối">
                                 {record?.updatedAt && formatDateToHumanReadable(record?.updatedAt)}
                             </Descriptions.Item>
                         </Descriptions>
@@ -74,7 +73,7 @@ export default function UserShow() {
 
                 {record?.block?.activityLogs && (
                     <>
-                        <Divider orientation="left">Block Logs</Divider>
+                        <Divider orientation="left">Lịch sử khóa tài khoản</Divider>
                         <BlockLogTable logs={record?.block?.activityLogs} />
                     </>
                 )}

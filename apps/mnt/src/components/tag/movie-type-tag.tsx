@@ -23,7 +23,7 @@ interface MovieTypeOption {
 export const movieTypeOptions: MovieTypeOption[] = [
     {
         value: MovieTypeEnum.HOAT_HINH,
-        label: 'Animation',
+        label: 'Hoạt hình',
         color: 'magenta',
         icon: <PictureOutlined />,
     },
@@ -35,13 +35,13 @@ export const movieTypeOptions: MovieTypeOption[] = [
     },
     {
         value: MovieTypeEnum.SERIES,
-        label: 'Series',
+        label: 'Phim bộ',
         color: 'green',
         icon: <PlaySquareOutlined />,
     },
     {
         value: MovieTypeEnum.SINGLE,
-        label: 'Single',
+        label: 'Phim lẻ',
         color: 'orange',
         icon: <VideoCameraOutlined />,
     },

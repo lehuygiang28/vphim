@@ -24,8 +24,8 @@ export enum LoginTitle {
 }
 
 export enum LoginErrorType {
-    'block' = 'Your account is blocked, contact the administrator for more information',
-    'not-admin' = 'You do not have permission.',
+    'block' = 'Tài khoản của bạn đã bị khóa, vui lòng liên hệ quản trị viên để biết thêm thông tin',
+    'not-admin' = 'Bạn không có quyền truy cập.',
 }
 
 export type LoginProps = {

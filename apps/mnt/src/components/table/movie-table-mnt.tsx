@@ -199,10 +199,10 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
 
     const renderFilters = () => (
         <Form layout="vertical">
-            <Form.Item label="Format">
+            <Form.Item label="Định dạng">
                 <Select
                     style={{ width: '100%' }}
-                    placeholder="Select format"
+                    placeholder="Chọn định dạng"
                     onChange={(value) => handleFilterChange('type', value)}
                     allowClear
                     value={
@@ -220,10 +220,10 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                     ))}
                 </Select>
             </Form.Item>
-            <Form.Item label="Status">
+            <Form.Item label="Trạng thái">
                 <Select
                     style={{ width: '100%' }}
-                    placeholder="Select status"
+                    placeholder="Chọn trạng thái"
                     onChange={(value) => handleFilterChange('status', value)}
                     allowClear
                     value={
@@ -241,11 +241,11 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                     ))}
                 </Select>
             </Form.Item>
-            <Form.Item label="Release Year">
+            <Form.Item label="Năm phát hành">
                 <Space>
                     <Select
                         style={{ width: 120 }}
-                        placeholder="From year"
+                        placeholder="Từ năm"
                         onChange={(value) =>
                             handleYearRangeChange(
                                 value ? [value, yearRange?.[1] ?? currentYear] : null,
@@ -261,7 +261,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                     </Select>
                     <Select
                         style={{ width: 120 }}
-                        placeholder="To year"
+                        placeholder="Đến năm"
                         onChange={(value) =>
                             handleYearRangeChange(value ? [yearRange?.[0] ?? 1900, value] : null)
                         }
@@ -275,13 +275,13 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                     </Select>
                 </Space>
             </Form.Item>
-            <Form.Item label="Category">
+            <Form.Item label="Thể loại">
                 <Select
                     {...categorySelectProps}
                     allowClear
                     mode="multiple"
                     style={{ width: '100%' }}
-                    placeholder="Select category"
+                    placeholder="Chọn thể loại"
                     onChange={(value) => handleFilterChange('categories', value)}
                     value={(
                         localFilters.find(
@@ -298,13 +298,13 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                     }}
                 />
             </Form.Item>
-            <Form.Item label="Country">
+            <Form.Item label="Quốc gia">
                 <Select
                     {...regionSelectProps}
                     allowClear
                     mode="multiple"
                     style={{ width: '100%' }}
-                    placeholder="Select country"
+                    placeholder="Chọn quốc gia"
                     onChange={(value) => handleFilterChange('countries', value)}
                     value={(
                         localFilters.find(
@@ -332,7 +332,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         )?.value === 'true'
                     }
                 >
-                    Cinema Release
+                    Chiếu rạp
                 </Checkbox>
             </Form.Item>
             <Form.Item>
@@ -346,12 +346,12 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         )?.value === 'true'
                     }
                 >
-                    Copyright
+                    Bản quyền
                 </Checkbox>
             </Form.Item>
             <Form.Item>
                 <Button type="primary" onClick={applyFilters}>
-                    Apply Filters
+                    Áp dụng bộ lọc
                 </Button>
             </Form.Item>
         </Form>
@@ -359,39 +359,45 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
 
     return (
         <List
+            title={`${type === 'show' ? ' Danh sách Phim' : 'Thùng rác'}`}
             headerButtons={({ defaultButtons }) => {
                 return (
                     <>
                         {type === 'show' && defaultButtons}
-                        <RefreshMovieButton resource="movies" dataProviderName="graphql" />
+                        <RefreshMovieButton resource="movies" dataProviderName="graphql">
+                            Làm mới
+                        </RefreshMovieButton>
                     </>
                 );
+            }}
+            createButtonProps={{
+                children: <>Thêm mới</>,
             }}
         >
             <Card>
                 <Row gutter={[16, 16]} align="middle">
                     <Col xs={24} md={18} lg={20}>
                         <Input.Search
-                            placeholder="Search movie by name, actor, director or content"
+                            placeholder="Tìm phim theo tên, diễn viên, đạo diễn hoặc nội dung"
                             allowClear
                             onChange={(e) => debouncedSearch(e.target.value)}
                             onSearch={handleSearch}
                             enterButton={
                                 <Button icon={<SearchOutlined />} type="primary">
-                                    Search
+                                    Tìm kiếm
                                 </Button>
                             }
                         />
                     </Col>
                     <Col xs={24} md={6} lg={4}>
-                        <Tooltip title="Open advanced filters">
+                        <Tooltip title="Mở bộ lọc nâng cao">
                             <Badge count={filterCount} size="small">
                                 <Button
                                     onClick={() => setDrawerVisible(true)}
                                     icon={<FilterOutlined />}
                                     block
                                 >
-                                    Advanced Filters
+                                    Bộ lọc nâng cao
                                 </Button>
                             </Badge>
                         </Tooltip>
@@ -399,7 +405,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                 </Row>
             </Card>
             <Drawer
-                title="Advanced Filters"
+                title="Bộ lọc nâng cao"
                 placement="right"
                 onClose={() => setDrawerVisible(false)}
                 open={drawerVisible}
@@ -415,7 +421,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                     showSizeChanger: true,
                     pageSizeOptions: [10, 24, 50, 100, 200, 500],
                     showTotal: (total, range) =>
-                        `Showing ${range[0]}-${range[1]} of ${total} results`,
+                        `Hiển thị ${range[0]}-${range[1]} trên tổng ${total} kết quả`,
                     position: ['topRight', 'bottomRight'],
                     size: 'small',
                     simple: true,
@@ -424,7 +430,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                 size="small"
                 columns={[
                     {
-                        title: 'No.',
+                        title: 'STT',
                         key: 'index',
                         width: 60,
                         render: (_, __, index) => {
@@ -459,7 +465,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         ),
                     },
                     {
-                        title: 'Movie Title',
+                        title: 'Tên phim',
                         dataIndex: 'name',
                         key: 'name',
                         render: (name: string, record: MovieType) => (
@@ -472,14 +478,14 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         ),
                     },
                     {
-                        title: 'Type',
+                        title: 'Loại',
                         dataIndex: 'type',
                         key: 'type',
                         width: 100,
                         render: (type: MovieTypeEnum) => <MovieTypeTag type={type} />,
                     },
                     {
-                        title: 'Status',
+                        title: 'Trạng thái',
                         dataIndex: 'status',
                         key: 'status',
                         width: 120,
@@ -488,7 +494,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         },
                     },
                     {
-                        title: 'Year',
+                        title: 'Năm',
                         dataIndex: 'year',
                         key: 'year',
                         width: 80,
@@ -496,7 +502,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         defaultSortOrder: getDefaultSortOrder('year', sorters),
                     },
                     {
-                        title: 'Current Episode',
+                        title: 'Tập hiện tại',
                         dataIndex: 'episodeCurrent',
                         key: 'episodeCurrent',
                         width: 120,
@@ -505,7 +511,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         ),
                     },
                     {
-                        title: 'Views',
+                        title: 'Lượt xem',
                         dataIndex: 'view',
                         key: 'view',
                         width: 100,
@@ -514,7 +520,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         render: (view: number) => <Text strong>{view.toLocaleString()}</Text>,
                     },
                     {
-                        title: 'Last Updated',
+                        title: 'Cập nhật lần cuối',
                         dataIndex: 'updatedAt',
                         key: 'updatedAt',
                         width: 150,
@@ -525,7 +531,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         ),
                     },
                     {
-                        title: 'Actions',
+                        title: 'Thao tác',
                         key: 'actions',
                         fixed: 'right',
                         width: 120,
@@ -533,7 +539,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                             if (type === 'show') {
                                 return (
                                     <Space>
-                                        <Tooltip title="View details">
+                                        <Tooltip title="Xem chi tiết">
                                             <Button
                                                 icon={<EyeOutlined />}
                                                 onClick={() =>
@@ -544,14 +550,14 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                                                 size="small"
                                             />
                                         </Tooltip>
-                                        <Tooltip title="Edit">
+                                        <Tooltip title="Chỉnh sửa">
                                             <EditMovieButton
                                                 id={record._id?.toString()}
                                                 hideText
                                                 size="small"
                                             />
                                         </Tooltip>
-                                        <Tooltip title="Delete">
+                                        <Tooltip title="Xóa">
                                             <DeleteMovieButton
                                                 id={record._id?.toString()}
                                                 type="soft-delete"
@@ -566,7 +572,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                             } else {
                                 return (
                                     <Space>
-                                        <Tooltip title="Restore">
+                                        <Tooltip title="Khôi phục">
                                             <RestoreButton
                                                 name="movie"
                                                 mutateParam={{
@@ -586,7 +592,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                                                 }}
                                             />
                                         </Tooltip>
-                                        <Tooltip title="Permanently delete">
+                                        <Tooltip title="Xóa vĩnh viễn">
                                             <DeleteMovieButton
                                                 id={record._id?.toString()}
                                                 type="hard-delete"

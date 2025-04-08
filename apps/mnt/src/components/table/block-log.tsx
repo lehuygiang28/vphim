@@ -24,33 +24,37 @@ export function BlockLogTable({ logs = [] }: BlockLogTableProps) {
     const columns: ColumnsType<ActivityLog> = [
         {
             key: 'action',
-            title: 'Action',
+            title: 'Hành động',
             dataIndex: 'action',
             sorter: (a, b) => a.action.localeCompare(b.action),
             filters: [
-                { text: 'Block', value: 'block' },
-                { text: 'Unblock', value: 'unblock' },
+                { text: 'Chặn', value: 'block' },
+                { text: 'Bỏ chặn', value: 'unblock' },
             ],
             onFilter: (value, record) => record.action === value,
             render: (action) => {
-                return <Tag color={action === 'block' ? 'red' : 'green'}>{action}</Tag>;
+                return (
+                    <Tag color={action === 'block' ? 'red' : 'green'}>
+                        {action === 'block' ? 'Chặn' : 'Bỏ chặn'}
+                    </Tag>
+                );
             },
         },
         {
             key: 'reason',
-            title: 'Reason',
+            title: 'Lý do',
             dataIndex: 'reason',
             sorter: (a, b) => a?.reason?.localeCompare(b?.reason),
         },
         {
             key: 'note',
-            title: 'Note',
+            title: 'Ghi chú',
             dataIndex: 'note',
             sorter: (a, b) => a?.note?.localeCompare(b?.note),
         },
         {
             key: 'actionAt',
-            title: 'Action At',
+            title: 'Thời gian thực hiện',
             dataIndex: 'actionAt',
             sorter: (a, b) => new Date(a.actionAt).getTime() - new Date(b.actionAt).getTime(),
             render: (actionAt) => formatDateToHumanReadable(actionAt),
@@ -82,7 +86,7 @@ export function BlockLogTable({ logs = [] }: BlockLogTableProps) {
                         />
                         <Space>
                             <Button onClick={() => confirm()} type="primary">
-                                Search
+                                Tìm kiếm
                             </Button>
                             <Button
                                 onClick={() => {
@@ -91,7 +95,7 @@ export function BlockLogTable({ logs = [] }: BlockLogTableProps) {
                                 }}
                                 type="dashed"
                             >
-                                Reset
+                                Đặt lại
                             </Button>
                         </Space>
                     </Space>
@@ -111,7 +115,7 @@ export function BlockLogTable({ logs = [] }: BlockLogTableProps) {
         },
         {
             key: 'actionBy',
-            title: 'Action By',
+            title: 'Người thực hiện',
             dataIndex: 'actionBy',
             sorter: (a, b) => a.actionBy.toString().localeCompare(b.actionBy.toString()),
             render: (actionBy) => {
@@ -122,7 +126,7 @@ export function BlockLogTable({ logs = [] }: BlockLogTableProps) {
             filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
                 <div style={{ padding: 8 }}>
                     <Input
-                        placeholder="Search email"
+                        placeholder="Tìm kiếm email"
                         value={selectedKeys[0]}
                         onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
                         onPressEnter={() => confirm()}
@@ -130,10 +134,10 @@ export function BlockLogTable({ logs = [] }: BlockLogTableProps) {
                     />
                     <Space>
                         <Button onClick={() => confirm()} type="primary">
-                            Search
+                            Tìm kiếm
                         </Button>
                         <Button onClick={() => clearFilters()} type="dashed">
-                            Reset
+                            Đặt lại
                         </Button>
                     </Space>
                 </div>

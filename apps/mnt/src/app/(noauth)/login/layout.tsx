@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { PropsWithChildren } from 'react';
 
 export const metadata: Metadata = {
-    title: 'Login - VePhim',
-    description: 'Login - VePhim',
+    title: 'Đăng nhập - VePhim',
+    description: 'Đăng nhập vào tài khoản VePhim của bạn',
 };
 
 export default function LayoutLoginPage({ children }: PropsWithChildren) {

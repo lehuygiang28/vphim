@@ -49,7 +49,7 @@ export function BlockOrUnblockUser(props: BlockOrUnblockUserProps) {
 
     const handleBlockReasonChange = (value: string) => {
         setBlockReason(value);
-        if (value !== 'Other') {
+        if (value !== 'Khác') {
             setCustomReason('');
         }
     };
@@ -70,20 +70,20 @@ export function BlockOrUnblockUser(props: BlockOrUnblockUserProps) {
             {!isIdentityLoading &&
                 me?._id?.toString() !== idParam?.toString() &&
                 (user?.block?.isBlocked ? (
-                    <Button onClick={() => setIsUnblockModalVisible(true)}>Unblock</Button>
+                    <Button onClick={() => setIsUnblockModalVisible(true)}>Bỏ chặn</Button>
                 ) : (
                     <Button danger onClick={() => setIsBlockModalVisible(true)}>
-                        Block
+                        Chặn
                     </Button>
                 ))}
 
             <>
                 <Modal
-                    title="Confirm Block"
+                    title="Xác nhận chặn"
                     open={isBlockModalVisible}
                     onOk={() => {
                         handleBlock({
-                            reason: blockReason === 'Other' ? customReason : blockReason,
+                            reason: blockReason === 'Khác' ? customReason : blockReason,
                         });
                         restoreDefault();
                     }}
@@ -93,20 +93,20 @@ export function BlockOrUnblockUser(props: BlockOrUnblockUserProps) {
                     }}
                     destroyOnClose
                 >
-                    <p>Are you sure you want to block this user?</p>
+                    <p>Bạn có chắc chắn muốn chặn người dùng này?</p>
                     <Select
-                        title="Please select a reason"
-                        defaultValue="Select a reason"
+                        title="Vui lòng chọn lý do"
+                        defaultValue="Chọn lý do"
                         value={blockReason}
                         onChange={handleBlockReasonChange}
                         style={{ width: '100%' }}
                     >
                         <Option value={DEFAULT_BLOCK_REASON}>{DEFAULT_BLOCK_REASON}</Option>
-                        <Option value="Other">Other</Option>
+                        <Option value="Khác">Khác</Option>
                     </Select>
-                    {blockReason === 'Other' && (
+                    {blockReason === 'Khác' && (
                         <TextArea
-                            placeholder="Please specify the reason"
+                            placeholder="Vui lòng nêu rõ lý do"
                             value={customReason}
                             onChange={handleCustomReasonChange}
                             style={{ marginTop: 16 }}
@@ -114,7 +114,7 @@ export function BlockOrUnblockUser(props: BlockOrUnblockUserProps) {
                     )}
                 </Modal>
                 <Modal
-                    title="Confirm Unblock"
+                    title="Xác nhận bỏ chặn"
                     open={isUnblockModalVisible}
                     onOk={() => {
                         handleUnblock();
@@ -125,7 +125,7 @@ export function BlockOrUnblockUser(props: BlockOrUnblockUserProps) {
                         restoreDefault();
                     }}
                 >
-                    <p>Are you sure you want to unblock this user?</p>
+                    <p>Bạn có chắc chắn muốn bỏ chặn người dùng này?</p>
                 </Modal>
             </>
         </>

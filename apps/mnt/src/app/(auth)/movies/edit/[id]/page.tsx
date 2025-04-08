@@ -81,7 +81,7 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
 
     return (
         <Edit
-            title={`Edit ${movie?.originName}`}
+            title={`Chỉnh sửa phim "${movie?.originName}"`}
             saveButtonProps={saveButtonProps}
             footerButtons={(button) => {
                 const { saveButtonProps } = button;

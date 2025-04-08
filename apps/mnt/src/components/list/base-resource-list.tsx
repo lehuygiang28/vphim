@@ -18,6 +18,7 @@ export interface BaseResourceListProps<T> {
     createPath: string;
     columns?: ColumnsType<T>;
     showImage?: boolean;
+    title?: string;
 }
 
 export function BaseResourceList<
@@ -31,6 +32,7 @@ export function BaseResourceList<
     createPath,
     columns = [],
     showImage = false,
+    title,
 }: BaseResourceListProps<T>) {
     const router = useRouter();
     const { tableProps, searchFormProps, current, pageSize, setFilters } = useTable<T>({
@@ -76,14 +78,14 @@ export function BaseResourceList<
 
     const defaultColumns: ColumnsType<T> = [
         {
-            title: 'No.',
+            title: 'STT',
             render: (_, __, index) => (current - 1) * pageSize + index + 1,
             width: 70,
         },
         ...columns,
         {
             dataIndex: 'name',
-            title: 'Name',
+            title: 'Tên',
             sorter: (a: T, b: T) => a.name.localeCompare(b.name),
         },
         {
@@ -92,7 +94,7 @@ export function BaseResourceList<
         },
         {
             dataIndex: 'updatedAt',
-            title: 'Last Updated',
+            title: 'Cập nhật lần cuối',
             render: (_, record: T) => (
                 <DateField
                     value={new Date(record?.updatedAt?.toString())}
@@ -101,7 +103,7 @@ export function BaseResourceList<
             ),
         },
         {
-            title: 'Actions',
+            title: 'Thao tác',
             dataIndex: 'actions',
             render: (_, record: T) => (
                 <Space>
@@ -110,9 +112,9 @@ export function BaseResourceList<
                         hideText
                         size="small"
                         recordItemId={record?._id?.toString()}
-                        confirmTitle="Are you sure you want to delete, this action will be permanent?"
-                        confirmOkText="Yes, delete"
-                        confirmCancelText="No, don't delete"
+                        confirmTitle="Bạn có chắc chắn muốn xóa, hành động này sẽ là vĩnh viễn?"
+                        confirmOkText="Có, xóa"
+                        confirmCancelText="Không, đừng xóa"
                         dataProviderName="graphql"
                         resource={resource}
                         meta={{
@@ -134,10 +136,13 @@ export function BaseResourceList<
 
     return (
         <List
+            title={title || <></>}
             headerButtons={({ defaultButtons }) => (
                 <>
                     {defaultButtons}
-                    <CreateButton onClick={() => router.push(createPath)} />
+                    <CreateButton title="Thêm mới" onClick={() => router.push(createPath)}>
+                        Thêm mới
+                    </CreateButton>
                 </>
             )}
         >
@@ -145,7 +150,7 @@ export function BaseResourceList<
                 <Form {...searchFormProps} layout="inline" onFinish={noop}>
                     <Form.Item name="keywords">
                         <Input.Search
-                            placeholder={`Search ${resource}`}
+                            placeholder={`Tìm kiếm ${resource}`}
                             onSearch={handleSearch}
                             allowClear
                             autoComplete="off"
@@ -160,11 +165,24 @@ export function BaseResourceList<
                         showSizeChanger: true,
                         pageSizeOptions: [10, 24, 50, 100, 200, 500],
                         showTotal: (total, range) =>
-                            `Showing ${range[0]} to ${range[1]} of ${total} results`,
+                            `Hiển thị ${range[0]} đến ${range[1]} trên tổng ${total} kết quả`,
                         position: ['topRight', 'bottomRight'],
                         size: 'small',
                         simple: true,
                         responsive: true,
+                        locale: {
+                            items_per_page: 'bản ghi trên trang',
+                            jump_to: 'Đến trang',
+                            page: 'Trang',
+                            prev_page: 'Trang trước',
+                            next_page: 'Trang tiếp',
+                            prev_5: '5 trang trước',
+                            next_5: '5 trang tiếp',
+                            prev_3: '3 trang trước',
+                            next_3: '3 trang tiếp',
+                            jump_to_confirm: 'Xác nhận',
+                            page_size: 'Bản ghi trên trang',
+                        },
                     }}
                     size="small"
                     columns={[...defaultColumns]}

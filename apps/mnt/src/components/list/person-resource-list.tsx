@@ -17,7 +17,7 @@ export function PersonResourceList(props: Omit<BaseResourceListProps<PersonType>
     const personColumns: ColumnsType<PersonType> = [
         {
             dataIndex: 'posterUrl',
-            title: 'Image',
+            title: 'Hình ảnh',
             render: (posterUrl: string, record: PersonType) => (
                 <Tooltip title={record.name}>
                     <AntImage
@@ -36,7 +36,7 @@ export function PersonResourceList(props: Omit<BaseResourceListProps<PersonType>
         },
         {
             dataIndex: 'originalName',
-            title: 'Original Name',
+            title: 'Tên gốc',
         },
     ];
 

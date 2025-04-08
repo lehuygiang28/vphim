@@ -27,7 +27,10 @@ export default function EditDirector({ params }: EditDirectorPageProps) {
     });
 
     return (
-        <Edit saveButtonProps={saveButtonProps}>
+        <Edit
+            title={`Chỉnh sửa đạo diễn "${formProps.initialValues?.name}"`}
+            saveButtonProps={saveButtonProps}
+        >
             <PersonResourceForm
                 formProps={formProps}
                 gqlQuery={MNT_DIRECTOR_QUERY}

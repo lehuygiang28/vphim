@@ -28,10 +28,12 @@ export function RestoreButton({
         <>
             <Popconfirm
                 key={`restore-popconfirm-${mutateParam.id}`}
-                okText="Yes, restore"
-                cancelText="No, don't restore"
+                okText="Có, khôi phục"
+                cancelText="Không, đừng khôi phục"
                 icon={<InfoCircleOutlined style={{ color: 'green' }} />}
-                title={`Are you sure you want to restore this ${name}?`}
+                title={`Bạn có chắc chắn muốn khôi phục ${
+                    name === 'movie' ? 'bộ phim' : name
+                } này?`}
                 onConfirm={async () => {
                     mutateRestore({
                         ...mutateParam,

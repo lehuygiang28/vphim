@@ -35,12 +35,23 @@ export const BaseResourceForm: React.FC<BaseResourceFormProps> = ({
         sourceField,
     });
 
+    const title = type === 'create' ? 'Tạo mới' : 'Chỉnh sửa';
+
     return (
-        <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
+        <Form title={title} {...formProps} layout="vertical" onFinish={handleFormSubmit}>
             <Form.Item
                 name={sourceField}
-                label={sourceField.charAt(0).toUpperCase() + sourceField.slice(1)}
-                rules={[{ required: true, message: `Please enter ${sourceField}` }]}
+                label={
+                    sourceField === 'name'
+                        ? 'Tên'
+                        : sourceField.charAt(0).toUpperCase() + sourceField.slice(1)
+                }
+                rules={[
+                    {
+                        required: true,
+                        message: `Vui lòng nhập ${sourceField === 'name' ? 'tên' : sourceField}`,
+                    },
+                ]}
             >
                 <Input onChange={handleSourceFieldChange} />
             </Form.Item>

@@ -7,6 +7,7 @@ import { PersonResourceList } from '~mnt/components/list/person-resource-list';
 export default function DirectorList() {
     return (
         <PersonResourceList
+            title="Danh sách đạo diễn"
             createPath="/directors/create"
             deleteOperation="deleteDirector"
             gqlQuery={GET_DIRECTOR_LIST_QUERY}

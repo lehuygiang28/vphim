@@ -28,7 +28,7 @@ export const ServerEpisodeSection = ({ form }) => {
     const showEpisodeModal = (serverIndex: number) => {
         const serverName =
             form.getFieldValue(['episode', serverIndex, 'serverName']) ||
-            `Server ${serverIndex + 1}`;
+            `Máy chủ ${serverIndex + 1}`;
         setCurrentServerIndex(serverIndex);
         setCurrentServerName(serverName);
         setIsEpisodeModalVisible(true);
@@ -50,7 +50,7 @@ export const ServerEpisodeSection = ({ form }) => {
         }: FilterDropdownProps) => (
             <div style={{ padding: 8 }}>
                 <Input
-                    placeholder={`Search ${dataIndex}`}
+                    placeholder={`Tìm ${dataIndex}`}
                     value={selectedKeys[0]}
                     onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
                     onPressEnter={() => confirm()}
@@ -64,14 +64,14 @@ export const ServerEpisodeSection = ({ form }) => {
                         size="small"
                         style={{ width: 90 }}
                     >
-                        Search
+                        Tìm kiếm
                     </Button>
                     <Button
                         onClick={() => clearFilters && clearFilters()}
                         size="small"
                         style={{ width: 90 }}
                     >
-                        Reset
+                        Đặt lại
                     </Button>
                 </Space>
             </div>
@@ -125,19 +125,19 @@ export const ServerEpisodeSection = ({ form }) => {
                                 key={field.key}
                                 title={
                                     <Space>
-                                        <Title level={5}>No. {index + 1}</Title>
+                                        <Title level={5}>STT. {index + 1}</Title>
                                         <Form.Item
                                             {...field}
                                             name={[field.name, 'serverName']}
                                             rules={[
                                                 {
                                                     required: true,
-                                                    message: 'Server name is required',
+                                                    message: 'Tên máy chủ là bắt buộc',
                                                 },
                                             ]}
                                             style={{ margin: 0 }}
                                         >
-                                            <Input placeholder="Server Name" />
+                                            <Input placeholder="Tên máy chủ" />
                                         </Form.Item>
                                         <Form.Item
                                             noStyle
@@ -175,19 +175,19 @@ export const ServerEpisodeSection = ({ form }) => {
                                             onClick={() => showEpisodeModal(index)}
                                             icon={<PlusOutlined />}
                                         >
-                                            Add Episode
+                                            Thêm tập phim
                                         </Button>
                                         <Popconfirm
-                                            title="Are you sure you want to delete this server?"
+                                            title="Bạn có chắc chắn muốn xóa máy chủ này?"
                                             onConfirm={() => remove(field.name)}
-                                            okText="Yes"
-                                            cancelText="No"
+                                            okText="Có"
+                                            cancelText="Không"
                                             icon={
                                                 <QuestionCircleOutlined style={{ color: 'red' }} />
                                             }
                                         >
                                             <Button danger icon={<MinusCircleOutlined />}>
-                                                Remove Server
+                                                Xóa máy chủ
                                             </Button>
                                         </Popconfirm>
                                     </Space>
@@ -226,7 +226,7 @@ export const ServerEpisodeSection = ({ form }) => {
                                                 }
                                                 columns={[
                                                     {
-                                                        title: 'Name',
+                                                        title: 'Tên',
                                                         dataIndex: 'name',
                                                         key: 'name',
                                                         ...getColumnSearchProps('name'),
@@ -237,7 +237,7 @@ export const ServerEpisodeSection = ({ form }) => {
                                                                     {
                                                                         required: true,
                                                                         message:
-                                                                            'Episode name is required',
+                                                                            'Tên tập phim là bắt buộc',
                                                                     },
                                                                 ]}
                                                                 style={{ margin: 0 }}
@@ -258,7 +258,7 @@ export const ServerEpisodeSection = ({ form }) => {
                                                                     {
                                                                         required: true,
                                                                         message:
-                                                                            'Episode slug is required',
+                                                                            'Slug tập phim là bắt buộc',
                                                                     },
                                                                 ]}
                                                                 style={{ margin: 0 }}
@@ -268,7 +268,7 @@ export const ServerEpisodeSection = ({ form }) => {
                                                         ),
                                                     },
                                                     {
-                                                        title: 'M3U8 Link',
+                                                        title: 'Link M3U8',
                                                         dataIndex: 'linkM3u8',
                                                         key: 'linkM3u8',
                                                         ...getColumnSearchProps('linkM3u8'),
@@ -285,7 +285,7 @@ export const ServerEpisodeSection = ({ form }) => {
                                                         ),
                                                     },
                                                     {
-                                                        title: 'Embed Link',
+                                                        title: 'Link nhúng',
                                                         dataIndex: 'linkEmbed',
                                                         key: 'linkEmbed',
                                                         ...getColumnSearchProps('linkEmbed'),
@@ -302,7 +302,7 @@ export const ServerEpisodeSection = ({ form }) => {
                                                         ),
                                                     },
                                                     {
-                                                        title: 'Action',
+                                                        title: 'Thao tác',
                                                         key: 'action',
                                                         render: (_, record) => (
                                                             <Space>
@@ -340,14 +340,14 @@ export const ServerEpisodeSection = ({ form }) => {
                                                                     }
                                                                 />
                                                                 <Popconfirm
-                                                                    title="Are you sure you want to delete this episode?"
+                                                                    title="Bạn có chắc chắn muốn xóa tập phim này?"
                                                                     onConfirm={() =>
                                                                         removeEpisode(
                                                                             record.episodeIndex,
                                                                         )
                                                                     }
-                                                                    okText="Yes"
-                                                                    cancelText="No"
+                                                                    okText="Có"
+                                                                    cancelText="Không"
                                                                     icon={
                                                                         <QuestionCircleOutlined
                                                                             style={{ color: 'red' }}
@@ -386,7 +386,7 @@ export const ServerEpisodeSection = ({ form }) => {
                                 block
                                 icon={<PlusOutlined />}
                             >
-                                Add Server
+                                Thêm máy chủ
                             </Button>
                         </Form.Item>
                     </>

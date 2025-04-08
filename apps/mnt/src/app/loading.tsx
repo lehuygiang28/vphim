@@ -14,7 +14,7 @@ const Loading = () => {
                 backgroundColor: '#000',
             }}
         >
-            <Spin size="large" indicator={<LoadingOutlined spin />} tip="Loading..." />
+            <Spin size="large" indicator={<LoadingOutlined spin />} tip="Đang tải..." />
         </div>
     );
 };

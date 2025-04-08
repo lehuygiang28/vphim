@@ -27,7 +27,10 @@ export default function EditCategory({ params }: EditCategoryPageProps) {
     });
 
     return (
-        <Edit saveButtonProps={saveButtonProps}>
+        <Edit
+            title={`Chỉnh sửa thể loại "${formProps.initialValues?.name}"`}
+            saveButtonProps={saveButtonProps}
+        >
             <BaseResourceForm
                 formProps={formProps}
                 type="edit"

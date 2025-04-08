@@ -61,7 +61,7 @@ export function useFormLocalStorage<T>(props: UseFormLocalStorageProps<T>): UseF
 
     const ClearFormButton: React.FC = () => (
         <Button icon={<ClearOutlined />} {...clearButtonProps}>
-            Clear Form
+            Xóa dữ liệu
         </Button>
     );
 

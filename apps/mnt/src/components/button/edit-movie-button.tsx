@@ -14,7 +14,7 @@ export function EditMovieButton({ id, hideText = false, size = 'middle' }: EditM
     return (
         <Link href={`/movies/edit/${id}`}>
             <Button type="default" icon={<EditOutlined />} size={size}>
-                {!hideText && 'Edit'}
+                {!hideText && 'Chỉnh sửa'}
             </Button>
         </Link>
     );

@@ -34,9 +34,9 @@ export const PersonResourceForm: React.FC<PersonResourceFormProps> = ({
         >
             <Form.Item
                 name="originalName"
-                label="Original Name"
-                rules={[{ required: true, message: 'Please enter original name' }]}
-                tooltip="Name in native language"
+                label="Tên gốc"
+                rules={[{ required: true, message: 'Vui lòng nhập tên gốc' }]}
+                tooltip="Tên bằng ngôn ngữ bản địa"
             >
                 <Input />
             </Form.Item>
@@ -44,8 +44,8 @@ export const PersonResourceForm: React.FC<PersonResourceFormProps> = ({
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
                 <Form.Item
                     name="posterUrl"
-                    label="Image URL"
-                    tooltip="Enter the URL of the person's image"
+                    label="URL hình ảnh"
+                    tooltip="Nhập URL hình ảnh của người này"
                 >
                     <Input
                         onChange={handleImageUrlChange}
@@ -57,7 +57,7 @@ export const PersonResourceForm: React.FC<PersonResourceFormProps> = ({
                     <div style={{ marginBottom: 24 }}>
                         <Image
                             src={imageUrl}
-                            alt="Preview"
+                            alt="Xem trước"
                             style={{
                                 maxWidth: '200px',
                                 maxHeight: '300px',

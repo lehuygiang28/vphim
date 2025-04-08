@@ -29,19 +29,19 @@ export const movieStatusOptions: MovieStatusOption[] = [
     },
     {
         value: MovieStatusEnum.COMPLETED,
-        label: 'Completed',
+        label: 'Hoàn thành',
         color: 'success',
         icon: <CheckCircleOutlined />,
     },
     {
         value: MovieStatusEnum.ON_GOING,
-        label: 'Ongoing',
+        label: 'Đang chiếu',
         color: 'processing',
         icon: <SyncOutlined spin />,
     },
     {
         value: MovieStatusEnum.UPDATING,
-        label: 'Updating',
+        label: 'Đang cập nhật',
         color: 'cyan',
         icon: <ClockCircleOutlined />,
     },

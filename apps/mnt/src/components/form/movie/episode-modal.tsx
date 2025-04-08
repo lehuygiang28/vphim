@@ -83,7 +83,7 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
 
     return (
         <Modal
-            title={`Add New Episodes to ${serverName}`}
+            title={`Thêm tập phim mới vào ${serverName}`}
             open={visible}
             onCancel={onClose}
             onOk={handleSubmit}
@@ -103,11 +103,11 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
                                         {...field}
                                         name={[field.name, 'name']}
                                         rules={[
-                                            { required: true, message: 'Episode name is required' },
+                                            { required: true, message: 'Tên tập phim là bắt buộc' },
                                         ]}
                                     >
                                         <Input
-                                            placeholder="Episode Name"
+                                            placeholder="Tên tập phim"
                                             onChange={(e) => {
                                                 if (autoSlugify[index] !== false) {
                                                     generateSlug(index, e.target.value);
@@ -118,8 +118,8 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
                                     <Tooltip
                                         title={
                                             autoSlugify[index] === false
-                                                ? 'Enable auto-slugify'
-                                                : 'Disable auto-slugify'
+                                                ? 'Bật tự động tạo slug'
+                                                : 'Tắt tự động tạo slug'
                                         }
                                     >
                                         <Button
@@ -134,16 +134,19 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
                                         {...field}
                                         name={[field.name, 'slug']}
                                         rules={[
-                                            { required: true, message: 'Episode slug is required' },
+                                            {
+                                                required: true,
+                                                message: 'Slug tập phim là bắt buộc',
+                                            },
                                             {
                                                 pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
                                                 message:
-                                                    'Slug must contain only lowercase letters, numbers, and hyphens',
+                                                    'Slug chỉ được chứa chữ cái thường, số và dấu gạch ngang',
                                             },
                                         ]}
                                     >
                                         <Input
-                                            placeholder="Episode Slug"
+                                            placeholder="Slug tập phim"
                                             disabled={autoSlugify[index] !== false}
                                         />
                                     </Form.Item>
@@ -162,12 +165,12 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
                                                         ])
                                                     ) {
                                                         return Promise.reject(
-                                                            'Either M3U8 Link or Embed Link is required',
+                                                            'Phải nhập ít nhất một trong hai: Link M3U8 hoặc Link nhúng',
                                                         );
                                                     }
                                                     if (value && !isValidUrl(value)) {
                                                         return Promise.reject(
-                                                            'Please enter a valid URL',
+                                                            'Vui lòng nhập URL hợp lệ',
                                                         );
                                                     }
                                                     return Promise.resolve();
@@ -175,7 +178,7 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
                                             },
                                         ]}
                                     >
-                                        <Input placeholder="M3U8 Link" />
+                                        <Input placeholder="Link M3U8" />
                                     </Form.Item>
                                     <Form.Item
                                         {...field}
@@ -192,12 +195,12 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
                                                         ])
                                                     ) {
                                                         return Promise.reject(
-                                                            'Either M3U8 Link or Embed Link is required',
+                                                            'Phải nhập ít nhất một trong hai: Link M3U8 hoặc Link nhúng',
                                                         );
                                                     }
                                                     if (value && !isValidUrl(value)) {
                                                         return Promise.reject(
-                                                            'Please enter a valid URL',
+                                                            'Vui lòng nhập URL hợp lệ',
                                                         );
                                                     }
                                                     return Promise.resolve();
@@ -205,7 +208,7 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
                                             },
                                         ]}
                                     >
-                                        <Input placeholder="Embed Link" />
+                                        <Input placeholder="Link nhúng" />
                                     </Form.Item>
                                     <MinusCircleOutlined onClick={() => remove(field.name)} />
                                 </Space>
@@ -224,7 +227,7 @@ export const EpisodeModal = ({ visible, onClose, form, serverIndex, serverName }
                                     block
                                     icon={<PlusOutlined />}
                                 >
-                                    Add Episode
+                                    Thêm tập phim
                                 </Button>
                             </Form.Item>
                         </>

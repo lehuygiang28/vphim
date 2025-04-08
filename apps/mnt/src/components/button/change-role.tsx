@@ -7,6 +7,12 @@ import { UserRoleEnum } from '~api/app/users/users.enum';
 
 const { Option } = Select;
 
+// Mapping for role names in Vietnamese
+const roleNameMapping: Record<string, string> = {
+    [UserRoleEnum.Admin]: 'Quản trị viên',
+    [UserRoleEnum.Member]: 'Thành viên',
+};
+
 export type UpdateUserRoleProps = Readonly<{
     user: UserDto;
     idParam: BaseKey;
@@ -43,11 +49,11 @@ export function UpdateUserRole(props: UpdateUserRoleProps) {
     return (
         <>
             {!isIdentityLoading && me?._id?.toString() !== idParam?.toString() && (
-                <Button onClick={() => setIsUpdateModalVisible(true)}>Change Role</Button>
+                <Button onClick={() => setIsUpdateModalVisible(true)}>Thay đổi vai trò</Button>
             )}
 
             <Modal
-                title="Update User Role"
+                title="Cập nhật vai trò người dùng"
                 open={isUpdateModalVisible}
                 onOk={() => {
                     handleUpdate({
@@ -59,17 +65,17 @@ export function UpdateUserRole(props: UpdateUserRoleProps) {
                 }}
                 destroyOnClose
             >
-                <p>Please select a new role for this user:</p>
+                <p>Vui lòng chọn vai trò mới cho người dùng này:</p>
                 <Select
-                    title="Select Role"
-                    defaultValue="Select a role"
+                    title="Chọn vai trò"
+                    placeholder="Chọn vai trò"
                     value={selectedRole}
                     onChange={handleRoleChange}
                     style={{ width: '100%' }}
                 >
                     {Object.entries(UserRoleEnum).map(([_, role]) => (
                         <Option key={role} value={role}>
-                            {role}
+                            {roleNameMapping[role] || role}
                         </Option>
                     ))}
                 </Select>

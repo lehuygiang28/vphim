@@ -61,7 +61,7 @@ export const authProvider = (
                                 switch (err) {
                                     case 'notFound': {
                                         resultResponse.error.message =
-                                            'Your email is not registered, please register first';
+                                            'Email của bạn chưa được đăng ký, vui lòng đăng ký trước';
                                         break;
                                     }
                                     default: {
@@ -130,8 +130,8 @@ export const authProvider = (
                         const resultResponse = {
                             success: false,
                             error: {
-                                name: 'RegisterError',
-                                message: 'Something went wrong, please try again',
+                                name: 'Lỗi đăng ký',
+                                message: 'Đã xảy ra lỗi, vui lòng thử lại sau',
                             },
                         };
 
@@ -143,7 +143,7 @@ export const authProvider = (
                                 switch (err) {
                                     case 'emailAlreadyExists': {
                                         resultResponse.error.message =
-                                            'Your email is already registered, back to login';
+                                            'Email của bạn đã được đăng ký, vui lòng đăng nhập';
                                         break;
                                     }
                                     default: {
@@ -168,8 +168,8 @@ export const authProvider = (
                             success: true,
                             redirectTo: RouteNameEnum.LOGIN_PAGE,
                             successNotification: {
-                                message: 'You have successfully registered',
-                                description: 'Back to login and continue to VePhim',
+                                message: 'Bạn đã đăng ký thành công',
+                                description: 'Quay lại trang đăng nhập và tiếp tục truy cập VePhim',
                             },
                         };
                     })
@@ -177,8 +177,8 @@ export const authProvider = (
                         const resultResponse = {
                             success: false,
                             error: {
-                                name: 'RegisterError',
-                                message: 'Something went wrong, please try again',
+                                name: 'Lỗi đăng ký',
+                                message: 'Đã xảy ra lỗi, vui lòng thử lại sau',
                             },
                         };
 
@@ -190,7 +190,7 @@ export const authProvider = (
                                 switch (err) {
                                     case 'invalidHash': {
                                         resultResponse.error.message =
-                                            'Your confirmation link is expired or invalid';
+                                            'Đường dẫn xác nhận của bạn đã hết hạn hoặc không hợp lệ';
                                         break;
                                     }
                                     default: {
@@ -203,12 +203,12 @@ export const authProvider = (
                                 switch (err) {
                                     case 'alreadyConfirmed': {
                                         resultResponse.error.message =
-                                            'Your email is already confirmed, back to login';
+                                            'Email của bạn đã được xác nhận, vui lòng đăng nhập';
                                         break;
                                     }
                                     case 'userNotFound': {
                                         resultResponse.error.message =
-                                            'Your email is not registered, please register first';
+                                            'Email của bạn chưa được đăng ký, vui lòng đăng ký trước';
                                         break;
                                     }
                                     default: {

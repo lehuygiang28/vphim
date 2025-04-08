@@ -208,7 +208,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
             }
         } catch (error) {
             onError({ error });
-            message.error('Image upload failed, please try again later!');
+            message.error('Tải ảnh thất bại, vui lòng thử lại sau!');
         } finally {
             setIsPosterLoading(false);
             setIsThumbLoading(false);
@@ -218,11 +218,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
     const beforeUpload = (file: File) => {
         const isAllowedType = ALLOWED_FILE_TYPES.includes(file.type);
         if (!isAllowedType) {
-            message.error('Invalid image format (JPG/PNG/GIF/WebP)');
+            message.error('Định dạng ảnh không hợp lệ (JPG/PNG/GIF/WebP)');
         }
         const isLessThan10MB = file.size <= MAX_FILE_SIZE;
         if (!isLessThan10MB) {
-            message.error('Image size is too large (max 10MB)');
+            message.error('Kích thước ảnh quá lớn (tối đa 10MB)');
         }
         return isAllowedType && isLessThan10MB;
     };
@@ -416,17 +416,17 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
             <Row gutter={16}>
                 <Col span={18}>
                     <Card
-                        title={<Title level={4}>Basic Information</Title>}
+                        title={<Title level={4}>Thông tin cơ bản</Title>}
                         style={{ marginBottom: 16 }}
                     >
                         <Row align="middle">
                             <Col span={11}>
                                 <Form.Item
                                     name="name"
-                                    label="Movie Name"
+                                    label="Tên phim"
                                     rules={[
-                                        { required: true, message: 'Name can not be empty' },
-                                        { type: 'string', message: 'Name must be a string' },
+                                        { required: true, message: 'Tên phim không được để trống' },
+                                        { type: 'string', message: 'Tên phim phải là chuỗi' },
                                     ]}
                                 >
                                     <Input onChange={handleNameChange} autoComplete="off" />
@@ -436,8 +436,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                 <Tooltip
                                     title={
                                         autoGenerateSlug
-                                            ? 'Disable auto-generate slug'
-                                            : 'Enable auto-generate slug'
+                                            ? 'Tắt tự động tạo slug'
+                                            : 'Bật tự động tạo slug'
                                     }
                                 >
                                     <Button
@@ -453,19 +453,17 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     name="slug"
                                     label="Slug"
                                     rules={[
-                                        { required: true, message: 'Slug can not be empty' },
-                                        { type: 'string', message: 'Slug must be a string' },
+                                        { required: true, message: 'Slug không được để trống' },
+                                        { type: 'string', message: 'Slug phải là chuỗi' },
                                         {
                                             pattern: /^[a-zA-Z0-9-_]+$/,
                                             message:
-                                                'Slug can only contain alphanumeric characters, hyphens, and underscores',
+                                                'Slug chỉ được chứa chữ cái, số, dấu gạch ngang và gạch dưới',
                                         },
                                         {
                                             validator: (_, value) => {
                                                 if (mode === 'create' && slugExists) {
-                                                    return Promise.reject(
-                                                        'This slug already exists',
-                                                    );
+                                                    return Promise.reject('Slug này đã tồn tại');
                                                 }
                                                 return Promise.resolve();
                                             },
@@ -474,17 +472,15 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     help={
                                         mode === 'create' ? (
                                             isCheckingSlug ? (
-                                                <Text type="secondary">
-                                                    Checking slug availability...
-                                                </Text>
+                                                <Text type="secondary">Đang kiểm tra slug...</Text>
                                             ) : debouncedSlug && slugExists ? (
-                                                <Text type="danger">This slug already exists</Text>
+                                                <Text type="danger">Slug này đã tồn tại</Text>
                                             ) : debouncedSlug ? (
-                                                <Text type="success">Slug is available</Text>
+                                                <Text type="success">Slug có thể sử dụng</Text>
                                             ) : null
                                         ) : (
                                             <Text type="secondary">
-                                                Slug cannot be changed in edit mode
+                                                Không thể thay đổi slug khi chỉnh sửa
                                             </Text>
                                         )
                                     }
@@ -501,11 +497,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={12}>
                                 <Form.Item
                                     name="originName"
-                                    label="Original Name"
+                                    label="Tên gốc"
                                     rules={[
                                         {
                                             type: 'string',
-                                            message: 'Original name must be a string',
+                                            message: 'Tên gốc phải là chuỗi',
                                         },
                                     ]}
                                 >
@@ -515,8 +511,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={12}>
                                 <Form.Item
                                     name="year"
-                                    label="Year"
-                                    rules={[{ type: 'number', message: 'Year must be a number' }]}
+                                    label="Năm"
+                                    rules={[{ type: 'number', message: 'Năm phải là số' }]}
                                 >
                                     <InputNumber style={{ width: '100%' }} />
                                 </Form.Item>
@@ -524,22 +520,19 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                         </Row>
                         <Form.Item
                             name="content"
-                            label="Content"
-                            rules={[{ type: 'string', message: 'Content must be a string' }]}
+                            label="Nội dung"
+                            rules={[{ type: 'string', message: 'Nội dung phải là chuỗi' }]}
                         >
                             <TextArea rows={4} />
                         </Form.Item>
                     </Card>
-                    <Card
-                        title={<Title level={4}>Classification</Title>}
-                        style={{ marginBottom: 16 }}
-                    >
+                    <Card title={<Title level={4}>Phân loại</Title>} style={{ marginBottom: 16 }}>
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
                                     name="actors"
-                                    label="Actors"
-                                    rules={[{ type: 'array', message: 'Actors must be an array' }]}
+                                    label="Diễn viên"
+                                    rules={[{ type: 'array', message: 'Diễn viên phải là mảng' }]}
                                 >
                                     <Select
                                         {...actorSelectProps}
@@ -561,10 +554,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={12}>
                                 <Form.Item
                                     name="directors"
-                                    label="Directors"
-                                    rules={[
-                                        { type: 'array', message: 'Directors must be an array' },
-                                    ]}
+                                    label="Đạo diễn"
+                                    rules={[{ type: 'array', message: 'Đạo diễn phải là mảng' }]}
                                 >
                                     <Select
                                         {...directorSelectProps}
@@ -588,10 +579,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={12}>
                                 <Form.Item
                                     name="categories"
-                                    label="Categories"
-                                    rules={[
-                                        { type: 'array', message: 'Categories must be an array' },
-                                    ]}
+                                    label="Thể loại"
+                                    rules={[{ type: 'array', message: 'Thể loại phải là mảng' }]}
                                 >
                                     <Select
                                         {...categorySelectProps}
@@ -613,10 +602,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={12}>
                                 <Form.Item
                                     name="countries"
-                                    label="Countries"
-                                    rules={[
-                                        { type: 'array', message: 'Countries must be an array' },
-                                    ]}
+                                    label="Quốc gia"
+                                    rules={[{ type: 'array', message: 'Quốc gia phải là mảng' }]}
                                 >
                                     <Select
                                         {...countrySelectProps}
@@ -638,16 +625,16 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                         </Row>
                     </Card>
                     <Card
-                        title={<Title level={4}>Additional Information</Title>}
+                        title={<Title level={4}>Thông tin bổ sung</Title>}
                         style={{ marginBottom: 16 }}
                     >
                         <Row gutter={16}>
                             <Col span={8}>
                                 <Form.Item
                                     name="type"
-                                    label="Type"
+                                    label="Loại"
                                     rules={[
-                                        { required: true, message: 'Type can not be empty' },
+                                        { required: true, message: 'Loại không được để trống' },
                                         { type: 'enum', enum: Object.values(MovieTypeEnum) },
                                     ]}
                                 >
@@ -663,13 +650,16 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={8}>
                                 <Form.Item
                                     name="status"
-                                    label="Status"
+                                    label="Trạng thái"
                                     rules={[
-                                        { required: true, message: 'Status can not be empty' },
+                                        {
+                                            required: true,
+                                            message: 'Trạng thái không được để trống',
+                                        },
                                         {
                                             type: 'enum',
                                             enum: Object.values(MovieStatusEnum),
-                                            message: 'Invalid movie status',
+                                            message: 'Trạng thái phim không hợp lệ',
                                         },
                                     ]}
                                 >
@@ -685,9 +675,9 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={8}>
                                 <Form.Item
                                     name="quality"
-                                    label="Quality"
+                                    label="Chất lượng"
                                     rules={[
-                                        { type: 'string', message: 'Quality must be a string' },
+                                        { type: 'string', message: 'Chất lượng phải là chuỗi' },
                                     ]}
                                 >
                                     <Select
@@ -697,7 +687,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                 <Divider style={{ margin: '8px 0' }} />
                                                 <Space style={{ padding: '0 8px 4px' }}>
                                                     <Input
-                                                        placeholder="Custom quality"
+                                                        placeholder="Chất lượng tùy chỉnh"
                                                         value={customQuality}
                                                         onChange={(e) =>
                                                             setCustomQuality(e.target.value)
@@ -715,7 +705,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                             }
                                                         }}
                                                     >
-                                                        Add
+                                                        Thêm
                                                     </Button>
                                                 </Space>
                                             </>
@@ -735,11 +725,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                 <Form.Item
                                     name="isCopyright"
                                     valuePropName="checked"
-                                    label="Is Copyright"
+                                    label="Bản quyền"
                                     rules={[
                                         {
                                             type: 'boolean',
-                                            message: 'Is Copyright must be a boolean',
+                                            message: 'Bản quyền phải là boolean',
                                         },
                                     ]}
                                 >
@@ -750,11 +740,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                 <Form.Item
                                     name="cinemaRelease"
                                     valuePropName="checked"
-                                    label="Cinema Release"
+                                    label="Phát hành rạp"
                                     rules={[
                                         {
                                             type: 'boolean',
-                                            message: 'Cinema Release must be a boolean',
+                                            message: 'Phát hành rạp phải là boolean',
                                         },
                                     ]}
                                 >
@@ -765,11 +755,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                 <Form.Item
                                     name="subDocquyen"
                                     valuePropName="checked"
-                                    label="Sub Copyright"
+                                    label="Sub độc quyền"
                                     rules={[
                                         {
                                             type: 'boolean',
-                                            message: 'Sub Copyright must be a boolean',
+                                            message: 'Sub độc quyền phải là boolean',
                                         },
                                     ]}
                                 >
@@ -781,10 +771,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={6}>
                                 <Form.Item
                                     name="lang"
-                                    label="Language"
-                                    rules={[
-                                        { type: 'string', message: 'Language must be a string' },
-                                    ]}
+                                    label="Ngôn ngữ"
+                                    rules={[{ type: 'string', message: 'Ngôn ngữ phải là chuỗi' }]}
                                 >
                                     <Input autoComplete="off" />
                                 </Form.Item>
@@ -792,9 +780,9 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={6}>
                                 <Form.Item
                                     name="time"
-                                    label="Duration"
+                                    label="Thời lượng"
                                     rules={[
-                                        { type: 'string', message: 'Duration must be a string' },
+                                        { type: 'string', message: 'Thời lượng phải là chuỗi' },
                                     ]}
                                 >
                                     <Input autoComplete="off" />
@@ -803,11 +791,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={6}>
                                 <Form.Item
                                     name="episodeCurrent"
-                                    label="Current Episode"
+                                    label="Tập hiện tại"
                                     rules={[
                                         {
                                             type: 'string',
-                                            message: 'Current Episode must be a string',
+                                            message: 'Tập hiện tại phải là chuỗi',
                                         },
                                     ]}
                                 >
@@ -817,11 +805,11 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             <Col span={6}>
                                 <Form.Item
                                     name="episodeTotal"
-                                    label="Total Episodes"
+                                    label="Tổng số tập"
                                     rules={[
                                         {
                                             type: 'string',
-                                            message: 'Total Episodes must be a string',
+                                            message: 'Tổng số tập phải là chuỗi',
                                         },
                                     ]}
                                 >
@@ -830,41 +818,41 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             </Col>
                         </Row>
                     </Card>
-                    <Card title="Episodes" style={{ marginBottom: 16 }}>
+                    <Card title="Tập phim" style={{ marginBottom: 16 }}>
                         <ServerEpisodeSection form={formProps.form} />
                     </Card>
                     <Card
-                        title={<Title level={4}>External IDs</Title>}
+                        title={<Title level={4}>ID bên ngoài</Title>}
                         style={{ marginBottom: 16 }}
                     >
                         <Row gutter={16}>
                             <Col span={12}>
-                                <Form.Item label="IMDB ID" name={['imdb', 'id']}>
+                                <Form.Item label="ID IMDB" name={['imdb', 'id']}>
                                     <Input />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
-                                <Form.Item label="TMDB ID" name={['tmdb', 'id']}>
+                                <Form.Item label="ID TMDB" name={['tmdb', 'id']}>
                                     <Input />
                                 </Form.Item>
                             </Col>
                         </Row>
                         <Row gutter={16}>
                             <Col span={8}>
-                                <Form.Item label="TMDB Type" name={['tmdb', 'type']}>
+                                <Form.Item label="Loại TMDB" name={['tmdb', 'type']}>
                                     <Select>
-                                        <Option value="movie">Movie</Option>
-                                        <Option value="tv">TV</Option>
+                                        <Option value="movie">Phim lẻ</Option>
+                                        <Option value="tv">Phim bộ</Option>
                                     </Select>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
-                                <Form.Item label="TMDB Season" name={['tmdb', 'season']}>
+                                <Form.Item label="Mùa TMDB" name={['tmdb', 'season']}>
                                     <InputNumber style={{ width: '100%' }} />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
-                                <Form.Item label="TMDB Vote Average" name={['tmdb', 'voteAverage']}>
+                                <Form.Item label="Điểm TMDB" name={['tmdb', 'voteAverage']}>
                                     <InputNumber
                                         style={{ width: '100%' }}
                                         min={0}
@@ -877,14 +865,14 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card title={<Title level={4}>Media</Title>} style={{ marginBottom: 16 }}>
+                    <Card title={<Title level={4}>Hình ảnh</Title>} style={{ marginBottom: 16 }}>
                         <Space direction="vertical">
                             <Form.Item
                                 name="thumbUrl"
-                                label="Horizontal Image (Thumb)"
+                                label="Ảnh ngang (Thumb)"
                                 rules={[
-                                    { required: true, message: 'Thumb can not be empty' },
-                                    { type: 'url', message: 'Thumb URL must be a valid URL' },
+                                    { required: true, message: 'Ảnh ngang không được để trống' },
+                                    { type: 'url', message: 'URL ảnh ngang phải hợp lệ' },
                                 ]}
                             >
                                 <Space direction="vertical" style={{ width: '100%' }}>
@@ -906,7 +894,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                 icon={<UploadOutlined />}
                                                 loading={isThumbLoading}
                                             >
-                                                Upload
+                                                Tải lên
                                             </Button>
                                         </Upload>
                                         {thumbUrl !== defaultThumbUrl && (
@@ -914,7 +902,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                 icon={<UndoOutlined />}
                                                 onClick={() => restoreDefaultImage('thumb')}
                                             >
-                                                Restore Default
+                                                Khôi phục
                                             </Button>
                                         )}
                                     </Space>
@@ -923,14 +911,14 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             {thumbUrl && (
                                 <Image
                                     src={thumbUrl}
-                                    alt="Movie Horizontal Image"
+                                    alt="Ảnh ngang phim"
                                     style={{ width: '100%', marginBottom: 16 }}
                                 />
                             )}
                             <Form.Item
                                 name="posterUrl"
-                                label="Vertical Image (Poster)"
-                                rules={[{ type: 'url', message: 'Poster URL must be a valid URL' }]}
+                                label="Ảnh dọc (Poster)"
+                                rules={[{ type: 'url', message: 'URL ảnh dọc phải hợp lệ' }]}
                             >
                                 <Space direction="vertical" style={{ width: '100%' }}>
                                     <Input
@@ -951,7 +939,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                 icon={<UploadOutlined />}
                                                 loading={isPosterLoading}
                                             >
-                                                Upload
+                                                Tải lên
                                             </Button>
                                         </Upload>
                                         {posterUrl !== defaultPosterUrl && (
@@ -959,7 +947,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                 icon={<UndoOutlined />}
                                                 onClick={() => restoreDefaultImage('poster')}
                                             >
-                                                Restore Default
+                                                Khôi phục
                                             </Button>
                                         )}
                                     </Space>
@@ -968,16 +956,14 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                             {posterUrl && (
                                 <Image
                                     src={posterUrl}
-                                    alt="Movie Vertical Image"
+                                    alt="Ảnh dọc phim"
                                     style={{ width: '100%', marginBottom: 16 }}
                                 />
                             )}
                             <Form.Item
                                 name="trailerUrl"
-                                label="Trailer URL"
-                                rules={[
-                                    { type: 'url', message: 'Trailer URL must be a valid URL' },
-                                ]}
+                                label="URL trailer"
+                                rules={[{ type: 'url', message: 'URL trailer phải hợp lệ' }]}
                             >
                                 <Input />
                             </Form.Item>

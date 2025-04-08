@@ -28,7 +28,11 @@ export default function CreateRegion() {
     });
 
     return (
-        <Create saveButtonProps={saveButtonProps} headerButtons={<ClearFormButton />}>
+        <Create
+            title="Thêm đạo diễn"
+            saveButtonProps={saveButtonProps}
+            headerButtons={<ClearFormButton />}
+        >
             <PersonResourceForm
                 formProps={{
                     ...formProps,

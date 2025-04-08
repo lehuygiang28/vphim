@@ -28,9 +28,9 @@ export function DeleteMovieButton({
             hideText
             size="small"
             recordItemId={id}
-            confirmTitle="You will permanently delete this movie. This action cannot be undone."
-            confirmOkText="Yes, permanently delete"
-            confirmCancelText="No, don't delete"
+            confirmTitle="Bạn sẽ xóa vĩnh viễn bộ phim này. Hành động này không thể hoàn tác."
+            confirmOkText="Có, xóa vĩnh viễn"
+            confirmCancelText="Không, đừng xóa"
             resource="movies"
             dataProviderName="graphql"
             meta={{
@@ -66,9 +66,9 @@ export function DeleteMovieButton({
             hideText
             size="small"
             recordItemId={id}
-            confirmTitle="Are you sure you want to delete this movie?"
-            confirmOkText="Yes, delete"
-            confirmCancelText='No, don"t delete'
+            confirmTitle="Bạn có chắc chắn muốn xóa bộ phim này?"
+            confirmOkText="Có, xóa"
+            confirmCancelText="Không, đừng xóa"
             resource="movies"
             dataProviderName="graphql"
             meta={{

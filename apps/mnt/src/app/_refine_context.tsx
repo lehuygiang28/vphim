@@ -68,12 +68,16 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                 {
                                     name: 'dashboard',
                                     list: '/dashboard',
+                                    meta: {
+                                        label: 'Bảng điều khiển',
+                                    },
                                 },
                                 {
                                     name: 'movies',
                                     meta: {
                                         icon: <PlaySquareOutlined />,
                                         canDelete: true,
+                                        label: 'Phim',
                                     },
                                 },
                                 {
@@ -86,6 +90,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                         icon: <UnorderedListOutlined />,
                                         canDelete: true,
                                         parent: 'movies',
+                                        label: 'Danh sách',
                                     },
                                 },
                                 {
@@ -95,6 +100,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                         canDelete: true,
                                         icon: <DeleteFilled />,
                                         parent: 'movies',
+                                        label: 'Thùng rác',
                                     },
                                 },
                                 {
@@ -104,6 +110,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     show: '/categories/show/:id',
                                     meta: {
                                         icon: <TagOutlined />,
+                                        label: 'Thể loại',
                                     },
                                 },
                                 {
@@ -113,6 +120,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     show: '/countries/show/:id',
                                     meta: {
                                         icon: <GlobalOutlined />,
+                                        label: 'Khu vực/Quốc gia',
                                     },
                                 },
                                 {
@@ -122,6 +130,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     show: '/directors/show/:id',
                                     meta: {
                                         icon: <VideoCameraOutlined />,
+                                        label: 'Đạo diễn',
                                     },
                                 },
                                 {
@@ -131,6 +140,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     show: '/actors/show/:id',
                                     meta: {
                                         icon: <TeamOutlined />,
+                                        label: 'Diễn viên',
                                     },
                                 },
                                 {
@@ -140,6 +150,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                                     show: '/users/show/:id',
                                     meta: {
                                         icon: <UserOutlined />,
+                                        label: 'Người dùng',
                                     },
                                 },
                             ]}

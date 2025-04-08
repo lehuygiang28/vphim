@@ -27,7 +27,10 @@ export default function EditRegion({ params }: EditRegionPageProps) {
     });
 
     return (
-        <Edit saveButtonProps={saveButtonProps}>
+        <Edit
+            title={`Chỉnh sửa quốc gia "${formProps.initialValues?.name}"`}
+            saveButtonProps={saveButtonProps}
+        >
             <BaseResourceForm
                 formProps={formProps}
                 type="create"

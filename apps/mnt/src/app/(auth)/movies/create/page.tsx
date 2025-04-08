@@ -29,7 +29,11 @@ export default function MovieCreatePage() {
     });
 
     return (
-        <Create saveButtonProps={saveButtonProps} headerButtons={<ClearFormButton />}>
+        <Create
+            title={'Thêm phim'}
+            saveButtonProps={saveButtonProps}
+            headerButtons={<ClearFormButton />}
+        >
             <MovieForm
                 formProps={{
                     ...formProps,

@@ -28,7 +28,11 @@ export default function CreateActor() {
     });
 
     return (
-        <Create saveButtonProps={saveButtonProps} headerButtons={<ClearFormButton />}>
+        <Create
+            title="Thêm diễn viên"
+            saveButtonProps={saveButtonProps}
+            headerButtons={<ClearFormButton />}
+        >
             <PersonResourceForm
                 formProps={{
                     ...formProps,

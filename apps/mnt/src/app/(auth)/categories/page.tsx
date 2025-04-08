@@ -8,6 +8,7 @@ import { SimpleResourceList } from '~mnt/components/list/simple-resource-list';
 export default function CategoryList() {
     return (
         <SimpleResourceList
+            title="Danh sách thể loại"
             createPath="/categories/create"
             deleteOperation="deleteCategory"
             gqlQuery={MNT_CATEGORIES_LIST_QUERY}

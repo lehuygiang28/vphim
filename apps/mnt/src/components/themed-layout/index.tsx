@@ -24,12 +24,12 @@ function CustomSider() {
         {
             key: 'profile',
             icon: <UserOutlined />,
-            label: <Link onClick={() => router.push('/profile')}>Profile</Link>,
+            label: <Link onClick={() => router.push('/profile')}>Hồ sơ cá nhân</Link>,
         },
         {
             key: 'logout',
             icon: <LogoutOutlined />,
-            label: 'Logout',
+            label: 'Đăng xuất',
             onClick: () => logout(),
         },
     ];
@@ -40,7 +40,7 @@ function CustomSider() {
                 <Link href={'/'} style={{ all: 'unset', cursor: 'pointer' }}>
                     <Image
                         src={'/assets/images/logo-mini.png'}
-                        alt="logo vephim"
+                        alt="Logo VePhim"
                         width={70}
                         height={20}
                     />
