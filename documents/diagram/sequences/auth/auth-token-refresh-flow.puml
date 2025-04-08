@@ -1,0 +1,75 @@
+@startuml Token Refresh Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 250
+skinparam noteFontSize 12
+skinparam BoxPadding 10
+
+autonumber
+
+title Token Refresh Flow
+caption Process to obtain new access and refresh tokens using a valid refresh token
+
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "JwtRefreshStrategy" as JRS #Orange
+participant "AuthService" as AS #LightBlue
+participant "UsersService" as US #LightBlue
+participant "JwtService" as JWT #Orange
+participant "Database" as DB #Gray
+
+User -> FE ++ : Automatic token refresh
+note right: Access token expired or about to expire
+FE -> AC ++ : POST /auth/refresh (refreshToken)
+note right: Send refresh token in body
+
+AC -> JRS ++ : validate refresh token
+note right: Protected by jwt-refresh guard
+JRS -> JRS ++ : verify jwt signature
+note right: Check token validity and expiry
+return verification result
+
+alt Invalid token
+    JRS --> AC -- : throw UnauthorizedException
+    note right: Token expired, invalid or tampered
+    AC --> FE -- : 401 Invalid refresh token
+    FE --> User -- : Redirect to login
+else Valid token
+    JRS --> AC : UserJwt payload
+
+    AC -> AS ++ : refreshToken(user)
+    note right: User data from JWT payload
+
+    AS -> US ++ : findByEmail(email)
+    US -> DB ++ : query
+    return user
+    deactivate US
+
+    alt User not found
+        AS --> AC -- : throw UnprocessableEntityException
+        AC --> FE -- : 422 User doesn't exist
+        FE --> User -- : Logout
+    else User found
+        alt User blocked
+            AS --> AC -- : throw UnprocessableEntityException
+            AC --> FE -- : 422 User blocked
+            FE --> User -- : Show blocked message
+        else User not blocked
+            AS -> AS ++ : generateTokens(user)
+
+            AS -> JWT ++ : signAsync access token
+            return accessToken
+
+            AS -> JWT ++ : signAsync refresh token
+            return refreshToken
+
+            AS --> AC -- : LoginResponseDto
+            AC --> FE -- : 200 tokens + user
+            FE --> User -- : Continue session
+            note right: Store new tokens and update authorization header
+        end
+    end
+end
+
+@enduml

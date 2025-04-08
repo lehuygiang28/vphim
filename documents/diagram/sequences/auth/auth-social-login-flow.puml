@@ -1,0 +1,139 @@
+@startuml Social Login Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 250
+skinparam noteFontSize 12
+skinparam BoxPadding 10
+
+autonumber
+
+title Social Login Flow
+caption Authentication using Google and GitHub OAuth providers
+
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "AuthService" as AS #LightBlue
+participant "UsersService" as US #LightBlue
+participant "JwtService" as JWT #Orange
+participant "Database" as DB #Gray
+participant "GoogleOAuth" as Google #LightBlue
+participant "GitHubOAuth" as GitHub #LightGray
+
+' Google Login Flow
+group Google Login
+    User -> FE ++ : Click Google login
+    note right: User selects Google sign-in option
+
+    FE -> Google ++ : Authenticate
+    note right: OAuth2 authentication flow
+    return Return idToken
+
+    FE -> AC ++ : POST /auth/login/google (idToken)
+    AC -> AS ++ : validateLoginGoogle(data)
+
+    AS -> Google ++ : verifyIdToken
+    note right: Verify token with Google OAuth API
+    return user data or error
+
+    alt Invalid token
+        AS --> AC -- : throw UnauthorizedException
+        AC --> FE -- : 401 Google login failed
+        FE --> User -- : Show error message
+    else Valid token
+        AS -> US ++ : findByEmail(email)
+        US -> DB ++ : query
+        return result
+        deactivate US
+
+        alt User not found
+            AS -> US ++ : create new user
+            note right: Auto-registration with Google profile
+            US -> DB ++ : insert
+            return user created
+            deactivate US
+        end
+
+        alt Email not verified
+            AS -> US ++ : update user (emailVerified: true)
+            note right: Trust Google verified emails
+            US -> DB ++ : update
+            return updated
+            deactivate US
+        end
+
+        AS -> AS ++ : generateTokens(user)
+
+        AS -> JWT ++ : signAsync access token
+        return accessToken
+
+        AS -> JWT ++ : signAsync refresh token
+        return refreshToken
+
+        AS --> AC -- : LoginResponseDto
+        AC --> FE -- : 200 tokens + user
+        FE --> User -- : Login successful
+    end
+end
+
+|||
+note across: Both social providers follow the same pattern with different token verification
+|||
+
+' GitHub Login Flow
+group GitHub Login
+    User -> FE ++ : Click GitHub login
+    note right: User selects GitHub sign-in option
+
+    FE -> GitHub ++ : Authenticate
+    note right: OAuth authorization code flow
+    return Return accessToken
+
+    FE -> AC ++ : POST /auth/login/github (accessToken)
+    AC -> AS ++ : validateLoginGithub(data)
+
+    AS -> GitHub ++ : GET /user
+    note right: Call GitHub REST API with token
+    return user data or error
+
+    alt Invalid token
+        AS --> AC -- : throw UnauthorizedException
+        AC --> FE -- : 401 GitHub login failed
+        FE --> User -- : Show error message
+    else Valid token
+        AS -> US ++ : findByEmail(email)
+        US -> DB ++ : query
+        return result
+        deactivate US
+
+        alt User not found
+            AS -> US ++ : create new user
+            note right: Auto-registration with GitHub profile
+            US -> DB ++ : insert
+            return user created
+            deactivate US
+        end
+
+        alt Email not verified
+            AS -> US ++ : update user (emailVerified: true)
+            note right: Trust GitHub verified emails
+            US -> DB ++ : update
+            return updated
+            deactivate US
+        end
+
+        AS -> AS ++ : generateTokens(user)
+
+        AS -> JWT ++ : signAsync access token
+        return accessToken
+
+        AS -> JWT ++ : signAsync refresh token
+        return refreshToken
+
+        AS --> AC -- : LoginResponseDto
+        AC --> FE -- : 200 tokens + user
+        FE --> User -- : Login successful
+    end
+end
+
+@enduml

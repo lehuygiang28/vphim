@@ -1,0 +1,66 @@
+@startuml Registration Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 250
+skinparam noteFontSize 12
+skinparam BoxPadding 10
+
+autonumber
+
+title Registration Flow
+caption User registration with email confirmation
+
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "AuthService" as AS #LightBlue
+participant "JwtService" as JWT #Orange
+participant "UsersService" as US #LightBlue
+participant "Redis" as Redis #Pink
+participant "MailQueue" as Mail #Yellow
+participant "Database" as DB #Gray
+
+User -> FE ++ : Submit registration form
+note right of User: Provides email and accepts terms
+FE -> AC ++ : POST /auth/register (email, returnUrl)
+AC -> AS ++ : register(dto)
+note right of AS: Normalizes email (lowercase, trim)
+
+AS -> US ++ : findByEmail(email)
+US -> DB ++ : query
+return result
+deactivate DB
+deactivate US
+
+alt User exists
+    AS --> AC -- : throw UnprocessableEntityException
+    AC --> FE -- : 422 Email already exists
+    FE --> User -- : Show error message
+else New user
+    AS -> US ++ : create(userData)
+    US -> DB ++ : insert
+    return user created
+    deactivate US
+
+    AS -> JWT ++ : signAsync confirmation token
+    return hash
+
+    AS -> AS ++ : Generate key "auth:confirmEmailHash:{userId}"
+    return
+
+    AS -> Redis ++ : set hash with expiry
+    return confirm stored
+
+    AS -> AS ++ : Create URL with hash for email confirmation
+    return
+
+    AS ->> Mail : add 'sendEmailRegister' to queue
+    note right: Asynchronous operation
+    Mail -->> AS : email queued
+
+    AS --> AC -- : void (204 No Content)
+    AC --> FE -- : 204 No Content
+    FE --> User -- : Show confirmation message
+end
+
+@enduml

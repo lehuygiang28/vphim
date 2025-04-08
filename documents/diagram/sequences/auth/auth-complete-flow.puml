@@ -1,0 +1,434 @@
+@startuml Authentication Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 250
+skinparam noteFontSize 12
+skinparam BoxPadding 10
+
+title Authentication Flow
+caption Complete authentication system with multiple login methods
+
+' Common participants definition
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "AuthService" as AS #LightBlue
+participant "JwtService" as JWT #Orange
+participant "UsersService" as US #LightBlue
+participant "Redis" as Redis #Pink
+participant "MailQueue" as Mail #Yellow
+participant "Database" as DB #Gray
+participant "GoogleOAuth" as Google #LightBlue
+participant "GitHubOAuth" as GitHub #LightGray
+
+' Registration Flow
+newpage Registration Flow
+
+autonumber
+
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "AuthService" as AS #LightBlue
+participant "JwtService" as JWT #Orange
+participant "UsersService" as US #LightBlue
+participant "Redis" as Redis #Pink
+participant "MailQueue" as Mail #Yellow
+participant "Database" as DB #Gray
+
+group Registration
+    User -> FE ++ : Submit registration form
+    FE -> AC ++ : POST /auth/register (email, returnUrl)
+    AC -> AS ++ : register(dto)
+    note right: Normalize email (lowercase, trim)
+
+    AS -> US ++ : findByEmail(email)
+    US -> DB ++ : query
+    return result
+    deactivate US
+
+    alt User exists
+        AS --> AC -- : throw UnprocessableEntityException
+        AC --> FE -- : 422 Email already exists
+        FE --> User -- : Show error message
+    else New user
+        AS -> US ++ : create(userData)
+        US -> DB ++ : insert
+        return user created
+        deactivate US
+
+        AS -> JWT ++ : signAsync confirmation token
+        return hash
+
+        AS -> Redis ++ : set hash with expiry
+        return confirm stored
+
+        AS ->> Mail : add 'sendEmailRegister' to queue
+        note right: Asynchronous operation
+        Mail -->> AS : email queued
+
+        AS --> AC -- : void (204 No Content)
+        AC --> FE -- : 204 No Content
+        FE --> User -- : Show confirmation message
+    end
+end
+
+' Email Confirmation Flow
+newpage Email Confirmation Flow
+
+autonumber
+
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "AuthService" as AS #LightBlue
+participant "JwtService" as JWT #Orange
+participant "UsersService" as US #LightBlue
+participant "Redis" as Redis #Pink
+participant "Database" as DB #Gray
+
+group Email Confirmation
+    User -> FE ++ : Click confirmation link
+    FE -> AC ++ : POST /auth/register/confirm (hash)
+    AC -> AS ++ : registerConfirm(hash)
+
+    AS -> JWT ++ : verifyAsync hash
+    return decoded data or error
+
+    alt Invalid hash
+        AS --> AC -- : throw UnprocessableEntityException
+        AC --> FE -- : 422 Invalid hash
+        FE --> User -- : Show error message
+    else Valid hash
+        AS -> US ++ : findById(userId)
+        US -> DB ++ : query
+        return user
+        deactivate US
+
+        AS -> Redis ++ : existsUniqueKey(key)
+        return exists status
+
+        alt Hash doesn't exist or user already confirmed
+            AS --> AC -- : throw UnprocessableEntityException
+            AC --> FE -- : 422 Error message
+            FE --> User -- : Show error message
+        else Hash valid and user not confirmed
+            AS -> Redis ++ : del(key)
+            return confirm deleted
+
+            AS -> US ++ : update user (emailVerified: true)
+            US -> DB ++ : update
+            return updated
+            deactivate US
+
+            AS --> AC -- : void (204 No Content)
+            AC --> FE -- : 204 No Content
+            FE --> User -- : Show success message
+        end
+    end
+end
+
+' Passwordless Login Flow
+newpage Passwordless Login Flow
+
+autonumber
+
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "AuthService" as AS #LightBlue
+participant "UsersService" as US #LightBlue
+participant "JwtService" as JWT #Orange
+participant "Redis" as Redis #Pink
+participant "MailQueue" as Mail #Yellow
+participant "Database" as DB #Gray
+
+group Passwordless Login - Request
+    User -> FE ++ : Submit email
+    FE -> AC ++ : POST /auth/login/pwdless (email, returnUrl)
+    AC -> AS ++ : requestLoginPwdless(data)
+
+    AS -> US ++ : findByEmail(email)
+    US -> DB ++ : query
+    return result
+    deactivate US
+
+    alt User not found
+        AS -> US ++ : create new user
+        note right: Auto-registration for new users
+        US -> DB ++ : insert
+        return user created
+        deactivate US
+    end
+
+    alt User blocked
+        AS --> AC -- : throw UnprocessableEntityException
+        AC --> FE -- : 422 User blocked
+        FE --> User -- : Show blocked message
+    else User not blocked
+        AS -> JWT ++ : signAsync token
+        return hash
+
+        AS -> AS ++ : generate OTP
+        note right: 6-digit one-time password
+        return OTP code
+
+        AS -> Redis ++ : set hash and OTP with expiry
+        return confirm stored
+
+        AS ->> Mail : add 'sendEmailLogin' to queue with link and OTP
+        Mail -->> AS : email queued
+
+        AS --> AC -- : "OK"
+        AC --> FE -- : 200 OK
+        FE --> User -- : Check email
+    end
+end
+
+group Passwordless Login - Validation
+    alt User clicks magic link
+        User -> FE ++ : Click magic link with hash
+        FE -> AC ++ : POST /auth/login/pwdless/validate (hash, email)
+        AC -> AS ++ : validateRequestLoginPwdless(hash, email)
+        AS -> JWT ++ : verifyAsync hash
+        return decoded data or error
+    else User enters OTP
+        User -> FE ++ : Enter OTP
+        FE -> AC ++ : POST /auth/login/pwdless/validate (otp, email)
+        AC -> AS ++ : validateRequestLoginPwdless(otp, email)
+        AS -> Redis ++ : get stored OTP data
+        return OTP data
+    end
+
+    alt Invalid hash/OTP
+        AS --> AC -- : throw UnprocessableEntityException
+        AC --> FE -- : 422 Invalid hash/OTP
+        FE --> User -- : Show error message
+    else Valid hash/OTP
+        AS -> US ++ : findByIdOrThrow(userId)
+        US -> DB ++ : query
+        return user
+        deactivate US
+
+        alt User blocked
+            AS --> AC -- : throw UnprocessableEntityException
+            AC --> FE -- : 422 User blocked
+            FE --> User -- : Show blocked message
+        else User not blocked
+            AS -> Redis ++ : get hash/OTP data
+            return hash/OTP data
+
+            alt Invalid match
+                AS --> AC -- : throw UnprocessableEntityException
+                AC --> FE -- : 422 Invalid hash/OTP
+                FE --> User -- : Show error message
+            else Valid match
+                AS -> AS ++ : generateTokens(user)
+
+                AS -> JWT ++ : signAsync access token
+                return accessToken
+
+                AS -> JWT ++ : signAsync refresh token
+                return refreshToken
+
+                AS -> Redis ++ : del(key)
+                note right: One-time use only
+                return confirm deleted
+
+                alt Email not verified
+                    AS -> US ++ : update user (emailVerified: true)
+                    US -> DB ++ : update
+                    return updated
+                    deactivate US
+                end
+
+                AS --> AC -- : LoginResponseDto
+                AC --> FE -- : 200 tokens + user
+                FE --> User -- : Login successful
+            end
+        end
+    end
+end
+
+' Social Login Flow
+newpage Social Login Flow
+
+autonumber
+
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "AuthService" as AS #LightBlue
+participant "UsersService" as US #LightBlue
+participant "JwtService" as JWT #Orange
+participant "Database" as DB #Gray
+participant "GoogleOAuth" as Google #LightBlue
+participant "GitHubOAuth" as GitHub #LightGray
+
+group Google Login
+    User -> FE ++ : Click Google login
+
+    FE -> Google ++ : Authenticate
+    note right: OAuth2 flow handled by frontend
+    return Return idToken
+
+    FE -> AC ++ : POST /auth/login/google (idToken)
+    AC -> AS ++ : validateLoginGoogle(data)
+
+    AS -> Google ++ : verifyIdToken
+    return user data or error
+
+    alt Invalid token
+        AS --> AC -- : throw UnauthorizedException
+        AC --> FE -- : 401 Google login failed
+        FE --> User -- : Show error message
+    else Valid token
+        AS -> US ++ : findByEmail(email)
+        US -> DB ++ : query
+        return result
+        deactivate US
+
+        alt User not found
+            AS -> US ++ : create new user
+            US -> DB ++ : insert
+            return user created
+            deactivate US
+        end
+
+        alt Email not verified
+            AS -> US ++ : update user (emailVerified: true)
+            US -> DB ++ : update
+            return updated
+            deactivate US
+        end
+
+        AS -> AS ++ : generateTokens(user)
+
+        AS -> JWT ++ : signAsync access token
+        return accessToken
+
+        AS -> JWT ++ : signAsync refresh token
+        return refreshToken
+
+        AS --> AC -- : LoginResponseDto
+        AC --> FE -- : 200 tokens + user
+        FE --> User -- : Login successful
+    end
+end
+
+group GitHub Login
+    User -> FE ++ : Click GitHub login
+
+    FE -> GitHub ++ : Authenticate
+    return Return accessToken
+
+    FE -> AC ++ : POST /auth/login/github (accessToken)
+    AC -> AS ++ : validateLoginGithub(data)
+
+    AS -> GitHub ++ : GET /user
+    return user data or error
+
+    alt Invalid token
+        AS --> AC -- : throw UnauthorizedException
+        AC --> FE -- : 401 GitHub login failed
+        FE --> User -- : Show error message
+    else Valid token
+        AS -> US ++ : findByEmail(email)
+        US -> DB ++ : query
+        return result
+        deactivate US
+
+        alt User not found
+            AS -> US ++ : create new user
+            US -> DB ++ : insert
+            return user created
+            deactivate US
+        end
+
+        alt Email not verified
+            AS -> US ++ : update user (emailVerified: true)
+            US -> DB ++ : update
+            return updated
+            deactivate US
+        end
+
+        AS -> AS ++ : generateTokens(user)
+
+        AS -> JWT ++ : signAsync access token
+        return accessToken
+
+        AS -> JWT ++ : signAsync refresh token
+        return refreshToken
+
+        AS --> AC -- : LoginResponseDto
+        AC --> FE -- : 200 tokens + user
+        FE --> User -- : Login successful
+    end
+end
+
+' Refresh Token Flow
+newpage Token Refresh Flow
+
+autonumber
+
+actor User #Black
+participant "Frontend" as FE #PaleGreen
+participant "AuthController" as AC #LightBlue
+participant "JwtRefreshStrategy" as JRS #Orange
+participant "AuthService" as AS #LightBlue
+participant "UsersService" as US #LightBlue
+participant "JwtService" as JWT #Orange
+participant "Database" as DB #Gray
+
+group Token Refresh
+    User -> FE ++ : Automatic token refresh
+    note right: Access token expired or about to expire
+
+    FE -> AC ++ : POST /auth/refresh (refreshToken)
+    note right: Protected by jwt-refresh guard
+
+    AC -> JRS ++ : validate refresh token
+    JRS -> JRS ++ : verify jwt signature
+    return verification result
+
+    alt Invalid token
+        JRS --> AC -- : throw UnauthorizedException
+        AC --> FE -- : 401 Invalid refresh token
+        FE --> User -- : Redirect to login
+    else Valid token
+        JRS --> AC : UserJwt payload
+
+        AC -> AS ++ : refreshToken(user)
+
+        AS -> US ++ : findByEmail(email)
+        US -> DB ++ : query
+        return user
+        deactivate US
+
+        alt User not found
+            AS --> AC -- : throw UnprocessableEntityException
+            AC --> FE -- : 422 User doesn't exist
+            FE --> User -- : Logout
+        else User found
+            alt User blocked
+                AS --> AC -- : throw UnprocessableEntityException
+                AC --> FE -- : 422 User blocked
+                FE --> User -- : Show blocked message
+            else User not blocked
+                AS -> AS ++ : generateTokens(user)
+
+                AS -> JWT ++ : signAsync access token
+                return accessToken
+
+                AS -> JWT ++ : signAsync refresh token
+                return refreshToken
+
+                AS --> AC -- : LoginResponseDto
+                AC --> FE -- : 200 tokens + user
+                FE --> User -- : Continue session
+            end
+        end
+    end
+end
+
+@enduml
