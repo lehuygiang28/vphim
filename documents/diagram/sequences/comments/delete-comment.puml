@@ -1,0 +1,83 @@
+@startuml Delete Comment Flow
+
+actor User
+participant "GraphQL API" as API
+participant "CommentResolver" as Resolver
+participant "CommentService" as Service
+participant "CommentRepository" as Repository
+database "MongoDB" as DB
+
+User -> API: deleteComment mutation
+activate API
+
+API -> Resolver: deleteComment(query, actor)
+activate Resolver
+
+Resolver -> Service: deleteComment(query._id, actor)
+activate Service
+
+Service -> Repository: findOne({_id, user: actor.userId})
+activate Repository
+Repository -> DB: Query Comment
+DB --> Repository: Comment
+Repository --> Service: comment
+deactivate Repository
+
+alt comment not found
+    Service --> Resolver: HttpException (Not Found)
+    Resolver --> API: Error
+    API --> User: Comment Not Found Error
+else user not authorized
+    Service --> Resolver: HttpException (Unauthorized)
+    Resolver --> API: Error
+    API --> User: Unauthorized Error
+else comment found and user authorized
+    Service -> Repository: count(nested replies filter)
+    activate Repository
+    Repository -> DB: Count Nested Replies
+    DB --> Repository: Nested Replies Count
+    Repository --> Service: nestedRepliesCount
+    deactivate Repository
+    
+    Service -> Repository: deleteMany(all replies)
+    activate Repository
+    Repository -> DB: Delete Replies
+    DB --> Repository: Result
+    Repository --> Service: deletedReplies
+    deactivate Repository
+    
+    Service -> Repository: deleteOne(comment)
+    activate Repository
+    Repository -> DB: Delete Comment
+    DB --> Repository: Result
+    Repository --> Service: deleted
+    deactivate Repository
+    
+    alt parent comment exists
+        Service -> Repository: findOneAndUpdate(parent, decrement replyCount)
+        activate Repository
+        Repository -> DB: Update Parent Comment
+        DB --> Repository: Updated Parent
+        Repository --> Service: updatedParent
+        deactivate Repository
+    end
+    
+    alt root parent comment exists and different from parent
+        Service -> Repository: findOneAndUpdate(root, decrement replyCount)
+        activate Repository
+        Repository -> DB: Update Root Parent Comment
+        DB --> Repository: Updated Root Parent
+        Repository --> Service: updatedRootParent
+        deactivate Repository
+    end
+    
+    Service --> Resolver: true
+    Resolver --> API: Boolean (true)
+    API --> User: Success Response
+end
+
+deactivate Service
+deactivate Resolver
+deactivate API
+
+@enduml 

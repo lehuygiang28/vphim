@@ -1,0 +1,59 @@
+@startuml Get Comment Replies Flow
+
+actor User
+participant "GraphQL API" as API
+participant "CommentResolver" as Resolver
+participant "CommentService" as Service
+participant "CommentRepository" as Repository
+database "MongoDB" as DB
+
+User -> API: commentReplies query
+activate API
+
+API -> Resolver: getCommentReplies(query)
+activate Resolver
+
+Resolver -> Service: getCommentReplies(query)
+activate Service
+
+Service -> Repository: findOne({_id: parentCommentId})
+activate Repository
+Repository -> DB: Query Comment
+DB --> Repository: Parent Comment
+Repository --> Service: parentComment
+deactivate Repository
+
+alt parent comment not found
+    Service --> Resolver: HttpException (Not Found)
+    Resolver --> API: Error
+    API --> User: Comment Not Found Error
+else parent comment found
+    Service -> Service: Construct matchStage based on includeNestedReplies flag
+    
+    Service -> Repository: aggregate([pipeline])
+    activate Repository
+    Repository -> DB: Aggregate Query
+    note right: Match replies based on criteria\nSort by nesting level & newest\nApply pagination\nLookup user data
+    DB --> Repository: Replies
+    Repository --> Service: replies
+    deactivate Repository
+    
+    Service -> Repository: count(countFilter)
+    activate Repository
+    Repository -> DB: Count Query
+    DB --> Repository: Total Count
+    Repository --> Service: total
+    deactivate Repository
+    
+    Service -> Service: formatRepliesOutput(replies, total, page, limit)
+    
+    Service --> Resolver: GetCommentRepliesOutput
+    Resolver --> API: GetCommentRepliesOutput
+    API --> User: Paginated Replies
+end
+
+deactivate Service
+deactivate Resolver
+deactivate API
+
+@enduml 

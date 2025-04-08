@@ -1,0 +1,51 @@
+@startuml Update Comment Flow
+
+actor User
+participant "GraphQL API" as API
+participant "CommentResolver" as Resolver
+participant "CommentService" as Service
+participant "CommentRepository" as Repository
+database "MongoDB" as DB
+
+User -> API: updateComment mutation
+activate API
+
+API -> Resolver: updateComment(input, actor)
+activate Resolver
+
+Resolver -> Service: updateComment(input, actor)
+activate Service
+
+Service -> Repository: findOne({_id, user: actor.userId})
+activate Repository
+Repository -> DB: Query Comment
+DB --> Repository: Comment
+Repository --> Service: comment
+deactivate Repository
+
+alt comment not found
+    Service --> Resolver: HttpException (Not Found)
+    Resolver --> API: Error
+    API --> User: Comment Not Found Error
+else user not authorized
+    Service --> Resolver: HttpException (Unauthorized)
+    Resolver --> API: Error
+    API --> User: Unauthorized Error
+else comment found and user authorized
+    Service -> Repository: upsert({_id}, {content, editedAt})
+    activate Repository
+    Repository -> DB: Update Comment
+    DB --> Repository: Updated Comment
+    Repository --> Service: updatedComment
+    deactivate Repository
+    
+    Service --> Resolver: updatedComment
+    Resolver --> API: CommentType
+    API --> User: Updated Comment Data
+end
+
+deactivate Service
+deactivate Resolver
+deactivate API
+
+@enduml 

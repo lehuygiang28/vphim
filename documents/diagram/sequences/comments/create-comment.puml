@@ -1,0 +1,79 @@
+@startuml Create Comment Flow
+
+actor User
+participant "GraphQL API" as API
+participant "CommentResolver" as Resolver
+participant "CommentService" as Service
+participant "UsersService" as UsersService
+participant "MovieService" as MovieService
+participant "CommentRepository" as Repository
+database "MongoDB" as DB
+
+User -> API: createComment mutation
+activate API
+
+API -> Resolver: createComment(input, actor)
+activate Resolver
+
+Resolver -> Service: createComment(actor, input)
+activate Service
+
+Service -> UsersService: findByIdOrThrow(actor.userId)
+activate UsersService
+UsersService --> Service: user
+deactivate UsersService
+
+Service -> MovieService: getMovie({_id: movieId})
+activate MovieService
+MovieService --> Service: movie
+deactivate MovieService
+
+alt parentCommentId exists
+    Service -> Repository: findOne({_id: parentCommentId, movie: movie._id})
+    activate Repository
+    Repository --> Service: parentComment
+    deactivate Repository
+    
+    Service -> Service: Calculate nestingLevel and rootParentComment
+end
+
+Service -> Repository: create({document})
+activate Repository
+Repository -> DB: Insert Comment
+DB --> Repository: New Comment
+Repository --> Service: newComment
+deactivate Repository
+
+alt parentCommentId exists
+    Service -> Repository: findOneAndUpdate(parentComment)
+    activate Repository
+    Repository -> DB: Increment replyCount
+    Repository --> Service: Updated Parent
+    deactivate Repository
+    
+    alt rootParentComment exists and different from parent
+        Service -> Repository: findOneAndUpdate(rootParentComment)
+        activate Repository
+        Repository -> DB: Increment replyCount
+        Repository --> Service: Updated Root Parent
+        deactivate Repository
+    end
+end
+
+Service -> Repository: aggregate()
+activate Repository
+Repository -> DB: Aggregate with user lookup
+DB --> Repository: Populated Comment
+Repository --> Service: populatedComment
+deactivate Repository
+
+Service --> Resolver: comment
+deactivate Service
+
+Resolver --> API: CommentType
+deactivate Resolver
+
+API --> User: Comment Data
+deactivate API
+
+@enduml 
