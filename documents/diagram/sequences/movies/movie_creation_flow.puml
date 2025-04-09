@@ -1,0 +1,55 @@
+@startuml Movie Creation Flow
+
+actor Client
+participant MovieResolver
+participant MovieService
+participant MovieRepository
+participant SearchService
+participant ElasticsearchService
+database MongoDB
+database Elasticsearch
+
+title Movie Creation Flow
+
+Client -> MovieResolver: createMovie(input: CreateMovieInput)
+activate MovieResolver
+
+MovieResolver -> MovieService: createMovie(input)
+activate MovieService
+
+MovieService -> MovieRepository: create(movie)
+activate MovieRepository
+
+MovieRepository -> MongoDB: save movie document
+MongoDB --> MovieRepository: saved document
+deactivate MovieRepository
+
+note right of MovieRepository
+  MovieSchema.post('save') hook triggers
+  after document is saved
+end note
+
+MovieRepository -> SearchService: indexMovie(document)
+activate SearchService
+
+SearchService -> MovieRepository: findOne(movie._id) with populated fields
+MovieRepository --> SearchService: fully populated movie document
+
+SearchService -> ElasticsearchService: update(index=movies, id=movie._id)
+activate ElasticsearchService
+ElasticsearchService -> Elasticsearch: update/index document
+Elasticsearch --> ElasticsearchService: update result
+ElasticsearchService -> Elasticsearch: indices.refresh(index=movies)
+Elasticsearch --> ElasticsearchService: refresh result
+deactivate ElasticsearchService
+
+SearchService --> MovieRepository: indexing result
+deactivate SearchService
+
+MovieService --> MovieResolver: new MovieType instance
+deactivate MovieService
+
+MovieResolver --> Client: Movie document
+deactivate MovieResolver
+
+@enduml 

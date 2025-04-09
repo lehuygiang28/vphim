@@ -1,0 +1,44 @@
+@startuml Movie Get Single Flow
+
+actor Client
+participant MovieResolver
+participant MovieService
+participant MovieRepository
+database MongoDB
+
+title Get Single Movie Flow
+
+Client -> MovieResolver: getMovie(input: GetMovieInput)
+activate MovieResolver
+
+MovieResolver -> MovieService: getMovie(input)
+activate MovieService
+
+alt input has _id
+    MovieService -> MovieRepository: findOne(filterQuery: { _id })
+else input has slug
+    MovieService -> MovieRepository: findOne(filterQuery: { slug })
+end
+
+activate MovieRepository
+note right of MovieRepository
+  Populate actors, categories,
+  countries & directors
+end note
+
+MovieRepository -> MongoDB: findOne query with populate
+MongoDB --> MovieRepository: movie document with populated fields
+deactivate MovieRepository
+
+alt document not found
+    MovieService --> MovieResolver: throw NotFoundException
+    MovieResolver --> Client: Error: Movie not found
+else document found
+    MovieService --> MovieResolver: MovieType instance
+    MovieResolver --> Client: MovieType
+end
+
+deactivate MovieService
+deactivate MovieResolver
+
+@enduml 

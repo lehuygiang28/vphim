@@ -1,0 +1,85 @@
+@startuml Movie Search Flow
+
+actor Client
+participant MovieResolver
+participant MovieService
+participant ElasticsearchService
+participant RedisService
+database Elasticsearch
+database Redis
+
+title Movie Search Flow
+
+Client -> MovieResolver: getMovies(input: GetMoviesInput)
+activate MovieResolver
+
+MovieResolver -> MovieService: getMoviesEs(input)
+activate MovieService
+
+alt has keywords & useAI flag enabled
+    MovieService -> MovieService: analyzeSearchQuery(keywords, categories, countries, years)
+    activate MovieService #DarkSalmon
+    note right: Uses AI to analyze search query
+    MovieService -> RedisService: get cached AI analysis
+    RedisService --> MovieService: cached result or null
+    
+    alt cache miss
+        MovieService -> External: AI text analysis
+        External --> MovieService: AI analysis result
+        MovieService -> RedisService: set AI analysis in cache
+    end
+    
+    MovieService -> MovieService: getAIFilter(aiAnalysis, userFilters)
+    note right: Transforms AI analysis into Elasticsearch query
+    MovieService --> MovieService: AI-enhanced Elasticsearch query
+    deactivate MovieService #DarkSalmon
+else standard search
+    MovieService -> MovieService: buildTraditionalQuery(dto)
+    activate MovieService #LightBlue
+    note right: Constructs query from filters
+    
+    alt has categories
+        MovieService -> MovieService: process categories filter
+    end
+    
+    alt has countries
+        MovieService -> MovieService: process countries filter
+    end
+    
+    alt has years
+        MovieService -> MovieService: processYearFilter(years)
+    end
+    
+    alt has keywords
+        MovieService -> MovieService: add multi_match query
+    end
+    
+    MovieService --> MovieService: Elasticsearch query
+    deactivate MovieService #LightBlue
+end
+
+MovieService -> MovieService: executeSearch(query, dto, isRestful)
+activate MovieService #LightGreen
+
+MovieService -> ElasticsearchService: search(index=movies, body)
+activate ElasticsearchService
+ElasticsearchService -> Elasticsearch: execute search query
+Elasticsearch --> ElasticsearchService: search results
+deactivate ElasticsearchService
+
+alt isRestful == true
+    MovieService -> MovieService: create MovieResponseDto objects
+else
+    MovieService -> MovieService: create MovieType objects
+end
+
+MovieService --> MovieService: formatted results & total
+deactivate MovieService #LightGreen
+
+MovieService --> MovieResolver: { data: MovieType[], total: number }
+deactivate MovieService
+
+MovieResolver --> Client: GetMoviesOutput
+deactivate MovieResolver
+
+@enduml 
