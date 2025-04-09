@@ -15,44 +15,40 @@ actor Member as m
 m --|> g
 
 rectangle "VePhim System" {
-  package "Content Browsing" {
-    usecase "Browse Movies" as UC1
-    usecase "View Movie Details" as UC2
-    usecase "Watch Movies" as UC3
-    usecase "Explore Categories & Regions" as UC4
-  }
-
-  package "Authentication" {
-    usecase "Register Account" as UC7
-    usecase "Login" as UC8
-  }
-
-  package "Member Features" {
-    usecase "Manage Watchlist" as UC9
-    usecase "Manage Comments" as UC10
-    usecase "Manage Profile" as UC11
-    usecase "Block Ads When Watching" as UC12
-  }
+  usecase "Browse Movies" as UC1
+  usecase "View Movie Details" as UC2
+  usecase "Watch Movie" as UC3
+  usecase "Search Content" as UC4
+  usecase "Filter by Category" as UC5
+  usecase "Filter by Region" as UC6
+  usecase "Register Account" as UC7
+  usecase "Login" as UC8
+  usecase "Add to Watchlist" as UC9
+  usecase "Post Comment" as UC10
+  usecase "Edit Profile" as UC11
+  usecase "View Ad-Free Content" as UC12
 }
 
-' Simplified Guest relationships
+' Guest relationships - clear and minimal
 g --> UC1
 g --> UC2
 g --> UC3
 g --> UC4
+g --> UC5
+g --> UC6
 g --> UC7
 g --> UC8
 
-' Member-specific features
+' Member-specific features - clear and minimal
 m --> UC9
 m --> UC10
 m --> UC11
 m --> UC12
 
-' Only the most critical relationships
-UC9 ..> UC8 : <<include>>
-UC10 ..> UC8 : <<include>>
-UC11 ..> UC8 : <<include>>
+' Use extends/includes more selectively
+UC9 ..> UC2 : <<extend>>
+UC10 ..> UC2 : <<extend>>
+UC12 ..> UC3 : <<extend>>
 UC12 ..> UC8 : <<include>>
 
 note right of UC8
