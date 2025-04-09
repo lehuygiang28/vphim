@@ -1,0 +1,234 @@
+@startuml VePhim NoSQL ERD
+
+' Color coding
+!define COLLECTION_BG_COLOR LightCyan
+!define EMBEDDED_BG_COLOR LightYellow
+
+' Collections (actual MongoDB collections)
+class User << Collection >> #COLLECTION_BG_COLOR {
+  _id: ObjectId
+  createdAt: Date
+  updatedAt: Date
+  email: string
+  emailVerified: boolean
+  password: string
+  fullName: string
+  role: string
+  avatar: AvatarSchema
+  block: UserBlockSchema
+  followMovies: ObjectId[] <<ref:Movie>>
+}
+
+class Movie << Collection >> #COLLECTION_BG_COLOR {
+  _id: ObjectId
+  createdAt: Date
+  updatedAt: Date
+  name: string
+  slug: string
+  originName: string
+  content: string
+  type: string
+  status: string
+  lang: string
+  notify: string
+  quality: string
+  showtimes: string
+  time: string
+  thumbUrl: string
+  posterUrl: string
+  trailerUrl: string
+  isCopyright: boolean
+  episodeCurrent: string
+  episodeTotal: string
+  subDocquyen: boolean
+  cinemaRelease: boolean
+  year: number
+  view: number
+  actors: ObjectId[] <<ref:Actor>>
+  directors: ObjectId[] <<ref:Director>>
+  categories: ObjectId[] <<ref:Category>>
+  countries: ObjectId[] <<ref:Region>>
+  episode: Episode[]
+  lastSyncModified: LastSyncModified
+  tmdb: TmdbSchema
+  imdb: ImdbSchema
+  deletedAt: Date
+}
+
+class Actor << Collection >> #COLLECTION_BG_COLOR {
+  _id: ObjectId
+  createdAt: Date
+  updatedAt: Date
+  name: string
+  originalName: string
+  slug: string
+  tmdbPersonId: number
+  content: string
+  thumbUrl: string
+  posterUrl: string
+}
+
+class Director << Collection >> #COLLECTION_BG_COLOR {
+  _id: ObjectId
+  createdAt: Date
+  updatedAt: Date
+  name: string
+  originalName: string
+  slug: string
+  tmdbPersonId: number
+  content: string
+  thumbUrl: string
+  posterUrl: string
+}
+
+class Category << Collection >> #COLLECTION_BG_COLOR {
+  _id: ObjectId
+  createdAt: Date
+  updatedAt: Date
+  name: string
+  slug: string
+}
+
+class Region << Collection >> #COLLECTION_BG_COLOR {
+  _id: ObjectId
+  createdAt: Date
+  updatedAt: Date
+  name: string
+  slug: string
+}
+
+class Comment << Collection >> #COLLECTION_BG_COLOR {
+  _id: ObjectId
+  createdAt: Date
+  updatedAt: Date
+  user: ObjectId <<ref:User>>
+  movie: ObjectId <<ref:Movie>>
+  content: string
+  replyCount: number
+  parentComment: ObjectId <<ref:Comment>>
+  nestingLevel: number
+  rootParentComment: ObjectId <<ref:Comment>>
+  mentionedUsers: ObjectId[] <<ref:User>>
+  editedAt: number
+}
+
+' Embedded documents (stored within parent documents)
+class UserBlockSchema << Embedded >> #EMBEDDED_BG_COLOR {
+  isBlocked: boolean
+  activityLogs: BlockActivityLog[]
+}
+
+class BlockActivityLog << Embedded >> #EMBEDDED_BG_COLOR {
+  action: string
+  actionAt: Date
+  actionBy: ObjectId <<ref:User>>
+  reason: string
+  note: string
+}
+
+class AvatarSchema << Embedded >> #EMBEDDED_BG_COLOR {
+  url: string
+}
+
+class Episode << Embedded >> #EMBEDDED_BG_COLOR {
+  originSrc: string
+  serverName: string
+  serverData: EpisodeServerData[]
+}
+
+class EpisodeServerData << Embedded >> #EMBEDDED_BG_COLOR {
+  filename: string
+  name: string
+  slug: string
+  linkEmbed: string
+  linkM3u8: string
+}
+
+class TmdbSchema << Embedded >> #EMBEDDED_BG_COLOR {
+  type: string
+  id: string
+  season: number
+  voteAverage: number
+  voteCount: number
+}
+
+class ImdbSchema << Embedded >> #EMBEDDED_BG_COLOR {
+  id: string
+}
+
+class LastSyncModified << Embedded >> #EMBEDDED_BG_COLOR {
+  ophim: number
+  kkphim: number
+  nguonc: number
+}
+
+' Embedded document relationships (composition)
+User *-- "0..1" AvatarSchema : embedded
+User *-- "0..1" UserBlockSchema : embedded
+UserBlockSchema *-- "0..*" BlockActivityLog : embedded
+
+Movie *-- "0..*" Episode : embedded
+Episode *-- "0..*" EpisodeServerData : embedded
+Movie *-- "0..1" LastSyncModified : embedded
+Movie *-- "0..1" TmdbSchema : embedded
+Movie *-- "0..1" ImdbSchema : embedded
+
+' Reference relationships (by ObjectId)
+Comment "0..*" --> "1" User : references
+Comment "0..*" --> "1" Movie : references
+Comment "0..*" --> "0..1" Comment : parent reference
+
+Movie "0..*" --> "0..*" Actor : references
+Movie "0..*" --> "0..*" Director : references
+Movie "0..*" --> "0..*" Category : references
+Movie "0..*" --> "0..*" Region : references as countries
+
+User "0..*" --> "0..*" Movie : follows
+
+note top of UserBlockSchema
+  Embedded in User document
+end note
+
+note top of Episode
+  Embedded array in Movie document
+end note
+
+note bottom of User
+  Collection: users
+end note
+
+note bottom of Movie
+  Collection: movies
+end note
+
+note bottom of Actor
+  Collection: actors
+end note
+
+note bottom of Director
+  Collection: directors
+end note
+
+note bottom of Category
+  Collection: categories
+end note
+
+note bottom of Region
+  Collection: regions
+end note
+
+note bottom of Comment
+  Collection: comments
+end note
+
+legend right
+  **Legend**
+  <back:LightCyan>Collection</back> - MongoDB Collection (separate documents)
+  <back:LightYellow>Embedded</back> - Embedded document (nested within parent)
+  
+  ** Relationships **
+  ---> References (stores ObjectId)
+  *-- Embeds (nested document)
+end legend
+
+@enduml
