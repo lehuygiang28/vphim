@@ -1,0 +1,39 @@
+@startuml Get Users Flow
+
+actor "Admin Client" as Client
+participant "UsersController" as Controller
+participant "UsersService" as Service
+participant "UsersRepository" as Repository
+database "MongoDB" as DB
+
+Client -> Controller: GET /users?[queryParams]\nGetUsersDto
+activate Controller
+
+Controller -> Service: getUsers({ query })
+activate Service
+
+Service -> Service: Build filter query\nbased on parameters
+
+Service -> Repository: find(filterQuery, query)
+activate Repository
+Repository -> DB: Query users with filters
+DB --> Repository: User documents
+Repository --> Service: Return users
+deactivate Repository
+
+Service -> Repository: count(filter)
+activate Repository
+Repository -> DB: Count users with filters
+DB --> Repository: Count result
+Repository --> Service: Return total count
+deactivate Repository
+
+Service -> Service: Build GetUsersResponseDto\nwith data and total
+
+Service --> Controller: Return GetUsersResponseDto
+Controller --> Client: HTTP 200 OK\nGetUsersResponseDto
+
+deactivate Service
+deactivate Controller
+
+@enduml 

@@ -1,0 +1,70 @@
+@startuml User Update Flow
+
+actor "Admin Client" as Client
+participant "UsersController" as Controller
+participant "UsersService" as Service
+participant "UsersRepository" as Repository
+database "MongoDB" as DB
+participant "ConfigService" as ConfigService
+
+Client -> Controller: PATCH /users/{id}\nUpdateUserDto
+activate Controller
+
+Controller -> Service: updateUser({ actor, userId, data })
+activate Service
+
+Service -> Service: findByIdOrThrow(actor.userId)
+activate Service #DarkSalmon
+Service -> Repository: findOne(actor._id)
+Repository -> DB: Query actor user
+DB --> Repository: User document
+Repository --> Service: Return user or null
+alt User not found
+    Service --> Service: Throw UnprocessableEntityException
+end
+Service --> Service: Return actor user
+deactivate Service
+
+Service -> Service: findByIdOrThrow(userId)
+activate Service #DarkSalmon
+Service -> Repository: findOne(userId)
+Repository -> DB: Query target user
+DB --> Repository: User document
+Repository --> Service: Return user or null
+alt User not found
+    Service --> Service: Throw UnprocessableEntityException
+end
+Service --> Service: Return target user
+deactivate Service
+
+alt Actor is not admin or is the same user
+    Service --> Controller: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+    Controller --> Client: HTTP 422 Error Response
+else Actor is admin and different user
+    alt Updating role and target is root admin
+        Service -> ConfigService: get('auth.adminEmail')
+        ConfigService --> Service: Return admin email
+        
+        Service -> Service: Check if user is root admin
+        
+        Service --> Controller: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+        Controller --> Client: HTTP 422 Error Response
+    else Valid update request
+        Service -> Service: Prepare updateQuery
+        
+        Service -> Repository: findOneAndUpdateOrThrow(userId, updateQuery)
+        activate Repository
+        Repository -> DB: Update user document
+        DB --> Repository: Updated user document
+        Repository --> Service: Return updated user
+        deactivate Repository
+        
+        Service --> Controller: Return updated User
+        Controller --> Client: HTTP 200 OK\nUserDto
+    end
+end
+
+deactivate Service
+deactivate Controller
+
+@enduml 

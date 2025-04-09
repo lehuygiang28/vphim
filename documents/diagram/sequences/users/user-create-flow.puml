@@ -1,0 +1,42 @@
+@startuml User Creation Flow
+
+actor "Client" as Client
+participant "UsersController" as Controller
+participant "UsersService" as Service
+participant "UsersRepository" as Repository
+database "MongoDB" as DB
+
+Client -> Controller: POST /users\nCreateUserDto
+activate Controller
+
+Controller -> Service: create(createUserDto)
+activate Service
+
+Service -> Service: Generate password hash with bcrypt
+
+Service -> Repository: findOne(email)
+activate Repository
+Repository -> DB: Query for existing user
+DB --> Repository: User data or null
+Repository --> Service: Return user or null
+deactivate Repository
+
+alt User with email already exists
+    Service --> Controller: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+    Controller --> Client: HTTP 422 Error Response
+else Email is unique
+    Service -> Repository: create(documentData)
+    activate Repository
+    Repository -> DB: Insert new user
+    DB --> Repository: Created user document
+    Repository --> Service: Return user document
+    deactivate Repository
+    
+    Service --> Controller: Return new User object
+    Controller --> Client: HTTP 201 Created\nUserDto
+end
+
+deactivate Service
+deactivate Controller
+
+@enduml 

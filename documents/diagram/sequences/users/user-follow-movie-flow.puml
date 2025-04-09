@@ -1,0 +1,53 @@
+@startuml User Follow Movie Flow
+
+actor "Client" as Client
+participant "UsersResolver" as Resolver
+participant "UsersService" as Service
+participant "MovieService" as MovieService
+participant "UsersRepository" as Repository
+database "MongoDB" as DB
+
+Client -> Resolver: followMovie(input, actor)
+activate Resolver
+
+Resolver -> Service: followMovie({ actor, movieSlug })
+activate Service
+
+Service -> Service: findByIdOrThrow(actor.userId)
+activate Service #DarkSalmon
+Service -> Repository: findOne(actor._id)
+Repository -> DB: Query user
+DB --> Repository: User document
+Repository --> Service: Return user or null
+alt User not found
+    Service --> Service: Throw UnprocessableEntityException
+end
+Service --> Service: Return actor user
+deactivate Service
+
+Service -> MovieService: getMovie({ slug: movieSlug }, { populate: false })
+activate MovieService
+MovieService --> Service: Return movie or null
+deactivate MovieService
+
+alt Movie not found
+    Service --> Resolver: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+    Resolver --> Client: GraphQL Error Response
+else Movie exists
+    Service -> Service: Add movie ID to followMovies list\nwithout duplicates
+    
+    Service -> Repository: findOneAndUpdate(actor._id, updateQuery)
+    activate Repository
+    Repository -> DB: Update user's followMovies
+    DB --> Repository: Updated user document
+    Repository --> Service: Return updated user
+    deactivate Repository
+    
+    Service --> Resolver: Return updated User
+    Resolver --> Client: GraphQL Response with updated User data
+end
+
+deactivate Service
+deactivate Resolver
+
+@enduml 

@@ -1,0 +1,65 @@
+@startuml User GraphQL Me Flows
+
+actor "Client" as Client
+participant "UsersResolver" as Resolver
+participant "UsersService" as Service
+participant "UsersRepository" as Repository
+database "MongoDB" as DB
+
+note over Client, DB: Get Me Flow
+
+Client -> Resolver: getMe(actor)
+activate Resolver
+
+Resolver -> Service: findByIdOrThrow(userId, options)
+activate Service
+
+Service -> Repository: findOne(userId, options)
+activate Repository
+Repository -> DB: Query user with populated followMovies
+DB --> Repository: User document with followMovies
+Repository --> Service: Return user or null
+deactivate Repository
+
+alt User not found
+    Service --> Resolver: Throw UnprocessableEntityException
+    Resolver --> Client: GraphQL Error Response
+else User found
+    Service --> Resolver: Return user
+    Resolver --> Client: GraphQL Response with User data
+end
+
+deactivate Service
+deactivate Resolver
+
+note over Client, DB: Update Me Flow
+
+Client -> Resolver: mutationMe(input, actor)
+activate Resolver
+
+Resolver -> Service: update(userId, updateData)
+activate Service
+
+alt updateData has password
+    Service -> Service: Generate password hash with bcrypt
+end
+
+Service -> Repository: findOneAndUpdate(userId, updateQuery)
+activate Repository
+Repository -> DB: Update user document
+DB --> Repository: Updated user document
+Repository --> Service: Return updated user or null
+deactivate Repository
+
+alt User not found
+    Service --> Resolver: Return null
+    Resolver --> Client: GraphQL Response with null
+else User updated
+    Service --> Resolver: Return updated User
+    Resolver --> Client: GraphQL Response with updated User data
+end
+
+deactivate Service
+deactivate Resolver
+
+@enduml 
