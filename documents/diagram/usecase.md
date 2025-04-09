@@ -5,8 +5,6 @@
 ```plantuml
 @startuml VePhim User Use Case Diagram
 
-!theme materia-outline
-
 left to right direction
 
 actor Guest as g
@@ -47,7 +45,10 @@ m --> UC12
 
 ' Use extends/includes more selectively
 UC9 ..> UC2 : <<extend>>
+UC9 ..> UC8 : <<include>>
 UC10 ..> UC2 : <<extend>>
+UC10 ..> UC8 : <<include>>
+UC11 ..> UC8 : <<include>>
 UC12 ..> UC3 : <<extend>>
 UC12 ..> UC8 : <<include>>
 
@@ -79,8 +80,6 @@ end note
 
 ```plantuml
 @startuml VePhim Admin Use Case Diagram
-
-!theme materia-outline
 
 left to right direction
 
@@ -125,17 +124,17 @@ end note
 
 note right of UC3
   <b>Category Management</b>
-  • Create/edit/delete categories
+  • Create/read/edit/delete categories
 end note
 
 note right of UC4
   <b>People Management</b>
-  • Add/update/delete actors and directors
+  • Create/read/update/delete actors and directors
 end note
 
 note right of UC5
   <b>Region Management</b>
-  • Create/edit/delete regions
+  • Create/read/edit/delete regions
 end note
 
 note right of UC6
