@@ -22,14 +22,22 @@ import {
     Image,
     Statistic,
     Skeleton,
+    Empty,
+    Badge,
+    message,
 } from 'antd';
 import {
     PlayCircleOutlined,
     LinkOutlined,
     SearchOutlined,
-    EyeOutlined,
     CalendarOutlined,
     UserOutlined,
+    InfoCircleOutlined,
+    TeamOutlined,
+    PlaySquareOutlined,
+    FundViewOutlined,
+    RightCircleOutlined,
+    CopyOutlined,
 } from '@ant-design/icons';
 import { MovieType, EpisodeType, EpisodeServerDataType } from '~api/app/movies/movie.type';
 import { ActorType } from '~api/app/actors/actor.type';
@@ -40,7 +48,24 @@ import { DirectorType } from '~api/app/directors/director.type';
 import { useRouter } from 'next/navigation';
 
 const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
+
+const contentRatingColors = {
+    P: 'green',
+    K: 'cyan',
+    T13: 'blue',
+    T16: 'orange',
+    T18: 'volcano',
+    C: 'red',
+};
+
+const contentRatingText = {
+    P: 'Phù hợp mọi độ tuổi, không hạn chế',
+    K: 'Dưới 13 tuổi cần có người lớn hướng dẫn',
+    T13: 'Từ 13 tuổi trở lên',
+    T16: 'Từ 16 tuổi trở lên',
+    T18: 'Từ 18 tuổi trở lên',
+    C: 'Không được phép phổ biến',
+};
 
 export default function MovieShowPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -49,6 +74,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
     const [searchTexts, setSearchTexts] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [messageApi, contextHolder] = message.useMessage();
 
     const { query } = useShow<MovieType>({
         dataProviderName: 'graphql',
@@ -82,6 +108,17 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
         if (pageSize) setPageSize(pageSize);
     };
 
+    const copyToClipboard = (text: string, type: string) => {
+        navigator.clipboard.writeText(text).then(
+            () => {
+                messageApi.success(`Đã sao chép ${type} vào clipboard`);
+            },
+            (err) => {
+                messageApi.error('Không thể sao chép: ' + err);
+            },
+        );
+    };
+
     const renderEpisodes = (episodes: EpisodeType[]) => {
         return (
             <Tabs
@@ -91,6 +128,8 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                     setCurrentPage(1); // Reset to first page when changing server
                 }}
                 tabPosition="left"
+                type="card"
+                style={{ marginTop: 16 }}
             >
                 {episodes.map((server, index) => {
                     const filteredEpisodes =
@@ -106,13 +145,15 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                     );
 
                     return (
-                        <TabPane
+                        <Tabs.TabPane
                             tab={
-                                server.serverName
-                                    ? `${server?.originSrc ? `[${server?.originSrc}] ` : ''}${
-                                          server.serverName
-                                      }`
-                                    : `Server ${index + 1}`
+                                <span style={{ fontWeight: 500 }}>
+                                    {server.serverName
+                                        ? `${server?.originSrc ? `[${server?.originSrc}] ` : ''}${
+                                              server.serverName
+                                          }`
+                                        : `Server ${index + 1}`}
+                                </span>
                             }
                             key={index}
                         >
@@ -122,43 +163,125 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                 onChange={(e) => handleSearchChange(e.target.value, index)}
                                 style={{ marginBottom: 16 }}
                                 value={searchTexts[index] || ''}
+                                allowClear
                             />
                             <Table
                                 dataSource={paginatedEpisodes}
+                                rowKey="slug"
                                 columns={[
                                     {
                                         title: 'Tên',
                                         dataIndex: 'name',
                                         key: 'name',
+                                        width: '25%',
                                         sorter: (a, b) => a.name.localeCompare(b.name),
+                                        render: (text) => <Text strong>{text}</Text>,
                                     },
                                     {
                                         title: 'Slug',
                                         dataIndex: 'slug',
                                         key: 'slug',
+                                        width: '25%',
+                                        render: (text) => (
+                                            <Space>
+                                                <Text type="secondary" ellipsis={{ tooltip: text }}>
+                                                    {text}
+                                                </Text>
+                                                <Tooltip title="Sao chép slug">
+                                                    <Button
+                                                        type="text"
+                                                        icon={<CopyOutlined />}
+                                                        size="small"
+                                                        onClick={() =>
+                                                            copyToClipboard(text, 'slug')
+                                                        }
+                                                    />
+                                                </Tooltip>
+                                            </Space>
+                                        ),
                                     },
                                     {
-                                        title: 'Thao tác',
-                                        key: 'actions',
+                                        title: 'Liên kết & Thao tác',
+                                        key: 'links',
+                                        width: '50%',
                                         render: (_, episode: EpisodeServerDataType) => (
-                                            <Space>
+                                            <Space
+                                                direction="vertical"
+                                                size="small"
+                                                style={{ width: '100%' }}
+                                            >
                                                 {episode.linkEmbed && (
-                                                    <Tooltip title="Xem nhúng">
+                                                    <Space>
                                                         <Button
+                                                            type="primary"
+                                                            size="small"
                                                             icon={<PlayCircleOutlined />}
                                                             href={episode.linkEmbed}
                                                             target="_blank"
-                                                        />
-                                                    </Tooltip>
+                                                        >
+                                                            Xem nhúng
+                                                        </Button>
+                                                        <Text
+                                                            ellipsis={{
+                                                                tooltip: episode.linkEmbed,
+                                                            }}
+                                                        >
+                                                            {episode.linkEmbed.length > 30
+                                                                ? episode.linkEmbed.substring(
+                                                                      0,
+                                                                      30,
+                                                                  ) + '...'
+                                                                : episode.linkEmbed}
+                                                        </Text>
+                                                        <Tooltip title="Sao chép link nhúng">
+                                                            <Button
+                                                                type="text"
+                                                                icon={<CopyOutlined />}
+                                                                size="small"
+                                                                onClick={() =>
+                                                                    copyToClipboard(
+                                                                        episode.linkEmbed || '',
+                                                                        'link nhúng',
+                                                                    )
+                                                                }
+                                                            />
+                                                        </Tooltip>
+                                                    </Space>
                                                 )}
                                                 {episode.linkM3u8 && (
-                                                    <Tooltip title="Link M3U8">
+                                                    <Space>
                                                         <Button
+                                                            size="small"
                                                             icon={<LinkOutlined />}
                                                             href={episode.linkM3u8}
                                                             target="_blank"
-                                                        />
-                                                    </Tooltip>
+                                                        >
+                                                            M3U8
+                                                        </Button>
+                                                        <Text
+                                                            ellipsis={{ tooltip: episode.linkM3u8 }}
+                                                        >
+                                                            {episode.linkM3u8.length > 30
+                                                                ? episode.linkM3u8.substring(
+                                                                      0,
+                                                                      30,
+                                                                  ) + '...'
+                                                                : episode.linkM3u8}
+                                                        </Text>
+                                                        <Tooltip title="Sao chép link M3U8">
+                                                            <Button
+                                                                type="text"
+                                                                icon={<CopyOutlined />}
+                                                                size="small"
+                                                                onClick={() =>
+                                                                    copyToClipboard(
+                                                                        episode.linkM3u8 || '',
+                                                                        'link M3U8',
+                                                                    )
+                                                                }
+                                                            />
+                                                        </Tooltip>
+                                                    </Space>
                                                 )}
                                             </Space>
                                         ),
@@ -172,9 +295,11 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                     showQuickJumper: true,
                                     onChange: handlePageChange,
                                     onShowSizeChange: handlePageChange,
+                                    showTotal: (total) => `Tổng cộng ${total} tập`,
                                 }}
+                                bordered
                             />
-                        </TabPane>
+                        </Tabs.TabPane>
                     );
                 })}
             </Tabs>
@@ -196,50 +321,98 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
         return (
             <Card
                 hoverable
-                className="h-full transition-all duration-300 hover:shadow-lg"
                 size="small"
-                styles={{
-                    body: {
-                        padding: '8px',
-                    },
-                }}
+                style={{ height: '100%', transition: 'all 0.3s', cursor: 'pointer' }}
+                bodyStyle={{ padding: 12 }}
                 onClick={() => {
-                    router.push(`/${type}/edit/${people._id?.toString()}`);
+                    // Card click should not trigger navigation now
                 }}
             >
-                <div className="aspect-[3/4] relative w-full mb-2 max-w-[160px] mx-auto">
+                <div style={{ marginBottom: 12, textAlign: 'center' }}>
                     {people.posterUrl ? (
                         <Image
                             alt={people.name}
                             src={people.posterUrl}
-                            className="object-cover rounded-md"
+                            style={{
+                                objectFit: 'cover',
+                                borderRadius: 8,
+                                maxWidth: 160,
+                                margin: '0 auto',
+                                cursor: 'zoom-in',
+                            }}
                             width={160}
+                            height={214}
                             preview={{
                                 maskClassName: 'rounded-md',
                                 title: people.name,
                             }}
                             placeholder={
-                                <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
-                                    <Skeleton.Image active className="w-full h-full" />
+                                <div
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: '#f0f0f0',
+                                        borderRadius: 8,
+                                    }}
+                                >
+                                    <Skeleton.Image
+                                        active
+                                        style={{ width: '100%', height: '100%' }}
+                                    />
                                 </div>
                             }
-                            fallback="/api/placeholder/120/160"
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
-                            <UserOutlined className="text-4xl text-gray-400" />
+                        <div
+                            style={{
+                                width: 160,
+                                height: 214,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: '#f0f0f0',
+                                borderRadius: 8,
+                                margin: '0 auto',
+                            }}
+                        >
+                            <UserOutlined style={{ fontSize: 32, color: '#bfbfbf' }} />
                         </div>
                     )}
                 </div>
 
-                <Space direction="vertical" className="w-full" size={0}>
-                    <Text strong className="text-base line-clamp-1" title={people.name}>
+                <Space direction="vertical" style={{ width: '100%' }} size={0}>
+                    <Text
+                        strong
+                        style={{
+                            fontSize: 14,
+                            display: 'block',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            cursor: 'pointer',
+                            color: '#1677ff',
+                        }}
+                        title={people.name}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/${type}/edit/${people._id?.toString()}`);
+                        }}
+                    >
                         {people.name}
                     </Text>
                     {people.originalName && (
                         <Text
                             type="secondary"
-                            className="text-xs line-clamp-1"
+                            style={{
+                                fontSize: 12,
+                                display: 'block',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                            }}
                             title={people.originalName}
                         >
                             {people.originalName}
@@ -247,8 +420,21 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                     )}
                     {people.slug && (
                         <Text
-                            className="text-xs text-gray-500 italic line-clamp-1"
+                            style={{
+                                fontSize: 12,
+                                color: '#8c8c8c',
+                                fontStyle: 'italic',
+                                display: 'block',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                cursor: 'pointer',
+                            }}
                             title={`${people.slug}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/${type}/edit/${people._id?.toString()}`);
+                            }}
                         >
                             {people.slug}
                         </Text>
@@ -259,15 +445,17 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
     };
 
     if (isError) {
-        return <Alert message="Error loading movie data" type="error" />;
+        return <Alert message="Lỗi khi tải dữ liệu phim" type="error" showIcon />;
     }
 
     return (
         <Show
-            title={`Chi tiết phim "${record?.originName}"`}
+            title={
+                <Title level={4}>{`Chi tiết phim "${record?.originName || record?.name}"`}</Title>
+            }
             isLoading={isLoading}
             headerButtons={({ refreshButtonProps }) => (
-                <>
+                <Space>
                     {params?.id && (
                         <>
                             <EditMovieButton id={params.id?.toString()} />
@@ -282,254 +470,415 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                             </RefreshButton>
                         </>
                     )}
-                </>
+                </Space>
             )}
         >
-            <Row gutter={[16, 16]}>
+            {contextHolder}
+            <Row gutter={[24, 24]}>
                 <Col xs={24} lg={8}>
-                    <Card
-                        cover={
-                            <Space direction="vertical">
-                                <Image alt={`${record?.name} poster`} src={record?.posterUrl} />
+                    <Card bordered>
+                        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                            {record?.posterUrl && (
                                 <Image
-                                    alt={`${record?.name} thumb`}
-                                    src={record?.thumbUrl}
-                                    style={{ marginTop: 10 }}
+                                    alt={`${record?.name} poster`}
+                                    src={record?.posterUrl}
+                                    style={{ maxWidth: '100%', borderRadius: 8 }}
                                 />
+                            )}
+                        </div>
+
+                        <div style={{ textAlign: 'center' }}>
+                            <Title level={4} style={{ margin: '0 0 4px 0' }}>
+                                {record?.name}
+                            </Title>
+                            {record?.originName && (
+                                <Title
+                                    level={5}
+                                    type="secondary"
+                                    style={{ fontWeight: 'normal', margin: '0 0 8px 0' }}
+                                >
+                                    {record?.originName}
+                                </Title>
+                            )}
+
+                            <Paragraph type="secondary" style={{ marginBottom: 16 }}>
+                                {record?.slug}
+                            </Paragraph>
+
+                            <Space wrap style={{ justifyContent: 'center', marginBottom: 16 }}>
+                                {record?.year && (
+                                    <Tag color="blue" style={{ padding: '4px 8px' }}>
+                                        <CalendarOutlined /> {record?.year}
+                                    </Tag>
+                                )}
+                                {record?.quality && (
+                                    <Tag color="green" style={{ padding: '4px 8px' }}>
+                                        {record?.quality}
+                                    </Tag>
+                                )}
+                                {record?.lang && (
+                                    <Tag color="orange" style={{ padding: '4px 8px' }}>
+                                        {record?.lang}
+                                    </Tag>
+                                )}
+                                <Tag
+                                    color={
+                                        record?.status === 'completed' ? 'success' : 'processing'
+                                    }
+                                    style={{ padding: '4px 8px' }}
+                                >
+                                    {record?.status === 'completed'
+                                        ? 'Hoàn thành'
+                                        : 'Đang cập nhật'}
+                                </Tag>
                             </Space>
-                        }
-                    >
-                        <Card.Meta
-                            title={<Title level={4}>{record?.name}</Title>}
-                            description={
-                                <>
-                                    <Paragraph>{record?.originName}</Paragraph>
-                                    <Paragraph>{record?.slug}</Paragraph>
-                                    <Space wrap>
-                                        {record?.year && <Tag color="blue">{record?.year}</Tag>}
-                                        {record?.quality && (
-                                            <Tag color="green">{record?.quality}</Tag>
-                                        )}
-                                        {record?.lang && <Tag color="orange">{record?.lang}</Tag>}
-                                        <Tag
-                                            color={
-                                                record?.status === 'completed'
-                                                    ? 'success'
-                                                    : 'processing'
-                                            }
-                                        >
-                                            {record?.status}
-                                        </Tag>
-                                    </Space>
-                                </>
-                            }
-                        />
+                        </div>
+
+                        <Divider style={{ margin: '16px 0' }} />
+
+                        <Row gutter={[16, 16]}>
+                            <Col span={8}>
+                                <Statistic
+                                    title={<span style={{ fontSize: 14 }}>Lượt xem</span>}
+                                    value={record?.view || 0}
+                                    prefix={<FundViewOutlined />}
+                                    valueStyle={{ fontSize: 18 }}
+                                />
+                            </Col>
+                            <Col span={8}>
+                                <Statistic
+                                    title={<span style={{ fontSize: 14 }}>Năm phát hành</span>}
+                                    value={record?.year || 'N/A'}
+                                    prefix={<CalendarOutlined />}
+                                    formatter={(value) => value}
+                                    valueStyle={{ fontSize: 18 }}
+                                />
+                            </Col>
+                            <Col span={8}>
+                                <Statistic
+                                    title={<span style={{ fontSize: 14 }}>Số tập</span>}
+                                    value={`${record?.episodeCurrent || 0}/${
+                                        record?.episodeTotal && record.episodeTotal !== '0'
+                                            ? record.episodeTotal
+                                            : '?'
+                                    }`}
+                                    prefix={<PlayCircleOutlined />}
+                                    valueStyle={{ fontSize: 18 }}
+                                />
+                            </Col>
+                        </Row>
                     </Card>
-                    {(record?.imdb?.id || record?.tmdb?.id) && (
-                        <Card style={{ marginTop: 16 }}>
-                            <Space direction="vertical" style={{ width: '100%' }}>
-                                {record.imdb?.id && (
-                                    <Button
-                                        icon={<LinkOutlined />}
-                                        href={`https://www.imdb.com/title/${record.imdb.id}`}
-                                        target="_blank"
-                                        block
+
+                    <Card
+                        title={
+                            <>
+                                <InfoCircleOutlined /> Thông tin cơ bản
+                            </>
+                        }
+                        style={{ marginTop: 16 }}
+                        bordered
+                        size="small"
+                    >
+                        <Descriptions
+                            bordered
+                            column={1}
+                            size="small"
+                            labelStyle={{ fontWeight: 500 }}
+                        >
+                            <Descriptions.Item label="Loại phim">{record?.type}</Descriptions.Item>
+                            <Descriptions.Item label="Thời lượng">
+                                {record?.time || 'Chưa cập nhật'}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Phân loại độ tuổi">
+                                {record?.contentRating ? (
+                                    <Tag
+                                        color={
+                                            contentRatingColors[
+                                                record.contentRating as keyof typeof contentRatingColors
+                                            ] || 'default'
+                                        }
                                     >
-                                        Xem trên IMDB
-                                    </Button>
+                                        {record.contentRating} -{' '}
+                                        {contentRatingText[
+                                            record.contentRating as keyof typeof contentRatingText
+                                        ] || ''}
+                                    </Tag>
+                                ) : (
+                                    'Chưa có'
                                 )}
-                                {record.tmdb?.id && (
-                                    <Button
-                                        icon={<LinkOutlined />}
-                                        href={`https://www.themoviedb.org/${record.tmdb.type}/${record.tmdb.id}`}
-                                        target="_blank"
-                                        block
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Phát hành rạp">
+                                <Badge
+                                    status={record?.cinemaRelease ? 'success' : 'default'}
+                                    text={record?.cinemaRelease ? 'Có' : 'Không'}
+                                />
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Bản quyền">
+                                <Badge
+                                    status={record?.isCopyright ? 'success' : 'default'}
+                                    text={record?.isCopyright ? 'Có' : 'Không'}
+                                />
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Sub độc quyền">
+                                <Badge
+                                    status={record?.subDocquyen ? 'success' : 'default'}
+                                    text={record?.subDocquyen ? 'Có' : 'Không'}
+                                />
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Lịch chiếu">
+                                {record?.showtimes || 'Chưa cập nhật'}
+                            </Descriptions.Item>
+                        </Descriptions>
+                    </Card>
+
+                    <Card
+                        title={
+                            <>
+                                <LinkOutlined /> Liên kết
+                            </>
+                        }
+                        style={{ marginTop: 16 }}
+                        bordered
+                        size="small"
+                    >
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                            {record?.trailerUrl && (
+                                <Button
+                                    type="primary"
+                                    icon={<PlayCircleOutlined />}
+                                    href={record.trailerUrl}
+                                    target="_blank"
+                                    block
+                                >
+                                    Xem Trailer
+                                </Button>
+                            )}
+                            {record?.imdb?.id && (
+                                <Button
+                                    icon={<LinkOutlined />}
+                                    href={`https://www.imdb.com/title/${record.imdb.id}`}
+                                    target="_blank"
+                                    block
+                                >
+                                    Xem trên IMDB
+                                </Button>
+                            )}
+                            {record?.tmdb?.id && (
+                                <Button
+                                    icon={<LinkOutlined />}
+                                    href={`https://www.themoviedb.org/${record.tmdb.type}/${record.tmdb.id}`}
+                                    target="_blank"
+                                    block
+                                >
+                                    Xem trên TMDB
+                                </Button>
+                            )}
+                        </Space>
+                    </Card>
+
+                    <Card
+                        title={
+                            <>
+                                <RightCircleOutlined /> Thể loại
+                            </>
+                        }
+                        style={{ marginTop: 16 }}
+                        bordered
+                        size="small"
+                    >
+                        {record?.categories && record.categories.length > 0 ? (
+                            <Space wrap style={{ justifyContent: 'space-between' }}>
+                                {record?.categories?.map((category: CategoryType) => (
+                                    <Tag
+                                        color="blue"
+                                        key={category._id?.toString()}
+                                        style={{ margin: '4px', padding: '4px 8px' }}
                                     >
-                                        Xem trên TMDB
-                                    </Button>
-                                )}
+                                        {category.name}
+                                    </Tag>
+                                ))}
                             </Space>
-                        </Card>
-                    )}
+                        ) : (
+                            <Empty
+                                description="Chưa có thể loại"
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            />
+                        )}
+                    </Card>
                 </Col>
+
                 <Col xs={24} lg={16}>
-                    <Card>
-                        <Tabs activeKey={activeTab} onChange={setActiveTab}>
-                            <TabPane tab="Chi tiết" key="1">
-                                <Row gutter={[16, 16]}>
-                                    <Col span={8}>
-                                        <Statistic
-                                            title="Lượt xem"
-                                            value={record?.view || 0}
-                                            prefix={<EyeOutlined />}
-                                        />
-                                    </Col>
-                                    <Col span={8}>
-                                        <Statistic
-                                            title="Năm phát hành"
-                                            value={record?.year || 'N/A'}
-                                            prefix={<CalendarOutlined />}
-                                            formatter={(value) => value}
-                                        />
-                                    </Col>
-                                    <Col span={8}>
-                                        <Statistic
-                                            title="Số tập"
-                                            value={`${record?.episodeCurrent || 0}/${
-                                                record?.episodeTotal && record.episodeTotal !== '0'
-                                                    ? record.episodeTotal
-                                                    : '?'
-                                            }`}
-                                            prefix={<PlayCircleOutlined />}
-                                        />
-                                    </Col>
-                                </Row>
-                                <Divider />
-                                <Descriptions bordered column={1}>
-                                    <Descriptions.Item label="Loại phim">
-                                        {record?.type}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Thời lượng">
-                                        {record?.time}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Phân loại độ tuổi">
-                                        {record?.contentRating ? (
-                                            <Tag
-                                                color={
-                                                    record.contentRating === 'P'
-                                                        ? 'green'
-                                                        : record.contentRating === 'K'
-                                                        ? 'cyan'
-                                                        : record.contentRating === 'T13'
-                                                        ? 'blue'
-                                                        : record.contentRating === 'T16'
-                                                        ? 'orange'
-                                                        : record.contentRating === 'T18'
-                                                        ? 'volcano'
-                                                        : 'red'
-                                                }
-                                            >
-                                                {record.contentRating} -{' '}
-                                                {record.contentRating === 'P'
-                                                    ? 'Phù hợp mọi độ tuổi, không hạn chế'
-                                                    : record.contentRating === 'K'
-                                                    ? 'Dưới 13 tuổi cần có người lớn hướng dẫn'
-                                                    : record.contentRating === 'T13'
-                                                    ? 'Từ 13 tuổi trở lên'
-                                                    : record.contentRating === 'T16'
-                                                    ? 'Từ 16 tuổi trở lên'
-                                                    : record.contentRating === 'T18'
-                                                    ? 'Từ 18 tuổi trở lên'
-                                                    : record.contentRating === 'C'
-                                                    ? 'Không được phép phổ biến'
-                                                    : ''}
-                                            </Tag>
-                                        ) : (
-                                            'Chưa có'
-                                        )}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Phát hành rạp">
-                                        {record?.cinemaRelease ? 'Có' : 'Không'}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Bản quyền">
-                                        {record?.isCopyright ? 'Có' : 'Không'}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Sub độc quyền">
-                                        {record?.subDocquyen ? 'Có' : 'Không'}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Lịch chiếu">
-                                        {record?.showtimes || 'Chưa cập nhật'}
-                                    </Descriptions.Item>
-                                </Descriptions>
-                                <Divider orientation="left">Thể loại</Divider>
-                                <Space wrap>
-                                    {record?.categories?.map((category: CategoryType) => (
-                                        <Tag color="blue" key={category._id?.toString()}>
-                                            {category.name}
-                                        </Tag>
-                                    ))}
-                                </Space>
-                                <Divider orientation="left">Trailer</Divider>
-                                {record?.trailerUrl ? (
-                                    <Button
-                                        icon={<PlayCircleOutlined />}
-                                        href={record.trailerUrl}
-                                        target="_blank"
-                                    >
-                                        Xem Trailer
-                                    </Button>
-                                ) : (
-                                    <Text type="secondary">Không có trailer</Text>
-                                )}
-                                <Divider orientation="left">Mô tả</Divider>
-                                <Paragraph>{record?.content || 'Không có mô tả.'}</Paragraph>
-                            </TabPane>
-                            <TabPane tab="Diễn viên & Đạo diễn" key="2">
-                                <div className="space-y-6">
-                                    {/* Directors Section */}
-                                    <div>
-                                        <Title level={5} className="mb-4">
-                                            Đạo diễn
-                                        </Title>
-                                        {record?.directors && record.directors.length > 0 ? (
-                                            <List
-                                                grid={{ gutter: 16, xs: 2, sm: 3, md: 4, lg: 6 }}
-                                                dataSource={record.directors}
-                                                renderItem={(director: DirectorType) => (
-                                                    <List.Item>
-                                                        <PeopleCard
-                                                            type="directors"
-                                                            people={director}
-                                                        />
-                                                    </List.Item>
-                                                )}
-                                            />
-                                        ) : (
-                                            <div className="text-center py-4">
-                                                <Text type="secondary">
-                                                    Không có thông tin đạo diễn
-                                                </Text>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <Divider />
-
-                                    {/* Cast Section */}
-                                    <div>
-                                        <Title level={5} className="mb-4">
-                                            Diễn viên
-                                        </Title>
-                                        <List
-                                            grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4 }}
-                                            dataSource={record?.actors || []}
-                                            renderItem={(actor: ActorType) => (
-                                                <List.Item>
-                                                    <PeopleCard type="actors" people={actor} />
-                                                </List.Item>
+                    <Card bordered>
+                        <Tabs
+                            activeKey={activeTab}
+                            onChange={setActiveTab}
+                            type="card"
+                            size="large"
+                            items={[
+                                {
+                                    key: '1',
+                                    label: (
+                                        <span>
+                                            <InfoCircleOutlined /> Mô tả phim
+                                        </span>
+                                    ),
+                                    children: (
+                                        <>
+                                            {record?.thumbUrl && (
+                                                <div style={{ marginBottom: 16 }}>
+                                                    <Image
+                                                        alt={`${record?.name} thumb`}
+                                                        src={record?.thumbUrl}
+                                                        style={{
+                                                            width: '100%',
+                                                            maxHeight: 300,
+                                                            objectFit: 'cover',
+                                                            borderRadius: 8,
+                                                        }}
+                                                    />
+                                                </div>
                                             )}
-                                            locale={{
-                                                emptyText: (
-                                                    <div className="py-8 text-center">
-                                                        <UserOutlined className="text-4xl text-gray-300 mb-2" />
-                                                        <Text type="secondary">
-                                                            Không có thông tin diễn viên
-                                                        </Text>
-                                                    </div>
-                                                ),
+
+                                            <Card
+                                                title="Mô tả chi tiết"
+                                                size="small"
+                                                style={{ marginBottom: 16 }}
+                                                bordered
+                                            >
+                                                <Paragraph
+                                                    style={{ fontSize: 15, lineHeight: 1.8 }}
+                                                >
+                                                    {record?.content ||
+                                                        'Không có mô tả chi tiết cho phim này.'}
+                                                </Paragraph>
+                                            </Card>
+                                        </>
+                                    ),
+                                },
+                                {
+                                    key: '2',
+                                    label: (
+                                        <span>
+                                            <TeamOutlined /> Diễn viên & Đạo diễn
+                                        </span>
+                                    ),
+                                    children: (
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 24,
                                             }}
-                                        />
-                                    </div>
-                                </div>
-                            </TabPane>
-                            <TabPane tab="Tập phim" key="3">
-                                {record?.episode && record.episode.length > 0 ? (
-                                    renderEpisodes(record.episode)
-                                ) : (
-                                    <Alert message="Không có tập phim" type="info" />
-                                )}
-                            </TabPane>
-                        </Tabs>
+                                        >
+                                            {/* Directors Section */}
+                                            <Card
+                                                title={
+                                                    <Title level={5} style={{ margin: 0 }}>
+                                                        Đạo diễn
+                                                    </Title>
+                                                }
+                                                bordered
+                                                size="small"
+                                            >
+                                                {record?.directors &&
+                                                record.directors.length > 0 ? (
+                                                    <List
+                                                        grid={{
+                                                            gutter: 16,
+                                                            xs: 2,
+                                                            sm: 3,
+                                                            md: 4,
+                                                            lg: 6,
+                                                        }}
+                                                        dataSource={record.directors}
+                                                        renderItem={(director: DirectorType) => (
+                                                            <List.Item>
+                                                                <PeopleCard
+                                                                    type="directors"
+                                                                    people={director}
+                                                                />
+                                                            </List.Item>
+                                                        )}
+                                                    />
+                                                ) : (
+                                                    <Empty
+                                                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                                        description="Không có thông tin đạo diễn"
+                                                    />
+                                                )}
+                                            </Card>
+
+                                            {/* Cast Section */}
+                                            <Card
+                                                title={
+                                                    <Title level={5} style={{ margin: 0 }}>
+                                                        Diễn viên
+                                                    </Title>
+                                                }
+                                                bordered
+                                                size="small"
+                                            >
+                                                {record?.actors && record.actors.length > 0 ? (
+                                                    <List
+                                                        grid={{
+                                                            gutter: 16,
+                                                            xs: 2,
+                                                            sm: 3,
+                                                            md: 4,
+                                                            lg: 5,
+                                                        }}
+                                                        dataSource={record?.actors || []}
+                                                        renderItem={(actor: ActorType) => (
+                                                            <List.Item>
+                                                                <PeopleCard
+                                                                    type="actors"
+                                                                    people={actor}
+                                                                />
+                                                            </List.Item>
+                                                        )}
+                                                    />
+                                                ) : (
+                                                    <Empty
+                                                        image={
+                                                            <UserOutlined
+                                                                style={{
+                                                                    fontSize: 48,
+                                                                    color: '#bfbfbf',
+                                                                }}
+                                                            />
+                                                        }
+                                                        description="Không có thông tin diễn viên"
+                                                    />
+                                                )}
+                                            </Card>
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    key: '3',
+                                    label: (
+                                        <span>
+                                            <PlaySquareOutlined /> Tập phim
+                                        </span>
+                                    ),
+                                    children: (
+                                        <Card bordered size="small">
+                                            {record?.episode && record.episode.length > 0 ? (
+                                                renderEpisodes(record.episode)
+                                            ) : (
+                                                <Alert
+                                                    message="Thông báo"
+                                                    description="Không có tập phim nào cho phim này"
+                                                    type="info"
+                                                    showIcon
+                                                    style={{ marginTop: 16 }}
+                                                />
+                                            )}
+                                        </Card>
+                                    ),
+                                },
+                            ]}
+                        />
                     </Card>
                 </Col>
             </Row>
