@@ -1,6 +1,5 @@
 import { InputType, Field, ID } from '@nestjs/graphql';
 import {
-    IsArray,
     IsEnum,
     IsMongoId,
     IsNotEmpty,
@@ -49,7 +48,7 @@ export class EpisodeTypeInput {
     @IsString({ message: 'Server name can not be empty' })
     serverName: string;
 
-    @Field((type) => [EpisodeServerDataTypeInput])
+    @Field(() => [EpisodeServerDataTypeInput])
     @Type(() => EpisodeServerDataTypeInput)
     @ValidateNested({ each: true })
     serverData: EpisodeServerDataTypeInput[];
@@ -78,7 +77,7 @@ export class CreateMovieInput {
     @Field()
     @IsString()
     @IsEnum(MovieContentRatingEnum)
-    contentRating: MovieContentRatingEnum;
+    contentRating: string;
 
     @Field({ nullable: true })
     @IsOptional()
