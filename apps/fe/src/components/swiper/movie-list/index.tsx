@@ -1,6 +1,6 @@
 import 'swiper/css';
 import 'swiper/css/navigation';
-import React, { useRef, CSSProperties, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useRef, CSSProperties, useEffect, useMemo, useCallback } from 'react';
 import { Grid, Skeleton } from 'antd';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -8,7 +8,7 @@ import { Navigation, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import { ArrowRightOutlined } from '@ant-design/icons';
 
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 import { MovieCard } from '@/components/card/movie-card';
 import { randomString } from '@/libs/utils/common';
@@ -19,11 +19,10 @@ const { Image: SkeletonImage } = Skeleton;
 
 export type MovieListProps = {
     title?: string;
-    movies?: MovieResponseDto[];
+    movies?: MovieType[];
     isLoading?: boolean;
     style?: CSSProperties;
     viewMoreHref?: string;
-    clearVisibleContentCard?: boolean;
     disableNavigation?: boolean;
     eagerLoad?: number;
 };
@@ -33,15 +32,12 @@ export default function MovieList({
     movies = [],
     isLoading = false,
     viewMoreHref,
-    clearVisibleContentCard,
     style,
     disableNavigation = false,
     eagerLoad = 0,
 }: MovieListProps) {
-    const { md, lg, xl, xxl } = useBreakpoint();
+    const { md, lg, xl } = useBreakpoint();
     const swiperRef = useRef<SwiperType>();
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-    const [showMobileNav, setShowMobileNav] = useState(false);
     const isMobile = !md;
     const navContainerRef = useRef<HTMLDivElement>(null);
 
@@ -49,32 +45,12 @@ export default function MovieList({
     const prevButtonId = `prev-button-${uniqueId}`;
     const nextButtonId = `next-button-${uniqueId}`;
 
-    const handleMouseEnter = useCallback(() => setShowMobileNav(true), []);
-    const handleMouseLeave = useCallback(() => setShowMobileNav(false), []);
-
-    useEffect(() => {
-        if (clearVisibleContentCard) {
-            setSelectedIndex(null);
-        }
-    }, [clearVisibleContentCard]);
-
     useEffect(() => {
         if (swiperRef.current && !disableNavigation) {
             swiperRef.current.navigation.init();
             swiperRef.current.navigation.update();
         }
-    }, [swiperRef.current, disableNavigation]);
-
-    const handleVisibleContentCard = useCallback(
-        (index: number | null) => {
-            if (index === null || index === selectedIndex) {
-                setSelectedIndex(null);
-            } else {
-                setSelectedIndex(index);
-            }
-        },
-        [selectedIndex],
-    );
+    }, [disableNavigation]);
 
     const breakpoints = useMemo(
         () => ({
@@ -171,13 +147,7 @@ export default function MovieList({
     }, [isMobile]);
 
     return (
-        <div
-            className={styles.container}
-            style={style}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            ref={navContainerRef}
-        >
+        <div className={styles.container} style={style} ref={navContainerRef}>
             {title && (
                 <div className={styles.header}>
                     <h3 className={styles.title}>{title}</h3>

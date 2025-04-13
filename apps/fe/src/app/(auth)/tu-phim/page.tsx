@@ -19,8 +19,6 @@ const { useBreakpoint } = Grid;
 
 const PER_PAGE = 24;
 export default function MovieFollowingsPage() {
-    const [activeList, setActiveList] = useState<string | null>(null);
-
     const router = useRouter();
     const { md } = useBreakpoint();
     const {
@@ -140,8 +138,6 @@ export default function MovieFollowingsPage() {
                     ],
                 }}
                 gqlQuery={MOVIES_LIST_QUERY}
-                activeList={activeList}
-                setActiveList={setActiveList}
             />
         </>
     );

@@ -8,13 +8,12 @@ import { Grid } from 'antd';
 import { DocumentNode } from 'graphql';
 import { useInView } from 'react-intersection-observer';
 
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 const MovieList = dynamic(() => import('@/components/swiper/movie-list'), { ssr: true });
 import { LoadingSpinner } from '@/components/loading';
 import { MOVIES_LIST_QUERY } from '@/queries/movies';
 import { RouteNameEnum } from '@/constants/route.constant';
-import { slugifyVietnamese } from '@/libs/utils/movie.util';
 
 const { useBreakpoint } = Grid;
 
@@ -26,20 +25,15 @@ type MovieAsset = {
 interface LazyMovieListProps {
     title: string;
     movieAsset: MovieAsset;
-    activeList: string | null;
-    setActiveList: React.Dispatch<React.SetStateAction<string | null>>;
     gqlQuery?: DocumentNode;
 }
 
 export default function LazyMovieList({
     title,
     movieAsset,
-    activeList,
-    setActiveList,
     gqlQuery = MOVIES_LIST_QUERY,
 }: LazyMovieListProps) {
     const { md } = useBreakpoint();
-    const slugTitle = slugifyVietnamese(title);
     const [isVisible, setIsVisible] = useState(false);
     const [shouldFetch, setShouldFetch] = useState(false);
 
@@ -55,7 +49,7 @@ export default function LazyMovieList({
         }
     }, [inView, shouldFetch]);
 
-    const { data: movies, isLoading } = useList<MovieResponseDto>({
+    const { data: movies, isLoading } = useList<MovieType>({
         dataProviderName: 'graphql',
         meta: { gqlQuery },
         resource: 'movies',
@@ -83,13 +77,11 @@ export default function LazyMovieList({
                 marginRight: md ? '3rem' : '0.7rem',
                 minHeight: '200px', // Prevent layout shift
             }}
-            onClick={() => setActiveList(slugTitle)}
         >
             {isLoading ? (
                 <LoadingSpinner />
             ) : (
                 <MovieList
-                    clearVisibleContentCard={activeList !== slugTitle}
                     title={title}
                     movies={movies?.data}
                     viewMoreHref={`${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams(
