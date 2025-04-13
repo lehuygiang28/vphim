@@ -81,7 +81,11 @@ export class LastSyncModifiedType implements LastSyncModified {
 
 @ObjectType('Movie')
 export class MovieType
-    implements Omit<Movie, 'actors' | 'categories' | 'countries' | 'directors' | 'tmdb' | 'imdb'>
+    implements
+        Omit<
+            Movie,
+            'actors' | 'categories' | 'countries' | 'directors' | 'tmdb' | 'imdb' | 'contentRating'
+        >
 {
     constructor(movie: MovieType) {
         Object.assign(this, movie);
@@ -154,7 +158,7 @@ export class MovieType
     status: string;
 
     @Field()
-    contentRating: MovieContentRatingEnum;
+    contentRating: string;
 
     @Field({ nullable: true })
     subDocquyen?: boolean;

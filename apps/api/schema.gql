@@ -537,7 +537,7 @@ input CreateMovieInput {
   name: String!
   slug: String!
   originName: String
-  contentRating: String
+  contentRating: String!
   content: String
   type: String!
   lang: String
