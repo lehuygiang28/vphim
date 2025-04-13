@@ -133,7 +133,11 @@ export class MovieService {
         return new MovieResponseDto(movie, { excludeSrc: this.EXCLUDE_MOVIE_SRC });
     }
 
-    async getMoviesEs(dto: GetMoviesAdminInput | GetMoviesInput, isRestful = false) {
+    async getMoviesEs(
+        dto: GetMoviesAdminInput | GetMoviesInput,
+        isRestful = false,
+        isAdmin = false,
+    ) {
         const {
             useAI = false,
             resetCache = false,
@@ -231,7 +235,7 @@ export class MovieService {
             }
         }
 
-        const query = aiFilter || (await this.buildTraditionalQuery(dto));
+        const query = aiFilter || (await this.buildTraditionalQuery(dto, isAdmin));
         const { data, total } = await this.executeSearch(query, dto, isRestful);
 
         const res = {
@@ -272,6 +276,7 @@ export class MovieService {
 
     private async buildTraditionalQuery(
         dto: GetMoviesAdminInput | GetMoviesInput,
+        isAdmin = false,
     ): Promise<QueryDslQueryContainer> {
         const {
             keywords,
@@ -362,14 +367,14 @@ export class MovieService {
             });
 
             // Exclude sensitive content by default
-            if (!categorySlugs.includes('phim-18')) {
+            if (!categorySlugs.includes('phim-18') && !isAdmin) {
                 mustNot.push({
                     term: {
                         'categories.slug.keyword': 'phim-18',
                     },
                 });
             }
-        } else {
+        } else if (!isAdmin) {
             // Exclude sensitive content by default
             mustNot.push({
                 term: {

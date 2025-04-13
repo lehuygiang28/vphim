@@ -18,12 +18,6 @@ import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
 export class MovieResolver {
     constructor(private readonly movieService: MovieService) {}
 
-    @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
-    @Mutation(() => MovieType, { name: 'createMovie' })
-    async createMovie(@Args('input') input: CreateMovieInput): Promise<MovieType> {
-        return this.movieService.createMovie(input);
-    }
-
     @Query(() => MovieType, { name: 'movie' })
     getMovie(@Args('input') input: GetMovieInput) {
         return this.movieService.getMovie(input);
@@ -34,9 +28,16 @@ export class MovieResolver {
         return this.movieService.getMoviesEs(input);
     }
 
+    @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
+    @Mutation(() => MovieType, { name: 'createMovie' })
+    async createMovie(@Args('input') input: CreateMovieInput): Promise<MovieType> {
+        return this.movieService.createMovie(input);
+    }
+
+    @RequiredRoles('admin' as UserRoleEnum, { isGql: true })
     @Query(() => GetMoviesOutput, { name: 'moviesForAdmin' })
     getMoviesAdmin(@Args('input') input: GetMoviesAdminInput) {
-        return this.movieService.getMoviesEs(input);
+        return this.movieService.getMoviesEs(input, false, true);
     }
 
     @RequiredRoles('admin' as UserRoleEnum, { isGql: true })

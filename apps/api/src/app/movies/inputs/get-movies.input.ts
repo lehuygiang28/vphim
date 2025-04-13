@@ -42,7 +42,7 @@ export class GetMoviesInput {
     type?: string;
 
     @Field({ nullable: true })
-    years: string;
+    years?: string;
 
     @Field({ nullable: true })
     status?: string;
