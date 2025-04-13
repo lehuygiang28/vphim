@@ -44,6 +44,10 @@ import { LocalQuery } from './index';
 import { SearchInput } from './search-input';
 import { MovieContentRatingEnum } from 'apps/api/src/app/movies/movie.constant';
 import { MovieQualityEnum } from 'apps/api/src/app/movies/movie.constant';
+import {
+    getContentRatingLabel,
+    getContentRatingDescription,
+} from '@/components/tag/movie-content-rating';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -96,7 +100,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
     const yearOptions = Array.from({ length: 124 }, (_, i) => currentYear - i);
     const [keywordsInput, setKeywordsInput] = useState<string | undefined>(undefined);
     const [filterVisible, setFilterVisible] = useState(false);
-    const [movieCountData, setMovieCountData] = useState<number | undefined>(undefined);
 
     const getFilterValue = useCallback(
         (field: string) => {
@@ -243,24 +246,76 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 <Panel header={<Text strong>Phân loại độ tuổi</Text>} key="contentRating">
                     <div className="filter-chip-group">
                         {Object.values(MovieContentRatingEnum).map((rating) => {
+                            // Determine background and text colors based on rating
+                            const getHexColor = (rating: string): string => {
+                                switch (rating) {
+                                    case MovieContentRatingEnum.P:
+                                        return '#52c41a'; // Green
+                                    case MovieContentRatingEnum.K:
+                                        return '#73d13d'; // Light green
+                                    case MovieContentRatingEnum.T13:
+                                        return '#1890ff'; // Blue
+                                    case MovieContentRatingEnum.T16:
+                                        return '#fa8c16'; // Orange
+                                    case MovieContentRatingEnum.T18:
+                                        return '#fa541c'; // Darker orange
+                                    case MovieContentRatingEnum.C:
+                                        return '#f5222d'; // Red
+                                    default:
+                                        return '#d9d9d9'; // Grey
+                                }
+                            };
+
+                            const isDark = ['T13', 'T16', 'T18', 'C'].includes(rating);
+                            const isActive = getFilterValue('contentRating')[0] === rating;
+                            const bgColor = isActive ? getHexColor(rating) : 'transparent';
+                            const textColor = isActive ? (isDark ? '#fff' : '#000') : 'inherit';
+                            const borderColor = getHexColor(rating);
+
+                            // Get full description for the rating
+                            const fullLabel = getContentRatingLabel(rating);
+                            const [code, description] = fullLabel.split(' - ');
+
                             return (
-                                <div
+                                <Tooltip
                                     key={rating}
-                                    className={`filter-chip ${
-                                        getFilterValue('contentRating')[0] === rating
-                                            ? 'active'
-                                            : ''
-                                    }`}
-                                    onClick={() => {
-                                        const currentValue = getFilterValue('contentRating')[0];
-                                        handleFilterChange(
-                                            'contentRating',
-                                            currentValue === rating ? undefined : rating,
-                                        );
-                                    }}
+                                    title={getContentRatingDescription(rating)}
+                                    placement="top"
                                 >
-                                    {rating}
-                                </div>
+                                    <div
+                                        className={`filter-chip ${isActive ? 'active' : ''}`}
+                                        onClick={() => {
+                                            const currentValue = getFilterValue('contentRating')[0];
+                                            handleFilterChange(
+                                                'contentRating',
+                                                currentValue === rating ? undefined : rating,
+                                            );
+                                        }}
+                                        style={{
+                                            backgroundColor: bgColor,
+                                            color: textColor,
+                                            borderColor: borderColor,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'flex-start',
+                                            padding: '6px 12px',
+                                            minWidth: '120px',
+                                        }}
+                                    >
+                                        <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                                            {code}
+                                        </span>
+                                        <span
+                                            style={{
+                                                fontSize: '0.7rem',
+                                                opacity: 0.9,
+                                                marginTop: '2px',
+                                            }}
+                                        >
+                                            {description}
+                                        </span>
+                                    </div>
+                                </Tooltip>
                             );
                         })}
                     </div>
@@ -443,7 +498,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 field === 'contentRating'
             ) {
                 const value = values[0];
-                let displayValue = value;
+                let displayValue: string | React.ReactNode = value;
 
                 if (field === 'type') {
                     displayValue =
@@ -457,7 +512,43 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     displayValue =
                         qualityOptions.find((option) => option.value === value)?.label || value;
                 } else if (field === 'contentRating') {
-                    displayValue = value; // Just show the rating code (P, K, T13, etc.)
+                    const ratingCode = value;
+                    displayValue = (
+                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            <span
+                                style={{
+                                    display: 'inline-block',
+                                    padding: '0 4px',
+                                    borderRadius: '2px',
+                                    fontWeight: 'bold',
+                                    backgroundColor: (() => {
+                                        switch (ratingCode) {
+                                            case MovieContentRatingEnum.P:
+                                                return '#52c41a';
+                                            case MovieContentRatingEnum.K:
+                                                return '#73d13d';
+                                            case MovieContentRatingEnum.T13:
+                                                return '#1890ff';
+                                            case MovieContentRatingEnum.T16:
+                                                return '#fa8c16';
+                                            case MovieContentRatingEnum.T18:
+                                                return '#fa541c';
+                                            case MovieContentRatingEnum.C:
+                                                return '#f5222d';
+                                            default:
+                                                return '#d9d9d9';
+                                        }
+                                    })(),
+                                    color: ['T13', 'T16', 'T18', 'C'].includes(ratingCode)
+                                        ? '#fff'
+                                        : '#000',
+                                    fontSize: '0.75rem',
+                                }}
+                            >
+                                {ratingCode}
+                            </span>
+                        </span>
+                    );
                 }
 
                 tags.push(
@@ -477,7 +568,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 // If there's only one value, show it normally
                 if (values.length === 1) {
                     const value = values[0];
-                    let displayValue = value;
+                    let displayValue: string | React.ReactNode = value;
 
                     if (field === 'categories') {
                         displayValue = categories?.find((cat) => cat.slug === value)?.name || value;
@@ -505,7 +596,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                             title={
                                 <div>
                                     {values.map((value) => {
-                                        let displayValue = value;
+                                        let displayValue: string | React.ReactNode = value;
 
                                         if (field === 'categories') {
                                             displayValue =
@@ -677,9 +768,6 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     icon={<SearchOutlined />}
                 >
                     Áp dụng
-                    {movieCountData !== undefined && (
-                        <span className="results-count">{movieCountData}</span>
-                    )}
                 </Button>
             </div>
         </>
