@@ -16,6 +16,7 @@ import {
     MenuOutlined,
     LockOutlined,
     LoginOutlined,
+    WarningOutlined,
 } from '@ant-design/icons';
 import { useDebouncedCallback } from 'use-debounce';
 import type { MenuProps } from 'antd';
@@ -27,6 +28,8 @@ import { getEpisodeNameBySlug } from '@/libs/utils/movie.util';
 import { useHeaderVisibilityStore } from '@/hooks/useHeaderVisibility';
 import useHeaderVisibility from '@/hooks/useHeaderVisibility';
 import { usePlayerSettings } from '@/hooks/usePlayerSettings';
+import { AgeVerificationModal } from '@/components/modals/age-verification-modal';
+import { useAgeVerification } from '@/hooks/useAgeVerification';
 
 import { MovieEpisode } from '../movie-episode';
 import { MovieRelated } from '../movie-related';
@@ -364,6 +367,18 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     // Access player settings for usage and to modify when auth changes
     const { useAdBlocker, useProxyStreaming, toggleAdBlocking, toggleProxyStreaming } =
         usePlayerSettings();
+
+    // Add age verification integration with proper authentication check
+    const {
+        isVerificationModalVisible,
+        hideVerificationModal,
+        markContentAsVerified,
+        needsVerification,
+        checkContentRestriction,
+    } = useAgeVerification(movie?.contentRating, movie?.quality, isAuthenticated);
+
+    const isContentRestricted =
+        !!movie && checkContentRestriction(movie.contentRating, movie.quality);
 
     const preFetchM3u8 = useCallback(async (url: string) => {
         try {
@@ -856,6 +871,24 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 isLightsOff ? styles.lightsOff : ''
             }`}
         >
+            {/* Age verification modal */}
+            {isContentRestricted && (
+                <AgeVerificationModal
+                    visible={isVerificationModalVisible}
+                    onClose={() => {
+                        hideVerificationModal();
+                        // If user closed without accepting and needs verification, redirect back
+                        if (needsVerification) {
+                            router.push(`/phim/${movie?.slug}`);
+                        }
+                    }}
+                    onAccept={markContentAsVerified}
+                    contentRating={movie?.contentRating}
+                    quality={movie?.quality}
+                    isLoggedIn={isAuthenticated}
+                />
+            )}
+
             {/* Overlay for lights off mode */}
             {isLightsOff && (
                 <div className={styles.lightsOffOverlay} onClick={handleOverlayClick} />
@@ -879,7 +912,9 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                             }`}
                         >
                             {isVideoLoading && <div className={styles.loadingIndicator} />}
-                            {selectedEpisode && (
+
+                            {/* Show player only if content is not restricted or has been verified */}
+                            {((!isContentRestricted) || (isContentRestricted && !needsVerification)) && selectedEpisode && (
                                 <PlayerIframe
                                     isM3u8Available={isM3u8Available}
                                     useEmbedLink={useEmbedLink}
@@ -892,6 +927,32 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                                     handleVideoLoad={handleVideoLoad}
                                     isAuthenticated={isAuthenticated}
                                 />
+                            )}
+
+                            {/* Show verification message if content is restricted and needs verification */}
+                            {isContentRestricted && needsVerification && (
+                                <div style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexDirection: 'column',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: '20px'
+                                }}>
+                                    <WarningOutlined style={{ fontSize: '48px', color: '#ff4d4f', marginBottom: '16px' }} />
+                                    <Text style={{ color: 'white', fontSize: '18px', textAlign: 'center' }}>
+                                        Nội dung này yêu cầu xác nhận độ tuổi
+                                    </Text>
+                                    <Button
+                                        type="primary"
+                                        onClick={() => hideVerificationModal()}
+                                        style={{ marginTop: '16px' }}
+                                    >
+                                        Xác nhận ngay
+                                    </Button>
+                                </div>
                             )}
                         </div>
                         <Space ref={controlsRef} className={styles.controls}>
