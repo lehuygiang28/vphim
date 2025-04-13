@@ -80,6 +80,7 @@ export const MOVIES_LIST_FOR_SWIPER_QUERY = gql`
                 slug
                 year
                 quality
+                contentRating
                 time
                 content
                 view
@@ -109,6 +110,7 @@ export const MOVIES_LIST_QUERY = gql`
                 slug
                 year
                 quality
+                contentRating
                 content
                 time
                 lang
