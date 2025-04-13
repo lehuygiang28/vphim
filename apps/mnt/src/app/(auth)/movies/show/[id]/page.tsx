@@ -608,7 +608,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                             ] || 'default'
                                         }
                                     >
-                                        {record.contentRating} -{' '}
+                                        {record.contentRating?.toUpperCase()} -{' '}
                                         {contentRatingText[
                                             record.contentRating as keyof typeof contentRatingText
                                         ] || ''}
