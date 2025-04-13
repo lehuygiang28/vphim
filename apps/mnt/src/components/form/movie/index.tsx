@@ -744,7 +744,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                                         : 'red'
                                                                 }
                                                             >
-                                                                {value}
+                                                                {value?.toUpperCase()}
                                                             </Tag>
                                                             <span>{description}</span>
                                                         </Space>
@@ -796,7 +796,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     >
                                         {Object.entries(MovieQualityEnum).map(([key, value]) => (
                                             <Option key={key} value={value}>
-                                                {value.toUpperCase()}
+                                                {value?.toUpperCase()}
                                             </Option>
                                         ))}
                                     </Select>
