@@ -21,6 +21,7 @@ import {
     Tooltip,
     Divider,
     Typography,
+    Tag,
 } from 'antd';
 import { UploadOutlined, PlusCircleOutlined, UndoOutlined, LinkOutlined } from '@ant-design/icons';
 import { GetOneResponse, HttpError, useApiUrl, useOne } from '@refinedev/core';
@@ -38,7 +39,12 @@ import { MNT_CATEGORIES_LIST_QUERY } from '~mnt/queries/category.query';
 import { GET_ACTOR_LIST_QUERY } from '~mnt/queries/actor.query';
 import { MNT_REGIONS_LIST_QUERY } from '~mnt/queries/region.query';
 import { GET_DIRECTOR_LIST_QUERY } from '~mnt/queries/director.query';
-import { MovieQualityEnum, MovieStatusEnum, MovieTypeEnum } from '~api/app/movies/movie.constant';
+import {
+    MovieQualityEnum,
+    MovieStatusEnum,
+    MovieTypeEnum,
+    MovieContentRatingEnum,
+} from '~api/app/movies/movie.constant';
 import { MovieType } from '~api/app/movies/movie.type';
 
 import { ServerEpisodeSection } from './server-episode-section';
@@ -629,7 +635,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                         style={{ marginBottom: 16 }}
                     >
                         <Row gutter={16}>
-                            <Col span={8}>
+                            <Col span={6}>
                                 <Form.Item
                                     name="type"
                                     label="Loại"
@@ -647,7 +653,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col span={6}>
                                 <Form.Item
                                     name="status"
                                     label="Trạng thái"
@@ -672,7 +678,79 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col span={6}>
+                                <Form.Item
+                                    name="contentRating"
+                                    label="Phân loại độ tuổi"
+                                    tooltip="Phân loại độ tuổi phù hợp cho người xem theo quy định Việt Nam"
+                                    rules={[
+                                        {
+                                            type: 'enum',
+                                            enum: Object.values(MovieContentRatingEnum),
+                                            message: 'Phân loại không hợp lệ',
+                                        },
+                                    ]}
+                                >
+                                    <Select placeholder="Chọn phân loại">
+                                        {Object.entries(MovieContentRatingEnum).map(
+                                            ([key, value]) => {
+                                                let description = '';
+
+                                                switch (value) {
+                                                    case 'P':
+                                                        description =
+                                                            'Phù hợp mọi độ tuổi, không hạn chế';
+                                                        break;
+                                                    case 'K':
+                                                        description =
+                                                            'Dưới 13 tuổi cần có người lớn hướng dẫn';
+                                                        break;
+                                                    case 'T13':
+                                                        description = 'Từ 13 tuổi trở lên';
+                                                        break;
+                                                    case 'T16':
+                                                        description = 'Từ 16 tuổi trở lên';
+                                                        break;
+                                                    case 'T18':
+                                                        description = 'Từ 18 tuổi trở lên';
+                                                        break;
+                                                    case 'C':
+                                                        description = 'Không được phép phổ biến';
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+
+                                                return (
+                                                    <Option key={key} value={value}>
+                                                        <Space>
+                                                            <Tag
+                                                                color={
+                                                                    value === 'P'
+                                                                        ? 'green'
+                                                                        : value === 'K'
+                                                                        ? 'cyan'
+                                                                        : value === 'T13'
+                                                                        ? 'blue'
+                                                                        : value === 'T16'
+                                                                        ? 'orange'
+                                                                        : value === 'T18'
+                                                                        ? 'volcano'
+                                                                        : 'red'
+                                                                }
+                                                            >
+                                                                {value}
+                                                            </Tag>
+                                                            <span>{description}</span>
+                                                        </Space>
+                                                    </Option>
+                                                );
+                                            },
+                                        )}
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={6}>
                                 <Form.Item
                                     name="quality"
                                     label="Chất lượng"

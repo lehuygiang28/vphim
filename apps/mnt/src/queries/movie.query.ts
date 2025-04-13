@@ -12,6 +12,7 @@ export const MNT_MOVIE_LIST_QUERY = gql`
                 slug
                 year
                 quality
+                contentRating
                 type
                 status
                 view
@@ -44,6 +45,7 @@ export const GET_FULL_MOVIE_DETAIL_QUERY = gql`
             notify
             originName
             quality
+            contentRating
             showtimes
             slug
             status

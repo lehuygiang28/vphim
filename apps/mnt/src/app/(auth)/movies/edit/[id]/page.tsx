@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Spin } from 'antd';
-import { useForm, SaveButton } from '@refinedev/antd';
+import { useRouter } from 'next/navigation';
+import { Button, Spin } from 'antd';
+import { useForm, SaveButton, ListButton, RefreshButton } from '@refinedev/antd';
 import { Edit } from '@refinedev/antd';
+import { EyeOutlined } from '@ant-design/icons';
 
 import { type MovieType } from '~api/app/movies/movie.type';
 import { type ActorType } from '~api/app/actors/actor.type';
@@ -14,12 +16,12 @@ import { type CategoryType } from '~api/app/categories/category.type';
 import { GET_FULL_MOVIE_DETAIL_QUERY, MUTATION_UPDATE_MOVIE } from '~mnt/queries/movie.query';
 import { MovieForm } from '~mnt/components/form/movie';
 import { DeleteMovieButton } from '~mnt/components/button/delete-movie-button';
-
 export type EditMoviePageProps = {
     params: { id: string };
 };
 
 export default function MovieEditPage({ params }: EditMoviePageProps) {
+    const router = useRouter();
     const { formProps, saveButtonProps, query } = useForm<MovieType>({
         dataProviderName: 'graphql',
         resource: 'movies',
@@ -82,6 +84,18 @@ export default function MovieEditPage({ params }: EditMoviePageProps) {
     return (
         <Edit
             title={`Chỉnh sửa phim "${movie?.originName}"`}
+            headerButtons={({ listButtonProps, refreshButtonProps }) => (
+                <>
+                    <Button
+                        onClick={() => router.push(`/movies/show/${params.id}`)}
+                        icon={<EyeOutlined />}
+                    >
+                        Chi tiết
+                    </Button>
+                    <ListButton {...listButtonProps}>Danh sách</ListButton>
+                    <RefreshButton {...refreshButtonProps}>Làm mới</RefreshButton>
+                </>
+            )}
             saveButtonProps={saveButtonProps}
             footerButtons={(button) => {
                 const { saveButtonProps } = button;

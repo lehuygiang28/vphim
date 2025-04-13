@@ -117,7 +117,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                             key={index}
                         >
                             <Input
-                                placeholder="Search episodes"
+                                placeholder="Tìm kiếm tập phim"
                                 prefix={<SearchOutlined />}
                                 onChange={(e) => handleSearchChange(e.target.value, index)}
                                 style={{ marginBottom: 16 }}
@@ -127,7 +127,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                 dataSource={paginatedEpisodes}
                                 columns={[
                                     {
-                                        title: 'Name',
+                                        title: 'Tên',
                                         dataIndex: 'name',
                                         key: 'name',
                                         sorter: (a, b) => a.name.localeCompare(b.name),
@@ -138,12 +138,12 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                         key: 'slug',
                                     },
                                     {
-                                        title: 'Actions',
+                                        title: 'Thao tác',
                                         key: 'actions',
                                         render: (_, episode: EpisodeServerDataType) => (
                                             <Space>
                                                 {episode.linkEmbed && (
-                                                    <Tooltip title="Watch Embed">
+                                                    <Tooltip title="Xem nhúng">
                                                         <Button
                                                             icon={<PlayCircleOutlined />}
                                                             href={episode.linkEmbed}
@@ -152,7 +152,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                                     </Tooltip>
                                                 )}
                                                 {episode.linkM3u8 && (
-                                                    <Tooltip title="M3U8 Link">
+                                                    <Tooltip title="Link M3U8">
                                                         <Button
                                                             icon={<LinkOutlined />}
                                                             href={episode.linkM3u8}
@@ -335,7 +335,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                         target="_blank"
                                         block
                                     >
-                                        View on IMDB
+                                        Xem trên IMDB
                                     </Button>
                                 )}
                                 {record.tmdb?.id && (
@@ -345,7 +345,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                         target="_blank"
                                         block
                                     >
-                                        View on TMDB
+                                        Xem trên TMDB
                                     </Button>
                                 )}
                             </Space>
@@ -355,18 +355,18 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                 <Col xs={24} lg={16}>
                     <Card>
                         <Tabs activeKey={activeTab} onChange={setActiveTab}>
-                            <TabPane tab="Details" key="1">
+                            <TabPane tab="Chi tiết" key="1">
                                 <Row gutter={[16, 16]}>
                                     <Col span={8}>
                                         <Statistic
-                                            title="Views"
+                                            title="Lượt xem"
                                             value={record?.view || 0}
                                             prefix={<EyeOutlined />}
                                         />
                                     </Col>
                                     <Col span={8}>
                                         <Statistic
-                                            title="Release Year"
+                                            title="Năm phát hành"
                                             value={record?.year || 'N/A'}
                                             prefix={<CalendarOutlined />}
                                             formatter={(value) => value}
@@ -374,7 +374,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                     </Col>
                                     <Col span={8}>
                                         <Statistic
-                                            title="Episodes"
+                                            title="Số tập"
                                             value={`${record?.episodeCurrent || 0}/${
                                                 record?.episodeTotal && record.episodeTotal !== '0'
                                                     ? record.episodeTotal
@@ -386,26 +386,62 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                 </Row>
                                 <Divider />
                                 <Descriptions bordered column={1}>
-                                    <Descriptions.Item label="Type">
+                                    <Descriptions.Item label="Loại phim">
                                         {record?.type}
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="Duration">
+                                    <Descriptions.Item label="Thời lượng">
                                         {record?.time}
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="Cinema Release">
-                                        {record?.cinemaRelease ? 'Yes' : 'No'}
+                                    <Descriptions.Item label="Phân loại độ tuổi">
+                                        {record?.contentRating ? (
+                                            <Tag
+                                                color={
+                                                    record.contentRating === 'P'
+                                                        ? 'green'
+                                                        : record.contentRating === 'K'
+                                                        ? 'cyan'
+                                                        : record.contentRating === 'T13'
+                                                        ? 'blue'
+                                                        : record.contentRating === 'T16'
+                                                        ? 'orange'
+                                                        : record.contentRating === 'T18'
+                                                        ? 'volcano'
+                                                        : 'red'
+                                                }
+                                            >
+                                                {record.contentRating} -{' '}
+                                                {record.contentRating === 'P'
+                                                    ? 'Phù hợp mọi độ tuổi, không hạn chế'
+                                                    : record.contentRating === 'K'
+                                                    ? 'Dưới 13 tuổi cần có người lớn hướng dẫn'
+                                                    : record.contentRating === 'T13'
+                                                    ? 'Từ 13 tuổi trở lên'
+                                                    : record.contentRating === 'T16'
+                                                    ? 'Từ 16 tuổi trở lên'
+                                                    : record.contentRating === 'T18'
+                                                    ? 'Từ 18 tuổi trở lên'
+                                                    : record.contentRating === 'C'
+                                                    ? 'Không được phép phổ biến'
+                                                    : ''}
+                                            </Tag>
+                                        ) : (
+                                            'Chưa có'
+                                        )}
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="Is Copyright">
-                                        {record?.isCopyright ? 'Yes' : 'No'}
+                                    <Descriptions.Item label="Phát hành rạp">
+                                        {record?.cinemaRelease ? 'Có' : 'Không'}
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="Sub Copyright">
-                                        {record?.subDocquyen ? 'Yes' : 'No'}
+                                    <Descriptions.Item label="Bản quyền">
+                                        {record?.isCopyright ? 'Có' : 'Không'}
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="Showtimes">
-                                        {record?.showtimes || 'N/A'}
+                                    <Descriptions.Item label="Sub độc quyền">
+                                        {record?.subDocquyen ? 'Có' : 'Không'}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="Lịch chiếu">
+                                        {record?.showtimes || 'Chưa cập nhật'}
                                     </Descriptions.Item>
                                 </Descriptions>
-                                <Divider orientation="left">Categories</Divider>
+                                <Divider orientation="left">Thể loại</Divider>
                                 <Space wrap>
                                     {record?.categories?.map((category: CategoryType) => (
                                         <Tag color="blue" key={category._id?.toString()}>
@@ -420,22 +456,20 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                         href={record.trailerUrl}
                                         target="_blank"
                                     >
-                                        Watch Trailer
+                                        Xem Trailer
                                     </Button>
                                 ) : (
-                                    <Text type="secondary">No trailer available</Text>
+                                    <Text type="secondary">Không có trailer</Text>
                                 )}
-                                <Divider orientation="left">Description</Divider>
-                                <Paragraph>
-                                    {record?.content || 'No description available.'}
-                                </Paragraph>
+                                <Divider orientation="left">Mô tả</Divider>
+                                <Paragraph>{record?.content || 'Không có mô tả.'}</Paragraph>
                             </TabPane>
-                            <TabPane tab="Credits" key="2">
+                            <TabPane tab="Diễn viên & Đạo diễn" key="2">
                                 <div className="space-y-6">
                                     {/* Directors Section */}
                                     <div>
                                         <Title level={5} className="mb-4">
-                                            Director
+                                            Đạo diễn
                                         </Title>
                                         {record?.directors && record.directors.length > 0 ? (
                                             <List
@@ -453,7 +487,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                         ) : (
                                             <div className="text-center py-4">
                                                 <Text type="secondary">
-                                                    No director information available
+                                                    Không có thông tin đạo diễn
                                                 </Text>
                                             </div>
                                         )}
@@ -464,7 +498,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                     {/* Cast Section */}
                                     <div>
                                         <Title level={5} className="mb-4">
-                                            Casts
+                                            Diễn viên
                                         </Title>
                                         <List
                                             grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4 }}
@@ -479,7 +513,7 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                                     <div className="py-8 text-center">
                                                         <UserOutlined className="text-4xl text-gray-300 mb-2" />
                                                         <Text type="secondary">
-                                                            No cast members available
+                                                            Không có thông tin diễn viên
                                                         </Text>
                                                     </div>
                                                 ),
@@ -488,11 +522,11 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                                     </div>
                                 </div>
                             </TabPane>
-                            <TabPane tab="Episodes" key="3">
+                            <TabPane tab="Tập phim" key="3">
                                 {record?.episode && record.episode.length > 0 ? (
                                     renderEpisodes(record.episode)
                                 ) : (
-                                    <Alert message="No episodes available" type="info" />
+                                    <Alert message="Không có tập phim" type="info" />
                                 )}
                             </TabPane>
                         </Tabs>
