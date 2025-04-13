@@ -7,6 +7,7 @@ import { CronJob } from 'cron';
 import slugify from 'slugify';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
 import { Types } from 'mongoose';
+import type { MovieReleaseDatesResponse, ShowContentRatingResponse } from 'moviedb-promise';
 import { Movie as OPhimMovie } from 'ophim-js';
 
 import { RedisService } from '../../../libs/modules/redis';
@@ -22,9 +23,10 @@ import {
     sleep,
     slugifyVietnamese,
 } from '../../../libs/utils/common';
-import { mappingNameSlugEpisode } from '../mapping-data';
+import { determineContentRating, mappingNameSlugEpisode } from '../mapping-data';
 import { TmdbService } from '../../../libs/modules/themoviedb.org/tmdb.service';
 import { ImdbType, TmdbType } from '../../movies/movie.type';
+import { MovieContentRatingEnum } from '../../movies/movie.constant';
 
 export interface ICrawlerConfig {
     name: string;
@@ -1285,5 +1287,24 @@ export abstract class BaseCrawler implements OnModuleInit, OnModuleDestroy {
         });
 
         return mergedEpisodes;
+    }
+
+    protected async processContentRating(movieDetail: {
+        tmdb: TmdbType;
+    }): Promise<MovieContentRatingEnum> {
+        let tmdbReleases: MovieReleaseDatesResponse | ShowContentRatingResponse | null = null;
+        switch (movieDetail?.tmdb?.type) {
+            case 'movie':
+                tmdbReleases = await this.tmdbService.moviedb.movieReleaseDates({
+                    id: movieDetail.tmdb.id,
+                });
+                break;
+            case 'tv':
+                tmdbReleases = await this.tmdbService.moviedb.tvContentRatings({
+                    id: movieDetail.tmdb.id,
+                });
+                break;
+        }
+        return determineContentRating(tmdbReleases);
     }
 }

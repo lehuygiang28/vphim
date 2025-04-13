@@ -11,7 +11,7 @@ import {
     ValidateNested,
 } from 'class-validator';
 import { EpisodeType, TmdbType, ImdbType } from '../movie.type';
-import { MovieStatusEnum, MovieTypeEnum } from '../movie.constant';
+import { MovieContentRatingEnum, MovieStatusEnum, MovieTypeEnum } from '../movie.constant';
 import { Type } from 'class-transformer';
 import { IsOneOfNotEmpty } from 'apps/api/src/libs/decorators/one-of-many-not-empty.decorator';
 
@@ -74,6 +74,11 @@ export class CreateMovieInput {
     @IsOptional()
     @IsString()
     originName?: string;
+
+    @Field()
+    @IsString()
+    @IsEnum(MovieContentRatingEnum)
+    contentRating: MovieContentRatingEnum;
 
     @Field({ nullable: true })
     @IsOptional()

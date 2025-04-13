@@ -6,6 +6,7 @@ import { ActorType } from '../actors';
 import { CategoryType } from '../categories';
 import { RegionType } from '../regions/region.type';
 import { DirectorType } from '../directors/director.type';
+import { MovieContentRatingEnum } from './movie.constant';
 
 @InputType('EpisodeServerDataInputType')
 @ObjectType('EpisodeServerData')
@@ -151,6 +152,9 @@ export class MovieType
 
     @Field({ nullable: true })
     status: string;
+
+    @Field()
+    contentRating: MovieContentRatingEnum;
 
     @Field({ nullable: true })
     subDocquyen?: boolean;

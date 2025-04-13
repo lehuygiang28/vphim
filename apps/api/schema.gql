@@ -115,6 +115,7 @@ type Movie {
   showtimes: String
   slug: String!
   status: String
+  contentRating: String!
   subDocquyen: Boolean
   thumbUrl: String!
   posterUrl: String
@@ -168,6 +169,7 @@ type MovieFollowType {
   showtimes: String
   slug: String!
   status: String
+  contentRating: String!
   subDocquyen: Boolean
   thumbUrl: String!
   posterUrl: String
@@ -535,6 +537,7 @@ input CreateMovieInput {
   name: String!
   slug: String!
   originName: String
+  contentRating: String
   content: String
   type: String!
   lang: String

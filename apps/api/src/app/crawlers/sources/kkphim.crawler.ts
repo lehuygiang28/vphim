@@ -182,6 +182,7 @@ export class KKPhimCrawler extends BaseCrawler {
                 actorIds,
                 directorIds,
                 { thumbUrl, posterUrl },
+                contentRating,
             ] = await Promise.all([
                 this.processCategoriesAndCountries(movieDetail),
                 this.processActors(movieDetail?.actor, { tmdbData: movieDetail?.tmdb }),
@@ -195,6 +196,7 @@ export class KKPhimCrawler extends BaseCrawler {
                     },
                     { preferTmdb: true },
                 ),
+                this.processContentRating({ tmdb }),
             ]);
 
             // Save movie
@@ -205,6 +207,8 @@ export class KKPhimCrawler extends BaseCrawler {
                 // Mapping data
                 type: MOVIE_TYPE_MAP[movieDetail?.type] || 'N/A',
                 time: convertToVietnameseTime(movieDetail?.time || existingMovie?.time),
+                contentRating: contentRating,
+
                 // Keep the best quality
                 quality: this.getBestQuality(
                     existingMovie?.quality,

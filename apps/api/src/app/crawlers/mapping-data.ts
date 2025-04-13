@@ -1,6 +1,7 @@
 import { removeTone, removeDiacritics } from '@vn-utils/text';
 import { slugifyVietnamese } from 'apps/api/src/libs/utils/common';
-import { MovieQualityEnum } from '../movies/movie.constant';
+import { MovieContentRatingEnum, MovieQualityEnum } from '../movies/movie.constant';
+import type { ShowContentRatingResponse, MovieReleaseDatesResponse } from 'moviedb-promise';
 
 export const MOVIE_TYPE_MAP = {
     'phim lẻ': 'single',
@@ -252,4 +253,196 @@ export function mappingNameSlugEpisode(item: { name: string; slug?: string }, in
     }
     slug = slugifyVietnamese(name, { lower: true });
     return { name, slug };
+}
+
+export function mappingContentRating(age: string): MovieContentRatingEnum {
+    switch (age?.trim()?.toLowerCase()) {
+        // 18+ category (adult content)
+        case 'r': // R in US
+        case 'nc-17': // NC-17 in US
+        case 'ma15+': // Australia
+        case '18': // UK, Germany (DE)
+        case '18+':
+        case '17+': // Indonesia
+        case 'a': // India
+        case 'm18': // Singapore
+        case 'iib': // Hong Kong
+        case 'iii': // Hong Kong
+        case 'r-16': // Philippines
+        case 't18':
+        case 'fsk-18': // Germany explicit
+        case 'x': // Used for adult content in some regions
+        case 'xxx': // Used for adult content in some regions
+            return MovieContentRatingEnum.T18;
+
+        // 16+ category
+        case '16+':
+        case '15': // UK
+        case '15a': // Ireland
+        case 'm/14': // Portugal
+        case 'b-15': // Mexico
+        case 'n-16': // Lithuania
+        case '16': // Multiple countries including Germany (DE)
+        case 'iia': // Hong Kong
+        case 't16':
+        case 'fsk-16': // Germany explicit
+            return MovieContentRatingEnum.T16;
+
+        // 13+ category
+        case '13+':
+        case 'pg-13': // PG-13 in US
+        case '12': // UK, Switzerland, Germany
+        case '12a': // UK
+        case 'm': // Australia, New Zealand
+        case '14': // Chile
+        case '14a': // Canada
+        case 'teen': // Alternative notation
+        case 't13':
+        case 'fsk-12': // Germany explicit
+            return MovieContentRatingEnum.T13;
+
+        // Kids category
+        case '7+':
+        case 'pg': // PG in US
+        case '8': // UK
+        case 'k-7': // Alternative notation
+        case 'k': // Vietnam (often in note field)
+        case 'fsk-6': // Germany
+        case '6': // Germany
+            return MovieContentRatingEnum.K;
+
+        // C category is for banned/restricted content (not suitable for public distribution)
+        case 'banned':
+        case 'restricted':
+        case 'prohibited':
+        case 'c':
+            return MovieContentRatingEnum.C;
+
+        // P category and general audience ratings
+        case 'all': // All ages (Korea)
+        case 'e': // E for Everyone (gaming)
+        case 'g': // G in US, Japan, Thailand
+        case 'u': // U in UK, Malaysia
+        case 'tv-y': // US TV
+        case 'tv-y7': // US TV
+        case 'tp': // France - Tous Publics (All Audiences)
+        case 'i': // Hong Kong category I
+        case '0+': // Taiwan
+        case 'l': // Portugal
+        case 'p':
+        case 'fsk-0': // Germany
+        case '0': // Germany
+            return MovieContentRatingEnum.P;
+
+        default:
+            return MovieContentRatingEnum.P;
+    }
+}
+
+export function determineContentRating(
+    movieData: MovieReleaseDatesResponse | ShowContentRatingResponse | null,
+): MovieContentRatingEnum {
+    // Handle null case
+    if (!movieData) {
+        return MovieContentRatingEnum.P;
+    }
+
+    // Type guard to check if it's a MovieReleaseDatesResponse
+    const isMovieReleaseDates = (data: any): data is MovieReleaseDatesResponse => {
+        return data.results && data.results[0] && 'release_dates' in data.results[0];
+    };
+
+    // Handle MovieReleaseDatesResponse
+    if (isMovieReleaseDates(movieData)) {
+        if (!movieData.results || movieData.results.length === 0) {
+            return MovieContentRatingEnum.P;
+        }
+
+        // First priority: Find Vietnamese rating
+        const vnRelease = movieData.results.find((country) => country.iso_3166_1 === 'VN');
+
+        if (vnRelease?.release_dates) {
+            for (const release of vnRelease.release_dates) {
+                // Check both certification and note fields for Vietnamese releases
+                if (release.iso_639_1 === 'vi' && release.certification) {
+                    return mappingContentRating(release.certification);
+                }
+
+                if (release.iso_639_1 === 'vi' && release.note) {
+                    return mappingContentRating(release.note);
+                }
+
+                // If language code isn't specified but we have certification/note
+                if (release.certification) {
+                    return mappingContentRating(release.certification);
+                }
+
+                if (release.note) {
+                    return mappingContentRating(release.note);
+                }
+            }
+        }
+
+        // Second priority: Find US rating
+        const usRelease = movieData.results.find((country) => country.iso_3166_1 === 'US');
+
+        if (usRelease?.release_dates) {
+            for (const release of usRelease.release_dates) {
+                if (release.certification) {
+                    return mappingContentRating(release.certification);
+                }
+            }
+        }
+
+        // Third priority: Use any available rating from any country
+        for (const country of movieData.results) {
+            if (country.release_dates) {
+                for (const release of country.release_dates) {
+                    if (release.certification) {
+                        return mappingContentRating(release.certification);
+                    }
+
+                    if (release?.note) {
+                        const note = release.note.toUpperCase();
+                        if (
+                            note === 'K' ||
+                            note === 'P' ||
+                            note === 'T13' ||
+                            note === 'T16' ||
+                            note === 'T18' ||
+                            note === 'C'
+                        ) {
+                            return mappingContentRating(release.note);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Handle ShowContentRatingResponse
+    else if (movieData.results && movieData.results.length > 0) {
+        // First priority: Find Vietnamese rating
+        const vnRating = movieData.results.find((country) => country.iso_3166_1 === 'VN');
+
+        if (vnRating?.rating) {
+            return mappingContentRating(vnRating.rating);
+        }
+
+        // Second priority: Find US rating
+        const usRating = movieData.results.find((country) => country.iso_3166_1 === 'US');
+
+        if (usRating?.rating) {
+            return mappingContentRating(usRating.rating);
+        }
+
+        // Third priority: Use any available rating
+        for (const country of movieData.results) {
+            if (country.rating) {
+                return mappingContentRating(country.rating);
+            }
+        }
+    }
+
+    // If no ratings found, default to P
+    return MovieContentRatingEnum.P;
 }

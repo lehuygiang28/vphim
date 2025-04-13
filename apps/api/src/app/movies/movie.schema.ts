@@ -5,6 +5,7 @@ import { Movie as OPhimMovie, ServerData as OPhimServerData } from 'ophim-js';
 
 import { AbstractDocument } from '../../libs/abstract/abstract.schema';
 import { SearchService } from './search.service';
+import { MovieContentRatingEnum } from './movie.constant';
 
 export type MovieDocument = HydratedDocument<Movie>;
 
@@ -159,6 +160,14 @@ export class Movie
     @ApiProperty()
     @Prop({ type: String, default: '' })
     episodeTotal: string;
+
+    @ApiProperty()
+    @Prop({
+        type: String,
+        enum: MovieContentRatingEnum,
+        default: MovieContentRatingEnum.P,
+    })
+    contentRating: MovieContentRatingEnum;
 
     @ApiProperty()
     @Prop({ type: Boolean, default: false })
