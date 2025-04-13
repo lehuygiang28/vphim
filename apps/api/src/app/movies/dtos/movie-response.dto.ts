@@ -4,6 +4,7 @@ import { Actor } from '../../actors/actor.schema';
 import { Category } from '../../categories/category.schema';
 import { Region } from '../../regions/region.schema';
 import { Director } from '../../directors/director.schema';
+import { MovieContentRatingEnum } from '../movie.constant';
 
 export class MovieResponseDto extends OmitType(Movie, [
     'actors',
@@ -20,6 +21,7 @@ export class MovieResponseDto extends OmitType(Movie, [
         this.categories = (movie?.categories as unknown as Category[]) || [];
         this.countries = (movie?.countries as unknown as Region[]) || [];
         this.directors = (movie?.directors as unknown as Director[]) || [];
+        this.contentRating = movie?.contentRating || MovieContentRatingEnum.P;
 
         if (options?.excludeSrc) {
             const excludeSources = options.excludeSrc;
@@ -41,4 +43,7 @@ export class MovieResponseDto extends OmitType(Movie, [
 
     @ApiProperty({ type: [Director] })
     directors?: Director[];
+
+    @ApiProperty({ type: String, enum: MovieContentRatingEnum })
+    contentRating: MovieContentRatingEnum;
 }

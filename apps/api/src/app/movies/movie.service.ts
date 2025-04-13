@@ -31,7 +31,7 @@ import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.in
 import { CreateMovieInput } from './inputs/create-movie.input';
 import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
 import { systemInstruction } from './ai-movie.prompt';
-import { KEYWORDS_MAX_LENGTH } from './movie.constant';
+import { KEYWORDS_MAX_LENGTH, MovieContentRatingEnum } from './movie.constant';
 import { mappingContentRating } from '../crawlers/mapping-data';
 
 @Injectable()
@@ -239,6 +239,7 @@ export class MovieService {
                 ...d,
                 thumbUrl: d?.thumbUrl || '',
                 posterUrl: d?.posterUrl || '',
+                contentRating: d?.contentRating || MovieContentRatingEnum.P,
             })),
             total,
             count: data?.length || 0,
