@@ -223,23 +223,63 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
 
                 <Panel header={<Text strong>Chất lượng</Text>} key="quality">
                     <div className="filter-chip-group">
-                        {qualityOptions.map((option) => (
-                            <div
-                                key={option.value}
-                                className={`filter-chip ${
-                                    getFilterValue('quality')[0] === option.value ? 'active' : ''
-                                }`}
-                                onClick={() => {
-                                    const currentValue = getFilterValue('quality')[0];
-                                    handleFilterChange(
-                                        'quality',
-                                        currentValue === option.value ? undefined : option.value,
-                                    );
-                                }}
-                            >
-                                {option.label}
-                            </div>
-                        ))}
+                        {qualityOptions.map((option) => {
+                            // Get appropriate color for each quality level
+                            const getHexColor = (quality: string): string => {
+                                switch (quality.toLowerCase()) {
+                                    case MovieQualityEnum._4K:
+                                        return '#f5222d'; // Red
+                                    case MovieQualityEnum.FHD:
+                                        return '#52c41a'; // Green
+                                    case MovieQualityEnum.HD:
+                                        return '#1890ff'; // Blue
+                                    case MovieQualityEnum.SD:
+                                        return '#13c2c2'; // Cyan
+                                    case MovieQualityEnum.CAM:
+                                        return '#a0d911'; // Lime
+                                    default:
+                                        return '#d9d9d9'; // Grey
+                                }
+                            };
+
+                            const isDark = [MovieQualityEnum._4K, MovieQualityEnum.HD].includes(
+                                option.value.toLowerCase() as MovieQualityEnum,
+                            );
+
+                            const isActive = getFilterValue('quality')[0] === option.value;
+                            const bgColor = isActive ? getHexColor(option.value) : 'transparent';
+                            const textColor = isActive ? (isDark ? '#fff' : '#000') : 'inherit';
+                            const borderColor = getHexColor(option.value);
+
+                            return (
+                                <Tooltip
+                                    key={option.value}
+                                    title={`Chất lượng: ${option.label}`}
+                                    placement="top"
+                                >
+                                    <div
+                                        className={`filter-chip ${isActive ? 'active' : ''}`}
+                                        onClick={() => {
+                                            const currentValue = getFilterValue('quality')[0];
+                                            handleFilterChange(
+                                                'quality',
+                                                currentValue === option.value
+                                                    ? undefined
+                                                    : option.value,
+                                            );
+                                        }}
+                                        style={{
+                                            backgroundColor: bgColor,
+                                            color: textColor,
+                                            borderColor: borderColor,
+                                            fontWeight: 'bold',
+                                        }}
+                                    >
+                                        {option.label}
+                                    </div>
+                                </Tooltip>
+                            );
+                        })}
                     </div>
                 </Panel>
 
@@ -509,8 +549,49 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     displayValue =
                         statusOptions.find((option) => option.value === value)?.label || value;
                 } else if (field === 'quality') {
-                    displayValue =
+                    const qualityValue = value;
+                    const qualityLabel =
                         qualityOptions.find((option) => option.value === value)?.label || value;
+
+                    // Get appropriate color for quality
+                    const getHexColor = (quality: string): string => {
+                        switch (quality.toLowerCase()) {
+                            case MovieQualityEnum._4K:
+                                return '#f5222d'; // Red
+                            case MovieQualityEnum.FHD:
+                                return '#52c41a'; // Green
+                            case MovieQualityEnum.HD:
+                                return '#1890ff'; // Blue
+                            case MovieQualityEnum.SD:
+                                return '#13c2c2'; // Cyan
+                            case MovieQualityEnum.CAM:
+                                return '#a0d911'; // Lime
+                            default:
+                                return '#d9d9d9'; // Grey
+                        }
+                    };
+
+                    const isDark = [MovieQualityEnum._4K, MovieQualityEnum.HD].includes(
+                        qualityValue.toLowerCase() as MovieQualityEnum,
+                    );
+
+                    displayValue = (
+                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            <span
+                                style={{
+                                    display: 'inline-block',
+                                    padding: '0 4px',
+                                    borderRadius: '2px',
+                                    fontWeight: 'bold',
+                                    backgroundColor: getHexColor(qualityValue),
+                                    color: isDark ? '#fff' : '#000',
+                                    fontSize: '0.75rem',
+                                }}
+                            >
+                                {qualityLabel}
+                            </span>
+                        </span>
+                    );
                 } else if (field === 'contentRating') {
                     const ratingCode = value;
                     displayValue = (
