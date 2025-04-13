@@ -21,15 +21,22 @@ import {
     Card,
     Tooltip,
     Badge,
+    Tag,
 } from 'antd';
 import { SearchOutlined, FilterOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
 
-import { MovieTypeEnum, MovieStatusEnum } from '~api/app/movies/movie.constant';
+import {
+    MovieTypeEnum,
+    MovieStatusEnum,
+    MovieQualityEnum,
+    MovieContentRatingEnum,
+} from '~api/app/movies/movie.constant';
 import type { MovieType } from '~api/app/movies/movie.type';
 import { getOptimizedImageUrl } from '~fe/libs/utils/movie.util';
 import { CATEGORIES_LIST_QUERY } from '~fe/queries/categories';
 import { REGIONS_LIST_QUERY } from '~fe/queries/regions';
+import { getContentRatingLabel } from '~fe/components/tag/movie-content-rating';
 
 import { MNT_MOVIE_LIST_QUERY, MUTATION_UPDATE_MOVIE } from '~mnt/queries/movie.query';
 import { RestoreButton } from '../button/restore-button';
@@ -46,6 +53,15 @@ export type MovieTableMntProps = {
     type: 'show' | 'recycle-bin';
 };
 
+// Quality options for filter
+const qualityOptions = [
+    { value: MovieQualityEnum._4K, label: '4K' },
+    { value: MovieQualityEnum.FHD, label: 'FHD' },
+    { value: MovieQualityEnum.HD, label: 'HD' },
+    { value: MovieQualityEnum.SD, label: 'SD' },
+    { value: MovieQualityEnum.CAM, label: 'CAM' },
+];
+
 export default function MovieTableMnt({ type }: MovieTableMntProps) {
     const router = useRouter();
     const [drawerVisible, setDrawerVisible] = useState(false);
@@ -56,7 +72,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i);
 
-    const { tableProps, sorters, filters, setFilters } = useTable<MovieType>({
+    const { tableProps, sorters, filters, setFilters, setCurrent } = useTable<MovieType>({
         resource: 'movies',
         dataProviderName: 'graphql',
         meta: {
@@ -193,6 +209,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
     };
 
     const applyFilters = () => {
+        setCurrent(1);
         setFilters(localFilters);
         setDrawerVisible(false);
     };
@@ -239,6 +256,73 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                             {option.label}
                         </Option>
                     ))}
+                </Select>
+            </Form.Item>
+            <Form.Item label="Chất lượng">
+                <Select
+                    style={{ width: '100%' }}
+                    placeholder="Chọn chất lượng"
+                    onChange={(value) => handleFilterChange('quality', value)}
+                    allowClear
+                    value={
+                        (
+                            localFilters.find(
+                                (f) => (f as LogicalFilter).field === 'quality',
+                            ) as LogicalFilter
+                        )?.value
+                    }
+                >
+                    {qualityOptions.map((option) => (
+                        <Option key={option.value} value={option.value}>
+                            {option.label}
+                        </Option>
+                    ))}
+                </Select>
+            </Form.Item>
+            <Form.Item label="Phân loại độ tuổi">
+                <Select
+                    style={{ width: '100%' }}
+                    placeholder="Chọn phân loại độ tuổi"
+                    onChange={(value) => handleFilterChange('contentRating', value)}
+                    allowClear
+                    value={
+                        (
+                            localFilters.find(
+                                (f) => (f as LogicalFilter).field === 'contentRating',
+                            ) as LogicalFilter
+                        )?.value
+                    }
+                >
+                    {Object.values(MovieContentRatingEnum).map((rating) => {
+                        const fullLabel = getContentRatingLabel(rating);
+                        const [code, description] = fullLabel.split(' - ');
+                        return (
+                            <Option key={rating} value={rating}>
+                                <Space>
+                                    <Tag
+                                        color={
+                                            rating === MovieContentRatingEnum.P
+                                                ? 'green'
+                                                : rating === MovieContentRatingEnum.K
+                                                ? 'lime'
+                                                : rating === MovieContentRatingEnum.T13
+                                                ? 'blue'
+                                                : rating === MovieContentRatingEnum.T16
+                                                ? 'orange'
+                                                : rating === MovieContentRatingEnum.T18
+                                                ? 'volcano'
+                                                : rating === MovieContentRatingEnum.C
+                                                ? 'red'
+                                                : 'default'
+                                        }
+                                    >
+                                        {code}
+                                    </Tag>
+                                    <span>{description}</span>
+                                </Space>
+                            </Option>
+                        );
+                    })}
                 </Select>
             </Form.Item>
             <Form.Item label="Năm phát hành">
