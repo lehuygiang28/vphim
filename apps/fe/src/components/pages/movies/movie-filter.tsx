@@ -44,7 +44,6 @@ import { LocalQuery } from './index';
 import { SearchInput } from './search-input';
 import { MovieContentRatingEnum } from 'apps/api/src/app/movies/movie.constant';
 import { MovieQualityEnum } from 'apps/api/src/app/movies/movie.constant';
-import { getContentRatingLabel } from '@/components/tag/movie-content-rating';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -241,7 +240,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     </div>
                 </Panel>
 
-                <Panel header={<Text strong>Giới hạn độ tuổi</Text>} key="contentRating">
+                <Panel header={<Text strong>Phân loại độ tuổi</Text>} key="contentRating">
                     <div className="filter-chip-group">
                         {Object.values(MovieContentRatingEnum).map((rating) => {
                             return (
@@ -428,7 +427,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     label = 'Chất lượng';
                     break;
                 case 'contentRating':
-                    label = 'Xếp hạng';
+                    label = 'Phân loại độ tuổi';
                     break;
                 default:
                     label = field;

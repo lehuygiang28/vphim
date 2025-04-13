@@ -282,6 +282,8 @@ export class MovieService {
             categories,
             countries,
             status,
+            quality,
+            contentRating,
             isDeleted = false,
         } = { isDeleted: false, ...dto };
 
@@ -341,6 +343,8 @@ export class MovieService {
         if (!isNullOrUndefined(isCopyright)) filter.push({ term: { isCopyright } });
         if (!isNullOrUndefined(type)) filter.push({ term: { type } });
         if (!isNullOrUndefined(status)) filter.push({ term: { status } });
+        if (!isNullOrUndefined(quality)) filter.push({ term: { quality } });
+        if (!isNullOrUndefined(contentRating)) filter.push({ term: { contentRating } });
 
         filter.push(...this.processYearFilter(years));
 

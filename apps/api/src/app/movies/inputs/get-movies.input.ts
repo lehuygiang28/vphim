@@ -49,4 +49,10 @@ export class GetMoviesInput {
 
     @Field(() => Boolean, { nullable: true })
     useAI?: boolean;
+
+    @Field({ nullable: true })
+    quality?: string;
+
+    @Field({ nullable: true })
+    contentRating?: string;
 }
