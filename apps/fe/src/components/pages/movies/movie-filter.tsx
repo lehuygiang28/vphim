@@ -42,11 +42,23 @@ import { movieTypeTranslations } from '@/constants/translation-enum';
 
 import { LocalQuery } from './index';
 import { SearchInput } from './search-input';
+import { MovieContentRatingEnum } from 'apps/api/src/app/movies/movie.constant';
+import { MovieQualityEnum } from 'apps/api/src/app/movies/movie.constant';
+import { getContentRatingLabel } from '@/components/tag/movie-content-rating';
 
 const { Text } = Typography;
 const { Option } = Select;
 const { useBreakpoint } = Grid;
 const { Panel } = Collapse;
+
+// Quality options for filter
+const qualityOptions = [
+    { value: MovieQualityEnum._4K, label: '4K' },
+    { value: MovieQualityEnum.FHD, label: 'FHD' },
+    { value: MovieQualityEnum.HD, label: 'HD' },
+    { value: MovieQualityEnum.SD, label: 'SD' },
+    { value: MovieQualityEnum.CAM, label: 'CAM' },
+];
 
 interface MovieFiltersProps {
     isSearching?: boolean;
@@ -207,6 +219,54 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     </div>
                 </Panel>
 
+                <Panel header={<Text strong>Chất lượng</Text>} key="quality">
+                    <div className="filter-chip-group">
+                        {qualityOptions.map((option) => (
+                            <div
+                                key={option.value}
+                                className={`filter-chip ${
+                                    getFilterValue('quality')[0] === option.value ? 'active' : ''
+                                }`}
+                                onClick={() => {
+                                    const currentValue = getFilterValue('quality')[0];
+                                    handleFilterChange(
+                                        'quality',
+                                        currentValue === option.value ? undefined : option.value,
+                                    );
+                                }}
+                            >
+                                {option.label}
+                            </div>
+                        ))}
+                    </div>
+                </Panel>
+
+                <Panel header={<Text strong>Giới hạn độ tuổi</Text>} key="contentRating">
+                    <div className="filter-chip-group">
+                        {Object.values(MovieContentRatingEnum).map((rating) => {
+                            return (
+                                <div
+                                    key={rating}
+                                    className={`filter-chip ${
+                                        getFilterValue('contentRating')[0] === rating
+                                            ? 'active'
+                                            : ''
+                                    }`}
+                                    onClick={() => {
+                                        const currentValue = getFilterValue('contentRating')[0];
+                                        handleFilterChange(
+                                            'contentRating',
+                                            currentValue === rating ? undefined : rating,
+                                        );
+                                    }}
+                                >
+                                    {rating}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </Panel>
+
                 <Panel header={<Text strong>Thể loại</Text>} key="categories">
                     <Select
                         mode="multiple"
@@ -311,6 +371,8 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             'cinemaRelease',
             'isCopyright',
             'status',
+            'quality',
+            'contentRating',
         ];
 
         // Group filters by field
@@ -362,6 +424,12 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 case 'status':
                     label = 'Trạng thái';
                     break;
+                case 'quality':
+                    label = 'Chất lượng';
+                    break;
+                case 'contentRating':
+                    label = 'Xếp hạng';
+                    break;
                 default:
                     label = field;
             }
@@ -371,7 +439,9 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 field === 'cinemaRelease' ||
                 field === 'isCopyright' ||
                 field === 'type' ||
-                field === 'status'
+                field === 'status' ||
+                field === 'quality' ||
+                field === 'contentRating'
             ) {
                 const value = values[0];
                 let displayValue = value;
@@ -384,6 +454,11 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                 } else if (field === 'status') {
                     displayValue =
                         statusOptions.find((option) => option.value === value)?.label || value;
+                } else if (field === 'quality') {
+                    displayValue =
+                        qualityOptions.find((option) => option.value === value)?.label || value;
+                } else if (field === 'contentRating') {
+                    displayValue = value; // Just show the rating code (P, K, T13, etc.)
                 }
 
                 tags.push(
@@ -544,6 +619,20 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
         value: getFilterValue('isCopyright')[0] === 'true',
         description: 'Whether the movie is officially licensed/copyrighted content',
         categories: ['licensing', 'legal-status'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('quality')[0] || '',
+        description: 'Video quality of the movie (4K, FHD, HD, SD, CAM)',
+        categories: ['video-quality', 'technical-info'],
+        parentId: 'movie-metadata',
+    });
+
+    useCopilotReadable({
+        value: getFilterValue('contentRating')[0] || '',
+        description: 'Content rating/age restriction for the movie',
+        categories: ['age-rating', 'audience-info'],
         parentId: 'movie-metadata',
     });
 
