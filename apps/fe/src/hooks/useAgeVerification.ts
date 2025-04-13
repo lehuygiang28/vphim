@@ -120,7 +120,11 @@ export const useAgeVerification = (
         }
 
         // Direct string comparison as a fallback
-        if (contentRating === 'P' || contentRating === 'K' || contentRating === 'T13') {
+        if (
+            contentRating === MovieContentRatingEnum.P ||
+            contentRating === MovieContentRatingEnum.K ||
+            contentRating === MovieContentRatingEnum.T13
+        ) {
             return false;
         }
 
@@ -137,7 +141,11 @@ export const useAgeVerification = (
             contentRating && RESTRICTED_RATINGS.includes(contentRating as MovieContentRatingEnum);
 
         // Direct string comparison as a fallback
-        if (contentRating === 'T16' || contentRating === 'T18' || contentRating === 'C') {
+        if (
+            contentRating === MovieContentRatingEnum.T16 ||
+            contentRating === MovieContentRatingEnum.T18 ||
+            contentRating === MovieContentRatingEnum.C
+        ) {
             return true;
         }
 

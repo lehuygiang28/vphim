@@ -697,24 +697,24 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                 let description = '';
 
                                                 switch (value) {
-                                                    case 'P':
+                                                    case MovieContentRatingEnum.P:
                                                         description =
                                                             'Phù hợp mọi độ tuổi, không hạn chế';
                                                         break;
-                                                    case 'K':
+                                                    case MovieContentRatingEnum.K:
                                                         description =
                                                             'Dưới 13 tuổi cần có người lớn hướng dẫn';
                                                         break;
-                                                    case 'T13':
+                                                    case MovieContentRatingEnum.T13:
                                                         description = 'Từ 13 tuổi trở lên';
                                                         break;
-                                                    case 'T16':
+                                                    case MovieContentRatingEnum.T16:
                                                         description = 'Từ 16 tuổi trở lên';
                                                         break;
-                                                    case 'T18':
+                                                    case MovieContentRatingEnum.T18:
                                                         description = 'Từ 18 tuổi trở lên';
                                                         break;
-                                                    case 'C':
+                                                    case MovieContentRatingEnum.C:
                                                         description = 'Không được phép phổ biến';
                                                         break;
                                                     default:
@@ -726,15 +726,20 @@ export const MovieForm: React.FC<MovieFormProps> = ({ formProps, query, mode }) 
                                                         <Space>
                                                             <Tag
                                                                 color={
-                                                                    value === 'P'
+                                                                    value ===
+                                                                    MovieContentRatingEnum.P
                                                                         ? 'green'
-                                                                        : value === 'K'
+                                                                        : value ===
+                                                                          MovieContentRatingEnum.K
                                                                         ? 'cyan'
-                                                                        : value === 'T13'
+                                                                        : value ===
+                                                                          MovieContentRatingEnum.T13
                                                                         ? 'blue'
-                                                                        : value === 'T16'
+                                                                        : value ===
+                                                                          MovieContentRatingEnum.T16
                                                                         ? 'orange'
-                                                                        : value === 'T18'
+                                                                        : value ===
+                                                                          MovieContentRatingEnum.T18
                                                                         ? 'volcano'
                                                                         : 'red'
                                                                 }

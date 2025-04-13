@@ -37,16 +37,18 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
 
     // Add check for general content that doesn't need verification
     const isRestrictedContent =
-        contentRating === 'T16' || contentRating === 'T18' || contentRating === 'C';
+        contentRating === MovieContentRatingEnum.T16 ||
+        contentRating === MovieContentRatingEnum.T18 ||
+        contentRating === MovieContentRatingEnum.C;
 
     // Only P rating should be exempt from verification
-    const isGeneralContent = contentRating === 'P' || !contentRating;
+    const isGeneralContent = contentRating === MovieContentRatingEnum.P || !contentRating;
 
     const getContentRatingInfo = (
         rating?: string,
     ): { title: ReactNode; description: ReactNode } => {
         switch (rating) {
-            case 'P':
+            case MovieContentRatingEnum.P:
                 return {
                     title: (
                         <>
@@ -57,7 +59,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                     description:
                         'Phim không có hạn chế độ tuổi, phù hợp để phổ biến đến mọi đối tượng khán giả. Nội dung được xây dựng mang tính chất giáo dục và giải trí phổ quát.',
                 };
-            case 'K':
+            case MovieContentRatingEnum.K:
                 return {
                     title: (
                         <>
@@ -68,7 +70,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                     description:
                         'Phim được chiếu đến người xem dưới 13 tuổi, với điều kiện là phải có sự hướng dẫn hoặc sự giám sát từ phía cha, mẹ hoặc người giám hộ.',
                 };
-            case 'T13':
+            case MovieContentRatingEnum.T13:
                 return {
                     title: (
                         <>
@@ -78,7 +80,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                     description:
                         'Phim phù hợp cho đối tượng từ 13 tuổi trở lên. Những tác phẩm này có thể chứa những yếu tố nội dung phức tạp hơn, phù hợp với sự hiểu biết và trí tuệ của khán giả trong độ tuổi này.',
                 };
-            case 'T16':
+            case MovieContentRatingEnum.T16:
                 return {
                     title: (
                         <>
@@ -88,7 +90,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                     description:
                         'Phim được phổ biến đến người xem từ 16 tuổi trở lên. Nội dung có thể chứa các yếu tố phức tạp, thách thức trí tuệ và sự hiểu biết của đối tượng khán giả này.',
                 };
-            case 'T18':
+            case MovieContentRatingEnum.T18:
                 return {
                     title: (
                         <>
@@ -98,7 +100,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                     description:
                         'Phim dành cho người xem từ 18 tuổi trở lên. Đây là những tác phẩm có nội dung chủ yếu dành cho đối tượng người lớn, có thể chứa những yếu tố nội dung nhạy cảm.',
                 };
-            case 'C':
+            case MovieContentRatingEnum.C:
                 return {
                     title: (
                         <>
@@ -207,7 +209,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
 
                         <ul style={{ paddingLeft: '20px', margin: '0 0 16px 0' }}>
                             <li>Nội dung này yêu cầu xác thực độ tuổi trước khi xem.</li>
-                            {contentRating === 'K' && (
+                            {contentRating === MovieContentRatingEnum.K && (
                                 <li>
                                     Phân loại{' '}
                                     <MovieContentRating rating={MovieContentRatingEnum.K} /> - Dành
@@ -215,14 +217,14 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                                     người lớn.
                                 </li>
                             )}
-                            {contentRating === 'T13' && (
+                            {contentRating === MovieContentRatingEnum.T13 && (
                                 <li>
                                     Phân loại{' '}
                                     <MovieContentRating rating={MovieContentRatingEnum.T13} /> - Chỉ
                                     phù hợp cho người xem từ 13 tuổi trở lên.
                                 </li>
                             )}
-                            {contentRating === 'T16' && (
+                            {contentRating === MovieContentRatingEnum.T16 && (
                                 <li>
                                     Phân loại{' '}
                                     <MovieContentRating rating={MovieContentRatingEnum.T16} /> - Chỉ
@@ -230,7 +232,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                                     các yếu tố phức tạp.
                                 </li>
                             )}
-                            {contentRating === 'T18' && (
+                            {contentRating === MovieContentRatingEnum.T18 && (
                                 <li>
                                     Phân loại{' '}
                                     <MovieContentRating rating={MovieContentRatingEnum.T18} /> - Chỉ
@@ -238,7 +240,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                                     các yếu tố nhạy cảm.
                                 </li>
                             )}
-                            {contentRating === 'C' && (
+                            {contentRating === MovieContentRatingEnum.C && (
                                 <li>
                                     Phân loại{' '}
                                     <MovieContentRating rating={MovieContentRatingEnum.C} /> - Nội
@@ -297,19 +299,19 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                         </Paragraph>
 
                         <ul style={{ paddingLeft: '20px', margin: '0 0 16px 0' }}>
-                            {contentRating === 'T16' && (
+                            {contentRating === MovieContentRatingEnum.T16 && (
                                 <li>
                                     Phân loại <Text strong>T16</Text> - Chỉ phù hợp cho người xem từ
                                     16 tuổi trở lên.
                                 </li>
                             )}
-                            {contentRating === 'T18' && (
+                            {contentRating === MovieContentRatingEnum.T18 && (
                                 <li>
                                     Phân loại <Text strong>T18</Text> - Chỉ phù hợp cho người xem từ
                                     18 tuổi trở lên.
                                 </li>
                             )}
-                            {contentRating === 'C' && (
+                            {contentRating === MovieContentRatingEnum.C && (
                                 <li>
                                     Phân loại <Text strong>C</Text> - Nội dung hạn chế, chỉ phù hợp
                                     cho người lớn.
@@ -333,39 +335,39 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
 
                     <div style={{ marginLeft: '24px', marginTop: '8px', marginBottom: '16px' }}>
                         <ul style={{ paddingLeft: '20px', margin: 0 }}>
-                            {contentRating === 'K' && (
+                            {contentRating === MovieContentRatingEnum.K && (
                                 <li>
                                     Tôi xác nhận đã có sự giám sát hoặc hướng dẫn phù hợp cho người
                                     xem dưới 13 tuổi
                                 </li>
                             )}
-                            {contentRating === 'T13' && (
+                            {contentRating === MovieContentRatingEnum.T13 && (
                                 <li>
                                     Tôi xác nhận người xem đã đủ 13 tuổi trở lên và phù hợp với nội
                                     dung này
                                 </li>
                             )}
-                            {contentRating === 'T16' && (
+                            {contentRating === MovieContentRatingEnum.T16 && (
                                 <li>
                                     Tôi đã đủ 16 tuổi trở lên và hiểu rằng nội dung này có thể có
                                     các yếu tố phức tạp
                                 </li>
                             )}
-                            {contentRating === 'T18' && (
+                            {contentRating === MovieContentRatingEnum.T18 && (
                                 <li>
                                     Tôi đã đủ 18 tuổi trở lên và hiểu rằng nội dung này có thể chứa
                                     các yếu tố nhạy cảm
                                 </li>
                             )}
-                            {contentRating === 'C' && (
+                            {contentRating === MovieContentRatingEnum.C && (
                                 <li>
                                     Tôi đã đủ 18 tuổi trở lên và hiểu rằng đây là nội dung bị hạn
                                     chế phổ biến rộng rãi
                                 </li>
                             )}
-                            {(contentRating === 'P' ||
-                                contentRating === 'K' ||
-                                contentRating === 'T13') &&
+                            {(contentRating === MovieContentRatingEnum.P ||
+                                contentRating === MovieContentRatingEnum.K ||
+                                contentRating === MovieContentRatingEnum.T13) &&
                                 isHighQuality && (
                                     <li>
                                         Tôi hiểu rằng đây là nội dung chất lượng cao và cam kết
