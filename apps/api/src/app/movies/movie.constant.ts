@@ -23,10 +23,10 @@ export enum MovieQualityEnum {
 export const KEYWORDS_MAX_LENGTH = 700;
 
 export enum MovieContentRatingEnum {
-    C = 'C',
-    P = 'P',
-    K = 'K',
-    T13 = 'T13',
-    T16 = 'T16',
-    T18 = 'T18',
+    C = 'c',
+    P = 'p',
+    K = 'k',
+    T13 = 't13',
+    T16 = 't16',
+    T18 = 't18',
 }

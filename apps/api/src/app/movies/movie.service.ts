@@ -344,9 +344,8 @@ export class MovieService {
         if (!isNullOrUndefined(type)) filter.push({ term: { type } });
         if (!isNullOrUndefined(status)) filter.push({ term: { status } });
         if (!isNullOrUndefined(quality)) filter.push({ term: { quality } });
-        if (!isNullOrUndefined(contentRating)) {
-            filter.push({ match: { contentRating: contentRating.toUpperCase() } });
-        }
+        if (!isNullOrUndefined(contentRating))
+            filter.push({ term: { contentRating: contentRating?.toLowerCase() } });
 
         filter.push(...this.processYearFilter(years));
 
