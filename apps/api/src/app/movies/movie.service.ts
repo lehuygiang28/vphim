@@ -701,9 +701,20 @@ export class MovieService {
     }
 
     async updateMovie(input: UpdateMovieInput): Promise<MovieType> {
-        const { _id, actors, categories, countries, directors, deletedAt, ...restUpdateData } =
-            input;
-        const movieToUpdate: Partial<Movie> = { ...restUpdateData };
+        const {
+            _id,
+            actors,
+            categories,
+            countries,
+            directors,
+            deletedAt,
+            contentRating,
+            ...restUpdateData
+        } = input;
+        const movieToUpdate: Partial<Movie> = {
+            ...restUpdateData,
+            ...(contentRating && { contentRating: mappingContentRating(contentRating) }),
+        };
 
         if (actors) {
             movieToUpdate.actors = actors?.map((c) => convertToObjectId(c));

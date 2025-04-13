@@ -1,6 +1,15 @@
 import { InputType, Field, ID } from '@nestjs/graphql';
-import { IsOptional, IsString, IsBoolean, IsNumber, IsArray, IsMongoId } from 'class-validator';
+import {
+    IsOptional,
+    IsString,
+    IsBoolean,
+    IsNumber,
+    IsArray,
+    IsMongoId,
+    IsEnum,
+} from 'class-validator';
 import { EpisodeType, ImdbType, TmdbType } from '../movie.type';
+import { MovieContentRatingEnum } from '../movie.constant';
 
 @InputType()
 export class UpdateMovieInput {
@@ -12,6 +21,12 @@ export class UpdateMovieInput {
     @IsOptional()
     @IsString()
     name?: string;
+
+    @Field({ nullable: true })
+    @IsOptional()
+    @IsString()
+    @IsEnum(MovieContentRatingEnum)
+    contentRating?: string;
 
     @Field(() => [ID], { nullable: true })
     @IsOptional()
