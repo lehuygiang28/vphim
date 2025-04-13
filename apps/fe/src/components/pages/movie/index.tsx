@@ -29,6 +29,7 @@ import { MovieTypeEnum, MovieStatusEnum } from 'apps/api/src/app/movies/movie.co
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { GET_MOVIE_QUERY } from '@/queries/movies';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
+import { MovieContentRating } from '@/components/tag/movie-content-rating';
 import { movieTypeTranslations, movieStatusTranslations } from '@/constants/translation-enum';
 import {
     FOLLOW_MOVIE_MUTATION,
@@ -238,6 +239,19 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                         movie.type}
                                 </Tag>
                             </Link>
+                        ) : (
+                            <Text strong>N/A</Text>
+                        )
+                    }
+                />
+
+                <InfoItem
+                    md={md}
+                    title="Giới hạn độ tuổi"
+                    icon={<InfoCircleOutlined />}
+                    content={
+                        movie?.contentRating ? (
+                            <MovieContentRating rating={movie.contentRating} showLabel={true} />
                         ) : (
                             <Text strong>N/A</Text>
                         )
@@ -702,9 +716,20 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                     >
                                         {movie?.originName}
                                     </Text>
+
                                     <div style={{ marginTop: '0.5rem' }}>
                                         <Space wrap size={[8, 8]}>
                                             <MovieQualityTag quality={movie?.quality || 'N/A'} />
+                                            {movie?.contentRating && (
+                                                <>
+                                                    <Text type="secondary" style={{ fontSize: 12 }}>
+                                                        |
+                                                    </Text>
+                                                    <MovieContentRating
+                                                        rating={movie.contentRating}
+                                                    />
+                                                </>
+                                            )}
                                             <Text type="secondary" style={{ fontSize: 12 }}>
                                                 |
                                             </Text>

@@ -1,15 +1,33 @@
 import React, { CSSProperties, PropsWithChildren } from 'react';
-import { Tag, TagProps } from 'antd';
+import { Tag, TagProps, Tooltip } from 'antd';
+import Link from 'next/link';
 
 import { MovieQualityEnum } from 'apps/api/src/app/movies/movie.constant';
+import styles from './movie-quality.module.css';
 
 export type MovieQualityTagProps = {
     quality: string;
     style?: CSSProperties;
+    showLabel?: boolean;
+    size?: 'small' | 'middle' | 'large';
+    withLink?: boolean;
+    variant?: 'tag' | 'cardBadge';
+    className?: string;
 } & PropsWithChildren;
 
-export function MovieQualityTag({ quality, style, children }: MovieQualityTagProps) {
-    let color: TagProps['color'] = 'gray';
+export function MovieQualityTag({
+    quality,
+    style = {},
+    showLabel = false,
+    size = 'middle',
+    withLink = true,
+    variant = 'tag',
+    className = '',
+    children,
+}: MovieQualityTagProps) {
+    if (!quality) return null;
+
+    let color: TagProps['color'] = 'default';
 
     switch (quality.toLowerCase()) {
         case MovieQualityEnum._4K:
@@ -28,14 +46,102 @@ export function MovieQualityTag({ quality, style, children }: MovieQualityTagPro
             color = 'lime';
             break;
         default:
-            color = 'gray';
+            color = 'default';
             break;
     }
 
-    return (
-        <Tag color={color} style={style}>
-            {quality.toUpperCase() || 'N/A'}
-            {children}
-        </Tag>
+    const createSearchUrl = (quality: string) => {
+        return `/danh-sach-phim?filters[0][field]=quality&filters[0][operator]=eq&filters[0][value]=${quality}`;
+    };
+
+    // For card badge variant
+    if (variant === 'cardBadge') {
+        // Get hex color instead of Ant Design's named colors
+        const getHexColor = (quality: string): string => {
+            switch (quality.toLowerCase()) {
+                case MovieQualityEnum._4K:
+                    return '#f5222d'; // Red
+                case MovieQualityEnum.FHD:
+                    return '#52c41a'; // Green
+                case MovieQualityEnum.HD:
+                    return '#1890ff'; // Blue
+                case MovieQualityEnum.SD:
+                    return '#13c2c2'; // Cyan
+                case MovieQualityEnum.CAM:
+                    return '#a0d911'; // Lime
+                default:
+                    return '#d9d9d9'; // Grey
+            }
+        };
+
+        const isDark = [MovieQualityEnum._4K, MovieQualityEnum.HD].includes(
+            quality.toLowerCase() as MovieQualityEnum,
+        );
+        const label = quality.toUpperCase();
+
+        const badgeElement = (
+            <Tooltip
+                title={`Chất lượng: ${label}`}
+                placement="top"
+                overlayClassName={styles.tooltip}
+            >
+                <div
+                    className={`${styles.cardBadge} ${className}`}
+                    style={{
+                        backgroundColor: getHexColor(quality),
+                        color: isDark ? '#fff' : '#000',
+                        ...style,
+                    }}
+                >
+                    {label}
+                    {children}
+                </div>
+            </Tooltip>
+        );
+
+        if (withLink && quality) {
+            return <Link href={createSearchUrl(quality)}>{badgeElement}</Link>;
+        }
+
+        return badgeElement;
+    }
+
+    // Default tag styling
+    const tagStyles: React.CSSProperties = {
+        cursor: withLink ? 'pointer' : 'default',
+        borderRadius: '12px',
+        fontWeight: 'bold',
+        ...style,
+    };
+
+    // Add size-specific styles
+    if (size === 'small') {
+        tagStyles.fontSize = '11px';
+        tagStyles.padding = '0 4px';
+        tagStyles.lineHeight = '16px';
+        tagStyles.height = '18px';
+        tagStyles.margin = 0;
+    } else if (size === 'large') {
+        tagStyles.fontSize = '14px';
+        tagStyles.padding = '4px 10px';
+    } else {
+        tagStyles.padding = '2px 8px';
+    }
+
+    const label = quality.toUpperCase();
+
+    const tagElement = (
+        <Tooltip title={`Chất lượng: ${label}`} placement="top" overlayClassName={styles.tooltip}>
+            <Tag color={color} style={tagStyles} className={className}>
+                {label}
+                {children}
+            </Tag>
+        </Tooltip>
     );
+
+    if (withLink && quality) {
+        return <Link href={createSearchUrl(quality)}>{tagElement}</Link>;
+    }
+
+    return tagElement;
 }

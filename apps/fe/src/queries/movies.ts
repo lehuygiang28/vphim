@@ -16,6 +16,7 @@ export const GET_MOVIE_QUERY = gql`
             originName
             quality
             showtimes
+            contentRating
             slug
             status
             subDocquyen

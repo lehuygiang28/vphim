@@ -1,0 +1,33 @@
+.cardBadge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 3;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 20px;
+    text-align: center;
+}
+
+.tooltip {
+    max-width: 300px;
+    font-size: 12px;
+}
+
+@media (max-width: 576px) {
+    .cardBadge {
+        top: 6px;
+        left: 6px;
+        font-size: 0.65rem;
+        min-width: 24px;
+        height: 18px;
+        padding: 1px 4px;
+    }
+}

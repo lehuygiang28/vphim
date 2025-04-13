@@ -3,13 +3,14 @@
 import React, { FC, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button, Tag } from 'antd';
+import { Button } from 'antd';
 import { PlayCircleOutlined, CalendarOutlined, EyeOutlined } from '@ant-design/icons';
 
 import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos/movie-response.dto';
 
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
+import { MovieContentRating } from '@/components/tag/movie-content-rating';
 import styles from './movie-card.module.css';
 
 interface MovieCardProps {
@@ -33,12 +34,12 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType, fromParam, hove
 
     // Create a formatted description
     const formatDescription = () => {
-        if (!movie.content) return '';
+        if (!movie?.content) return '';
 
         // Limit to a reasonable length (100 characters)
         const maxLength = 100;
         const text =
-            movie.content.length > maxLength
+            movie?.content.length > maxLength
                 ? `${movie.content.substring(0, maxLength)}...`
                 : movie.content;
 
@@ -77,9 +78,23 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType, fromParam, hove
                         />
                     </div>
 
-                    <div className={styles.qualityTagWrapper}>
-                        <MovieQualityTag quality={movie.quality || ''} />
-                    </div>
+                    {/* Quality tag badge */}
+                    {movie.quality && (
+                        <MovieQualityTag
+                            quality={movie.quality}
+                            variant="cardBadge"
+                            withLink={false}
+                        />
+                    )}
+
+                    {/* Content rating badge */}
+                    {movie.contentRating && (
+                        <MovieContentRating
+                            rating={movie.contentRating}
+                            variant="cardBadge"
+                            withLink={false}
+                        />
+                    )}
 
                     <div className={styles.overlay}>
                         <div className={styles.overlayContent}>
