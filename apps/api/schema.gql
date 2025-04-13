@@ -407,6 +407,8 @@ input GetMoviesInput {
   years: String
   status: String
   useAI: Boolean
+  quality: String
+  contentRating: String
 }
 
 input GetMoviesAdminInput {
@@ -425,6 +427,8 @@ input GetMoviesAdminInput {
   years: String
   status: String
   useAI: Boolean
+  quality: String
+  contentRating: String
   resetCache: Boolean
   isDeleted: Boolean
   bypassCache: Boolean
