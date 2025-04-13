@@ -566,6 +566,7 @@ input CreateMovieInput {
 input UpdateMovieInput {
   _id: ID!
   name: String
+  contentRating: String
   actors: [ID!]
   categories: [ID!]
   cinemaRelease: Boolean
