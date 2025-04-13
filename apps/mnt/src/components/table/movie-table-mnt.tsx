@@ -562,7 +562,7 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         ),
                     },
                     {
-                        title: 'Loại',
+                        title: 'Định dạng',
                         dataIndex: 'type',
                         key: 'type',
                         width: 100,
