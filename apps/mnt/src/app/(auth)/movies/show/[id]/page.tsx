@@ -44,7 +44,7 @@ import {
 import { MovieType, EpisodeType, EpisodeServerDataType } from '~api/app/movies/movie.type';
 import { ActorType } from '~api/app/actors/actor.type';
 import { CategoryType } from '~api/app/categories/category.type';
-import { MovieTypeEnum } from '~api/app/movies/movie.constant';
+import { MovieContentRatingEnum, MovieTypeEnum } from '~api/app/movies/movie.constant';
 import { DirectorType } from '~api/app/directors/director.type';
 
 import { GET_FULL_MOVIE_DETAIL_QUERY } from '~mnt/queries/movie.query';
@@ -54,21 +54,21 @@ import { MovieTypeTag } from '~mnt/components/tag/movie-type-tag';
 const { Title, Text, Paragraph } = Typography;
 
 const contentRatingColors = {
-    P: 'green',
-    K: 'cyan',
-    T13: 'blue',
-    T16: 'orange',
-    T18: 'volcano',
-    C: 'red',
+    [MovieContentRatingEnum.P]: 'green',
+    [MovieContentRatingEnum.K]: 'cyan',
+    [MovieContentRatingEnum.T13]: 'blue',
+    [MovieContentRatingEnum.T16]: 'orange',
+    [MovieContentRatingEnum.T18]: 'volcano',
+    [MovieContentRatingEnum.C]: 'red',
 };
 
 const contentRatingText = {
-    P: 'Phù hợp mọi độ tuổi, không hạn chế',
-    K: 'Dưới 13 tuổi cần có người lớn hướng dẫn',
-    T13: 'Từ 13 tuổi trở lên',
-    T16: 'Từ 16 tuổi trở lên',
-    T18: 'Từ 18 tuổi trở lên',
-    C: 'Không được phép phổ biến',
+    [MovieContentRatingEnum.P]: 'Phù hợp mọi độ tuổi, không hạn chế',
+    [MovieContentRatingEnum.K]: 'Dưới 13 tuổi cần có người lớn hướng dẫn',
+    [MovieContentRatingEnum.T13]: 'Từ 13 tuổi trở lên',
+    [MovieContentRatingEnum.T16]: 'Từ 16 tuổi trở lên',
+    [MovieContentRatingEnum.T18]: 'Từ 18 tuổi trở lên',
+    [MovieContentRatingEnum.C]: 'Không được phép phổ biến',
 };
 
 export default function MovieShowPage({ params }: { params: { id: string } }) {
