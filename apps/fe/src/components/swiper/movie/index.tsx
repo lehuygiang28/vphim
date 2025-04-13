@@ -12,7 +12,7 @@ import { CalendarOutlined, EyeOutlined, PlayCircleOutlined } from '@ant-design/i
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectFade, Autoplay, Navigation } from 'swiper/modules';
 
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos';
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
@@ -23,11 +23,11 @@ const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
 
 interface MovieSwiperProps {
-    movies?: MovieResponseDto[];
+    movies?: MovieType[];
 }
 
 export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
-    const { xs, sm, md, lg } = useBreakpoint();
+    const { md } = useBreakpoint();
     const [currentMovieIndex, setCurrentMovieIndex] = useState<number | null>(null);
     const isMobile = !md;
 
@@ -103,7 +103,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
         width: '100%',
     };
 
-    const getRatings = (movie: MovieResponseDto) => (
+    const getRatings = (movie: MovieType) => (
         <div className="movie-ratings">
             {movie.tmdb?.id && (
                 <TMDBRating
