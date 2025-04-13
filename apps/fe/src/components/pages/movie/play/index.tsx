@@ -876,11 +876,11 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 <AgeVerificationModal
                     visible={isVerificationModalVisible}
                     onClose={() => {
-                        hideVerificationModal();
                         // If user closed without accepting and needs verification, redirect back
                         if (needsVerification) {
-                            router.push(`/phim/${movie?.slug}`);
+                            router.replace(`/phim/${movie?.slug}`);
                         }
+                        hideVerificationModal();
                     }}
                     onAccept={markContentAsVerified}
                     contentRating={movie?.contentRating}
@@ -914,35 +914,51 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                             {isVideoLoading && <div className={styles.loadingIndicator} />}
 
                             {/* Show player only if content is not restricted or has been verified */}
-                            {((!isContentRestricted) || (isContentRestricted && !needsVerification)) && selectedEpisode && (
-                                <PlayerIframe
-                                    isM3u8Available={isM3u8Available}
-                                    useEmbedLink={useEmbedLink}
-                                    selectedEpisode={selectedEpisode}
-                                    processedUrl={processedUrl}
-                                    movie={movie}
-                                    host={host}
-                                    selectedServerIndex={selectedServerIndex}
-                                    handleVideoError={handleVideoError}
-                                    handleVideoLoad={handleVideoLoad}
-                                    isAuthenticated={isAuthenticated}
-                                />
-                            )}
+                            {(!isContentRestricted ||
+                                (isContentRestricted && !needsVerification)) &&
+                                selectedEpisode && (
+                                    <PlayerIframe
+                                        isM3u8Available={isM3u8Available}
+                                        useEmbedLink={useEmbedLink}
+                                        selectedEpisode={selectedEpisode}
+                                        processedUrl={processedUrl}
+                                        movie={movie}
+                                        host={host}
+                                        selectedServerIndex={selectedServerIndex}
+                                        handleVideoError={handleVideoError}
+                                        handleVideoLoad={handleVideoLoad}
+                                        isAuthenticated={isAuthenticated}
+                                    />
+                                )}
 
                             {/* Show verification message if content is restricted and needs verification */}
                             {isContentRestricted && needsVerification && (
-                                <div style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexDirection: 'column',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: '20px'
-                                }}>
-                                    <WarningOutlined style={{ fontSize: '48px', color: '#ff4d4f', marginBottom: '16px' }} />
-                                    <Text style={{ color: 'white', fontSize: '18px', textAlign: 'center' }}>
+                                <div
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexDirection: 'column',
+                                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                        padding: '20px',
+                                    }}
+                                >
+                                    <WarningOutlined
+                                        style={{
+                                            fontSize: '48px',
+                                            color: '#ff4d4f',
+                                            marginBottom: '16px',
+                                        }}
+                                    />
+                                    <Text
+                                        style={{
+                                            color: 'white',
+                                            fontSize: '18px',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         Nội dung này yêu cầu xác nhận độ tuổi
                                     </Text>
                                     <Button
