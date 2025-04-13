@@ -73,7 +73,7 @@ export const useAgeVerification = (
 
     // Generate a unique key for the content
     const getContentVerificationKey = (contentRating?: string, quality?: string): string => {
-        return `${contentRating || 'none'}_${quality || 'none'}`;
+        return `${contentRating?.toLowerCase() || 'none'}_${quality?.toLowerCase() || 'none'}`;
     };
 
     // Mark content as verified and store in session storage
@@ -94,60 +94,35 @@ export const useAgeVerification = (
 
     // Check if content needs verification
     const checkContentRestriction = (contentRating?: string, quality?: string): boolean => {
-        // Debug log
-        console.log('Checking content restriction:', {
-            contentRating,
-            quality,
-            constants: {
-                P: MovieContentRatingEnum.P,
-                K: MovieContentRatingEnum.K,
-                T13: MovieContentRatingEnum.T13,
-                T16: MovieContentRatingEnum.T16,
-                T18: MovieContentRatingEnum.T18,
-                C: MovieContentRatingEnum.C,
-                _4K: MovieQualityEnum._4K,
-                FHD: MovieQualityEnum.FHD,
-            },
-        });
+        // If no content rating or quality provided, default to unrestricted
+        if (!contentRating && !quality) return false;
+
+        // Normalize content rating to lowercase to match enum values
+        const normalizedRating = contentRating?.toLowerCase();
+        const normalizedQuality = quality?.toLowerCase();
 
         // Check quality restriction first - high quality always needs verification
         const needsQualityRestriction =
-            quality && RESTRICTED_QUALITIES.includes(quality as MovieQualityEnum);
+            normalizedQuality &&
+            RESTRICTED_QUALITIES.includes(normalizedQuality as MovieQualityEnum);
 
         // If it's high quality, always require verification
         if (needsQualityRestriction) {
             return true;
         }
 
-        // Direct string comparison as a fallback
-        if (
-            contentRating === MovieContentRatingEnum.P ||
-            contentRating === MovieContentRatingEnum.K ||
-            contentRating === MovieContentRatingEnum.T13
-        ) {
-            return false;
-        }
-
         // If it's explicitly a non-restricted rating, it doesn't need verification
         if (
-            contentRating &&
-            UNRESTRICTED_RATINGS.includes(contentRating as MovieContentRatingEnum)
+            normalizedRating &&
+            UNRESTRICTED_RATINGS.includes(normalizedRating as MovieContentRatingEnum)
         ) {
             return false;
         }
 
         // Check content rating restriction
         const needsContentRatingRestriction =
-            contentRating && RESTRICTED_RATINGS.includes(contentRating as MovieContentRatingEnum);
-
-        // Direct string comparison as a fallback
-        if (
-            contentRating === MovieContentRatingEnum.T16 ||
-            contentRating === MovieContentRatingEnum.T18 ||
-            contentRating === MovieContentRatingEnum.C
-        ) {
-            return true;
-        }
+            normalizedRating &&
+            RESTRICTED_RATINGS.includes(normalizedRating as MovieContentRatingEnum);
 
         return needsContentRatingRestriction;
     };

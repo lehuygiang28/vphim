@@ -54,7 +54,7 @@ export const getContentRatingLabel = (rating?: MovieContentRatingEnum | string):
         case MovieContentRatingEnum.C:
             return 'C - Cấm phổ biến';
         default:
-            return rating as string;
+            return String(rating).toUpperCase();
     }
 };
 
@@ -98,13 +98,17 @@ export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
     if (!rating) return null;
 
     const color = getContentRatingColor(rating);
-    const label = showLabel ? getContentRatingLabel(rating) : rating;
+    const label = showLabel
+        ? getContentRatingLabel(rating)
+        : typeof rating === 'string'
+        ? rating.toUpperCase()
+        : rating;
     const description = getContentRatingDescription(rating);
 
     // If it's a card badge, use different styling
     if (variant === 'cardBadge') {
         // For card badges, get hex color instead of Ant Design's named colors
-        const getHexColor = (rating: string): string => {
+        const getHexColor = (rating: MovieContentRatingEnum | string): string => {
             switch (rating) {
                 case MovieContentRatingEnum.P:
                     return '#52c41a'; // Green
@@ -135,7 +139,7 @@ export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
                 <div
                     className={`${styles.cardBadge} ${className}`}
                     style={{
-                        backgroundColor: getHexColor(rating as string),
+                        backgroundColor: getHexColor(rating),
                         color: isDark ? '#fff' : '#000',
                         ...style,
                     }}
@@ -146,7 +150,7 @@ export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
         );
 
         if (withLink && rating) {
-            return <Link href={createSearchUrl(rating as string)}>{badgeElement}</Link>;
+            return <Link href={createSearchUrl(rating.toString())}>{badgeElement}</Link>;
         }
 
         return badgeElement;
@@ -183,7 +187,7 @@ export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
     );
 
     if (withLink && rating) {
-        return <Link href={createSearchUrl(rating as string)}>{ratingTag}</Link>;
+        return <Link href={createSearchUrl(rating.toString())}>{ratingTag}</Link>;
     }
 
     return ratingTag;

@@ -294,7 +294,9 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     <div className="filter-chip-group">
                         {Object.values(MovieContentRatingEnum).map((rating) => {
                             // Determine background and text colors based on rating
-                            const getHexColor = (rating: string): string => {
+                            const getHexColor = (
+                                rating: MovieContentRatingEnum | string,
+                            ): string => {
                                 switch (rating) {
                                     case MovieContentRatingEnum.P:
                                         return '#52c41a'; // Green
@@ -313,7 +315,12 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                 }
                             };
 
-                            const isDark = ['T13', 'T16', 'T18', 'C'].includes(rating);
+                            const isDark = [
+                                MovieContentRatingEnum.T13,
+                                MovieContentRatingEnum.T16,
+                                MovieContentRatingEnum.T18,
+                                MovieContentRatingEnum.C,
+                            ].includes(rating as MovieContentRatingEnum);
                             const isActive = getFilterValue('contentRating')[0] === rating;
                             const bgColor = isActive ? getHexColor(rating) : 'transparent';
                             const textColor = isActive ? (isDark ? '#fff' : '#000') : 'inherit';
@@ -649,13 +656,20 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                                 return '#d9d9d9';
                                         }
                                     })(),
-                                    color: ['T13', 'T16', 'T18', 'C'].includes(ratingCode)
+                                    color: [
+                                        MovieContentRatingEnum.T13,
+                                        MovieContentRatingEnum.T16,
+                                        MovieContentRatingEnum.T18,
+                                        MovieContentRatingEnum.C,
+                                    ].includes(ratingCode as MovieContentRatingEnum)
                                         ? '#fff'
                                         : '#000',
                                     fontSize: '0.75rem',
                                 }}
                             >
-                                {ratingCode}
+                                {typeof ratingCode === 'string'
+                                    ? ratingCode.toUpperCase()
+                                    : ratingCode}
                             </span>
                         </span>
                     );
