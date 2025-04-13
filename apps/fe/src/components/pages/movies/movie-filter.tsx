@@ -31,6 +31,13 @@ import {
     SortAscendingOutlined,
     RobotOutlined,
     InfoCircleOutlined,
+    VideoCameraOutlined,
+    CalendarOutlined,
+    AppstoreOutlined,
+    GlobalOutlined,
+    CrownOutlined,
+    CheckCircleOutlined,
+    SlidersOutlined,
 } from '@ant-design/icons';
 import { createRegex } from '@vn-utils/text';
 import { useCopilotReadable } from '@copilotkit/react-core';
@@ -489,6 +496,28 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             return aIndex - bIndex;
         });
 
+        // Get icon for each filter type
+        const getFilterIcon = (field: string) => {
+            switch (field) {
+                case 'type':
+                    return <VideoCameraOutlined />;
+                case 'years':
+                    return <CalendarOutlined />;
+                case 'categories':
+                    return <AppstoreOutlined />;
+                case 'countries':
+                    return <GlobalOutlined />;
+                case 'cinemaRelease':
+                    return <CrownOutlined />;
+                case 'isCopyright':
+                    return <CheckCircleOutlined />;
+                case 'status':
+                    return <SlidersOutlined />;
+                default:
+                    return null;
+            }
+        };
+
         sortedFilterFields.forEach((field) => {
             const values = groupedFilters[field];
 
@@ -522,7 +551,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     label = 'Chất lượng';
                     break;
                 case 'contentRating':
-                    label = 'Phân loại độ tuổi';
+                    label = 'Độ tuổi';
                     break;
                 default:
                     label = field;
@@ -638,7 +667,9 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         closable
                         className="filter-tag"
                         onClose={() => handleFilterChange(field, undefined)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
+                        {getFilterIcon(field)}
                         <span className="filter-tag-label">{label}:</span>
                         <span className="filter-tag-content">{displayValue}</span>
                     </Tag>,
@@ -663,7 +694,9 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                             closable
                             className="filter-tag"
                             onClose={() => handleFilterChange(field, undefined)}
+                            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                         >
+                            {getFilterIcon(field)}
                             <span className="filter-tag-label">{label}:</span>
                             <span className="filter-tag-content">{displayValue}</span>
                         </Tag>,
@@ -675,7 +708,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                         <Tooltip
                             key={`${field}-multiple`}
                             title={
-                                <div>
+                                <div style={{ maxHeight: '200px', overflow: 'auto' }}>
                                     {values.map((value) => {
                                         let displayValue: string | React.ReactNode = value;
 
@@ -718,7 +751,9 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                 closable
                                 className="filter-tag"
                                 onClose={() => handleFilterChange(field, undefined)}
+                                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                             >
+                                {getFilterIcon(field)}
                                 <span className="filter-tag-label">{label}:</span>
                                 <span className="filter-tag-content">{values.length} đã chọn</span>
                             </Tag>
@@ -1021,7 +1056,14 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                             size="small"
                             icon={<CloseOutlined />}
                             onClick={clearAllFilters}
-                            className="filter-tag"
+                            className="filter-tag clear-all-tag"
+                            style={{
+                                backgroundColor: 'rgba(255, 59, 48, 0.1)',
+                                borderColor: 'rgba(255, 59, 48, 0.2)',
+                                color: '#ff3b30',
+                                fontWeight: 'bold',
+                                transition: 'all 0.2s ease',
+                            }}
                         >
                             Xóa tất cả
                         </Button>

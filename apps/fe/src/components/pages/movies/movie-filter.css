@@ -57,12 +57,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .filter-tag:hover {
     opacity: 0.9;
     transform: translateY(-0.0625rem);
     background-color: var(--vphim-color-primary-hover-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .filter-tag .anticon {
@@ -76,9 +78,18 @@
     color: var(--vphim-color-text);
 }
 
+/* Style for the filter icon */
+.filter-tag .anticon:first-child {
+    margin-left: 0;
+    margin-right: var(--filter-spacing-xs);
+    font-size: calc(var(--filter-font-size-xs) + 0.0625rem);
+    color: var(--vphim-color-primary);
+}
+
 .filter-tag-label {
     font-weight: 500;
     margin-right: var(--filter-spacing-xs);
+    color: var(--vphim-color-text-secondary);
 }
 
 .filter-tag-content {
@@ -86,6 +97,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 500;
 }
 
 /* Filter drawer and modal styles */
@@ -335,6 +347,10 @@
         max-width: 6rem;
     }
 
+    .filter-tag .anticon:first-child {
+        font-size: var(--filter-font-size-xs);
+    }
+
     .filter-button {
         height: var(--filter-mobile-input-height) !important;
         font-size: var(--filter-mobile-input-font-size);
@@ -383,6 +399,11 @@
         margin-left: var(--filter-spacing-xs);
     }
 
+    .filter-tag .anticon:first-child {
+        margin-right: 0.125rem;
+        font-size: 0.625rem;
+    }
+
     .filter-drawer .ant-drawer-body {
         padding: var(--filter-spacing-md);
     }
@@ -399,4 +420,24 @@
     .search-card .ant-card-body {
         padding: var(--filter-spacing-xs) var(--filter-spacing-sm) !important;
     }
+}
+
+/* Clear all button styling */
+.clear-all-tag:hover {
+    background-color: rgba(255, 59, 48, 0.2) !important;
+    border-color: rgba(255, 59, 48, 0.3) !important;
+    color: #ff3b30 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(255, 59, 48, 0.15) !important;
+}
+
+.clear-all-tag:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(255, 59, 48, 0.1) !important;
+}
+
+.clear-all-tag .anticon {
+    color: #ff3b30 !important;
+    margin-right: var(--filter-spacing-xs);
+    margin-left: 0;
 }
