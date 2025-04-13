@@ -586,12 +586,111 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
                         defaultSortOrder: getDefaultSortOrder('year', sorters),
                     },
                     {
+                        title: 'Chất lượng',
+                        dataIndex: 'quality',
+                        key: 'quality',
+                        width: 100,
+                        render: (quality: MovieQualityEnum) => {
+                            const getQualityColor = (quality: string): string => {
+                                switch (quality?.toLowerCase()) {
+                                    case MovieQualityEnum._4K:
+                                        return '#f5222d'; // Red
+                                    case MovieQualityEnum.FHD:
+                                        return '#52c41a'; // Green
+                                    case MovieQualityEnum.HD:
+                                        return '#1890ff'; // Blue
+                                    case MovieQualityEnum.SD:
+                                        return '#13c2c2'; // Cyan
+                                    case MovieQualityEnum.CAM:
+                                        return '#a0d911'; // Lime
+                                    default:
+                                        return '#d9d9d9'; // Grey
+                                }
+                            };
+
+                            if (!quality) return null;
+
+                            const qualityLabel =
+                                qualityOptions.find(
+                                    (opt) => opt.value.toLowerCase() === quality.toLowerCase(),
+                                )?.label || quality;
+                            const isDark = [MovieQualityEnum._4K, MovieQualityEnum.HD].includes(
+                                quality.toLowerCase() as MovieQualityEnum,
+                            );
+
+                            return (
+                                <Tag
+                                    style={{
+                                        backgroundColor: getQualityColor(quality),
+                                        color: isDark ? '#fff' : '#000',
+                                        fontWeight: 'bold',
+                                        border: 'none',
+                                    }}
+                                >
+                                    {qualityLabel}
+                                </Tag>
+                            );
+                        },
+                    },
+                    {
+                        title: 'Độ tuổi',
+                        dataIndex: 'contentRating',
+                        key: 'contentRating',
+                        width: 100,
+                        render: (rating: MovieContentRatingEnum) => {
+                            if (!rating) return null;
+
+                            const getColorByRating = (rating: string): string => {
+                                switch (rating) {
+                                    case MovieContentRatingEnum.P:
+                                        return 'green';
+                                    case MovieContentRatingEnum.K:
+                                        return 'lime';
+                                    case MovieContentRatingEnum.T13:
+                                        return 'blue';
+                                    case MovieContentRatingEnum.T16:
+                                        return 'orange';
+                                    case MovieContentRatingEnum.T18:
+                                        return 'volcano';
+                                    case MovieContentRatingEnum.C:
+                                        return 'red';
+                                    default:
+                                        return 'default';
+                                }
+                            };
+
+                            const isDark = [
+                                MovieContentRatingEnum.T13,
+                                MovieContentRatingEnum.T16,
+                                MovieContentRatingEnum.T18,
+                                MovieContentRatingEnum.C,
+                            ].includes(rating as MovieContentRatingEnum);
+
+                            const fullLabel = getContentRatingLabel(rating);
+                            const [code, description] = fullLabel.split(' - ');
+
+                            return (
+                                <Tooltip title={description}>
+                                    <Tag
+                                        color={getColorByRating(rating)}
+                                        style={{
+                                            color: isDark ? '#fff' : undefined,
+                                            fontWeight: 'bold',
+                                        }}
+                                    >
+                                        {code}
+                                    </Tag>
+                                </Tooltip>
+                            );
+                        },
+                    },
+                    {
                         title: 'Tập hiện tại',
                         dataIndex: 'episodeCurrent',
                         key: 'episodeCurrent',
                         width: 120,
                         render: (episodeCurrent: string) => (
-                            <Text>{episodeCurrent.toLowerCase()}</Text>
+                            <Text>{episodeCurrent?.toLowerCase()}</Text>
                         ),
                     },
                     {
