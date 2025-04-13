@@ -3,6 +3,8 @@ import { Tag, TagProps, Tooltip } from 'antd';
 import Link from 'next/link';
 
 import { MovieQualityEnum } from 'apps/api/src/app/movies/movie.constant';
+import { RouteNameEnum } from '@/constants/route.constant';
+import { stringifyTableParams } from '@/libs/utils/url.util';
 import styles from './movie-quality.module.css';
 
 export type MovieQualityTagProps = {
@@ -51,7 +53,10 @@ export function MovieQualityTag({
     }
 
     const createSearchUrl = (quality: string) => {
-        return `/danh-sach-phim?filters[0][field]=quality&filters[0][operator]=eq&filters[0][value]=${quality}`;
+        return `${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+            filters: [{ field: 'quality', value: quality, operator: 'eq' }],
+            sorters: [],
+        })}`;
     };
 
     // For card badge variant

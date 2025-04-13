@@ -6,15 +6,17 @@ import { useRouter } from 'next/navigation';
 import { Button } from 'antd';
 import { PlayCircleOutlined, CalendarOutlined, EyeOutlined } from '@ant-design/icons';
 
-import type { MovieResponseDto } from 'apps/api/src/app/movies/dtos/movie-response.dto';
+import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { MovieContentRating } from '@/components/tag/movie-content-rating';
+import { RouteNameEnum } from '@/constants/route.constant';
+import { stringifyTableParams } from '@/libs/utils/url.util';
 import styles from './movie-card.module.css';
 
 interface MovieCardProps {
-    movie: MovieResponseDto;
+    movie: MovieType;
     loadType?: 'lazy' | 'eager';
     fromParam?: string;
     hoverDelay?: number;
@@ -102,12 +104,28 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType, fromParam, hove
 
                             <div className={styles.meta}>
                                 {movie.year && (
-                                    <span className={styles.year}>
-                                        <CalendarOutlined /> {movie.year}
-                                    </span>
+                                    <Link
+                                        href={`${
+                                            RouteNameEnum.MOVIE_LIST_PAGE
+                                        }?${stringifyTableParams({
+                                            filters: [
+                                                {
+                                                    field: 'years',
+                                                    value: movie.year.toString(),
+                                                    operator: 'eq',
+                                                },
+                                            ],
+                                            sorters: [],
+                                        })}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <span className={styles.metaBadge}>
+                                            <CalendarOutlined /> {movie.year}
+                                        </span>
+                                    </Link>
                                 )}
                                 {movie.view && (
-                                    <span className={styles.views}>
+                                    <span className={styles.metaBadge}>
                                         <EyeOutlined />{' '}
                                         {movie.view > 1000
                                             ? `${Math.floor(movie.view / 1000)}K`

@@ -114,13 +114,25 @@
     margin-bottom: 0.5rem;
     color: rgba(255, 255, 255, 0.85);
     font-size: 0.8rem;
+    gap: 8px;
 }
 
-.year,
-.views {
+.metaBadge {
     display: flex;
     align-items: center;
     gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.15);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease;
+}
+
+a:hover .metaBadge {
+    background-color: rgba(255, 255, 255, 0.25);
 }
 
 .categories {
@@ -192,11 +204,27 @@
     color: rgba(255, 255, 255, 0.6);
 }
 
+.metaBadgeSmall {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.8);
+    transition: background-color 0.2s ease;
+}
+
 .yearSmall,
 .episodeSmall {
     display: inline-flex;
     align-items: center;
     gap: 3px;
+}
+
+a:hover .metaBadgeSmall {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Enhanced Responsive styles */
@@ -317,6 +345,11 @@
     .container:not(:hover) .imageWrapper {
         transition-delay: 0s;
     }
+
+    .metaBadge {
+        padding: 1px 6px;
+        font-size: 0.7rem;
+    }
 }
 
 /* Extra small screens - Mobile */
@@ -378,6 +411,16 @@
 
     .container {
         --hover-delay: 100ms;
+    }
+
+    .metaBadge {
+        padding: 1px 5px;
+        font-size: 0.65rem;
+    }
+
+    .metaBadgeSmall {
+        padding: 1px 4px;
+        font-size: 0.6rem;
     }
 }
 

@@ -2,6 +2,8 @@ import React from 'react';
 import { Tag, Tooltip } from 'antd';
 import Link from 'next/link';
 import { MovieContentRatingEnum } from 'apps/api/src/app/movies/movie.constant';
+import { RouteNameEnum } from '@/constants/route.constant';
+import { stringifyTableParams } from '@/libs/utils/url.util';
 import styles from './movie-content-rating.module.css';
 
 type MovieContentRatingProps = {
@@ -78,7 +80,10 @@ export const getContentRatingDescription = (rating?: MovieContentRatingEnum | st
 };
 
 const createSearchUrl = (rating: string) => {
-    return `/danh-sach-phim?filters[0][field]=contentRating&filters[0][operator]=eq&filters[0][value]=${rating}`;
+    return `${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
+        filters: [{ field: 'contentRating', value: rating, operator: 'eq' }],
+        sorters: [],
+    })}`;
 };
 
 export const MovieContentRating: React.FC<MovieContentRatingProps> = ({

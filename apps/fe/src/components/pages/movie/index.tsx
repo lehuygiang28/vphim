@@ -720,46 +720,46 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                     <div style={{ marginTop: '0.5rem' }}>
                                         <Space wrap size={[8, 8]}>
                                             <MovieQualityTag quality={movie?.quality || 'N/A'} />
+
                                             {movie?.contentRating && (
-                                                <>
-                                                    <Text type="secondary" style={{ fontSize: 12 }}>
-                                                        |
-                                                    </Text>
-                                                    <MovieContentRating
-                                                        rating={movie.contentRating}
-                                                    />
-                                                </>
+                                                <MovieContentRating rating={movie.contentRating} />
                                             )}
-                                            <Text type="secondary" style={{ fontSize: 12 }}>
-                                                |
-                                            </Text>
-                                            <Space size={2}>
-                                                <CalendarOutlined style={{ fontSize: 12 }} />
-                                                <Text style={{ fontSize: 12 }}>
-                                                    {movie?.year || 'N/A'}
-                                                </Text>
-                                            </Space>
-                                            <Text type="secondary" style={{ fontSize: 12 }}>
-                                                |
-                                            </Text>
-                                            <Space
-                                                size={2}
-                                                style={{
-                                                    maxWidth: '100%',
-                                                    display: 'inline-flex',
-                                                }}
-                                            >
-                                                <EyeOutlined style={{ fontSize: 12 }} />{' '}
-                                                <Text
+
+                                            {movie?.year && (
+                                                <Link
+                                                    href={createSearchUrl(
+                                                        'years',
+                                                        movie.year.toString(),
+                                                    )}
+                                                >
+                                                    <Tag
+                                                        icon={<CalendarOutlined />}
+                                                        color="magenta"
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            borderRadius: '12px',
+                                                            padding: '2px 8px',
+                                                            fontWeight: 'bold',
+                                                        }}
+                                                    >
+                                                        {movie.year}
+                                                    </Tag>
+                                                </Link>
+                                            )}
+
+                                            {movie?.view !== undefined && (
+                                                <Tag
+                                                    icon={<EyeOutlined />}
+                                                    color="processing"
                                                     style={{
-                                                        fontSize: 12,
-                                                        wordBreak: 'break-word',
-                                                        whiteSpace: 'normal',
+                                                        borderRadius: '12px',
+                                                        padding: '2px 8px',
+                                                        fontWeight: 'bold',
                                                     }}
                                                 >
-                                                    {movie?.view?.toLocaleString() || '0'}
-                                                </Text>
-                                            </Space>
+                                                    {movie.view.toLocaleString() || '0'}
+                                                </Tag>
+                                            )}
                                         </Space>
                                     </div>
                                 </div>
