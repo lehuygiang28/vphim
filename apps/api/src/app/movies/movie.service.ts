@@ -32,6 +32,7 @@ import { CreateMovieInput } from './inputs/create-movie.input';
 import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
 import { systemInstruction } from './ai-movie.prompt';
 import { KEYWORDS_MAX_LENGTH } from './movie.constant';
+import { mappingContentRating } from '../crawlers/mapping-data';
 
 @Injectable()
 export class MovieService {
@@ -88,6 +89,7 @@ export class MovieService {
             lastSyncModified: {},
             createdAt: new Date(),
             updatedAt: new Date(),
+            contentRating: mappingContentRating(input?.contentRating),
         };
 
         const createdMovie = await this.movieRepo.create({
