@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useShow } from '@refinedev/core';
 import { Show, DeleteButton, RefreshButton } from '@refinedev/antd';
 import {
@@ -39,13 +40,16 @@ import {
     RightCircleOutlined,
     CopyOutlined,
 } from '@ant-design/icons';
+
 import { MovieType, EpisodeType, EpisodeServerDataType } from '~api/app/movies/movie.type';
 import { ActorType } from '~api/app/actors/actor.type';
 import { CategoryType } from '~api/app/categories/category.type';
+import { MovieTypeEnum } from '~api/app/movies/movie.constant';
+import { DirectorType } from '~api/app/directors/director.type';
+
 import { GET_FULL_MOVIE_DETAIL_QUERY } from '~mnt/queries/movie.query';
 import { EditMovieButton } from '~mnt/components/button/edit-movie-button';
-import { DirectorType } from '~api/app/directors/director.type';
-import { useRouter } from 'next/navigation';
+import { MovieTypeTag } from '~mnt/components/tag/movie-type-tag';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -585,7 +589,13 @@ export default function MovieShowPage({ params }: { params: { id: string } }) {
                             size="small"
                             labelStyle={{ fontWeight: 500 }}
                         >
-                            <Descriptions.Item label="Loại phim">{record?.type}</Descriptions.Item>
+                            <Descriptions.Item label="Định dạng">
+                                {record?.type ? (
+                                    <MovieTypeTag type={record.type as MovieTypeEnum} />
+                                ) : (
+                                    'Chưa phân loại'
+                                )}
+                            </Descriptions.Item>
                             <Descriptions.Item label="Thời lượng">
                                 {record?.time || 'Chưa cập nhật'}
                             </Descriptions.Item>
