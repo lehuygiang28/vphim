@@ -46,11 +46,11 @@ export const getContentRatingLabel = (rating?: MovieContentRatingEnum | string):
         case MovieContentRatingEnum.K:
             return 'K - Khuyến cáo có người hướng dẫn';
         case MovieContentRatingEnum.T13:
-            return 'T13+ - Trên 13 tuổi';
+            return 'T13 - Trên 13 tuổi';
         case MovieContentRatingEnum.T16:
-            return 'T16+ - Trên 16 tuổi';
+            return 'T16 - Trên 16 tuổi';
         case MovieContentRatingEnum.T18:
-            return 'T18+ - Trên 18 tuổi';
+            return 'T18 - Trên 18 tuổi';
         case MovieContentRatingEnum.C:
             return 'C - Cấm phổ biến';
         default:
