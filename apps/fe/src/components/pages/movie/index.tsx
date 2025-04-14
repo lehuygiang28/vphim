@@ -40,7 +40,7 @@ import { getFirstEpisodeSlug } from '@/libs/utils/movie.util';
 import { IMDBRating } from '@/components/card/imdb-rating';
 import { TMDBRating } from '@/components/card/tmdb-rating';
 import { MovieEpisode } from './movie-episode';
-import { stringifyTableParams } from '@/libs/utils/url.util';
+import { createSearchUrl } from '@/libs/utils/url.util';
 import { RouteNameEnum } from '@/constants/route.constant';
 
 const MovieRelated = dynamic(() => import('./movie-related').then((mod) => mod.MovieRelated), {
@@ -186,30 +186,6 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                 },
             },
         );
-    };
-
-    const createSearchUrl = (field: string, value: string) => {
-        // Different entities have different field structures in the filter system
-        let filterField = field;
-
-        // Map the entity fields to their correct filter field names
-        if (field === 'actor') filterField = 'keywords';
-        if (field === 'director') filterField = 'keywords';
-        if (field === 'category.slug') filterField = 'categories';
-        if (field === 'country.slug') filterField = 'countries';
-
-        const queryString = stringifyTableParams({
-            filters: [
-                {
-                    field: filterField,
-                    operator: 'eq',
-                    value,
-                },
-            ],
-            sorters: [],
-        });
-
-        return `${RouteNameEnum.MOVIE_LIST_PAGE}?${queryString}`;
     };
 
     const renderMovieInfoSection = () => {
@@ -603,7 +579,9 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                         {
                             title: referrerSearch ? (
                                 <Tooltip title="Quay lại kết quả tìm kiếm">
-                                    <Link href={`/danh-sach-phim?${referrerSearch}`}>
+                                    <Link
+                                        href={`${RouteNameEnum.MOVIE_LIST_PAGE}?${referrerSearch}`}
+                                    >
                                         <span
                                             style={{ display: 'inline-flex', alignItems: 'center' }}
                                         >
@@ -618,7 +596,7 @@ export function Movie({ slug, movie: movieProp }: MovieProps) {
                                     </Link>
                                 </Tooltip>
                             ) : (
-                                <Link href="/danh-sach-phim">Danh sách phim</Link>
+                                <Link href={RouteNameEnum.MOVIE_LIST_PAGE}>Danh sách phim</Link>
                             ),
                         },
                         {

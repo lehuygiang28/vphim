@@ -18,6 +18,8 @@ import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { TMDBRating } from '@/components/card/tmdb-rating';
 import { IMDBRating } from '@/components/card/imdb-rating';
+import { MovieContentRating } from '@/components/tag/movie-content-rating';
+import { createSearchUrl } from '@/libs/utils/url.util';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -115,6 +117,47 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
             {movie.imdb?.id && <IMDBRating id={movie.imdb.id} size={md ? 'middle' : 'small'} />}
         </div>
     );
+
+    function renderTags(movie: MovieType) {
+        return (
+            <Space wrap size={[8, 8]}>
+                <MovieQualityTag quality={movie?.quality || 'N/A'} />
+
+                <MovieContentRating rating={movie?.contentRating || 'N/A'} />
+
+                {movie?.year && (
+                    <Link href={createSearchUrl('years', movie.year.toString())}>
+                        <Tag
+                            icon={<CalendarOutlined />}
+                            color="magenta"
+                            style={{
+                                cursor: 'pointer',
+                                borderRadius: '12px',
+                                padding: '2px 8px',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            {movie.year}
+                        </Tag>
+                    </Link>
+                )}
+
+                {movie?.view !== undefined && (
+                    <Tag
+                        icon={<EyeOutlined />}
+                        color="processing"
+                        style={{
+                            borderRadius: '12px',
+                            padding: '2px 8px',
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        {movie.view.toLocaleString() || '0'}
+                    </Tag>
+                )}
+            </Space>
+        );
+    }
 
     return (
         <>
@@ -214,24 +257,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
 
                                                 {getRatings(movie)}
 
-                                                <div className="mobile-meta">
-                                                    {movie.year && (
-                                                        <Tag className="year-tag">
-                                                            <CalendarOutlined /> {movie.year}
-                                                        </Tag>
-                                                    )}
-
-                                                    {movie.view !== undefined && (
-                                                        <Tag className="view-tag">
-                                                            <EyeOutlined />{' '}
-                                                            {movie.view > 1000
-                                                                ? `${Math.floor(
-                                                                      movie.view / 1000,
-                                                                  )}K`
-                                                                : movie.view}
-                                                        </Tag>
-                                                    )}
-                                                </div>
+                                                {renderTags(movie)}
 
                                                 <div className="categories-wrapper">
                                                     {movie?.categories?.length !== undefined &&
@@ -306,43 +332,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                         </Text>
                                                     </div>
 
-                                                    <Space
-                                                        size="small"
-                                                        wrap
-                                                        className="movie-badges"
-                                                    >
-                                                        {movie.quality && (
-                                                            <MovieQualityTag
-                                                                quality={movie.quality}
-                                                            />
-                                                        )}
-                                                        {movie.categories?.length !== undefined &&
-                                                            movie.categories?.length > 0 &&
-                                                            movie.categories
-                                                                .slice(0, 3)
-                                                                .map((category) => (
-                                                                    <Tag
-                                                                        key={category._id.toString()}
-                                                                        className="category-tag"
-                                                                    >
-                                                                        {category.name}
-                                                                    </Tag>
-                                                                ))}
-                                                        <Tag
-                                                            className="year-tag"
-                                                            icon={<CalendarOutlined />}
-                                                        >
-                                                            {movie.year}
-                                                        </Tag>
-                                                        {movie.view !== undefined && (
-                                                            <Tag
-                                                                className="view-tag"
-                                                                icon={<EyeOutlined />}
-                                                            >
-                                                                {movie.view.toLocaleString()}
-                                                            </Tag>
-                                                        )}
-                                                    </Space>
+                                                    {renderTags(movie)}
 
                                                     <Paragraph
                                                         ellipsis={{ rows: md ? 3 : 2 }}
