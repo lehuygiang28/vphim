@@ -1,7 +1,6 @@
 'use client';
 
-import React, { FC, useState } from 'react';
-import Link from 'next/link';
+import React, { FC } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from 'antd';
 import { PlayCircleOutlined, CalendarOutlined, EyeOutlined } from '@ant-design/icons';
@@ -11,8 +10,6 @@ import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 import { ImageOptimized } from '@/components/image/image-optimized';
 import { MovieQualityTag } from '@/components/tag/movie-quality';
 import { MovieContentRating } from '@/components/tag/movie-content-rating';
-import { RouteNameEnum } from '@/constants/route.constant';
-import { stringifyTableParams } from '@/libs/utils/url.util';
 import styles from './movie-card.module.css';
 
 interface MovieCardProps {
@@ -24,7 +21,6 @@ interface MovieCardProps {
 
 export const MovieCard: FC<MovieCardProps> = ({ movie, loadType, fromParam, hoverDelay }) => {
     const router = useRouter();
-    const [isHovered, setIsHovered] = useState(false);
 
     const handleViewMovie = (e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
@@ -54,8 +50,6 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType, fromParam, hove
             role="article"
             aria-label={`Movie: ${movie.name}`}
             onClick={handleViewMovie}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             style={
                 hoverDelay
                     ? ({ '--hover-delay': `${hoverDelay}ms` } as React.CSSProperties)
@@ -100,30 +94,14 @@ export const MovieCard: FC<MovieCardProps> = ({ movie, loadType, fromParam, hove
 
                     <div className={styles.overlay}>
                         <div className={styles.overlayContent}>
-                            <h4 className={styles.title}>{movie.name}</h4>
+                            <h4 className={styles.title}>
+                                {movie.name}
+                                {movie.originName && (
+                                    <span className={styles.originName}>{movie.originName}</span>
+                                )}
+                            </h4>
 
                             <div className={styles.meta}>
-                                {movie.year && (
-                                    <Link
-                                        href={`${
-                                            RouteNameEnum.MOVIE_LIST_PAGE
-                                        }?${stringifyTableParams({
-                                            filters: [
-                                                {
-                                                    field: 'years',
-                                                    value: movie.year.toString(),
-                                                    operator: 'eq',
-                                                },
-                                            ],
-                                            sorters: [],
-                                        })}`}
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <span className={styles.metaBadge}>
-                                            <CalendarOutlined /> {movie.year}
-                                        </span>
-                                    </Link>
-                                )}
                                 {movie.view && (
                                     <span className={styles.metaBadge}>
                                         <EyeOutlined />{' '}
