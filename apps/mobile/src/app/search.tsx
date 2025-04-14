@@ -55,6 +55,8 @@ import { REGIONS_LIST_QUERY } from '~fe/queries/regions';
 import { movieTypeTranslations } from '~fe/constants/translation-enum';
 
 import { removeStyleProperty } from '~mb/libs/utils';
+import { useAuth } from '~mb/hooks/use-auth';
+import { AgeVerificationModal } from '~mb/components/modals/age-verification-modal';
 
 // Define movie type translations (matches web version)
 
@@ -128,6 +130,8 @@ export default function SearchScreen() {
     const [useAI, setUseAI] = useState(false);
     const [sortOption, setSortOption] = useState<string>('view,desc');
     const [sortModalVisible, setSortModalVisible] = useState(false);
+    const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
+    const { isAuthenticated } = useAuth();
 
     // Filters state
     const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
@@ -288,6 +292,17 @@ export default function SearchScreen() {
     const handleSortSelection = (value: string) => {
         setSortOption(value);
         setSortModalVisible(false);
+    };
+
+    // Handle AI toggle with login check
+    const handleAIToggle = (checked: boolean) => {
+        if (checked && !isAuthenticated) {
+            setIsLoginModalVisible(true);
+            return;
+        }
+
+        setUseAI(checked);
+        handleFilterChange('useAI', checked);
     };
 
     const renderMovieItem = useCallback(
@@ -804,14 +819,7 @@ export default function SearchScreen() {
                         >
                             Tìm kiếm với AI
                         </Text>
-                        <Toggle
-                            checked={useAI}
-                            onChange={(checked) => {
-                                setUseAI(checked);
-                                handleFilterChange('useAI', checked);
-                            }}
-                            style={styles.aiToggle}
-                        />
+                        <Toggle checked={useAI} onChange={handleAIToggle} style={styles.aiToggle} />
                     </View>
 
                     <View style={styles.filterButtonsContainer}>
@@ -951,6 +959,27 @@ export default function SearchScreen() {
 
             {renderFilterModal()}
             {renderSortModal()}
+
+            <AgeVerificationModal
+                visible={isLoginModalVisible}
+                onClose={() => setIsLoginModalVisible(false)}
+                onAccept={() => setIsLoginModalVisible(false)}
+                isAuthenticated={isAuthenticated}
+                maskClosable={true}
+                contentRating={undefined}
+                quality={undefined}
+                title="Tính năng tìm kiếm AI"
+                featureAccess={true}
+                primaryMessage="Yêu cầu đăng nhập"
+                primaryDescription="Bạn cần đăng nhập để sử dụng tính năng tìm kiếm thông minh với AI."
+                reasonList={[
+                    'Tìm kiếm AI là tính năng cao cấp dành cho người dùng đã đăng nhập.',
+                    'Giúp chúng tôi cá nhân hóa kết quả tìm kiếm phù hợp với sở thích của bạn.',
+                    'Cho phép bạn lưu trữ và theo dõi lịch sử tìm kiếm thông minh.',
+                    'Bảo vệ hệ thống khỏi việc sử dụng quá mức và lạm dụng tài nguyên.',
+                    'Hỗ trợ chúng tôi cải thiện chất lượng dịch vụ tìm kiếm AI.',
+                ]}
+            />
         </SafeAreaView>
     );
 }

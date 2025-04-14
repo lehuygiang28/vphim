@@ -20,6 +20,12 @@ interface AgeVerificationModalProps {
     quality?: string;
     isAuthenticated: boolean;
     maskClosable?: boolean;
+    // Feature access mode props
+    featureAccess?: boolean;
+    title?: string;
+    primaryMessage?: string;
+    primaryDescription?: string;
+    reasonList?: string[];
 }
 
 export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
@@ -30,6 +36,12 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
     quality,
     isAuthenticated,
     maskClosable = false,
+    // Feature access props
+    featureAccess = false,
+    title: customTitle,
+    primaryMessage,
+    primaryDescription,
+    reasonList = [],
 }) => {
     const theme = useTheme();
     const [agreeTerms, setAgreeTerms] = useState(false);
@@ -45,10 +57,17 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
     const isHighQuality = quality === MovieQualityEnum._4K || quality === MovieQualityEnum.FHD;
 
     // Content requires verification if it's high quality or age-restricted (and not general content)
-    const needsVerification = isHighQuality || (isRestrictedContent && !isGeneralContent);
+    const needsVerification = featureAccess || isHighQuality || (isRestrictedContent && !isGeneralContent);
 
     // Get content rating title and description
     const getRatingInfo = (): { title: string; description: ReactNode } => {
+        if (featureAccess) {
+            return {
+                title: customTitle || 'Tính năng yêu cầu đăng nhập',
+                description: primaryDescription || 'Tính năng này yêu cầu xác thực người dùng trước khi sử dụng.',
+            };
+        }
+
         if (!contentRating) {
             return {
                 title: 'Xác nhận độ tuổi',
@@ -84,6 +103,14 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
 
     // Get content rating specific reasons for login
     const getLoginReasons = (): ReactNode[] => {
+        if (featureAccess && reasonList.length > 0) {
+            return reasonList.map((reason, index) => (
+                <Text key={`feature-${index}`} style={[styles.reasonText, { color: theme['text-basic-color'] }]}>
+                    {reason}
+                </Text>
+            ));
+        }
+
         const reasons: ReactNode[] = [
             <Text key="base" style={[styles.reasonText, { color: theme['text-basic-color'] }]}>
                 Nội dung này yêu cầu xác thực độ tuổi trước khi xem.
@@ -252,39 +279,62 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
             >
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                     <View style={styles.header}>
-                        <AlertTriangle size={48} color={theme['color-danger-500']} />
+                        {featureAccess ? (
+                            <Lock size={48} color={theme['color-primary-500']} />
+                        ) : (
+                            <AlertTriangle size={48} color={theme['color-danger-500']} />
+                        )}
                         <Text
                             category="h5"
                             style={[styles.title, { color: theme['text-basic-color'] }]}
                         >
                             {ratingInfo.title}
                         </Text>
-                        <View style={styles.headerTags}>
-                            {contentRating && <MovieContentRating rating={contentRating} />}
-                            {quality && <MovieQualityTag quality={quality} />}
-                        </View>
+                        {!featureAccess && (
+                            <View style={styles.headerTags}>
+                                {contentRating && <MovieContentRating rating={contentRating} />}
+                                {quality && <MovieQualityTag quality={quality} />}
+                            </View>
+                        )}
                     </View>
 
-                    <View style={[styles.alert, { backgroundColor: theme['color-warning-200'] }]}>
+                    <View style={[
+                        styles.alert,
+                        {
+                            backgroundColor: featureAccess
+                                ? theme['color-info-200']
+                                : theme['color-warning-200']
+                        }
+                    ]}>
                         <View style={styles.alertHeader}>
                             <Shield
                                 size={20}
-                                color={theme['color-warning-700']}
+                                color={featureAccess
+                                    ? theme['color-info-700']
+                                    : theme['color-warning-700']}
                                 style={{ marginRight: 8 }}
                             />
                             <Text
                                 category="s1"
                                 style={{
-                                    color: theme['color-warning-900'],
+                                    color: featureAccess
+                                        ? theme['color-info-900']
+                                        : theme['color-warning-900'],
                                     fontWeight: 'bold',
                                 }}
                             >
-                                Xác nhận độ tuổi và trách nhiệm
+                                {featureAccess
+                                    ? (primaryMessage || 'Yêu cầu đăng nhập')
+                                    : 'Xác nhận độ tuổi và trách nhiệm'}
                             </Text>
                         </View>
                         <View style={styles.alertContent}>
                             {typeof ratingInfo.description === 'string' ? (
-                                <Text style={{ color: theme['color-warning-900'] }}>
+                                <Text style={{
+                                    color: featureAccess
+                                        ? theme['color-info-900']
+                                        : theme['color-warning-900']
+                                }}>
                                     {ratingInfo.description}
                                 </Text>
                             ) : (
@@ -314,7 +364,9 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                                 </Text>
                             </View>
                             <Text style={{ color: theme['color-danger-900'] }}>
-                                Nội dung này yêu cầu xác thực người dùng trước khi xem.
+                                {featureAccess
+                                    ? 'Tính năng này yêu cầu xác thực người dùng trước khi sử dụng.'
+                                    : 'Nội dung này yêu cầu xác thực người dùng trước khi xem.'}
                             </Text>
                         </View>
                     )}
@@ -375,12 +427,12 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                             }}
                         >
                             {!isAuthenticated
-                                ? 'Vui lòng đăng nhập để tiếp tục xem nội dung'
+                                ? `Vui lòng đăng nhập để tiếp tục ${featureAccess ? 'sử dụng tính năng' : 'xem nội dung'}`
                                 : 'Vui lòng xác nhận để tiếp tục'}
                         </Text>
                     </View>
 
-                    {isAuthenticated && (
+                    {isAuthenticated && !featureAccess && (
                         <View
                             style={[
                                 styles.agreementSection,
@@ -456,12 +508,12 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                     ) : (
                         <Button
                             onPress={onAccept}
-                            disabled={!agreeTerms}
+                            disabled={!featureAccess && !agreeTerms}
                             style={styles.button}
                             size="medium"
                             status="success"
                         >
-                            Tiếp tục xem phim
+                            {featureAccess ? 'Tiếp tục' : 'Tiếp tục xem phim'}
                         </Button>
                     )}
                 </View>
