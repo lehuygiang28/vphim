@@ -4,7 +4,7 @@ import React, { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Divider, Space, Breadcrumb, List, Empty } from 'antd';
-import { useTable, CrudSort, CrudFilters } from '@refinedev/core';
+import { useTable, CrudSort, CrudFilters, useIsAuthenticated } from '@refinedev/core';
 import { parseTableParams } from '@refinedev/nextjs-router';
 
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
@@ -40,6 +40,8 @@ export default function MoviePage({ breadcrumbs, categories, regions }: MoviePag
     const currentSearchString = search?.toString() || '';
     const [parsedQuery, setParsedQuery] = useState(parseTableParams(currentSearchString));
     const [query, setQuery] = useState<undefined | LocalQuery>(undefined);
+    const { data: authData } = useIsAuthenticated();
+    const isLoggedIn = authData?.authenticated || false;
 
     const {
         tableQuery: { data, isLoading, isRefetching },
@@ -149,6 +151,7 @@ export default function MoviePage({ breadcrumbs, categories, regions }: MoviePag
                     applySearch={applySearch}
                     categories={categories}
                     regions={regions}
+                    isLoggedIn={isLoggedIn}
                 />
                 <Divider />
                 <List

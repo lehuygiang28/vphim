@@ -55,6 +55,7 @@ import {
     getContentRatingLabel,
     getContentRatingDescription,
 } from '@/components/tag/movie-content-rating';
+import { AuthRequirementModal, ModalType } from '@/components/modals';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -77,6 +78,7 @@ interface MovieFiltersProps {
     applySearch: (localQuery: LocalQuery) => void;
     categories: Category[];
     regions: Region[];
+    isLoggedIn?: boolean;
 }
 
 const sortOptions = [
@@ -101,12 +103,14 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
     isSearching = false,
     categories,
     regions,
+    isLoggedIn = false,
 }) => {
     const { md } = useBreakpoint();
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 124 }, (_, i) => currentYear - i);
     const [keywordsInput, setKeywordsInput] = useState<string | undefined>(undefined);
     const [filterVisible, setFilterVisible] = useState(false);
+    const [isAILoginModalVisible, setIsAILoginModalVisible] = useState(false);
 
     const getFilterValue = useCallback(
         (field: string) => {
@@ -175,6 +179,16 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             // Trigger search immediately when sort changes
             applySearch(newQuery);
         }
+    };
+
+    // Handle AI toggle with login check
+    const handleAIToggle = (checked: boolean) => {
+        if (checked && !isLoggedIn) {
+            setIsAILoginModalVisible(true);
+            return;
+        }
+
+        handleFilterChange('useAI', checked);
     };
 
     const renderFilterForm = () => (
@@ -946,9 +960,7 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                                         getFilterValue('useAI')[0]?.toString() ===
                                                         'true'
                                                     }
-                                                    onChange={(checked) =>
-                                                        handleFilterChange('useAI', checked)
-                                                    }
+                                                    onChange={handleAIToggle}
                                                     checkedChildren={<RobotOutlined />}
                                                     unCheckedChildren={<SearchOutlined />}
                                                 />
@@ -1109,6 +1121,25 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                     {filterContent}
                 </Drawer>
             )}
+
+            <AuthRequirementModal
+                visible={isAILoginModalVisible}
+                onClose={() => setIsAILoginModalVisible(false)}
+                isLoggedIn={isLoggedIn}
+                type={ModalType.FEATURE_ACCESS}
+                title="Tính năng tìm kiếm AI"
+                primaryMessage="Yêu cầu đăng nhập"
+                primaryDescription="Bạn cần đăng nhập để sử dụng tính năng tìm kiếm thông minh với AI."
+                primaryAlertType="info"
+                maskClosable={true}
+                reasonList={[
+                    'Tìm kiếm AI là tính năng cao cấp dành cho người dùng đã đăng nhập.',
+                    'Giúp chúng tôi cá nhân hóa kết quả tìm kiếm phù hợp với sở thích của bạn.',
+                    'Cho phép bạn lưu trữ và theo dõi lịch sử tìm kiếm thông minh.',
+                    'Bảo vệ hệ thống khỏi việc sử dụng quá mức và lạm dụng tài nguyên.',
+                    'Hỗ trợ chúng tôi cải thiện chất lượng dịch vụ tìm kiếm AI.',
+                ]}
+            />
         </div>
     );
 };
