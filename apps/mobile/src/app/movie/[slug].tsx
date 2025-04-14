@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, View, Dimensions } from 'react-native';
 import { Layout, useTheme } from '@ui-kitten/components';
 import { useOne } from '@refinedev/core';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { GET_MOVIE_QUERY } from '~fe/queries/movies';
 import type { EpisodeServerDataType, MovieType } from '~api/app/movies/movie.type';
@@ -20,6 +20,7 @@ import { useAuth } from '~mb/hooks/use-auth';
 
 export default function MovieScreen() {
     const theme = useTheme();
+    const router = useRouter();
     const { slug } = useLocalSearchParams<{ slug: string }>();
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedEpisode, setSelectedEpisode] = useState<EpisodeServerDataType | null>(null);
@@ -44,13 +45,8 @@ export default function MovieScreen() {
     });
     const { isAuthenticated } = useAuth();
 
-    const {
-        needsVerification,
-        isVerificationModalVisible,
-        hideVerificationModal,
-        markContentAsVerified,
-        isInitialized,
-    } = useAgeVerification(movie?.data?.contentRating, movie?.data?.quality);
+    const { needsVerification, hideVerificationModal, markContentAsVerified, isInitialized } =
+        useAgeVerification(movie?.data?.contentRating, movie?.data?.quality);
 
     useEffect(() => {
         const episodes = movie?.data?.episode ?? [];
@@ -155,23 +151,53 @@ export default function MovieScreen() {
         markContentAsVerified();
     };
 
+    // Handle modal dismissal
+    const handleModalDismiss = () => {
+        hideVerificationModal();
+
+        // If we're on a deep link, navigate back
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            // Otherwise go to home screen
+            router.replace('/');
+        }
+    };
+
     // Don't show any content until verification state is initialized
     if (!isInitialized) {
-        return <LoadingSpinner />;
+        return (
+            <SafeAreaView
+                style={[styles.safeArea, { backgroundColor: theme['background-basic-color-1'] }]}
+            >
+                <Layout style={styles.container} level="1">
+                    <LoadingSpinner />
+                </Layout>
+            </SafeAreaView>
+        );
     }
 
     // Show verification modal if needed
-    if (needsVerification && !isLoading) {
+    if (needsVerification) {
         return (
-            <AgeVerificationModal
-                visible={isVerificationModalVisible}
-                onClose={hideVerificationModal}
-                onAccept={handleVerificationComplete}
-                contentRating={movie?.data?.contentRating}
-                quality={movie?.data?.quality}
-                isAuthenticated={isAuthenticated}
-                maskClosable={false}
-            />
+            <SafeAreaView
+                style={[styles.safeArea, { backgroundColor: theme['background-basic-color-1'] }]}
+            >
+                <Layout
+                    style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}
+                    level="1"
+                >
+                    <AgeVerificationModal
+                        visible={true}
+                        onClose={handleModalDismiss}
+                        onAccept={handleVerificationComplete}
+                        contentRating={movie?.data?.contentRating}
+                        quality={movie?.data?.quality}
+                        isAuthenticated={isAuthenticated}
+                        maskClosable={false}
+                    />
+                </Layout>
+            </SafeAreaView>
         );
     }
 

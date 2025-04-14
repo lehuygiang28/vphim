@@ -18,7 +18,7 @@ const UNRESTRICTED_RATINGS = [MovieContentRatingEnum.P];
 const RESTRICTED_QUALITIES = [MovieQualityEnum._4K, MovieQualityEnum.FHD];
 
 // AsyncStorage key to avoid showing the modal again in the same session
-const AGE_VERIFICATION_KEY = 'vphim_age_verified';
+const AGE_VERIFICATION_KEY = 'vphim_age_verified:0';
 
 type VerificationState = {
     [key: string]: boolean;
@@ -50,9 +50,13 @@ export const useAgeVerification = (contentRating?: string, quality?: string) => 
             const normalizedQuality = quality?.toLowerCase();
 
             // Check quality restriction first - high quality always needs verification
-            const needsQualityRestriction =
-                normalizedQuality &&
-                RESTRICTED_QUALITIES.includes(normalizedQuality as MovieQualityEnum);
+            let needsQualityRestriction = false;
+
+            if (normalizedQuality) {
+                // Convert RESTRICTED_QUALITIES to lowercase for comparison
+                const qualityValues = RESTRICTED_QUALITIES.map((q) => q.toLowerCase());
+                needsQualityRestriction = qualityValues.includes(normalizedQuality);
+            }
 
             // If it's high quality, always require verification
             if (needsQualityRestriction) {
@@ -60,23 +64,30 @@ export const useAgeVerification = (contentRating?: string, quality?: string) => 
             }
 
             // If it's explicitly a non-restricted rating, it doesn't need verification
-            if (
-                normalizedRating &&
-                UNRESTRICTED_RATINGS.includes(normalizedRating as MovieContentRatingEnum)
-            ) {
-                return false;
+            if (normalizedRating) {
+                const unrestrictedValues = UNRESTRICTED_RATINGS.map((r) => r.toLowerCase());
+                if (unrestrictedValues.includes(normalizedRating)) {
+                    return false;
+                }
             }
 
             // Check content rating restriction
-            const needsContentRatingRestriction = !!(
-                normalizedRating &&
-                RESTRICTED_RATINGS.includes(normalizedRating as MovieContentRatingEnum)
-            );
+            let needsContentRatingRestriction = false;
+
+            if (normalizedRating) {
+                const restrictedValues = RESTRICTED_RATINGS.map((r) => r.toLowerCase());
+                needsContentRatingRestriction = restrictedValues.includes(normalizedRating);
+            }
 
             return needsContentRatingRestriction;
         },
         [],
     );
+
+    // Memoize the normalized values to prevent unnecessary recalculations
+    const contentKey = useCallback(() => {
+        return getContentVerificationKey(contentRating, quality);
+    }, [contentRating, quality, getContentVerificationKey]);
 
     // Load verified content and initialize states
     useEffect(() => {
@@ -104,8 +115,8 @@ export const useAgeVerification = (contentRating?: string, quality?: string) => 
                 return;
             }
 
-            const hasVerifiedBefore =
-                getContentVerificationKey(contentRating, quality) in verifiedContent;
+            const key = contentKey();
+            const hasVerifiedBefore = key in verifiedContent;
 
             const needsToVerify =
                 isRestricted && (!isAuthenticated || (isAuthenticated && !hasVerifiedBefore));
@@ -135,7 +146,7 @@ export const useAgeVerification = (contentRating?: string, quality?: string) => 
         isAuthenticated,
         verifiedContent,
         checkContentRestriction,
-        getContentVerificationKey,
+        contentKey,
     ]);
 
     // Mark content as verified and store in AsyncStorage

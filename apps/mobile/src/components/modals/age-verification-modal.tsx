@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Modal, Card, Text, Button, Divider, CheckBox, useTheme } from '@ui-kitten/components';
 import { useRouter } from 'expo-router';
@@ -219,11 +219,18 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
 
     const ratingInfo = getRatingInfo();
 
-    // Handle login redirection
-    const handleLogin = () => {
-        router.push('/auth');
+    // Handle login redirection with an immediately visible feedback
+    const handleLogin = useCallback(() => {
+        // Ensure onClose is called first to dismiss modal
         onClose();
-    };
+
+        router.push('/auth');
+    }, [onClose, router]);
+
+    // Handle back button
+    const handleBackPress = useCallback(() => {
+        onClose();
+    }, [onClose]);
 
     // Fix for icon with props
     const LoginIcon = () => (
@@ -267,7 +274,10 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                             />
                             <Text
                                 category="s1"
-                                style={{ color: theme['color-warning-900'], fontWeight: 'bold' }}
+                                style={{
+                                    color: theme['color-warning-900'],
+                                    fontWeight: 'bold',
+                                }}
                             >
                                 Xác nhận độ tuổi và trách nhiệm
                             </Text>
@@ -295,7 +305,10 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                                 />
                                 <Text
                                     category="s1"
-                                    style={{ color: theme['color-danger-900'], fontWeight: 'bold' }}
+                                    style={{
+                                        color: theme['color-danger-900'],
+                                        fontWeight: 'bold',
+                                    }}
                                 >
                                     Đăng nhập bắt buộc
                                 </Text>
@@ -417,10 +430,15 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                 <View style={styles.actions}>
                     <Button
                         appearance="outline"
-                        onPress={onClose}
-                        style={[styles.button, { borderColor: theme['border-basic-color-5'] }]}
+                        onPress={handleBackPress}
+                        style={[
+                            styles.button,
+                            { borderColor: theme['border-basic-color-5'] },
+                            styles.buttonHighlight,
+                        ]}
                         size="medium"
                         status="basic"
+                        activeOpacity={0.7}
                     >
                         Quay lại
                     </Button>
@@ -428,9 +446,10 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                         <Button
                             onPress={handleLogin}
                             accessoryLeft={LoginIcon}
-                            style={styles.button}
+                            style={[styles.button, styles.buttonHighlight]}
                             size="medium"
                             status="primary"
+                            activeOpacity={0.7}
                         >
                             Đăng nhập ngay
                         </Button>
@@ -512,12 +531,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
+        paddingHorizontal: 20,
     },
     backdrop: {
         backgroundColor: 'rgba(20, 20, 20, 0.85)', // Match background-basic-color-1 with opacity
     },
     card: {
-        width: '92%',
+        width: '100%',
         maxWidth: 400,
         maxHeight: '90%',
         borderRadius: 16,
@@ -616,6 +636,13 @@ const styles = StyleSheet.create({
         flex: 1,
         marginHorizontal: 4,
         borderRadius: 8,
+    },
+    buttonHighlight: {
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
     checkbox: {
         marginBottom: 12,
