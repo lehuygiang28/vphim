@@ -1,6 +1,5 @@
 .movie-section {
     margin-bottom: 3rem;
-    padding: 0 0.5rem;
     min-height: 350px;
     position: relative;
     animation: fadeIn 0.5s ease-in-out;
@@ -41,7 +40,6 @@
 @media (min-width: 768px) {
     .movie-section {
         margin-bottom: 4rem;
-        padding: 0 2rem 1rem;
         min-height: 400px;
     }
 
@@ -55,7 +53,6 @@
 @media (min-width: 481px) and (max-width: 767px) {
     .movie-section {
         margin-bottom: 3rem;
-        padding: 0 1rem 0.5rem;
     }
 }
 
@@ -63,7 +60,6 @@
 @media (max-width: 480px) {
     .movie-section {
         margin-bottom: 2.5rem;
-        padding: 0 0.3rem 0.5rem;
         min-height: 320px;
     }
 

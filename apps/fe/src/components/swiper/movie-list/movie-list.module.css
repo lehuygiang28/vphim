@@ -30,7 +30,6 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 1rem;
-    padding: 0 1rem;
 }
 
 .title {
@@ -141,7 +140,6 @@
 @media (max-width: 768px) {
     .container {
         margin: 1.5rem 0;
-        padding: 0 1rem;
     }
 
     .swiper {

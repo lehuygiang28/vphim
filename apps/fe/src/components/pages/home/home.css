@@ -30,9 +30,3 @@
         background-position-x: -200%;
     }
 }
-
-@media (min-width: 768px) {
-    .content-section {
-        padding: 0 3rem;
-    }
-}
