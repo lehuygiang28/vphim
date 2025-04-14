@@ -88,34 +88,39 @@
     align-items: center;
     justify-content: center;
     color: #fff;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.75);
     border-radius: 50%;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     opacity: 0;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     pointer-events: auto;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+}
+
+.navigationButton:global(.anticon) {
+    font-size: 20px;
+}
+
+.prevButton {
+    composes: navigationButton;
+    left: -8px;
+}
+
+.nextButton {
+    composes: navigationButton;
+    right: -8px;
 }
 
 .container:hover .navigationButton {
     opacity: 1;
 }
 
-.prevButton {
-    composes: navigationButton;
-    left: 0.5rem;
-}
-
-.nextButton {
-    composes: navigationButton;
-    right: 0.5rem;
-}
-
 .navigationButton:hover {
     background-color: var(--vphim-color-primary);
-    transform: scale(1.05);
+    transform: scale(1.1);
     opacity: 1;
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Mobile Touch Indicators */
@@ -159,27 +164,34 @@
     }
 
     .navigationButton {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         top: calc(50% - 1rem);
-        opacity: 0.8;
+        opacity: 0;
+        background-color: rgba(0, 0, 0, 0.85);
     }
 
-    .prevButton {
-        left: 0.25rem;
-    }
-
-    .nextButton {
-        right: 0.25rem;
-    }
-
-    .navigationButton::after {
+    .navigationButton:global(.anticon) {
         font-size: 16px;
     }
 
-    /* Always show navigation on mobile */
-    .navigationButton {
-        opacity: 0.7;
+    .prevButton {
+        left: 4px;
+    }
+
+    .nextButton {
+        right: 4px;
+    }
+
+    /* Show navigation buttons on touch */
+    .container:active .navigationButton,
+    .navigationButton:active {
+        opacity: 1;
+    }
+
+    .navigationButton:active {
+        transform: scale(0.95);
+        background-color: var(--vphim-color-primary);
     }
 
     .slide {

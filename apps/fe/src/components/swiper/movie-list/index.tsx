@@ -1,12 +1,13 @@
 import 'swiper/css';
 import 'swiper/css/navigation';
+
 import React, { useRef, CSSProperties, useEffect, useMemo, useCallback } from 'react';
-import { Grid, Skeleton } from 'antd';
 import Link from 'next/link';
+import { Grid, Skeleton } from 'antd';
+import { ArrowRightOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import type { Swiper as SwiperType } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, FreeMode } from 'swiper/modules';
-import type { Swiper as SwiperType } from 'swiper';
-import { ArrowRightOutlined } from '@ant-design/icons';
 
 import type { MovieType } from 'apps/api/src/app/movies/movie.type';
 
@@ -134,18 +135,6 @@ export default function MovieList({
         [prevButtonId, nextButtonId, disableNavigation],
     );
 
-    const renderMobileSwipeIndicator = useCallback(() => {
-        if (!isMobile) return null;
-
-        return (
-            <div className={styles.mobileSwipeIndicator}>
-                <div className={styles.indicatorDot}></div>
-                <div className={styles.indicatorDot}></div>
-                <div className={styles.indicatorDot}></div>
-            </div>
-        );
-    }, [isMobile]);
-
     return (
         <div className={styles.container} style={style} ref={navContainerRef}>
             {title && (
@@ -193,18 +182,12 @@ export default function MovieList({
                     ))}
             </Swiper>
 
-            {renderMobileSwipeIndicator()}
-
-            <button
-                id={prevButtonId}
-                className={styles.prevButton}
-                aria-label="Previous slide"
-            ></button>
-            <button
-                id={nextButtonId}
-                className={styles.nextButton}
-                aria-label="Next slide"
-            ></button>
+            <button id={prevButtonId} className={styles.prevButton} aria-label="Previous slide">
+                <LeftOutlined />
+            </button>
+            <button id={nextButtonId} className={styles.nextButton} aria-label="Next slide">
+                <RightOutlined />
+            </button>
         </div>
     );
 }
