@@ -3,8 +3,7 @@ import { Tag, TagProps, Tooltip } from 'antd';
 import Link from 'next/link';
 
 import { MovieQualityEnum } from 'apps/api/src/app/movies/movie.constant';
-import { RouteNameEnum } from '@/constants/route.constant';
-import { stringifyTableParams } from '@/libs/utils/url.util';
+import { createSearchUrl } from '@/libs/utils/url.util';
 import styles from './movie-quality.module.css';
 
 export type MovieQualityTagProps = {
@@ -52,13 +51,6 @@ export function MovieQualityTag({
             break;
     }
 
-    const createSearchUrl = (quality: string) => {
-        return `${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
-            filters: [{ field: 'quality', value: quality, operator: 'eq' }],
-            sorters: [],
-        })}`;
-    };
-
     // For card badge variant
     if (variant === 'cardBadge') {
         // Get hex color instead of Ant Design's named colors
@@ -105,7 +97,7 @@ export function MovieQualityTag({
         );
 
         if (withLink && quality) {
-            return <Link href={createSearchUrl(quality)}>{badgeElement}</Link>;
+            return <Link href={createSearchUrl('quality', quality)}>{badgeElement}</Link>;
         }
 
         return badgeElement;
@@ -145,7 +137,7 @@ export function MovieQualityTag({
     );
 
     if (withLink && quality) {
-        return <Link href={createSearchUrl(quality)}>{tagElement}</Link>;
+        return <Link href={createSearchUrl('quality', quality)}>{tagElement}</Link>;
     }
 
     return tagElement;

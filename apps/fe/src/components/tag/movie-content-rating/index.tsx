@@ -2,8 +2,7 @@ import React from 'react';
 import { Tag, Tooltip } from 'antd';
 import Link from 'next/link';
 import { MovieContentRatingEnum } from 'apps/api/src/app/movies/movie.constant';
-import { RouteNameEnum } from '@/constants/route.constant';
-import { stringifyTableParams } from '@/libs/utils/url.util';
+import { createSearchUrl } from '@/libs/utils/url.util';
 import styles from './movie-content-rating.module.css';
 
 type MovieContentRatingProps = {
@@ -79,13 +78,6 @@ export const getContentRatingDescription = (rating?: MovieContentRatingEnum | st
     }
 };
 
-const createSearchUrl = (rating: string) => {
-    return `${RouteNameEnum.MOVIE_LIST_PAGE}?${stringifyTableParams({
-        filters: [{ field: 'contentRating', value: rating, operator: 'eq' }],
-        sorters: [],
-    })}`;
-};
-
 export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
     rating,
     showLabel = false,
@@ -150,7 +142,11 @@ export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
         );
 
         if (withLink && rating) {
-            return <Link href={createSearchUrl(rating.toString())}>{badgeElement}</Link>;
+            return (
+                <Link href={createSearchUrl('contentRating', rating.toString())}>
+                    {badgeElement}
+                </Link>
+            );
         }
 
         return badgeElement;
@@ -187,7 +183,7 @@ export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
     );
 
     if (withLink && rating) {
-        return <Link href={createSearchUrl(rating.toString())}>{ratingTag}</Link>;
+        return <Link href={createSearchUrl('contentRating', rating.toString())}>{ratingTag}</Link>;
     }
 
     return ratingTag;
