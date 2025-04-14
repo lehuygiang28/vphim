@@ -41,7 +41,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
 
     const heroStyle: CSSProperties = {
         position: 'relative',
-        height: md ? '85vh' : '90vh',
+        height: md ? '85vh' : 'auto',
         overflow: 'hidden',
     };
 
@@ -59,10 +59,10 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     };
 
     const contentStyle: CSSProperties = {
-        padding: md ? '4rem' : '1.5rem',
+        padding: md ? '4rem' : '1.5rem 0',
         textAlign: 'left',
         zIndex: 1,
-        height: '100%',
+        height: md ? '100%' : 'auto',
         position: 'relative',
     };
 
@@ -106,21 +106,21 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
     };
 
     const getRatings = (movie: MovieType) => (
-        <div className="movie-ratings">
+        <>
+            {movie.imdb?.id && <IMDBRating id={movie.imdb.id} size={md ? 'middle' : 'small'} />}
             {movie.tmdb?.id && (
                 <TMDBRating
                     id={movie.tmdb.id}
-                    type={movie.tmdb.type || 'movie'}
+                    type={movie.tmdb?.type || 'movie'}
                     size={md ? 'middle' : 'small'}
                 />
             )}
-            {movie.imdb?.id && <IMDBRating id={movie.imdb.id} size={md ? 'middle' : 'small'} />}
-        </div>
+        </>
     );
 
     function renderTags(movie: MovieType) {
         return (
-            <Space wrap size={[8, 8]}>
+            <>
                 <MovieQualityTag quality={movie?.quality || 'N/A'} />
 
                 <MovieContentRating rating={movie?.contentRating || 'N/A'} />
@@ -155,7 +155,7 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                         {movie.view.toLocaleString() || '0'}
                     </Tag>
                 )}
-            </Space>
+            </>
         );
     }
 
@@ -216,78 +216,106 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                         <div style={heroStyle}>
                             <div style={contentStyle}>
                                 {isMobile ? (
-                                    // Mobile Layout - Entire slide is clickable
-                                    <Link
-                                        href={`/phim/${movie.slug}`}
-                                        style={clickableWrapperStyle}
-                                    >
+                                    // Mobile Layout - Button and poster are clickable
+                                    <>
                                         <div className="mobile-hero-content">
-                                            <div className="mobile-poster-wrapper">
-                                                <ImageOptimized
-                                                    url={movie?.posterUrl}
-                                                    alt={movie?.name}
-                                                    width={300}
-                                                    height={450}
-                                                    style={{
-                                                        borderRadius: '0.8rem',
-                                                        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.5)',
-                                                    }}
-                                                    className="posterImage"
-                                                    disableSkeleton
-                                                    loadType={
-                                                        movieIndex === 0 ? 'eager' : undefined
-                                                    }
-                                                />
-
-                                                {movie.quality && (
-                                                    <div className="quality-badge">
-                                                        <MovieQualityTag quality={movie.quality} />
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="mobile-movie-info">
-                                                <Title
-                                                    level={3}
-                                                    className="movie-title"
-                                                    style={{ marginTop: '1rem' }}
-                                                >
-                                                    {movie.name}
-                                                </Title>
-
-                                                {getRatings(movie)}
-
-                                                {renderTags(movie)}
-
-                                                <div className="categories-wrapper">
-                                                    {movie?.categories?.length !== undefined &&
-                                                        movie?.categories?.length > 0 &&
-                                                        movie.categories
-                                                            .slice(0, 2)
-                                                            .map((category) => (
-                                                                <Tag
-                                                                    key={category._id.toString()}
-                                                                    className="category-tag"
-                                                                >
-                                                                    {category.name}
-                                                                </Tag>
-                                                            ))}
+                                            <div className="mobile-layout">
+                                                <div className="mobile-poster-wrapper">
+                                                    <Link
+                                                        href={`/phim/${movie.slug}`}
+                                                        style={clickableWrapperStyle}
+                                                    >
+                                                        <ImageOptimized
+                                                            url={movie?.posterUrl}
+                                                            alt={movie?.name}
+                                                            width={180}
+                                                            height={270}
+                                                            style={{
+                                                                borderRadius: '0.8rem',
+                                                                boxShadow:
+                                                                    '0 5px 15px rgba(0, 0, 0, 0.5)',
+                                                            }}
+                                                            className="posterImage"
+                                                            disableSkeleton
+                                                            loadType={
+                                                                movieIndex === 0
+                                                                    ? 'eager'
+                                                                    : undefined
+                                                            }
+                                                        />
+                                                    </Link>
                                                 </div>
 
-                                                <div className="button-group">
-                                                    <Button
-                                                        type="primary"
-                                                        size="large"
-                                                        icon={<PlayCircleOutlined />}
-                                                        className="watch-button"
-                                                        block
-                                                    >
-                                                        Xem Phim
-                                                    </Button>
+                                                <div className="mobile-movie-info">
+                                                    <Title level={4} className="movie-title">
+                                                        {movie.name}
+                                                    </Title>
+
+                                                    {movie.originName && (
+                                                        <Text
+                                                            type="secondary"
+                                                            style={{
+                                                                fontSize: '0.85rem',
+                                                                opacity: 0.8,
+                                                                display: 'block',
+                                                                marginBottom: '0.5rem',
+                                                            }}
+                                                        >
+                                                            {movie.originName}
+                                                        </Text>
+                                                    )}
+
+                                                    <Space wrap size={'small'}>
+                                                        {getRatings(movie)}
+                                                        {renderTags(movie)}
+                                                    </Space>
+
+                                                    <div className="categories-wrapper">
+                                                        {movie?.categories?.length !== undefined &&
+                                                            movie?.categories?.length > 0 &&
+                                                            movie.categories
+                                                                .slice(0, 3)
+                                                                .map((category) => (
+                                                                    <Tag
+                                                                        key={category._id.toString()}
+                                                                        className="category-tag"
+                                                                    >
+                                                                        {category.name}
+                                                                    </Tag>
+                                                                ))}
+                                                    </div>
+
+                                                    {movie.content && (
+                                                        <Paragraph
+                                                            ellipsis={{ rows: 4 }}
+                                                            style={{
+                                                                color: 'rgba(255, 255, 255, 0.8)',
+                                                                fontSize: '0.8rem',
+                                                                marginBottom: '0.5rem',
+                                                                lineHeight: 1.5,
+                                                            }}
+                                                        >
+                                                            {movie.content}
+                                                        </Paragraph>
+                                                    )}
+
+                                                    <div className="button-group">
+                                                        <Link href={`/phim/${movie.slug}`}>
+                                                            <Button
+                                                                type="primary"
+                                                                size="middle"
+                                                                icon={<PlayCircleOutlined />}
+                                                                className="watch-button"
+                                                                block
+                                                            >
+                                                                Xem Phim
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </Link>
+                                    </>
                                 ) : (
                                     // Desktop Layout
                                     <Row
@@ -332,7 +360,10 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                         </Text>
                                                     </div>
 
-                                                    {renderTags(movie)}
+                                                    <Space wrap size={'middle'}>
+                                                        {getRatings(movie)}
+                                                        {renderTags(movie)}
+                                                    </Space>
 
                                                     <Paragraph
                                                         ellipsis={{ rows: md ? 3 : 2 }}
@@ -346,10 +377,6 @@ export const MovieSwiper: React.FC<MovieSwiperProps> = ({ movies }) => {
                                                     >
                                                         {movie.content}
                                                     </Paragraph>
-
-                                                    <Space size="middle" align="center">
-                                                        {getRatings(movie)}
-                                                    </Space>
 
                                                     <Space size="middle">
                                                         <Link href={`/phim/${movie.slug}`}>

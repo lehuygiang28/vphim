@@ -150,15 +150,24 @@
     align-items: center;
     justify-content: flex-start;
     width: 100%;
-    height: 100%;
-    padding-top: 2rem;
+    height: auto;
+    padding: 2rem 0;
+}
+
+.mobile-layout {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    padding: 0 1rem;
+    gap: 1rem;
+    align-items: flex-start;
+    min-height: 300px;
 }
 
 .mobile-poster-wrapper {
     position: relative;
-    width: 70%;
-    max-width: 250px;
-    margin: 0 auto;
+    width: 35%;
+    flex-shrink: 0;
     transform: scale(0.95);
     opacity: 0;
 }
@@ -175,45 +184,37 @@
 }
 
 .mobile-movie-info {
-    width: 100%;
-    margin-top: 1.5rem;
-    text-align: center;
+    width: 65%;
+    text-align: left;
     opacity: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .swiper-slide-active .mobile-movie-info {
     animation: fadeInUp 0.8s ease 0.3s forwards;
 }
 
-.movie-ratings {
-    display: flex;
-    justify-content: center;
-    gap: 0.8rem;
-    margin: 0.7rem 0;
-    flex-wrap: wrap;
-}
-
 .mobile-meta {
     display: flex;
-    justify-content: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin: 0.7rem 0;
 }
 
 .categories-wrapper {
     display: flex;
-    justify-content: center;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 0.7rem 0 1.2rem;
+    margin: 0.7rem 0;
 }
 
 .button-group {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-    width: 80%;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0.5rem 0 0;
 }
 
 .full-width {
@@ -305,6 +306,10 @@
 }
 
 @media (max-width: 768px) {
+    .hero-swiper {
+        height: auto;
+    }
+
     .swiper-pagination-bullet {
         height: 0.3rem;
         width: 0.3rem;
@@ -335,5 +340,37 @@
 
     .posterImage {
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+}
+
+@media (max-width: 380px) {
+    .mobile-layout {
+        padding: 0 0.5rem;
+        gap: 0.7rem;
+    }
+
+    .mobile-poster-wrapper {
+        width: 40%;
+    }
+
+    .mobile-movie-info {
+        width: 60%;
+    }
+
+    .movie-title {
+        font-size: 1.2rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+
+    .categories-wrapper {
+        margin: 0.4rem 0;
+    }
+
+    .movie-ratings {
+        margin: 0.4rem 0;
+    }
+
+    .button-group {
+        margin-top: 0.3rem;
     }
 }
