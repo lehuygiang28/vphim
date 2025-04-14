@@ -3,7 +3,6 @@ import type { DocumentNode } from 'graphql';
 import { AxiosRequestConfig } from 'axios';
 import axiosInstance from './axios';
 import authStore from '../stores/authStore';
-import { refreshSession } from './authActions';
 
 interface GraphQLResponse<T> {
     data?: {
@@ -52,6 +51,8 @@ export async function executeQuery<T = unknown>(
     try {
         // Check if token is expired and refresh if needed
         if (authStore.getState().isSessionExpired() && !options.forceFetch) {
+            // Dynamically import refreshSession to avoid circular dependency
+            const { refreshSession } = await import('./authActions');
             await refreshSession();
         }
 
@@ -114,6 +115,8 @@ export async function apiCall<T = unknown>(
     try {
         // Skip token refresh for public endpoints
         if (!isPublicEndpoint(url) && authStore.getState().isSessionExpired()) {
+            // Dynamically import refreshSession to avoid circular dependency
+            const { refreshSession } = await import('./authActions');
             await refreshSession();
         }
 
