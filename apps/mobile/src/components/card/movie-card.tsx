@@ -6,6 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import { type MovieType } from '~api/app/movies/movie.type';
+import { MovieQualityTag } from '../tag/movie-quality';
+import { MovieContentRating } from '../tag/movie-content-rating';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.42;
@@ -34,6 +36,16 @@ export const MovieCard = ({ movie, onPress }: { movie: MovieType; onPress: () =>
                     colors={['transparent', 'rgba(0,0,0,0.8)']}
                     style={styles.gradient}
                 />
+                {movie.contentRating && (
+                    <View style={styles.leftTagContainer}>
+                        <MovieContentRating rating={movie.contentRating} size="small" />
+                    </View>
+                )}
+                {movie.quality && (
+                    <View style={styles.rightTagContainer}>
+                        <MovieQualityTag quality={movie.quality} size="small" />
+                    </View>
+                )}
             </Card>
             <Text
                 category="s1"
@@ -77,5 +89,17 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         height: '50%',
+    },
+    leftTagContainer: {
+        position: 'absolute',
+        top: 8,
+        left: 8,
+        zIndex: 10,
+    },
+    rightTagContainer: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        zIndex: 10,
     },
 });

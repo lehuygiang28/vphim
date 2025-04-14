@@ -4,7 +4,7 @@ import { Layout, useTheme } from '@ui-kitten/components';
 import { useOne } from '@refinedev/core';
 import { useLocalSearchParams } from 'expo-router';
 
-import { GET_MOVIE_QUERY } from '@/queries/movies';
+import { GET_MOVIE_QUERY } from '~fe/queries/movies';
 import type { EpisodeServerDataType, MovieType } from '~api/app/movies/movie.type';
 
 import { MovieRelated } from '~mb/components/list/movie-related';
@@ -14,6 +14,9 @@ import VideoPlayer from '~mb/components/screens/movie/player';
 import EpisodeSelector from '~mb/components/screens/movie/episode-selector';
 import MovieInfo from '~mb/components/screens/movie/info';
 import ErrorModal from '~mb/components/screens/movie/error-modal';
+import { useAgeVerification } from '~mb/hooks/use-age-verification';
+import { AgeVerificationModal } from '~mb/components/modals/age-verification-modal';
+import { useAuth } from '~mb/hooks/use-auth';
 
 export default function MovieScreen() {
     const theme = useTheme();
@@ -39,6 +42,15 @@ export default function MovieScreen() {
         },
         id: Array.isArray(slug) ? slug[0] : slug,
     });
+    const { isAuthenticated } = useAuth();
+
+    const {
+        needsVerification,
+        isVerificationModalVisible,
+        hideVerificationModal,
+        markContentAsVerified,
+        isInitialized,
+    } = useAgeVerification(movie?.data?.contentRating, movie?.data?.quality);
 
     useEffect(() => {
         const episodes = movie?.data?.episode ?? [];
@@ -136,6 +148,31 @@ export default function MovieScreen() {
 
     if (!movie?.data) {
         return <Layout style={styles.errorContainer} level="2" />;
+    }
+
+    // Handle verification completion
+    const handleVerificationComplete = () => {
+        markContentAsVerified();
+    };
+
+    // Don't show any content until verification state is initialized
+    if (!isInitialized) {
+        return <LoadingSpinner />;
+    }
+
+    // Show verification modal if needed
+    if (needsVerification && !isLoading) {
+        return (
+            <AgeVerificationModal
+                visible={isVerificationModalVisible}
+                onClose={hideVerificationModal}
+                onAccept={handleVerificationComplete}
+                contentRating={movie?.data?.contentRating}
+                quality={movie?.data?.quality}
+                isAuthenticated={isAuthenticated}
+                maskClosable={false}
+            />
+        );
     }
 
     return (
