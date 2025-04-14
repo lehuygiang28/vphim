@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, Dimensions, SafeAreaView, View, Animated } from 'react-native';
+import { StyleSheet, FlatList, Dimensions, SafeAreaView, View, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useList } from '@refinedev/core';
 import { useTheme, Spinner } from '@ui-kitten/components';
@@ -13,6 +13,13 @@ import { FadeInView } from '~mb/components/animation/fade-in';
 import { useRefreshControl } from '~mb/hooks/use-refresh-control';
 
 const { width } = Dimensions.get('window');
+
+interface SectionItem {
+    id: string;
+    type: 'swiper' | 'movieSection';
+    title?: string;
+    movies?: MovieType[];
+}
 
 export default function HomeScreen() {
     const theme = useTheme();
@@ -55,47 +62,79 @@ export default function HomeScreen() {
         router.push(`/movie/${movie.slug}`);
     };
 
-    const renderContent = () => (
-        <Animated.View style={{ opacity: fadeAnim }}>
-            {mostViewed?.data && mostViewed.data.length > 0 ? (
-                <FadeInView delay={200}>
-                    <ImmersiveMovieSwiper movies={mostViewed.data} />
-                </FadeInView>
-            ) : (
-                <ShimmerPlaceholder width={width} height={300} />
-            )}
-            {newMovies?.data && newMovies.data.length > 0 && (
-                <FadeInView delay={400}>
-                    <MovieSection
-                        title="Phim Mới"
-                        movies={newMovies.data}
-                        onMoviePress={onMoviePress}
-                    />
-                </FadeInView>
-            )}
-            {actionMovies?.data && actionMovies.data.length > 0 && (
-                <FadeInView delay={600}>
-                    <MovieSection
-                        title="Phim Hành Động"
-                        movies={actionMovies.data}
-                        onMoviePress={onMoviePress}
-                    />
-                </FadeInView>
-            )}
-        </Animated.View>
-    );
+    const getSections = (): SectionItem[] => {
+        const sections: SectionItem[] = [];
+
+        // Add swiper section
+        sections.push({
+            id: 'swiper',
+            type: 'swiper',
+        });
+
+        // Add new movies section if available
+        if (newMovies?.data && newMovies.data.length > 0) {
+            sections.push({
+                id: 'new-movies',
+                type: 'movieSection',
+                title: 'Phim Mới',
+                movies: newMovies.data,
+            });
+        }
+
+        // Add action movies section if available
+        if (actionMovies?.data && actionMovies.data.length > 0) {
+            sections.push({
+                id: 'action-movies',
+                type: 'movieSection',
+                title: 'Phim Hành Động',
+                movies: actionMovies.data,
+            });
+        }
+
+        return sections;
+    };
+
+    const renderItem = ({ item }: { item: SectionItem }) => {
+        if (item.type === 'swiper') {
+            return (
+                <Animated.View style={{ opacity: fadeAnim }}>
+                    {mostViewed?.data && mostViewed.data.length > 0 ? (
+                        <FadeInView delay={200}>
+                            <ImmersiveMovieSwiper movies={mostViewed.data} />
+                        </FadeInView>
+                    ) : (
+                        <ShimmerPlaceholder width={width} height={300} />
+                    )}
+                </Animated.View>
+            );
+        } else if (item.type === 'movieSection' && item.movies) {
+            return (
+                <Animated.View style={{ opacity: fadeAnim }}>
+                    <FadeInView delay={400}>
+                        <MovieSection
+                            title={item.title || ''}
+                            movies={item.movies}
+                            onMoviePress={onMoviePress}
+                        />
+                    </FadeInView>
+                </Animated.View>
+            );
+        }
+        return null;
+    };
 
     return (
         <SafeAreaView
             style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
         >
-            <ScrollView
+            <FlatList
+                data={getSections()}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id}
                 style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}
                 contentContainerStyle={styles.contentContainer}
                 refreshControl={RefreshControl}
-            >
-                {renderContent()}
-            </ScrollView>
+            />
             {isLoading && (
                 <View style={overlayStyle}>
                     <Spinner size="large" status="primary" />
