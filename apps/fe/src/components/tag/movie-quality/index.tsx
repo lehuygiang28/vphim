@@ -29,22 +29,22 @@ export function MovieQualityTag({
     if (!quality) return null;
 
     let color: TagProps['color'] = 'default';
-
+    // Get modern colors for different quality types
     switch (quality.toLowerCase()) {
         case MovieQualityEnum._4K:
-            color = 'red';
+            color = 'magenta';
             break;
         case MovieQualityEnum.FHD:
-            color = 'green';
+            color = 'success';
             break;
         case MovieQualityEnum.HD:
-            color = 'blue';
+            color = 'processing';
             break;
         case MovieQualityEnum.SD:
             color = 'cyan';
             break;
         case MovieQualityEnum.CAM:
-            color = 'lime';
+            color = 'warning';
             break;
         default:
             color = 'default';
@@ -53,27 +53,25 @@ export function MovieQualityTag({
 
     // For card badge variant
     if (variant === 'cardBadge') {
-        // Get hex color instead of Ant Design's named colors
-        const getHexColor = (quality: string): string => {
+        // Get CSS class for gradient styling based on quality
+        const getQualityClass = (quality: string): string => {
             switch (quality.toLowerCase()) {
                 case MovieQualityEnum._4K:
-                    return '#f5222d'; // Red
+                    return styles.quality4K;
                 case MovieQualityEnum.FHD:
-                    return '#52c41a'; // Green
+                    return styles.qualityFHD;
                 case MovieQualityEnum.HD:
-                    return '#1890ff'; // Blue
+                    return styles.qualityHD;
                 case MovieQualityEnum.SD:
-                    return '#13c2c2'; // Cyan
+                    return styles.qualitySD;
                 case MovieQualityEnum.CAM:
-                    return '#a0d911'; // Lime
+                    return styles.qualityCAM;
                 default:
-                    return '#d9d9d9'; // Grey
+                    return '';
             }
         };
 
-        const isDark = [MovieQualityEnum._4K, MovieQualityEnum.HD].includes(
-            quality.toLowerCase() as MovieQualityEnum,
-        );
+        const qualityClass = getQualityClass(quality);
         const label = quality.toUpperCase();
 
         const badgeElement = (
@@ -82,14 +80,7 @@ export function MovieQualityTag({
                 placement="top"
                 overlayClassName={styles.tooltip}
             >
-                <div
-                    className={`${styles.cardBadge} ${className}`}
-                    style={{
-                        backgroundColor: getHexColor(quality),
-                        color: isDark ? '#fff' : '#000',
-                        ...style,
-                    }}
-                >
+                <div className={`${styles.cardBadge} ${qualityClass} ${className}`} style={style}>
                     {label}
                     {children}
                 </div>
@@ -106,23 +97,26 @@ export function MovieQualityTag({
     // Default tag styling
     const tagStyles: React.CSSProperties = {
         cursor: withLink ? 'pointer' : 'default',
-        borderRadius: '12px',
-        fontWeight: 'bold',
+        borderRadius: '16px',
+        fontWeight: 600,
+        transition: 'all 0.2s ease',
+        border: 'none',
+        boxShadow: '0 2px 0 rgba(0,0,0,0.02)',
         ...style,
     };
 
     // Add size-specific styles
     if (size === 'small') {
-        tagStyles.fontSize = '11px';
-        tagStyles.padding = '0 4px';
-        tagStyles.lineHeight = '16px';
-        tagStyles.height = '18px';
+        tagStyles.fontSize = '12px';
+        tagStyles.padding = '0 6px';
+        tagStyles.lineHeight = '18px';
+        tagStyles.height = '20px';
         tagStyles.margin = 0;
     } else if (size === 'large') {
         tagStyles.fontSize = '14px';
-        tagStyles.padding = '4px 10px';
+        tagStyles.padding = '5px 12px';
     } else {
-        tagStyles.padding = '2px 8px';
+        tagStyles.padding = '3px 10px';
     }
 
     const label = quality.toUpperCase();

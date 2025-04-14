@@ -3,22 +3,67 @@
     top: 8px;
     right: 8px;
     z-index: 3;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 28px;
-    height: 20px;
+    min-width: 30px;
+    height: 22px;
     text-align: center;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cardBadge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Modern gradient backgrounds for different quality types */
+.quality4K {
+    background: linear-gradient(135deg, #eb2f96 0%, #c41d7f 100%);
+    color: #fff !important;
+}
+
+.qualityFHD {
+    background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+    color: #fff !important;
+}
+
+.qualityHD {
+    background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
+    color: #fff !important;
+}
+
+.qualitySD {
+    background: linear-gradient(135deg, #13c2c2 0%, #08979c 100%);
+    color: #fff !important;
+}
+
+.qualityCAM {
+    background: linear-gradient(135deg, #faad14 0%, #d48806 100%);
+    color: #000 !important;
 }
 
 .tooltip {
     max-width: 300px;
-    font-size: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .cardBadge {
+        padding: 2px 7px;
+        font-size: 0.7rem;
+        min-width: 28px;
+        height: 20px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -28,8 +73,7 @@
         font-size: 0.65rem;
         min-width: 24px;
         height: 18px;
-        padding: 1px 4px;
-        transform: scale(0.9);
+        padding: 1px 5px;
         transform-origin: top right;
     }
 }

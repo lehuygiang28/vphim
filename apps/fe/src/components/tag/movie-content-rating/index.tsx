@@ -22,15 +22,15 @@ export const getContentRatingColor = (rating?: MovieContentRatingEnum | string):
         case MovieContentRatingEnum.P:
             return 'success'; // Green - suitable for everyone
         case MovieContentRatingEnum.K:
-            return 'green'; // Light green - kids with parent guidance
+            return 'lime'; // Lime - kids with parent guidance
         case MovieContentRatingEnum.T13:
-            return 'blue'; // Blue - teens 13+
+            return 'geekblue'; // Geekblue - teens 13+
         case MovieContentRatingEnum.T16:
-            return 'orange'; // Orange - teens 16+
+            return 'gold'; // Gold - teens 16+
         case MovieContentRatingEnum.T18:
-            return 'volcano'; // Darker orange/red - adults only
+            return 'orange'; // Orange - adults only
         case MovieContentRatingEnum.C:
-            return 'red'; // Red - not allowed to be distributed
+            return 'volcano'; // Volcano - not allowed to be distributed
         default:
             return 'default';
     }
@@ -99,43 +99,31 @@ export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
 
     // If it's a card badge, use different styling
     if (variant === 'cardBadge') {
-        // For card badges, get hex color instead of Ant Design's named colors
-        const getHexColor = (rating: MovieContentRatingEnum | string): string => {
+        // Get CSS class for gradient styling based on rating
+        const getRatingClass = (rating: MovieContentRatingEnum | string): string => {
             switch (rating) {
                 case MovieContentRatingEnum.P:
-                    return '#52c41a'; // Green
+                    return styles.ratingP;
                 case MovieContentRatingEnum.K:
-                    return '#73d13d'; // Light green
+                    return styles.ratingK;
                 case MovieContentRatingEnum.T13:
-                    return '#1890ff'; // Blue
+                    return styles.ratingT13;
                 case MovieContentRatingEnum.T16:
-                    return '#fa8c16'; // Orange
+                    return styles.ratingT16;
                 case MovieContentRatingEnum.T18:
-                    return '#fa541c'; // Darker orange
+                    return styles.ratingT18;
                 case MovieContentRatingEnum.C:
-                    return '#f5222d'; // Red
+                    return styles.ratingC;
                 default:
-                    return '#d9d9d9'; // Grey
+                    return '';
             }
         };
 
-        const isDark = [
-            MovieContentRatingEnum.T13,
-            MovieContentRatingEnum.T16,
-            MovieContentRatingEnum.T18,
-            MovieContentRatingEnum.C,
-        ].includes(rating as MovieContentRatingEnum);
+        const ratingClass = getRatingClass(rating);
 
         const badgeElement = (
             <Tooltip title={description} placement="top" overlayClassName={styles.tooltip}>
-                <div
-                    className={`${styles.cardBadge} ${className}`}
-                    style={{
-                        backgroundColor: getHexColor(rating),
-                        color: isDark ? '#fff' : '#000',
-                        ...style,
-                    }}
-                >
+                <div className={`${styles.cardBadge} ${ratingClass} ${className}`} style={style}>
                     {label}
                 </div>
             </Tooltip>
@@ -155,23 +143,26 @@ export const MovieContentRating: React.FC<MovieContentRatingProps> = ({
     // Default tag styling
     const tagStyles: React.CSSProperties = {
         cursor: withLink ? 'pointer' : 'default',
-        borderRadius: '12px',
-        fontWeight: 'bold',
+        borderRadius: '16px',
+        fontWeight: 600,
+        transition: 'all 0.2s ease',
+        border: 'none',
+        boxShadow: '0 2px 0 rgba(0,0,0,0.02)',
         ...style,
     };
 
     // Add size-specific styles
     if (size === 'small') {
-        tagStyles.fontSize = '11px';
-        tagStyles.padding = '0 4px';
-        tagStyles.lineHeight = '16px';
-        tagStyles.height = '18px';
+        tagStyles.fontSize = '12px';
+        tagStyles.padding = '0 6px';
+        tagStyles.lineHeight = '18px';
+        tagStyles.height = '20px';
         tagStyles.margin = 0;
     } else if (size === 'large') {
         tagStyles.fontSize = '14px';
-        tagStyles.padding = '4px 10px';
+        tagStyles.padding = '5px 12px';
     } else {
-        tagStyles.padding = '2px 8px';
+        tagStyles.padding = '3px 10px';
     }
 
     const ratingTag = (
