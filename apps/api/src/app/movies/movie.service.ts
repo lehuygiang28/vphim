@@ -167,7 +167,6 @@ export class MovieService {
             years,
         })}`;
         const aiFilterCacheKey = `CACHED:AI_FILTER:${sortedStringify({
-            ...restDto,
             useAI,
             keywords: keywordsEncoded,
             categories,
@@ -228,14 +227,27 @@ export class MovieService {
                             1000 * 60 * 30,
                         );
                     }
+                } else {
+                    this.logger.log(`[AI] Using cached analysis for: ${keywords}`);
                 }
             } catch (error) {
-                this.logger.error(`[AI] Failed to analyze search query: ${error}}`);
+                this.logger.error(`[AI] Failed to analyze search query: ${error}`);
                 aiFilter = null;
             }
         }
 
-        const query = aiFilter || (await this.buildTraditionalQuery(dto, isAdmin));
+        // Build the final query - always ensuring user filters are applied
+        let query: QueryDslQueryContainer;
+        if (aiFilter) {
+            // AI search with user filters preserved
+            query = await this.combineAIWithUserFilters(aiFilter, dto, isAdmin);
+            this.logger.log(`[Search] Using AI-enhanced search with user filters`);
+        } else {
+            // Traditional search
+            query = await this.buildTraditionalQuery(dto, isAdmin);
+            this.logger.log(`[Search] Using traditional search`);
+        }
+
         const { data, total } = await this.executeSearch(query, dto, isRestful);
 
         const res = {
@@ -428,53 +440,18 @@ export class MovieService {
         const filter: QueryDslQueryContainer[] = [];
         const mustNot: QueryDslQueryContainer[] = [];
 
-        // Handle categories
-        if (categories) {
-            const categorySlugs = categories
-                .split(',')
-                .filter((c) => !isNullOrUndefined(c))
-                .map((c) => c.trim());
-            must.push({
-                terms: {
-                    'categories.slug.keyword': categorySlugs,
-                    boost: 2,
-                },
-            });
-            if (!categorySlugs.includes('phim-18')) {
-                mustNot.push({
-                    term: {
-                        'categories.slug.keyword': 'phim-18',
-                    },
-                });
-            }
-        } else if (aiAnalysis.categories?.length) {
+        // Only use AI categories suggestion when user doesn't specify categories
+        if (!categories && aiAnalysis.categories?.length) {
             should.push({
                 terms: {
                     'categories.slug.keyword': aiAnalysis.categories,
                     boost: 1.5,
                 },
             });
-            if (!aiAnalysis.categories.includes('phim-18')) {
-                mustNot.push({
-                    term: {
-                        'categories.slug.keyword': 'phim-18',
-                    },
-                });
-            }
         }
 
-        // Handle countries
-        if (countries) {
-            must.push({
-                terms: {
-                    'countries.slug.keyword': countries
-                        .split(',')
-                        .filter((c) => !isNullOrUndefined(c))
-                        .map((c) => c.trim()),
-                    boost: 2,
-                },
-            });
-        } else if (aiAnalysis.countries?.length) {
+        // Only use AI countries suggestion when user doesn't specify countries
+        if (!countries && aiAnalysis.countries?.length) {
             should.push({
                 terms: {
                     'countries.slug.keyword': aiAnalysis.countries,
@@ -483,8 +460,7 @@ export class MovieService {
             });
         }
 
-        filter.push(...this.processYearFilter(years));
-
+        // Only use AI year range when user doesn't specify years
         if (!years && aiAnalysis.yearRange) {
             const yearRange: { gte?: number; lte?: number } = {};
             if (aiAnalysis.yearRange.min) yearRange.gte = aiAnalysis.yearRange.min;
@@ -494,7 +470,7 @@ export class MovieService {
             }
         }
 
-        // Add other AI-generated filters
+        // Add AI entity detection filters
         if (aiAnalysis.must) {
             if (aiAnalysis.must.name?.length) {
                 should.push({
@@ -604,13 +580,18 @@ export class MovieService {
             });
         }
 
+        // Set minimum_should_match if we have any should clauses
+        const minimumShouldMatch = should.length > 0 ? 1 : undefined;
+
         return {
             bool: {
                 must,
-                should,
                 filter,
                 must_not: mustNot,
-                minimum_should_match: 1,
+                should,
+                ...(minimumShouldMatch !== undefined && {
+                    minimum_should_match: minimumShouldMatch,
+                }),
             },
         };
     }
@@ -620,21 +601,28 @@ export class MovieService {
         dto: GetMoviesAdminInput | GetMoviesInput,
         isRestful: boolean,
     ): Promise<{ data: MovieType[]; total: number }> {
-        const { limit = 10, page = 1, sortBy = 'year', sortOrder = 'desc', keywords } = dto;
+        const {
+            limit = 10,
+            page = 1,
+            sortBy = 'year',
+            sortOrder = 'desc',
+            keywords,
+            useAI = false,
+        } = dto;
 
+        // Build sort configuration
         const sortFields = sortBy.split(',');
         const sortOrders = sortOrder.split(',');
-        const sort = [
-            {
-                default: {
-                    order: 'desc',
-                    unmapped_type: 'keyword',
-                },
-            },
+
+        // Priority sorting: If using AI or keywords, prioritize relevance score
+        const sort = [] as SortCombinations[];
+
+        // Add user-specified sort fields
+        sort.push(
             ...(sortFields || []).map((field, index) => {
                 const order = (
                     sortOrders[index] || sortOrders[sortOrders.length - 1]
-                ).toLowerCase();
+                ).toLowerCase() as 'asc' | 'desc';
                 return {
                     [field.trim()]: {
                         order,
@@ -642,16 +630,26 @@ export class MovieService {
                     },
                 };
             }),
-            ...(keywords
-                ? [
-                      {
-                          _score: { order: 'desc' },
-                      },
-                  ]
-                : []),
-        ] as SortCombinations[];
+        );
 
-        const minScore = keywords ? 0.5 : undefined;
+        // If using AI or keywords search, prioritize relevance score
+        if (useAI || keywords) {
+            sort.push({
+                _score: { order: 'desc' },
+            });
+        }
+
+        // Add default sort as fallback
+        sort.push({
+            default: {
+                order: 'desc' as const,
+                unmapped_type: 'keyword',
+            },
+        });
+
+        // Set minimum score for relevance filtering when using keywords or AI
+        const minScore = useAI || keywords ? 0.3 : undefined;
+
         this.logger.log({ query, sort });
         const body = await this.elasticsearchService.search({
             index: 'movies',
@@ -994,5 +992,196 @@ export class MovieService {
                 limit,
             },
         });
+    }
+
+    private async combineAIWithUserFilters(
+        aiFilter: QueryDslQueryContainer,
+        dto: GetMoviesAdminInput | GetMoviesInput,
+        isAdmin = false,
+    ): Promise<QueryDslQueryContainer> {
+        const {
+            keywords,
+            cinemaRelease,
+            isCopyright,
+            type,
+            years,
+            categories,
+            countries,
+            status,
+            quality,
+            contentRating,
+            isDeleted = false,
+            useAI = false,
+        } = { isDeleted: false, ...dto };
+
+        const must: QueryDslQueryContainer[] = [];
+        const mustNot: QueryDslQueryContainer[] = [];
+        const filter: QueryDslQueryContainer[] = [];
+        const should: QueryDslQueryContainer[] = [];
+
+        // Only use direct keyword search when not in AI mode
+        // In AI mode, keywords are already processed by the AI to create better semantic filters
+        if (keywords && !useAI) {
+            must.push({
+                bool: {
+                    should: [
+                        // Stage 1: Exact phrase match in name and originName
+                        {
+                            multi_match: {
+                                query: keywords,
+                                fields: ['name', 'originName'],
+                                type: 'phrase',
+                            },
+                        },
+                        // Stage 2: Partial phrase match in name and originName
+                        {
+                            multi_match: {
+                                query: keywords,
+                                fields: ['name', 'originName'],
+                                type: 'phrase_prefix',
+                            },
+                        },
+                        // Stage 3: Term match in slug and content
+                        {
+                            multi_match: {
+                                query: keywords,
+                                fields: ['slug', 'content'],
+                                type: 'best_fields',
+                                operator: 'and',
+                            },
+                        },
+                        // Stage 4: Exact match in related fields
+                        {
+                            multi_match: {
+                                query: keywords,
+                                fields: [
+                                    'categories.name',
+                                    'countries.name',
+                                    'directors.name',
+                                    'actors.name',
+                                ],
+                                type: 'phrase',
+                            },
+                        },
+                    ],
+                    minimum_should_match: 1,
+                },
+            });
+        }
+
+        if (!isNullOrUndefined(cinemaRelease)) filter.push({ term: { cinemaRelease } });
+        if (!isNullOrUndefined(isCopyright)) filter.push({ term: { isCopyright } });
+        if (!isNullOrUndefined(type)) filter.push({ term: { type } });
+        if (!isNullOrUndefined(status)) filter.push({ term: { status } });
+        if (!isNullOrUndefined(quality)) filter.push({ term: { quality } });
+        if (!isNullOrUndefined(contentRating))
+            filter.push({ term: { contentRating: contentRating?.toLowerCase() } });
+
+        filter.push(...this.processYearFilter(years));
+
+        if (!isNullOrUndefined(categories)) {
+            const categorySlugs = categories
+                .split(',')
+                .filter((c) => !isNullOrUndefined(c))
+                .map((c) => c.trim());
+
+            must.push({
+                terms: {
+                    'categories.slug.keyword': categorySlugs,
+                },
+            });
+
+            // Exclude sensitive content by default
+            if (!categorySlugs.includes('phim-18') && !isAdmin) {
+                mustNot.push({
+                    term: {
+                        'categories.slug.keyword': 'phim-18',
+                    },
+                });
+            }
+        } else if (!isAdmin) {
+            // Exclude sensitive content by default
+            mustNot.push({
+                term: {
+                    'categories.slug.keyword': 'phim-18',
+                },
+            });
+        }
+
+        if (!isNullOrUndefined(countries)) {
+            must.push({
+                terms: {
+                    'countries.slug.keyword': countries
+                        .split(',')
+                        .filter((c) => !isNullOrUndefined(c))
+                        .map((c) => c.trim()),
+                },
+            });
+        }
+
+        if (isDeleted) {
+            filter.push({ exists: { field: 'deletedAt' } });
+        } else {
+            must.push({
+                bool: {
+                    must_not: [{ exists: { field: 'deletedAt' } }],
+                },
+            });
+        }
+
+        // Extract all AI filter parts
+        if (aiFilter.bool) {
+            // Handle AI must clauses - keep only those that don't conflict with user filters
+            if (aiFilter.bool.must) {
+                const aiMust = Array.isArray(aiFilter.bool.must)
+                    ? aiFilter.bool.must
+                    : [aiFilter.bool.must];
+
+                // Move AI must clauses to should for boosting relevance without requiring matches
+                should.push(...aiMust);
+            }
+
+            // Add AI should clauses directly to our should array
+            if (aiFilter.bool.should) {
+                const aiShould = Array.isArray(aiFilter.bool.should)
+                    ? aiFilter.bool.should
+                    : [aiFilter.bool.should];
+
+                should.push(...aiShould);
+            }
+
+            // Add AI filter clauses to our filter array
+            if (aiFilter.bool.filter) {
+                const aiFilter2 = Array.isArray(aiFilter.bool.filter)
+                    ? aiFilter.bool.filter
+                    : [aiFilter.bool.filter];
+
+                filter.push(...aiFilter2);
+            }
+
+            // Add AI must_not clauses to our mustNot array
+            if (aiFilter.bool.must_not) {
+                const aiMustNot = Array.isArray(aiFilter.bool.must_not)
+                    ? aiFilter.bool.must_not
+                    : [aiFilter.bool.must_not];
+
+                mustNot.push(...aiMustNot);
+            }
+        }
+
+        // Set minimum_should_match if we have any should clauses
+        const minimumShouldMatch = should.length > 0 ? 1 : undefined;
+
+        return {
+            bool: {
+                must,
+                must_not: mustNot,
+                filter,
+                should,
+                ...(minimumShouldMatch !== undefined && {
+                    minimum_should_match: minimumShouldMatch,
+                }),
+            },
+        };
     }
 }
