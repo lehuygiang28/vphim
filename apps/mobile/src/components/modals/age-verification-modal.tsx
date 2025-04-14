@@ -57,14 +57,17 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
     const isHighQuality = quality === MovieQualityEnum._4K || quality === MovieQualityEnum.FHD;
 
     // Content requires verification if it's high quality or age-restricted (and not general content)
-    const needsVerification = featureAccess || isHighQuality || (isRestrictedContent && !isGeneralContent);
+    const needsVerification =
+        featureAccess || isHighQuality || (isRestrictedContent && !isGeneralContent);
 
     // Get content rating title and description
     const getRatingInfo = (): { title: string; description: ReactNode } => {
         if (featureAccess) {
             return {
                 title: customTitle || 'Tính năng yêu cầu đăng nhập',
-                description: primaryDescription || 'Tính năng này yêu cầu xác thực người dùng trước khi sử dụng.',
+                description:
+                    primaryDescription ||
+                    'Tính năng này yêu cầu xác thực người dùng trước khi sử dụng.',
             };
         }
 
@@ -105,7 +108,10 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
     const getLoginReasons = (): ReactNode[] => {
         if (featureAccess && reasonList.length > 0) {
             return reasonList.map((reason, index) => (
-                <Text key={`feature-${index}`} style={[styles.reasonText, { color: theme['text-basic-color'] }]}>
+                <Text
+                    key={`feature-${index}`}
+                    style={[styles.reasonText, { color: theme['text-basic-color'] }]}
+                >
                     {reason}
                 </Text>
             ));
@@ -298,20 +304,24 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                         )}
                     </View>
 
-                    <View style={[
-                        styles.alert,
-                        {
-                            backgroundColor: featureAccess
-                                ? theme['color-info-200']
-                                : theme['color-warning-200']
-                        }
-                    ]}>
+                    <View
+                        style={[
+                            styles.alert,
+                            {
+                                backgroundColor: featureAccess
+                                    ? theme['color-info-200']
+                                    : theme['color-warning-200'],
+                            },
+                        ]}
+                    >
                         <View style={styles.alertHeader}>
                             <Shield
                                 size={20}
-                                color={featureAccess
-                                    ? theme['color-info-700']
-                                    : theme['color-warning-700']}
+                                color={
+                                    featureAccess
+                                        ? theme['color-info-700']
+                                        : theme['color-warning-700']
+                                }
                                 style={{ marginRight: 8 }}
                             />
                             <Text
@@ -324,17 +334,19 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                                 }}
                             >
                                 {featureAccess
-                                    ? (primaryMessage || 'Yêu cầu đăng nhập')
+                                    ? primaryMessage || 'Yêu cầu đăng nhập'
                                     : 'Xác nhận độ tuổi và trách nhiệm'}
                             </Text>
                         </View>
                         <View style={styles.alertContent}>
                             {typeof ratingInfo.description === 'string' ? (
-                                <Text style={{
-                                    color: featureAccess
-                                        ? theme['color-info-900']
-                                        : theme['color-warning-900']
-                                }}>
+                                <Text
+                                    style={{
+                                        color: featureAccess
+                                            ? theme['color-info-900']
+                                            : theme['color-warning-900'],
+                                    }}
+                                >
                                     {ratingInfo.description}
                                 </Text>
                             ) : (
@@ -427,7 +439,9 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                             }}
                         >
                             {!isAuthenticated
-                                ? `Vui lòng đăng nhập để tiếp tục ${featureAccess ? 'sử dụng tính năng' : 'xem nội dung'}`
+                                ? `Vui lòng đăng nhập để tiếp tục ${
+                                      featureAccess ? 'sử dụng tính năng' : 'xem nội dung'
+                                  }`
                                 : 'Vui lòng xác nhận để tiếp tục'}
                         </Text>
                     </View>
