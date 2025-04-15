@@ -1,48 +1,78 @@
 @startuml Get Directors Flow
 
-' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Service>>, <<Repository>>, <<Database>>
-participant "DirectorList (Next.js Admin)" as DirectorList <<Component>>
-participant "DirectorResolver" as Resolver <<Resolver>>
-participant "DirectorService" as Service <<Service>>
-participant "RedisService" as Redis <<Service>>
-participant "DirectorRepository" as Repository <<Repository>>
-database "MongoDB" as DB <<Database>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-DirectorList -> Resolver: query directors(input)
-activate Resolver
-Resolver -> Service: getDirectors(input)
-activate Service
-Service -> Redis: get(cacheKey)
-activate Redis
-Redis --> Service: cache result or null
-deactivate Redis
+title Get Directors Flow (GraphQL)
+
+actor "Admin User" as adminUser
+participant "directorListPage:DirectorList" as directorListPage <<Page>>
+participant "directorResolver:DirectorResolver" as directorResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "directorService:DirectorService" as directorService <<Service>>
+participant "redisService:RedisService" as redisService <<Service>>
+participant "directorRepo:DirectorRepository" as directorRepo <<Repository>>
+database "MongoDB" as mongoDB
+
+adminUser -> directorListPage : Navigate to directors list page
+activate directorListPage
+
+directorListPage -> directorResolver : Query directors(input: GetDirectorsInput)
+activate directorResolver
+
+directorResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> directorResolver : Return UserJwt
+deactivate jwtStrategy
+
+directorResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> directorResolver : Validate admin role
+deactivate rolesGuard
+
+directorResolver -> directorService : getDirectors(input)
+activate directorService
+
+directorService -> redisService : get(cacheKey)
+activate redisService
+redisService --> directorService : Cache result or null
+deactivate redisService
+
 alt cache hit
-    Service --> Resolver: cached data
+    directorService --> directorResolver : Cached data
 else cache miss
-    Service -> Repository: find(filters, query)
-    activate Repository
-    Repository -> DB: Find directors matching filters
-    activate DB
-    DB --> Repository: directors
-    deactivate DB
-    Repository --> Service: directors
-    deactivate Repository
-    Service -> Repository: count(filters)
-    activate Repository
-    Repository -> DB: Count directors
-    activate DB
-    DB --> Repository: count
-    deactivate DB
-    Repository --> Service: count
-    deactivate Repository
-    Service -> Redis: set(cacheKey, result, 10s)
-    activate Redis
-    Redis --> Service: cache set
-    deactivate Redis
-    Service --> Resolver: { data, total, count }
+    directorService -> directorRepo : find(filters, query)
+    activate directorRepo
+    directorRepo -> mongoDB : Find directors matching filters
+    activate mongoDB
+    mongoDB --> directorRepo : Directors
+    deactivate mongoDB
+    directorRepo --> directorService : Directors
+    deactivate directorRepo
+    directorService -> directorRepo : count(filters)
+    activate directorRepo
+    directorRepo -> mongoDB : Count directors
+    activate mongoDB
+    mongoDB --> directorRepo : Count
+    deactivate mongoDB
+    directorRepo --> directorService : Count
+    deactivate directorRepo
+    directorService -> redisService : set(cacheKey, result, 10s)
+    activate redisService
+    redisService --> directorService : Cache set
+    deactivate redisService
+    directorService --> directorResolver : { data, total, count }
 end
-deactivate Service
-Resolver --> DirectorList: GetDirectorsOutput
-deactivate Resolver
+
+deactivate directorService
+directorResolver --> directorListPage : GetDirectorsOutput
+deactivate directorResolver
+deactivate directorListPage
 
 @enduml

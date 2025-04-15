@@ -1,40 +1,68 @@
 @startuml Get Single Director Flow
 
-' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Repository>>, <<Database>>
-participant "EditDirector (Next.js Admin)" as EditDirector <<Component>>
-participant "DirectorResolver" as Resolver <<Resolver>>
-participant "DirectorService" as Service <<Service>>
-participant "DirectorRepository" as Repository <<Repository>>
-database "MongoDB" as DB <<Database>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-EditDirector -> Resolver: query getDirector(input)
-activate Resolver
-Resolver -> Service: getDirector(input)
-activate Service
+title Get Single Director Flow (GraphQL)
+
+actor "Admin User" as adminUser
+participant "editDirectorPage:EditDirector" as editDirectorPage <<Page>>
+participant "directorResolver:DirectorResolver" as directorResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "directorService:DirectorService" as directorService <<Service>>
+participant "directorRepo:DirectorRepository" as directorRepo <<Repository>>
+database "MongoDB" as mongoDB
+
+adminUser -> editDirectorPage : Navigate to edit director page
+activate editDirectorPage
+
+editDirectorPage -> directorResolver : Query getDirector(input: GetDirectorInput)
+activate directorResolver
+
+directorResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> directorResolver : Return UserJwt
+deactivate jwtStrategy
+
+directorResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> directorResolver : Validate admin role
+deactivate rolesGuard
+
+directorResolver -> directorService : getDirector(input)
+activate directorService
+
 alt _id provided
-    Service -> Repository: findOneOrThrow({_id})
-    activate Repository
-    Repository -> DB: Find director by _id
-    activate DB
-    DB --> Repository: director or null
-    deactivate DB
-    Repository --> Service: director or exception
-    deactivate Repository
+    directorService -> directorRepo : findOneOrThrow({_id})
+    activate directorRepo
+    directorRepo -> mongoDB : Find director by _id
+    activate mongoDB
+    mongoDB --> directorRepo : Director or null
+    deactivate mongoDB
+    directorRepo --> directorService : Director or exception
+    deactivate directorRepo
 else slug provided
-    Service -> Repository: findOneOrThrow({slug})
-    activate Repository
-    Repository -> DB: Find director by slug
-    activate DB
-    DB --> Repository: director or null
-    deactivate DB
-    Repository --> Service: director or exception
-    deactivate Repository
+    directorService -> directorRepo : findOneOrThrow({slug})
+    activate directorRepo
+    directorRepo -> mongoDB : Find director by slug
+    activate mongoDB
+    mongoDB --> directorRepo : Director or null
+    deactivate mongoDB
+    directorRepo --> directorService : Director or exception
+    deactivate directorRepo
 else no parameter
-    Service --> Resolver: Throw HTTP 422 Exception
+    directorService --> directorResolver : Throw HTTP 422 Exception
 end
-Service --> Resolver: director or error
-deactivate Service
-Resolver --> EditDirector: director or error
-deactivate Resolver
+directorService --> directorResolver : Director or error
+deactivate directorService
+directorResolver --> editDirectorPage : Director or error
+deactivate directorResolver
+deactivate editDirectorPage
 
 @enduml
