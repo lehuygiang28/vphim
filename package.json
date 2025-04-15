@@ -9,7 +9,8 @@
         "mnt": "yarn nx run mnt:dev -- -p 4000",
         "adr": "yarn nx run-android mobile -- --non-interactive=true",
         "mb": "yarn nx start mobile",
-        "postinstall": "npx patch-package"
+        "postinstall": "npx patch-package",
+		"compodoc": "npx @compodoc/compodoc -p ./apps/api/tsconfig.json -s"
     },
     "dependencies": {
         "@ant-design/icons": "^5.4.0",

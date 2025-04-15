@@ -10,5 +10,6 @@ dist/
 .next/
 android/
 ios/
+documentation/
 
 .env*
