@@ -1,55 +1,70 @@
-@startuml Region - Get Regions
+@startuml Get Regions Flow
 
-actor User <<Actor>>
-participant "RegionComponent (Next.js Admin)" as RegionComponent <<Component>>
-participant "RegionResolver" as Resolver <<Resolver>>
-participant "RegionsService" as RegionsService <<Service>>
-participant "RedisService" as Redis
-participant "RegionRepository" as RegionRepository <<Repository>>
-database "MongoDB" as MongoDB <<Database>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-User -> RegionComponent: Initiates get regions
-RegionComponent -> Resolver: query regions(input)
-activate Controller
-Resolver -> RegionsService: getRegions(input)
-activate Service
+title Get Regions Flow (GraphQL)
 
-RegionsService -> RedisService: get(cacheKey)
-activate Redis
-RedisService --> RegionsService: return cached data (if exists)
-deactivate Redis
+actor "User" as user
+participant "regionPage:RegionPage" as regionPage <<Page>>
+participant "regionResolver:RegionResolver" as regionResolver <<Resolver>>
+participant "regionService:RegionService" as regionService <<Service>>
+participant "redisService:RedisService" as redisService <<Service>>
+participant "regionRepo:RegionRepository" as regionRepo <<Repository>>
+database "MongoDB" as mongoDB
+
+user -> regionPage : Initiates get regions
+activate regionPage
+
+regionPage -> regionResolver : Query regions(input)
+activate regionResolver
+regionResolver -> regionService : getRegions(input)
+activate regionService
+
+regionService -> redisService : get(cacheKey)
+activate redisService
+redisService --> regionService : Return cached data (if exists)
+deactivate redisService
 
 alt data from cache exists
-    Service --> Controller: return cached data
+    regionService --> regionResolver : Return cached data
 else no cached data
-    Service -> Repo: find(filterQuery, query)
-    activate Repo
-    Repo -> DB: find regions
-    activate DB
-    DB --> Repo: return regions
-    deactivate DB
-    Repo --> Service: return regions
-    deactivate Repo
+    regionService -> regionRepo : find(filterQuery, query)
+    activate regionRepo
+    regionRepo -> mongoDB : Find regions
+    activate mongoDB
+    mongoDB --> regionRepo : Return regions
+    deactivate mongoDB
+    regionRepo --> regionService : Return regions
+    deactivate regionRepo
 
-    Service -> Repo: count(filterQuery)
-    activate Repo
-    Repo -> DB: count regions
-    activate DB
-    DB --> Repo: return count
-    deactivate DB
-    Repo --> Service: return count
-    deactivate Repo
+    regionService -> regionRepo : count(filterQuery)
+    activate regionRepo
+    regionRepo -> mongoDB : Count regions
+    activate mongoDB
+    mongoDB --> regionRepo : Return count
+    deactivate mongoDB
+    regionRepo --> regionService : Return count
+    deactivate regionRepo
 
-    RegionsService -> RedisService: set(cacheKey, result, expiry)
-    activate Redis
-    RedisService --> RegionsService: confirm cache set
-    deactivate Redis
+    regionService -> redisService : set(cacheKey, result, expiry)
+    activate redisService
+    redisService --> regionService : Confirm cache set
+    deactivate redisService
 
-    RegionsService --> Resolver: return result {data, total, count}
+    regionService --> regionResolver : Return result {data, total, count}
 end
 
-Resolver --> RegionComponent: return regions
-deactivate Service
-deactivate Controller
+regionResolver --> regionPage : Return regions
+regionPage --> user : Show regions list
 
-@enduml 
+deactivate regionService
+deactivate regionResolver
+deactivate regionPage
+
+@enduml

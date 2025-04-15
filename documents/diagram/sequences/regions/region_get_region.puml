@@ -1,55 +1,66 @@
-@startuml Region - Get Single Region
+@startuml Get Single Region Flow
 
-actor User <<Actor>>
-participant "RegionComponent (Next.js Admin)" as RegionComponent <<Component>>
-participant "RegionResolver" as Resolver <<Resolver>>
-participant "RegionsService" as RegionsService <<Service>>
-participant "RegionRepository" as RegionRepository <<Repository>>
-database "MongoDB" as MongoDB <<Database>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-User -> RegionComponent: Initiates get single region
-RegionComponent -> Resolver: query region(input)
-activate Resolver
-Resolver -> RegionsService: getRegion(input)
-activate Service
+title Get Single Region Flow (GraphQL)
+
+actor "User" as user
+participant "regionPage:RegionPage" as regionPage <<Page>>
+participant "regionResolver:RegionResolver" as regionResolver <<Resolver>>
+participant "regionService:RegionService" as regionService <<Service>>
+participant "regionRepo:RegionRepository" as regionRepo <<Repository>>
+database "MongoDB" as mongoDB
+
+user -> regionPage : Initiates get single region
+activate regionPage
+
+regionPage -> regionResolver : Query region(input)
+activate regionResolver
+regionResolver -> regionService : getRegion(input)
+activate regionService
 
 alt input contains _id
-    Service -> Repo: findOneOrThrow(filterQuery: {_id})
-    activate Repo
-    Repo -> DB: findOne(query)
-    activate DB
-    DB --> Repo: return region or null
-    deactivate DB
-    
+    regionService -> regionRepo : findOneOrThrow({filterQuery: {_id}})
+    activate regionRepo
+    regionRepo -> mongoDB : Find region by _id
+    activate mongoDB
+    mongoDB --> regionRepo : Return region or null
+    deactivate mongoDB
     alt region found
-        Repo --> Service: return region
+        regionRepo --> regionService : Return region
     else not found
-        Repo --> Service: throw NotFoundException
+        regionRepo --> regionService : Throw NotFoundException
     end
-    deactivate Repo
-    
+    deactivate regionRepo
 else input contains slug
-    Service -> Repo: findOneOrThrow(filterQuery: {slug})
-    activate Repo
-    Repo -> DB: findOne(query)
-    activate DB
-    DB --> Repo: return region or null
-    deactivate DB
-    
+    regionService -> regionRepo : findOneOrThrow({filterQuery: {slug}})
+    activate regionRepo
+    regionRepo -> mongoDB : Find region by slug
+    activate mongoDB
+    mongoDB --> regionRepo : Return region or null
+    deactivate mongoDB
     alt region found
-        Repo --> Service: return region
+        regionRepo --> regionService : Return region
     else not found
-        Repo --> Service: throw NotFoundException
+        regionRepo --> regionService : Throw NotFoundException
     end
-    deactivate Repo
-    
+    deactivate regionRepo
 else no valid input
-    Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
+    regionService --> regionResolver : Throw HttpException(UNPROCESSABLE_ENTITY)
 end
 
-RegionsService --> Resolver: return region
-deactivate Service
-Resolver --> RegionComponent: return region
-deactivate Resolver
+regionService --> regionResolver : Return region
+regionResolver --> regionPage : Return region
+regionPage --> user : Show region details
 
-@enduml 
+deactivate regionService
+deactivate regionResolver
+deactivate regionPage
+
+@enduml

@@ -1,48 +1,71 @@
-@startuml Region - Update Region
+@startuml Update Region Flow
 
-actor User <<Actor>>
-participant "RegionComponent (Next.js Admin)" as RegionComponent <<Component>>
-participant "RegionResolver" as Resolver <<Resolver>>
-participant "RequiredRoles Guard" as Guard <<Service>>
-participant "RegionsService" as RegionsService <<Service>>
-participant "RegionRepository" as RegionRepository <<Repository>>
-database "MongoDB" as MongoDB <<Database>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-User -> RegionComponent: Initiates region update
-RegionComponent -> Resolver: mutation updateRegion(input)
-activate Resolver
+title Update Region Flow (GraphQL)
 
-Resolver -> Guard: check admin role
-activate Guard
-alt user is admin
-    Guard --> Resolver: allow
-else user is not admin
-    Guard --> User: throw ForbiddenException
-    deactivate Resolver
-    deactivate Guard
-end
-deactivate Guard
+actor "Admin User" as adminUser
+participant "regionPage:RegionPage" as regionPage <<Page>>
+participant "regionForm:RegionForm" as regionForm <<Component>>
+participant "regionResolver:RegionResolver" as regionResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "regionService:RegionService" as regionService <<Service>>
+participant "regionRepo:RegionRepository" as regionRepo <<Repository>>
+database "MongoDB" as mongoDB
 
-Resolver -> RegionsService: updateRegion(input)
-activate Service
+adminUser -> regionPage : Navigate to region update page
+activate regionPage
 
-Service -> Repo: findOneAndUpdateOrThrow(filterQuery, updateQuery)
-activate Repo
-Repo -> DB: findOneAndUpdate(query)
-activate DB
-DB --> Repo: return updated region or null
-deactivate DB
+regionPage -> regionForm : Display form
+activate regionForm
+
+adminUser -> regionForm : Fills update fields
+
+regionForm -> regionResolver : Mutation updateRegion(input: UpdateRegionInput)
+activate regionResolver
+
+regionResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> regionResolver : Return UserJwt
+deactivate jwtStrategy
+
+regionResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> regionResolver : Validate admin role
+deactivate rolesGuard
+
+regionResolver -> regionService : updateRegion({id, ...})
+activate regionService
+
+regionService -> regionRepo : findOneAndUpdateOrThrow(filterQuery, updateQuery)
+activate regionRepo
+regionRepo -> mongoDB : Find and update region
+activate mongoDB
+mongoDB --> regionRepo : Return updated region or null
+deactivate mongoDB
 
 alt region found and updated
-    Repo --> Service: return updated region
+    regionRepo --> regionService : Return updated region
 else region not found
-    Repo --> Service: throw NotFoundException
+    regionRepo --> regionService : Throw NotFoundException
 end
-deactivate Repo
+deactivate regionRepo
 
-RegionsService --> Resolver: return updated region
-deactivate Service
-Resolver --> RegionComponent: return updated region
-deactivate Resolver
+regionService --> regionResolver : Return updated region
+regionResolver --> regionForm : Return updated region
+regionForm --> regionPage : Complete form submission
+regionPage --> adminUser : Show update result
 
-@enduml 
+deactivate regionService
+deactivate regionResolver
+deactivate regionForm
+deactivate regionPage
+
+@enduml
