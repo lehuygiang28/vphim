@@ -1,57 +1,88 @@
-@startuml Category - Create Category
+@startuml Create Category Flow
 
-actor "Admin" as Client
-participant "CategoryResolver" as Resolver
-participant "RequiredRoles Guard" as Guard
-participant "CategoryService" as Service
-participant "CategoryRepository" as Repo
-database "MongoDB" as DB
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-Client -> Resolver: mutation createCategory(input)
-activate Resolver
+title Create Category Flow (GraphQL)
 
-Resolver -> Guard: check admin role
-activate Guard
-alt user is admin
-    Guard --> Resolver: allow
-else user is not admin
-    Guard --> Client: throw ForbiddenException
-    deactivate Resolver
-    deactivate Guard
-end
-deactivate Guard
+actor "Admin User" as adminUser
+participant "categoryPage:CategoryPage" as categoryPage <<Page>>
+participant "categoryForm:CategoryForm" as categoryForm <<Component>>
+participant "categoryResolver:CategoryResolver" as categoryResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "categoryService:CategoryService" as categoryService <<Service>>
+participant "categoryRepo:CategoryRepository" as categoryRepo <<Repository>>
+database "mongoDB" as mongoDB
 
-Resolver -> CategoryService: createCategory(input)
-activate CategoryService
+adminUser -> categoryPage : Navigate to category creation page
+activate categoryPage
 
-Service -> CategoryRepository: findOne(filterQuery: {slug})
-activate CategoryRepository
-Repo -> DB: findOne({slug})
-activate DB
-DB --> CategoryRepository: return existing category or null
-deactivate DB
-Repo --> CategoryService: return result
-deactivate CategoryRepository
+categoryPage -> categoryForm : Display form
+activate categoryForm
+
+adminUser -> categoryForm : Fills name, slug, description, etc.
+
+categoryForm -> categoryResolver : Mutation createCategory(input: CreateCategoryInput)
+activate categoryResolver
+
+categoryResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> categoryResolver : Return UserJwt
+deactivate jwtStrategy
+
+categoryResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> categoryResolver : Validate admin role
+    deactivate rolesGuard
+
+categoryResolver -> categoryService : createCategory({name, slug, ...})
+activate categoryService
+
+categoryService -> categoryRepo : findOne({filterQuery: {slug}})
+activate categoryRepo
+categoryRepo -> mongoDB : Find category by slug
+activate mongoDB
+mongoDB --> categoryRepo : Return category or null
+    deactivate mongoDB
+categoryRepo --> categoryService : Return existing category or null
+    deactivate categoryRepo
 
 alt slug already exists
-    Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
+    categoryService --> categoryResolver : Throw HttpException(UNPROCESSABLE_ENTITY)\n(Slug already exists)
+    categoryResolver --> categoryForm : Return error
+    categoryForm --> categoryPage : Show error
+    categoryPage --> adminUser : Show slug already exists error
 else slug is unique
-    Service -> CategoryService: process slug (removeDiacritics, removeTone)
-    
-    Service -> CategoryRepository: create(document)
-    activate CategoryRepository
-    Repo -> DB: save new category
-    activate DB
-    DB --> CategoryRepository: return saved category
-    deactivate DB
-    Repo --> CategoryService: return new category
-    deactivate CategoryRepository
-    
-    Service --> Resolver: return new category
+    note right of categoryService
+        Process slug by removing diacritics
+        and tones using removeDiacritics()
+        and removeTone()
+    end note
+
+    categoryService -> categoryRepo : create({document: {...}})
+    activate categoryRepo
+    categoryRepo -> mongoDB : Insert new category document
+    activate mongoDB
+    mongoDB --> categoryRepo : Return created category
+    deactivate mongoDB
+    categoryRepo --> categoryService : Return created category
+    deactivate categoryRepo
+
+    categoryService --> categoryResolver : Return new category (CategoryType)
+    categoryResolver --> categoryForm : Return CategoryType
+    categoryForm --> categoryPage : Complete form submission
+    categoryPage --> adminUser : Redirect to category details page
 end
 
-deactivate CategoryService
-Resolver --> Client: return created category
-deactivate Resolver
+deactivate categoryService
+deactivate categoryResolver
+deactivate categoryForm
+deactivate categoryPage
 
-@enduml 
+@enduml

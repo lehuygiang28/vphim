@@ -1,101 +1,67 @@
-@startuml Category - Get Single Category
+@startuml Get Single Category Flow
 
-actor "User" as Client
-participant "CategoryResolver" as Resolver
-participant "CategoryService" as Service
-participant "CategoryRepository" as Repo
-database "MongoDB" as DB
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-Client -> Resolver: query category(input)
-activate Resolver
-Resolver -> Service: getCategory(input)
-activate Service
+title Get Single Category Flow (GraphQL)
+
+actor "User" as user
+participant "categoryPage:CategoryPage" as categoryPage <<Page>>
+participant "categoryResolver:CategoryResolver" as categoryResolver <<Resolver>>
+participant "categoryService:CategoryService" as categoryService <<Service>>
+participant "categoryRepo:CategoryRepository" as categoryRepo <<Repository>>
+database "mongoDB" as mongoDB
+
+user -> categoryPage : Navigate to category details page
+activate categoryPage
+
+categoryPage -> categoryResolver : Query category(input: GetCategoryInput)
+activate categoryResolver
+
+categoryResolver -> categoryService : getCategory(input)
+activate categoryService
 
 alt input contains _id
-    Service -> Repo: findOneOrThrow(filterQuery: {_id})
-    activate Repo
-    Repo -> DB: findOne(query)
-    activate DB
-    DB --> Repo: return category or null
-    deactivate DB
+    categoryService -> categoryRepo : findOneOrThrow({filterQuery: {_id}})
+    activate categoryRepo
+    categoryRepo -> mongoDB : findOne(query)
+    activate mongoDB
+    mongoDB --> categoryRepo : Return category or null
+    deactivate mongoDB
     alt category found
-        Repo --> Service: return category
+        categoryRepo --> categoryService : Return category
     else not found
-        Repo --> Service: throw NotFoundException
+        categoryRepo --> categoryService : Throw NotFoundException
     end
-    deactivate Repo
+    deactivate categoryRepo
 else input contains slug
-    Service -> Repo: findOneOrThrow(filterQuery: {slug})
-    activate Repo
-    Repo -> DB: findOne(query)
-    activate DB
-    DB --> Repo: return category or null
-    deactivate DB
+    categoryService -> categoryRepo : findOneOrThrow({filterQuery: {slug}})
+    activate categoryRepo
+    categoryRepo -> mongoDB : findOne(query)
+    activate mongoDB
+    mongoDB --> categoryRepo : Return category or null
+    deactivate mongoDB
     alt category found
-        Repo --> Service: return category
+        categoryRepo --> categoryService : Return category
     else not found
-        Repo --> Service: throw NotFoundException
+        categoryRepo --> categoryService : Throw NotFoundException
     end
-    deactivate Repo
+    deactivate categoryRepo
 else no valid input
-    Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
+    categoryService --> categoryResolver : Throw HttpException(UNPROCESSABLE_ENTITY)
 end
 
-Service --> Resolver: return category
-deactivate Service
-Resolver --> Client: return category
-deactivate Resolver
+categoryService --> categoryResolver : Return category (CategoryType)
+categoryResolver --> categoryPage : Return CategoryType
+categoryPage --> user : Show category details
+
+deactivate categoryService
+deactivate categoryResolver
+deactivate categoryPage
 
 @enduml
-
-actor Client
-participant "CategoryResolver" as Resolver
-participant "CategoryService" as Service
-participant "CategoryRepository" as Repo
-database "MongoDB" as DB
-
-Client -> Resolver: query category(input)
-activate Resolver
-Resolver -> Service: getCategory(input)
-activate Service
-
-alt input contains _id
-    Service -> Repo: findOneOrThrow(filterQuery: {_id})
-    activate Repo
-    Repo -> DB: findOne(query)
-    activate DB
-    DB --> Repo: return category or null
-    deactivate DB
-    
-    alt category found
-        Repo --> Service: return category
-    else not found
-        Repo --> Service: throw NotFoundException
-    end
-    deactivate Repo
-    
-else input contains slug
-    Service -> Repo: findOneOrThrow(filterQuery: {slug})
-    activate Repo
-    Repo -> DB: findOne(query)
-    activate DB
-    DB --> Repo: return category or null
-    deactivate DB
-    
-    alt category found
-        Repo --> Service: return category
-    else not found
-        Repo --> Service: throw NotFoundException
-    end
-    deactivate Repo
-    
-else no valid input
-    Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
-end
-
-Service --> Resolver: return category
-deactivate Service
-Resolver --> Client: return category
-deactivate Resolver
-
-@enduml 

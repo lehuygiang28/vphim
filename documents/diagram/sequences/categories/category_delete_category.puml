@@ -1,41 +1,58 @@
-@startuml Category - Delete Category
+@startuml Delete Category Flow
 
-actor "Admin" as Client
-participant "CategoryResolver" as Resolver
-participant "RequiredRoles Guard" as Guard
-participant "CategoryService" as Service
-participant "CategoryRepository" as Repo
-database "MongoDB" as DB
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-Client -> Resolver: mutation deleteCategory(input)
-activate Resolver
+title Delete Category Flow (GraphQL)
 
-Resolver -> Guard: check admin role
-activate Guard
-alt user is admin
-    Guard --> Resolver: allow
-else user is not admin
-    Guard --> Client: throw ForbiddenException
-    deactivate Resolver
-    deactivate Guard
-end
-deactivate Guard
+actor "Admin User" as adminUser
+participant "categoryPage:CategoryPage" as categoryPage <<Page>>
+participant "categoryResolver:CategoryResolver" as categoryResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "categoryService:CategoryService" as categoryService <<Service>>
+participant "categoryRepo:CategoryRepository" as categoryRepo <<Repository>>
+database "mongoDB" as mongoDB
 
-Resolver -> Service: deleteCategory(input)
-activate Service
+adminUser -> categoryPage : Initiate delete category action
+activate categoryPage
 
-Service -> Repo: deleteOne({_id})
-activate Repo
-Repo -> DB: deleteOne({_id})
-activate DB
-DB --> Repo: return delete result
-deactivate DB
-Repo --> Service: return delete result
-deactivate Repo
+categoryPage -> categoryResolver : Mutation deleteCategory(input: DeleteCategoryInput)
+activate categoryResolver
 
-Service --> Resolver: return 1 (success)
-deactivate Service
-Resolver --> Client: return 1 (success)
-deactivate Resolver
+categoryResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> categoryResolver : Return UserJwt
+deactivate jwtStrategy
 
-@enduml 
+categoryResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> categoryResolver : Validate admin role
+deactivate rolesGuard
+
+categoryResolver -> categoryService : deleteCategory({id})
+activate categoryService
+
+categoryService -> categoryRepo : deleteOne({_id})
+activate categoryRepo
+categoryRepo -> mongoDB : deleteOne({_id})
+activate mongoDB
+mongoDB --> categoryRepo : Return delete result
+deactivate mongoDB
+categoryRepo --> categoryService : Return delete result
+deactivate categoryRepo
+
+categoryService --> categoryResolver : Return 1 (success)
+categoryResolver --> categoryPage : Return 1 (success)
+categoryPage --> adminUser : Show delete result
+
+deactivate categoryService
+deactivate categoryResolver
+deactivate categoryPage
+
+@enduml

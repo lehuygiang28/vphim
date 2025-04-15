@@ -1,91 +1,71 @@
-@startuml Category - Update Category
+@startuml Update Category Flow
 
-actor "Admin" as Client
-participant "CategoryResolver" as Resolver
-participant "RequiredRoles Guard" as Guard
-participant "CategoryService" as Service
-participant "CategoryRepository" as Repo
-database "MongoDB" as DB
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-Client -> Resolver: mutation updateCategory(input)
-activate Resolver
+title Update Category Flow (GraphQL)
 
-Resolver -> Guard: check admin role
-activate Guard
-alt user is admin
-    Guard --> Resolver: allow
-else user is not admin
-    Guard --> Client: throw ForbiddenException
-    deactivate Resolver
-    deactivate Guard
-end
-deactivate Guard
+actor "Admin User" as adminUser
+participant "categoryPage:CategoryPage" as categoryPage <<Page>>
+participant "categoryForm:CategoryForm" as categoryForm <<Component>>
+participant "categoryResolver:CategoryResolver" as categoryResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "categoryService:CategoryService" as categoryService <<Service>>
+participant "categoryRepo:CategoryRepository" as categoryRepo <<Repository>>
+database "mongoDB" as mongoDB
 
-Resolver -> Service: updateCategory(input)
-activate Service
+adminUser -> categoryPage : Navigate to category update page
+activate categoryPage
 
-Service -> Repo: findOneAndUpdateOrThrow(filterQuery, updateQuery)
-activate Repo
-Repo -> DB: findOneAndUpdate(query)
-activate DB
-DB --> Repo: return updated category or null
-deactivate DB
+categoryPage -> categoryForm : Display form
+activate categoryForm
+
+adminUser -> categoryForm : Fills update fields
+
+categoryForm -> categoryResolver : Mutation updateCategory(input: UpdateCategoryInput)
+activate categoryResolver
+
+categoryResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> categoryResolver : Return UserJwt
+deactivate jwtStrategy
+
+categoryResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> categoryResolver : Validate admin role
+deactivate rolesGuard
+
+categoryResolver -> categoryService : updateCategory({id, ...})
+activate categoryService
+
+categoryService -> categoryRepo : findOneAndUpdateOrThrow(filterQuery, updateQuery)
+activate categoryRepo
+categoryRepo -> mongoDB : findOneAndUpdate(query)
+activate mongoDB
+mongoDB --> categoryRepo : Return updated category or null
+deactivate mongoDB
 
 alt category found and updated
-    Repo --> Service: return updated category
+    categoryRepo --> categoryService : Return updated category
 else category not found
-    Repo --> Service: throw NotFoundException
+    categoryRepo --> categoryService : Throw NotFoundException
 end
-deactivate Repo
+deactivate categoryRepo
 
-Service --> Resolver: return updated category
-deactivate Service
-Resolver --> Client: return updated category
-deactivate Resolver
+categoryService --> categoryResolver : Return updated category (CategoryType)
+categoryResolver --> categoryForm : Return CategoryType
+categoryForm --> categoryPage : Complete form submission
+categoryPage --> adminUser : Show update result
+
+deactivate categoryService
+deactivate categoryResolver
+deactivate categoryForm
+deactivate categoryPage
 
 @enduml
-
-actor "Admin" as Client
-participant "CategoryResolver" as Resolver
-participant "RequiredRoles Guard" as Guard
-participant "CategoryService" as Service
-participant "CategoryRepository" as Repo
-database "MongoDB" as DB
-
-Client -> Resolver: mutation updateCategory(input)
-activate Resolver
-
-Resolver -> Guard: check admin role
-activate Guard
-alt user is admin
-    Guard --> Resolver: allow
-else user is not admin
-    Guard --> Client: throw ForbiddenException
-    deactivate Resolver
-    deactivate Guard
-end
-deactivate Guard
-
-Resolver -> Service: updateCategory(input)
-activate Service
-
-Service -> Repo: findOneAndUpdateOrThrow(filterQuery, updateQuery)
-activate Repo
-Repo -> DB: findOneAndUpdate(query)
-activate DB
-DB --> Repo: return updated category or null
-deactivate DB
-
-alt category found and updated
-    Repo --> Service: return updated category
-else category not found
-    Repo --> Service: throw NotFoundException
-end
-deactivate Repo
-
-Service --> Resolver: return updated category
-deactivate Service
-Resolver --> Client: return updated category
-deactivate Resolver
-
-@enduml 

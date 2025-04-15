@@ -1,105 +1,71 @@
-@startuml Category - Get Categories
+@startuml Get Categories Flow
 
-actor "User" as Client
-participant "CategoryResolver" as Resolver
-participant "CategoryService" as Service
-participant "RedisService" as Redis
-participant "CategoryRepository" as Repo
-database "MongoDB" as DB
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-Client -> Resolver: query categories(input)
-activate Resolver
-Resolver -> Service: getCategories(input)
-activate Service
+title Get Categories Flow (GraphQL)
 
-Service -> Redis: get(cacheKey)
-activate Redis
-Redis --> Service: return cached data (if exists)
-deactivate Redis
+actor "User" as user
+participant "categoryPage:CategoryPage" as categoryPage <<Page>>
+participant "categoryResolver:CategoryResolver" as categoryResolver <<Resolver>>
+participant "categoryService:CategoryService" as categoryService <<Service>>
+participant "redisService:RedisService" as redisService <<Service>>
+participant "categoryRepo:CategoryRepository" as categoryRepo <<Repository>>
+database "mongoDB" as mongoDB
+
+user -> categoryPage : Navigate to categories list page
+activate categoryPage
+
+categoryPage -> categoryResolver : Query categories(input: GetCategoriesInput)
+activate categoryResolver
+
+categoryResolver -> categoryService : getCategories(input)
+activate categoryService
+
+categoryService -> redisService : get(cacheKey)
+activate redisService
+redisService --> categoryService : Return cached data (if exists)
+deactivate redisService
 
 alt data from cache exists
-    Service --> Resolver: return cached data
+    categoryService --> categoryResolver : Return cached data
 else no cached data
-    Service -> Repo: find(filterQuery, query)
-    activate Repo
-    Repo -> DB: find categories
-    activate DB
-    DB --> Repo: return categories
-    deactivate DB
-    Repo --> Service: return categories
-    deactivate Repo
+    categoryService -> categoryRepo : find(filterQuery, query)
+    activate categoryRepo
+    categoryRepo -> mongoDB : find categories
+    activate mongoDB
+    mongoDB --> categoryRepo : Return categories
+    deactivate mongoDB
+    categoryRepo --> categoryService : Return categories
+    deactivate categoryRepo
 
-    Service -> Repo: count(filterQuery)
-    activate Repo
-    Repo -> DB: count categories
-    activate DB
-    DB --> Repo: return count
-    deactivate DB
-    Repo --> Service: return count
-    deactivate Repo
+    categoryService -> categoryRepo : count(filterQuery)
+    activate categoryRepo
+    categoryRepo -> mongoDB : count categories
+    activate mongoDB
+    mongoDB --> categoryRepo : Return count
+    deactivate mongoDB
+    categoryRepo --> categoryService : Return count
+    deactivate categoryRepo
 
-    Service -> Redis: set(cacheKey, result, expiry)
-    activate Redis
-    Redis --> Service: confirm cache set
-    deactivate Redis
+    categoryService -> redisService : set(cacheKey, result, expiry)
+    activate redisService
+    redisService --> categoryService : Confirm cache set
+    deactivate redisService
 
-    Service --> Resolver: return result {data, total, count}
+    categoryService --> categoryResolver : Return result {data, total, count}
 end
 
-Resolver --> Client: return categories
-deactivate Service
-deactivate Resolver
+categoryResolver --> categoryPage : Return categories
+categoryPage --> user : Show categories list
+
+deactivate categoryService
+deactivate categoryResolver
+deactivate categoryPage
 
 @enduml
-
-actor Client
-participant "CategoryController" as Controller
-participant "CategoryService" as Service
-participant "RedisService" as Redis
-participant "CategoryRepository" as Repo
-database "MongoDB" as DB
-
-Client -> Controller: GET /categories
-activate Controller
-Controller -> Service: getCategories(query)
-activate Service
-
-Service -> Redis: get(cacheKey)
-activate Redis
-Redis --> Service: return cached data (if exists)
-deactivate Redis
-
-alt data from cache exists
-    Service --> Controller: return cached data
-else no cached data
-    Service -> Repo: find(filterQuery, query)
-    activate Repo
-    Repo -> DB: find categories
-    activate DB
-    DB --> Repo: return categories
-    deactivate DB
-    Repo --> Service: return categories
-    deactivate Repo
-
-    Service -> Repo: count(filterQuery)
-    activate Repo
-    Repo -> DB: count categories
-    activate DB
-    DB --> Repo: return count
-    deactivate DB
-    Repo --> Service: return count
-    deactivate Repo
-
-    Service -> Redis: set(cacheKey, result, expiry)
-    activate Redis
-    Redis --> Service: confirm cache set
-    deactivate Redis
-
-    Service --> Controller: return result {data, total, count}
-end
-
-Controller --> Client: return categories
-deactivate Service
-deactivate Controller
-
-@enduml 
