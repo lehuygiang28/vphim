@@ -1,0 +1,147 @@
+@startuml
+!theme materia
+top to bottom direction
+
+' Modern, readable font and color settings
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam backgroundColor #F7F9FB
+skinparam node {
+  BackgroundColor #E3F2FD
+  BorderColor #1976D2
+  FontColor #222
+}
+skinparam artifact {
+  BackgroundColor #FFFDE7
+  BorderColor #FBC02D
+  FontColor #222
+}
+skinparam database {
+  BackgroundColor #E0F2F1
+  BorderColor #009688
+  FontColor #222
+}
+skinparam actor {
+  BackgroundColor #FFF
+  BorderColor #607D8B
+  FontColor #222
+}
+skinparam rectangle {
+  BackgroundColor #F0F4C3
+  BorderColor #689F38
+  FontColor #222
+}
+skinparam note {
+  BackgroundColor #F5F5F5
+  BorderColor #BDBDBD
+  FontColor #333
+}
+skinparam nodesep 80
+skinparam ranksep 120
+skinparam linetype ortho
+
+' External Actors
+together {
+  actor "Developer" as dev
+  actor "User" as user
+  actor "Admin" as admin
+}
+
+' CI/CD Pipeline (top)
+node "GitHub Actions" as gha {
+  artifact "API Docker Image Artifact" as api_img
+  artifact "Mobile APK Artifact" as mobile_apk
+}
+
+dev -down[#0288D1,dashed]-> gha : Push to main branch
+
+' DNS/Proxy Layer
+node "Cloudflare (DNS & Proxy)" as cloudflare
+
+' Cloud Services Group
+rectangle "Cloud Services" as cloud_group {
+  node "Vercel Cloud" <<executionEnvironment>> as vercel {
+    together {
+      node "Next.js (fe)" <<executionEnvironment>> as fe_vercel
+      node "Next.js (mnt)" <<executionEnvironment>> as mnt_vercel
+    }
+  }
+  node "Expo Cloud" <<executionEnvironment>> as expo_cloud {
+    artifact "Expo Build Artifact" as expo_build
+  }
+}
+
+' Mobile Group
+rectangle "Mobile" as mobile_group {
+  node "Mobile Client" <<device>> as mobile_device {
+    artifact "Mobile Application" as mobile_app
+  }
+}
+
+' Docker Host Group
+rectangle "Docker Host" <<device>> as docker_host {
+  node "API Service" <<executionEnvironment>> as api_container {
+    artifact "API Application" as api_artifact
+  }
+  together {
+    node "MongoDB" <<executionEnvironment>> as mongo_container {
+      database "MongoDB" as mongo_db
+    }
+    node "Redis" <<executionEnvironment>> as redis_container {
+      artifact "Redis Service" as redis_artifact
+    }
+    node "Elasticsearch" <<executionEnvironment>> as es_container {
+      artifact "Elasticsearch Service" as es_artifact
+    }
+  }
+}
+
+' --- Main Relationships ---
+user -down-> cloudflare : HTTPS
+admin -down-> cloudflare : HTTPS
+user -right-> mobile_device : App/Expo
+
+gha -down-> api_img : Build & Push Docker image
+api_img -down-> api_container : Pull & Deploy
+gha -down-> mobile_apk : Build APK
+mobile_apk -down-> expo_build : Upload
+expo_build -right-> mobile_device : Download/Install
+
+cloudflare -down-> api_container : API DNS/Proxy
+cloudflare -left-> fe_vercel : DNS
+cloudflare -right-> mnt_vercel : DNS
+
+fe_vercel -down-> api_container : GraphQL/REST
+mnt_vercel -down-> api_container : GraphQL/REST
+mobile_app -left-> api_container : GraphQL/REST
+
+api_container -down-> mongo_db
+api_container -down-> redis_artifact
+api_container -down-> es_artifact
+
+' Notes
+note left of cloudflare #FFFDE7
+  DNS and SSL proxy for all public endpoints.
+  Handles HTTPS for API, FE, MNT, and Mobile.
+  Routes API to API container, FE/MNT to Vercel.
+end note
+note right of api_container #FFFDE7
+  Handles business logic.
+  Aggregates data from MongoDB, Redis, Elasticsearch.
+end note
+note left of fe_vercel #FFFDE7
+  Main user interface.
+  Communicates with API.
+end note
+note left of mnt_vercel #FFFDE7
+  Admin dashboard.
+  Communicates with API.
+end note
+note bottom of mobile_device #FFFDE7
+  Native mobile app.
+  Communicates with API.
+end note
+
+@enduml
+
