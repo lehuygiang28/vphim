@@ -1,58 +1,68 @@
 @startuml Create Comment Flow
 
-actor User <<Actor>>
-participant "MovieComment (Next.js)" as MovieComment <<Component>>
-participant "CommentResolver" as Resolver <<Resolver>>
-participant "CommentService" as CommentService <<Service>>
-participant "UsersService" as UsersService <<Service>>
-participant "MovieService" as MovieService <<Service>>
-participant "CommentsRepository" as CommentsRepository <<Repository>>
-database "MongoDB" as DB <<Database>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-User -> MovieComment: submit comment
-activate MovieComment
-MovieComment -> Resolver: mutation createComment(input)
-activate Resolver
-Resolver -> CommentCommentService: createComment(actor, input)
-activate CommentService
-CommentService -> UsersCommentService: findByIdOrThrow(actor.userId)
-activate UsersService
-UsersService --> CommentCommentService: user
-deactivate UsersService
-CommentService -> MovieCommentService: getMovie({_id: movieId})
-activate MovieService
-MovieService --> CommentService: movie
-deactivate MovieService
+title Create Comment Flow (GraphQL)
+
+actor "User" as user
+participant "commentPage:MovieComment" as commentPage <<Component>>
+participant "commentResolver:CommentResolver" as commentResolver <<Resolver>>
+participant "commentService:CommentService" as commentService <<Service>>
+participant "userService:UsersService" as userService <<Service>>
+participant "movieService:MovieService" as movieService <<Service>>
+participant "commentsRepo:CommentsRepository" as commentsRepo <<Repository>>
+database "mongoDB" as mongoDB
+
+user -> commentPage: Submit comment
+activate commentPage
+commentPage -> commentResolver: Mutation createComment(input)
+activate commentResolver
+commentResolver -> commentService: createComment(actor, input)
+activate commentService
+commentService -> userService: findByIdOrThrow(actor.userId)
+activate userService
+userService --> commentService: user
+deactivate userService
+commentService -> movieService: getMovie({_id: movieId})
+activate movieService
+movieService --> commentService: movie
+deactivate movieService
 alt parentCommentId exists
-    CommentService -> CommentsRepository: findOne({_id: parentCommentId, movie: movie._id})
-    activate CommentsRepository
-    CommentsRepository --> CommentService: parentComment
-    deactivate CommentsRepository
-    CommentService -> CommentCommentService: Calculate nestingLevel and rootParentComment
+    commentService -> commentsRepo: findOne({_id: parentCommentId, movie: movie._id})
+    activate commentsRepo
+    commentsRepo --> commentService: parentComment
+    deactivate commentsRepo
+    commentService -> commentService: Calculate nestingLevel and rootParentComment
 end
-CommentService -> CommentsRepository: create({document})
-activate CommentsRepository
-CommentsRepository -> DB: Insert Comment
-DB --> CommentsRepository: New Comment
-CommentsRepository --> CommentCommentService: newComment
-deactivate CommentsRepository
+commentService -> commentsRepo: create({document})
+activate commentsRepo
+commentsRepo -> mongoDB: Insert Comment
+mongoDB --> commentsRepo: New Comment
+commentsRepo --> commentService: newComment
+deactivate commentsRepo
 alt parentCommentId exists
-    CommentService -> CommentsRepository: findOneAndUpdate(parentComment)
-    activate CommentsRepository
-    CommentsRepository -> DB: Increment replyCount
-    CommentsRepository --> CommentCommentService: Updated Parent
-    deactivate CommentsRepository
+    commentService -> commentsRepo: findOneAndUpdate(parentComment)
+    activate commentsRepo
+    commentsRepo -> mongoDB: Increment replyCount
+    commentsRepo --> commentService: Updated Parent
+    deactivate commentsRepo
     alt rootParentComment exists and different from parent
-        CommentService -> CommentsRepository: findOneAndUpdate(rootParentComment)
-        activate CommentsRepository
-        CommentsRepository -> DB: Increment replyCount
-        CommentsRepository --> CommentCommentService: Updated Root Parent
-        deactivate CommentsRepository
+        commentService -> commentsRepo: findOneAndUpdate(rootParentComment)
+        activate commentsRepo
+        commentsRepo -> mongoDB: Increment replyCount
+        commentsRepo --> commentService: Updated Root Parent
+        deactivate commentsRepo
     end
 end
-CommentService --> Resolver: newComment
-deactivate CommentService
-Resolver --> MovieComment: newComment
-deactivate Resolver
+commentService --> commentResolver: newComment
+deactivate commentService
+commentResolver --> commentPage: newComment
+deactivate commentResolver
 
 @enduml

@@ -1,47 +1,57 @@
 @startuml Get Comment Replies Flow
 
-actor User <<Actor>>
-participant "MovieComment (Next.js)" as MovieComment <<Component>>
-participant "CommentResolver" as Resolver <<Resolver>>
-participant "CommentService" as Service <<Service>>
-participant "CommentsRepository" as Repository <<Repository>>
-database "MongoDB" as DB <<Database>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-User -> MovieComment: view comment replies
-activate MovieComment
-MovieComment -> CommentReplyResolver: query getCommentReplies(input)
-activate CommentReplyResolver
-Resolver -> CommentService: getCommentReplies(input)
-activate CommentService
-Service -> CommentsRepository: findOne({_id: parentCommentId})
-activate CommentsRepository
-Repository -> DB: Query Comment
-DB --> CommentsRepository: Parent Comment
-Repository --> CommentService: parentComment
-deactivate CommentsRepository
+title Get Comment Replies Flow (GraphQL)
+
+actor "User" as user
+participant "commentPage:MovieComment" as commentPage <<Component>>
+participant "commentResolver:CommentResolver" as commentResolver <<Resolver>>
+participant "commentService:CommentService" as commentService <<Service>>
+participant "commentsRepo:CommentsRepository" as commentsRepo <<Repository>>
+database "mongoDB" as mongoDB
+
+user -> commentPage: View comment replies
+activate commentPage
+commentPage -> commentResolver: Query getCommentReplies(input)
+activate commentResolver
+commentResolver -> commentService: getCommentReplies(input)
+activate commentService
+commentService -> commentsRepo: findOne({_id: parentCommentId})
+activate commentsRepo
+commentsRepo -> mongoDB: Query Comment
+mongoDB --> commentsRepo: Parent Comment
+commentsRepo --> commentService: parentComment
+deactivate commentsRepo
 alt parent comment not found
-    Service --> CommentReplyResolver: HttpException (Not Found)
-    Resolver --> MovieComment: Error
+    commentService --> commentResolver: HttpException (Not Found)
+    commentResolver --> commentPage: Error
 else parent comment found
-    Service -> CommentService: Construct matchStage based on includeNestedReplies flag
-    Service -> CommentsRepository: aggregate([pipeline])
-    activate CommentsRepository
-    Repository -> DB: Aggregate Query
+    commentService -> commentService: Construct matchStage based on includeNestedReplies flag
+    commentService -> commentsRepo: aggregate([pipeline])
+    activate commentsRepo
+    commentsRepo -> mongoDB: Aggregate Query
     note right: Match replies based on criteria\nSort by nesting level & newest\nApply pagination\nLookup user data
-    DB --> CommentsRepository: Replies
-    Repository --> CommentService: replies
-    deactivate CommentsRepository
-    Service -> CommentsRepository: count(countFilter)
-    activate CommentsRepository
-    Repository -> DB: Count Query
-    DB --> CommentsRepository: Total Count
-    Repository --> CommentService: total
-    deactivate CommentsRepository
-    Service -> CommentService: formatRepliesOutput(replies, total, page, limit)
-    Service --> CommentReplyResolver: GetCommentRepliesOutput
+    mongoDB --> commentsRepo: Replies
+    commentsRepo --> commentService: replies
+    deactivate commentsRepo
+    commentService -> commentsRepo: count(countFilter)
+    activate commentsRepo
+    commentsRepo -> mongoDB: Count Query
+    mongoDB --> commentsRepo: Total Count
+    commentsRepo --> commentService: total
+    deactivate commentsRepo
+    commentService -> commentService: formatRepliesOutput(replies, total, page, limit)
+    commentService --> commentResolver: GetCommentRepliesOutput
 end
-deactivate CommentService
-Resolver --> MovieComment: Paginated Replies
-deactivate CommentReplyResolver
+deactivate commentService
+commentResolver --> commentPage: Paginated Replies
+deactivate commentResolver
 
 @enduml
