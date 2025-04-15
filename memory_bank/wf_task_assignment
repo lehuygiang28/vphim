@@ -1,0 +1,104 @@
+Current tasks from user prompt:
+- Simulate task assignment for the VePhim repository using the provided table format.
+
+Plan (simple):
+- Analyze the repository structure to identify main projects and responsibilities.
+- Map each project/component to the relevant task in the table.
+- Assign members as specified.
+- Track the status of each task (done/not done yet) for simulation purposes.
+
+Steps:
+1. List all main projects: backend (api), frontend (fe), admin dashboard (mnt), mobile (mobile), documentation (documents).
+2. Map each project to a task in the table.
+3. Assign members to each task as per the prompt.
+4. Create a table with columns: No, Task name, Description, Start Date, End Date, Member, Self assessment, Notes.
+5. Track which tasks are simulated as done or not done yet.
+
+Things done:
+- Analyzed repository structure and identified main projects.
+- Mapped projects to tasks and assigned members.
+
+Things not done yet:
+- Fill in descriptions, start/end dates, and self-assessment for each task (pending further input or simulation).
+- Update workflow as tasks progress or more details are provided.
+
+Additional context:
+- The repository contains 4 main projects:
+  1. Backend (api): apps/api
+  2. Frontend (fe): apps/fe
+  3. Admin Dashboard (mnt): apps/mnt
+  4. Mobile (mobile): apps/mobile
+
+Detailed Simulated Task Assignment Table:
+
+| No | Task name                        | Description                                                                 | Start Date   | End Date     | Member         | Self assessment                 | Notes                                      |
+|----|----------------------------------|-----------------------------------------------------------------------------|--------------|--------------|---------------|---------------------------------|--------------------------------------------|
+| 1  | Write & Maintain Documentation   | Write, update, and organize all project documentation.                      | 2024-08-27   | Ongoing      | Giang, Tien   | Needs Guidance                  | Continuous effort                          |
+| 2  | Backend: API Development         | Design, implement, test, and document APIs in `apps/api` (NestJS).         | 2024-08-27   | Ongoing      | Giang         | High Confidence                 | Major initial phase Aug '24, updates Apr '25 |
+| 3  | Backend: Database Management     | Design, optimize, and maintain MongoDB schemas and migrations.              | 2024-08-27   | Ongoing      | Giang         | High Confidence                 | Initial setup Aug '24, later updates     |
+| 4  | Infra: Containerization (Docker) | Setup and maintain Docker configurations for all applications.              | 2024-09-01   | Dec 2024     | Giang         | Confident                       | Primary setup phase Oct-Dec '24            |
+| 5  | Infra: CI/CD Pipelines           | Setup and manage CI/CD pipelines (GitHub Actions, EAS Build).               | 2024-09-26   | Ongoing      | Giang         | Confident                       | Initial setup Sep '24, refined Oct-Dec '24 |
+| 6  | Infra: Cloud Management          | Manage cloud resources like Cloudflared and Redis.                          | 2024-10-13   | Feb 2025     | Giang         | Confident                       | Primary integration Oct '24 - Feb '25    |
+| 7  | Frontend: UI/UX Development      | Implement features and UI components in `apps/fe` (Next.js, Ant Design).    | 2024-09-01   | Ongoing      | Tien          | High Confidence                 | Core Sep '24, updates Oct '24, Apr '25   |
+| 8  | Frontend: State & Data Handling  | Integrate APIs, manage state (e.g., Redux/Zustand), handle data flows.     | 2024-09-01   | Ongoing      | Tien          | High Confidence                 | Follows UI/UX development                |
+| 9  | Frontend: Testing & Optimization | Write tests, optimize performance, and ensure accessibility.                | 2024-09-01   | Ongoing      | Giang, Tien   | Confident                       | Continuous effort                          |
+| 10 | Admin Dashboard: Feature Dev     | Develop admin features in `apps/mnt` (Next.js, RefineJS).                   | 2024-09-19   | Ongoing      | Giang         | High Confidence                 | Initial setup Sep '24, updates Apr '25   |
+| 11 | Mobile: Feature Development      | Build features in `apps/mobile` (React Native).                           | 2024-09-26   | Ongoing      | Giang         | Needs Guidance                  | Initial setup Sep '24, updates Apr '25   |
+| 12 | Mobile: Platform Optimization    | Ensure performance and compatibility on iOS/Android.                        | 2024-09-26   | Ongoing      | Giang         | Needs Guidance                  | Continuous effort                          |
+| 13 | Mobile: Release Management       | Handle builds, releases, and store submissions.                             | 2024-09-26   | Ongoing      | Giang         | Needs Guidance                  | Continuous effort                          |
+
+Main Development Phases and Milestones (Synthesized from Commit History):
+
+1.  **Initial Setup & Core API (Aug 2024):**
+    *   Activities: Monorepo structure (Nx), bootstrap NestJS API (`apps/api`), define core entities (MongoDB), setup initial movie resource.
+    *   Commits: ~Aug 28, 2024
+
+2.  **Frontend Foundations & Core Features (Sep 2024):**
+    *   Activities: Build essential FE components (`apps/fe`) like `MovieCard`, `Banner`, `CastList`, `PlayButton`; implement movie streaming (`MoviePlay`) and episode selection; Add UI niceties (`BackToTop`); integrate API for actors/categories.
+    *   Commits: ~Sep 3 - Sep 17, 2024
+
+3.  **Firebase Integration & Mobile CI (Sep 2024):**
+    *   Activities: Integrate Firebase SDK and App Check for `apps/fe` and `apps/mnt`; Set up Continuous Integration (CI) for mobile (`apps/mobile`) using EAS Build.
+    *   Commits: ~Sep 19 - Sep 26, 2024
+
+4.  **Search, API Enhancements & Infrastructure Exploration (Oct 2024):**
+    *   Activities: Add search functionality (`apps/fe`); Improve API slug generation and logging; Explore/Implement Cloudflared, Redis, and an Image Bundling API.
+    *   Commits: ~Sep 28 - Oct 13, 2024
+
+5.  **CI/CD, Dockerization & Refactoring (Oct-Dec 2024):**
+    *   Activities: Significant focus on setting up and refining CI/CD pipelines, Docker configurations, deployment strategies; General code refactoring, linting, and dependency updates; Large cleanup efforts noted (`massive pr`).
+    *   Commits: ~Oct 2024 - Dec 2024
+
+6.  **Cloudflare, Redis Integration & Maintenance (Dec 2024 - Feb 2025):**
+    *   Activities: Solidify Cloudflared and Redis integration; Add maintenance scripts; Ongoing fixes and improvements to CI/CD and build processes.
+    *   Commits: ~Dec 2024 - Feb 2025
+
+7.  **Quality/Content Rating & Age Verification (Apr 2025):**
+    *   Activities: Implement features across API, FE, MNT, Mobile related to movie quality, content ratings, and age verification modals; Major focus on improving type safety (using enums) and code consistency across the applications.
+    *   Commits: ~Apr 13 - Apr 14, 2025
+
+---
+
+**Extracted Specific Tasks with Approximate Dates (Based on Commit History):**
+
+| Task/Feature                                 | Approx. Date | Related Project(s) | Notes/Commits Example |
+|----------------------------------------------|--------------|--------------------|-----------------------|
+| Initial API Setup (NestJS, Entities)         | Aug 2024     | api                | `3f6237d1`, `f6ca903b`, `01e9c1e9` |
+| FE Movie Detail Page Components              | Sep 2024     | fe                 | `1a632040`, `11509037`, `1592a2f5` |
+| FE Movie Streaming & Episode Selection       | Sep 2024     | fe                 | `75b55a01`, `27725f9d`, `0b43f637` |
+| FE UI Components (Card, Skeleton)            | Sep 2024     | fe, mnt            | `7a63d72c`, `ce747b70` |
+| API: Get Actors & Categories                 | Sep 2024     | api                | `068896e1` |
+| Firebase SDK/App Check Integration           | Sep 2024     | fe, mnt            | `d7c00c4c`, `97160fa7` |
+| Mobile CI Setup (EAS Build)                  | Sep 2024     | mobile, ci         | `918d6bdf`, `98f6deea`, `51abd76c` |
+| API Slug Generation Enhancement              | Sep 2024     | api                | `f2bddb7f` |
+| FE Search Functionality                      | Oct 2024     | fe                 | `63687718` |
+| Cloudflared & Redis Setup/Integration        | Oct 2024+    | api, infra         | `44a17126`, `86df7e60`, `15e39483` (earlier pages) |
+| Image Bundle API                             | Oct 2024     | api                | `44a17126` |
+| CI/CD Pipeline Setup & Refinement            | Oct-Dec 2024 | ci, docker         | Multiple commits |
+| Docker Configuration & Optimization          | Oct-Dec 2024 | docker, infra      | Multiple commits |
+| Large Scale Refactoring / Cleanup            | Nov-Dec 2024 | all                | e.g., `f9be042e` (`massive pr`) |
+| Quality & Content Rating Feature             | Apr 2025     | api, fe, mnt, mobile | `12501850`, `226f01be`, `fe8314e4`, `c5faba2c`, `9871549f` |
+| Age Verification Feature                     | Apr 2025     | fe, mobile         | `08ee6e82`, `9871549f` |
+| Type Safety Refactoring (Enums)              | Apr 2025     | api, fe, mnt, mobile | Multiple commits ~Apr 13-14 |
+
+For more details, see the [VePhim GitHub repository](https://github.com/lehuygiang28/vphim/commits/main).
