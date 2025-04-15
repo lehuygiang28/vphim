@@ -1,55 +1,47 @@
 @startuml Movie Creation Flow
 
-actor Client
-participant MovieResolver
-participant MovieService
-participant MovieRepository
-participant SearchService
-participant ElasticsearchService
-database MongoDB
-database Elasticsearch
+actor User <<Actor>>
+' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Repository>>, <<Service>>, <<Service>>, <<Database>>, <<Database>>
+participant "CreateMovie (Next.js Admin)" as CreateMovie <<Component>>
+participant "MovieResolver" as Resolver <<Resolver>>
+participant "MovieService" as MovieService <<Service>>
+participant "MovieRepository" as MovieRepository <<Repository>>
+participant "SearchService" as SearchService <<Service>>
+participant "ElasticsearchService" as ElasticsearchService <<Service>>
+database "MongoDB" as MongoDB <<Database>>
+database "Elasticsearch" as Elasticsearch <<Database>>
 
-title Movie Creation Flow
-
-Client -> MovieResolver: createMovie(input: CreateMovieInput)
-activate MovieResolver
-
-MovieResolver -> MovieService: createMovie(input)
+User -> CreateMovie: Initiates movie creation
+CreateMovie -> Resolver: mutation createMovie(input)
+activate Resolver
+Resolver -> MovieMovieService: createMovie(input)
 activate MovieService
-
-MovieService -> MovieRepository: create(movie)
+MovieService -> MovieMovieRepository: create(movie)
 activate MovieRepository
-
 MovieRepository -> MongoDB: save movie document
-MongoDB --> MovieRepository: saved document
+MongoDB --> MovieMovieRepository: saved document
+deactivate MongoDB
 deactivate MovieRepository
-
 note right of MovieRepository
   MovieSchema.post('save') hook triggers
   after document is saved
 end note
-
-MovieRepository -> SearchService: indexMovie(document)
+MovieRepository -> SearchMovieService: indexMovie(document)
 activate SearchService
-
-SearchService -> MovieRepository: findOne(movie._id) with populated fields
-MovieRepository --> SearchService: fully populated movie document
-
-SearchService -> ElasticsearchService: update(index=movies, id=movie._id)
+SearchService -> MovieMovieRepository: findOne(movie._id) with populated fields
+MovieRepository --> SearchMovieService: fully populated movie document
+SearchService -> ElasticsearchMovieService: update(index=movies, id=movie._id)
 activate ElasticsearchService
 ElasticsearchService -> Elasticsearch: update/index document
-Elasticsearch --> ElasticsearchService: update result
+Elasticsearch --> ElasticsearchMovieService: update result
 ElasticsearchService -> Elasticsearch: indices.refresh(index=movies)
-Elasticsearch --> ElasticsearchService: refresh result
+Elasticsearch --> ElasticsearchMovieService: refresh result
 deactivate ElasticsearchService
-
-SearchService --> MovieRepository: indexing result
+SearchService --> MovieMovieRepository: indexing result
 deactivate SearchService
-
-MovieService --> MovieResolver: new MovieType instance
+MovieService --> Resolver: new MovieType instance
 deactivate MovieService
+Resolver --> CreateMovie: Movie document
+deactivate Resolver
 
-MovieResolver --> Client: Movie document
-deactivate MovieResolver
-
-@enduml 
+@enduml

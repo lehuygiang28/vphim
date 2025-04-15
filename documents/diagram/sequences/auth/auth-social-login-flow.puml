@@ -10,69 +10,69 @@ autonumber
 title Social Login Flow
 caption Authentication using Google and GitHub OAuth providers
 
-actor User #Black
-participant "Frontend" as FE #PaleGreen
-participant "AuthController" as AC #LightBlue
-participant "AuthService" as AS #LightBlue
-participant "UsersService" as US #LightBlue
-participant "JwtService" as JWT #Orange
-participant "Database" as DB #Gray
-participant "GoogleOAuth" as Google #LightBlue
-participant "GitHubOAuth" as GitHub #LightGray
+actor User <<Actor>>
+participant "Login (Next.js)" as LoginComponent <<Component>>
+participant "AuthController" as AuthController <<Controller>>
+participant "AuthService" as AuthService <<Service>>
+participant "UsersService" as UsersService <<Service>>
+participant "JwtService" as JwtService <<Service>>
+database "MongoDB" as DB <<Database>>
+participant "GoogleOAuth" as GoogleOAuth <<OAuthProvider>>
+participant "GitHubOAuth" as GitHubOAuth <<OAuthProvider>>
 
 ' Google Login Flow
 group Google Login
-    User -> FE ++ : Click Google login
+    User -> LoginComponent: Click Google login
     note right: User selects Google sign-in option
 
-    FE -> Google ++ : Authenticate
+    LoginComponent -> GoogleOAuth: Authenticate
     note right: OAuth2 authentication flow
-    return Return idToken
+    return idToken
 
-    FE -> AC ++ : POST /auth/login/google (idToken)
-    AC -> AS ++ : validateLoginGoogle(data)
+    LoginComponent -> AuthController: POST /auth/login/google (idToken)
+    AuthController -> AuthService: validateLoginGoogle(data)
 
-    AS -> Google ++ : verifyIdToken
+    AuthService -> GoogleOAuth: verifyIdToken
     note right: Verify token with Google OAuth API
     return user data or error
 
     alt Invalid token
-        AS --> AC -- : throw UnauthorizedException
-        AC --> FE -- : 401 Google login failed
-        FE --> User -- : Show error message
+        AuthService --> AuthController: throw UnauthorizedException
+        AuthController --> LoginComponent: 401 Google login failed
+        LoginComponent --> User: Show error message
     else Valid token
-        AS -> US ++ : findByEmail(email)
-        US -> DB ++ : query
+        AuthService -> UsersService: findByEmail(email)
+        UsersService -> DB: query
         return result
-        deactivate US
+        deactivate UsersService
 
         alt User not found
-            AS -> US ++ : create new user
+            AuthService -> UsersService: create new user
             note right: Auto-registration with Google profile
-            US -> DB ++ : insert
+            UsersService -> DB: insert
             return user created
-            deactivate US
+            deactivate UsersService
         end
 
         alt Email not verified
-            AS -> US ++ : update user (emailVerified: true)
+            AuthService -> UsersService: update user (emailVerified: true)
             note right: Trust Google verified emails
-            US -> DB ++ : update
+            UsersService -> DB: update
             return updated
-            deactivate US
+            deactivate UsersService
         end
 
-        AS -> AS ++ : generateTokens(user)
+        AuthService -> AuthService: generateTokens(user)
 
-        AS -> JWT ++ : signAsync access token
+        AuthService -> JwtService: signAsync access token
         return accessToken
 
-        AS -> JWT ++ : signAsync refresh token
+        AuthService -> JwtService: signAsync refresh token
         return refreshToken
 
-        AS --> AC -- : LoginResponseDto
-        AC --> FE -- : 200 tokens + user
-        FE --> User -- : Login successful
+        AuthService --> AuthController: LoginResponseDto
+        AuthController --> LoginComponent: 200 tokens + user
+        LoginComponent --> User: Login successful
     end
 end
 
@@ -82,57 +82,57 @@ note across: Both social providers follow the same pattern with different token 
 
 ' GitHub Login Flow
 group GitHub Login
-    User -> FE ++ : Click GitHub login
+    User -> LoginComponent: Click GitHub login
     note right: User selects GitHub sign-in option
 
-    FE -> GitHub ++ : Authenticate
+    LoginComponent -> GitHubOAuth: Authenticate
     note right: OAuth authorization code flow
-    return Return accessToken
+    return accessToken
 
-    FE -> AC ++ : POST /auth/login/github (accessToken)
-    AC -> AS ++ : validateLoginGithub(data)
+    LoginComponent -> AuthController: POST /auth/login/github (accessToken)
+    AuthController -> AuthService: validateLoginGithub(data)
 
-    AS -> GitHub ++ : GET /user
+    AuthService -> GitHubOAuth: GET /user
     note right: Call GitHub REST API with token
     return user data or error
 
     alt Invalid token
-        AS --> AC -- : throw UnauthorizedException
-        AC --> FE -- : 401 GitHub login failed
-        FE --> User -- : Show error message
+        AuthService --> AuthController: throw UnauthorizedException
+        AuthController --> LoginComponent: 401 GitHub login failed
+        LoginComponent --> User: Show error message
     else Valid token
-        AS -> US ++ : findByEmail(email)
-        US -> DB ++ : query
+        AuthService -> UsersService: findByEmail(email)
+        UsersService -> DB: query
         return result
-        deactivate US
+        deactivate UsersService
 
         alt User not found
-            AS -> US ++ : create new user
+            AuthService -> UsersService: create new user
             note right: Auto-registration with GitHub profile
-            US -> DB ++ : insert
+            UsersService -> DB: insert
             return user created
-            deactivate US
+            deactivate UsersService
         end
 
         alt Email not verified
-            AS -> US ++ : update user (emailVerified: true)
+            AuthService -> UsersService: update user (emailVerified: true)
             note right: Trust GitHub verified emails
-            US -> DB ++ : update
+            UsersService -> DB: update
             return updated
-            deactivate US
+            deactivate UsersService
         end
 
-        AS -> AS ++ : generateTokens(user)
+        AuthService -> AuthService: generateTokens(user)
 
-        AS -> JWT ++ : signAsync access token
+        AuthService -> JwtService: signAsync access token
         return accessToken
 
-        AS -> JWT ++ : signAsync refresh token
+        AuthService -> JwtService: signAsync refresh token
         return refreshToken
 
-        AS --> AC -- : LoginResponseDto
-        AC --> FE -- : 200 tokens + user
-        FE --> User -- : Login successful
+        AuthService --> AuthController: LoginResponseDto
+        AuthController --> LoginComponent: 200 tokens + user
+        LoginComponent --> User: Login successful
     end
 end
 

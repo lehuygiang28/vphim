@@ -1,14 +1,16 @@
 @startuml Region - Get Single Region
 
-actor Client
-participant "RegionResolver" as Resolver
-participant "RegionsService" as Service
-participant "RegionRepository" as Repo
-database "MongoDB" as DB
+actor User <<Actor>>
+participant "RegionComponent (Next.js Admin)" as RegionComponent <<Component>>
+participant "RegionResolver" as Resolver <<Resolver>>
+participant "RegionsService" as RegionsService <<Service>>
+participant "RegionRepository" as RegionRepository <<Repository>>
+database "MongoDB" as MongoDB <<Database>>
 
-Client -> Resolver: query region(input)
+User -> RegionComponent: Initiates get single region
+RegionComponent -> Resolver: query region(input)
 activate Resolver
-Resolver -> Service: getRegion(input)
+Resolver -> RegionsService: getRegion(input)
 activate Service
 
 alt input contains _id
@@ -45,9 +47,9 @@ else no valid input
     Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
 end
 
-Service --> Resolver: return region
+RegionsService --> Resolver: return region
 deactivate Service
-Resolver --> Client: return region
+Resolver --> RegionComponent: return region
 deactivate Resolver
 
 @enduml 

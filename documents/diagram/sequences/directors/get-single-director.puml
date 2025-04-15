@@ -1,78 +1,40 @@
 @startuml Get Single Director Flow
 
-skinparam SequenceMessageAlignment center
-skinparam SequenceBoxBackgroundColor white
-skinparam SequenceBoxBorderColor black
-skinparam NoteBackgroundColor lightyellow
-skinparam NoteBorderColor black
-skinparam ParticipantBackgroundColor white
-skinparam ParticipantBorderColor black
+' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Repository>>, <<Database>>
+participant "EditDirector (Next.js Admin)" as EditDirector <<Component>>
+participant "DirectorResolver" as Resolver <<Resolver>>
+participant "DirectorService" as Service <<Service>>
+participant "DirectorRepository" as Repository <<Repository>>
+database "MongoDB" as DB <<Database>>
 
-title Get Single Director Flow (GraphQL)
-
-actor Client
-participant "GraphQL Server" as GraphQL
-participant "Director Resolver" as Resolver
-participant "Director Service" as Service
-participant "Director Repository" as Repository
-database "MongoDB" as DB
-
-Client -> GraphQL : Query director(input: {_id or slug})
-activate GraphQL
-GraphQL -> Resolver : getDirector(input)
+EditDirector -> Resolver: query getDirector(input)
 activate Resolver
-
-Resolver -> Service : getDirector({_id, slug})
+Resolver -> Service: getDirector(input)
 activate Service
-
-alt _id parameter provided
-    Service -> Repository : findOneOrThrow(filterQuery: {_id})
+alt _id provided
+    Service -> Repository: findOneOrThrow({_id})
     activate Repository
-    
-    Repository -> DB : Find director by _id
+    Repository -> DB: Find director by _id
     activate DB
-    DB --> Repository : Return director or null
+    DB --> Repository: director or null
     deactivate DB
-    
-    alt director found
-        Repository --> Service : Return director
-    else director not found
-        Repository --> Service : Throw exception
-    end
-    
+    Repository --> Service: director or exception
     deactivate Repository
-else slug parameter provided
-    Service -> Repository : findOneOrThrow(filterQuery: {slug})
+else slug provided
+    Service -> Repository: findOneOrThrow({slug})
     activate Repository
-    
-    Repository -> DB : Find director by slug
+    Repository -> DB: Find director by slug
     activate DB
-    DB --> Repository : Return director or null
+    DB --> Repository: director or null
     deactivate DB
-    
-    alt director found
-        Repository --> Service : Return director
-    else director not found
-        Repository --> Service : Throw exception
-    end
-    
+    Repository --> Service: director or exception
     deactivate Repository
-else no parameters provided
-    Service --> Resolver : Throw HTTP 422 Exception\n(Unprocessable Entity)
+else no parameter
+    Service --> Resolver: Throw HTTP 422 Exception
 end
-
-alt success
-    Service --> Resolver : Return director
-    Resolver --> GraphQL : Return DirectorType
-    GraphQL --> Client : JSON Response
-else error
-    Service --> Resolver : Throw exception
-    Resolver --> GraphQL : Return error
-    GraphQL --> Client : Error Response
-end
-
+Service --> Resolver: director or error
 deactivate Service
+Resolver --> EditDirector: director or error
 deactivate Resolver
-deactivate GraphQL
 
-@enduml 
+@enduml

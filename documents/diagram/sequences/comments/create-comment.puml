@@ -1,79 +1,58 @@
 @startuml Create Comment Flow
 
-actor User
-participant "GraphQL API" as API
-participant "CommentResolver" as Resolver
-participant "CommentService" as Service
-participant "UsersService" as UsersService
-participant "MovieService" as MovieService
-participant "CommentRepository" as Repository
-database "MongoDB" as DB
+actor User <<Actor>>
+participant "MovieComment (Next.js)" as MovieComment <<Component>>
+participant "CommentResolver" as Resolver <<Resolver>>
+participant "CommentService" as CommentService <<Service>>
+participant "UsersService" as UsersService <<Service>>
+participant "MovieService" as MovieService <<Service>>
+participant "CommentsRepository" as CommentsRepository <<Repository>>
+database "MongoDB" as DB <<Database>>
 
-User -> API: createComment mutation
-activate API
-
-API -> Resolver: createComment(input, actor)
+User -> MovieComment: submit comment
+activate MovieComment
+MovieComment -> Resolver: mutation createComment(input)
 activate Resolver
-
-Resolver -> Service: createComment(actor, input)
-activate Service
-
-Service -> UsersService: findByIdOrThrow(actor.userId)
+Resolver -> CommentCommentService: createComment(actor, input)
+activate CommentService
+CommentService -> UsersCommentService: findByIdOrThrow(actor.userId)
 activate UsersService
-UsersService --> Service: user
+UsersService --> CommentCommentService: user
 deactivate UsersService
-
-Service -> MovieService: getMovie({_id: movieId})
+CommentService -> MovieCommentService: getMovie({_id: movieId})
 activate MovieService
-MovieService --> Service: movie
+MovieService --> CommentService: movie
 deactivate MovieService
-
 alt parentCommentId exists
-    Service -> Repository: findOne({_id: parentCommentId, movie: movie._id})
-    activate Repository
-    Repository --> Service: parentComment
-    deactivate Repository
-    
-    Service -> Service: Calculate nestingLevel and rootParentComment
+    CommentService -> CommentsRepository: findOne({_id: parentCommentId, movie: movie._id})
+    activate CommentsRepository
+    CommentsRepository --> CommentService: parentComment
+    deactivate CommentsRepository
+    CommentService -> CommentCommentService: Calculate nestingLevel and rootParentComment
 end
-
-Service -> Repository: create({document})
-activate Repository
-Repository -> DB: Insert Comment
-DB --> Repository: New Comment
-Repository --> Service: newComment
-deactivate Repository
-
+CommentService -> CommentsRepository: create({document})
+activate CommentsRepository
+CommentsRepository -> DB: Insert Comment
+DB --> CommentsRepository: New Comment
+CommentsRepository --> CommentCommentService: newComment
+deactivate CommentsRepository
 alt parentCommentId exists
-    Service -> Repository: findOneAndUpdate(parentComment)
-    activate Repository
-    Repository -> DB: Increment replyCount
-    Repository --> Service: Updated Parent
-    deactivate Repository
-    
+    CommentService -> CommentsRepository: findOneAndUpdate(parentComment)
+    activate CommentsRepository
+    CommentsRepository -> DB: Increment replyCount
+    CommentsRepository --> CommentCommentService: Updated Parent
+    deactivate CommentsRepository
     alt rootParentComment exists and different from parent
-        Service -> Repository: findOneAndUpdate(rootParentComment)
-        activate Repository
-        Repository -> DB: Increment replyCount
-        Repository --> Service: Updated Root Parent
-        deactivate Repository
+        CommentService -> CommentsRepository: findOneAndUpdate(rootParentComment)
+        activate CommentsRepository
+        CommentsRepository -> DB: Increment replyCount
+        CommentsRepository --> CommentCommentService: Updated Root Parent
+        deactivate CommentsRepository
     end
 end
-
-Service -> Repository: aggregate()
-activate Repository
-Repository -> DB: Aggregate with user lookup
-DB --> Repository: Populated Comment
-Repository --> Service: populatedComment
-deactivate Repository
-
-Service --> Resolver: comment
-deactivate Service
-
-Resolver --> API: CommentType
+CommentService --> Resolver: newComment
+deactivate CommentService
+Resolver --> MovieComment: newComment
 deactivate Resolver
 
-API --> User: Comment Data
-deactivate API
-
-@enduml 
+@enduml

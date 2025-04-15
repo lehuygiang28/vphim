@@ -10,59 +10,53 @@ autonumber
 title Email Confirmation Flow
 caption Verification process after user registration
 
-actor User #Black
-participant "Frontend" as FE #PaleGreen
-participant "AuthController" as AC #LightBlue
-participant "AuthService" as AS #LightBlue
-participant "JwtService" as JWT #Orange
-participant "UsersService" as US #LightBlue
-participant "Redis" as Redis #Pink
-participant "Database" as DB #Gray
+actor User <<Actor>>
+participant "Login (Next.js)" as LoginComponent <<Component>>
+participant "AuthController" as AuthController <<Controller>>
+participant "AuthService" as AuthService <<Service>>
+participant "JwtService" as JwtService <<Service>>
+participant "UsersService" as UsersService <<Service>>
+participant "RedisService" as RedisService <<Service>>
+database "MongoDB" as DB <<Database>>
 
-User -> FE ++ : Click confirmation link
+User -> LoginComponent: Click confirmation link
 note right of User: Clicks link from registration email
-FE -> AC ++ : POST /auth/register/confirm (hash)
-AC -> AS ++ : registerConfirm(hash)
+LoginComponent -> AuthController: POST /auth/register/confirm (hash)
+AuthController -> AuthService: registerConfirm(hash)
 
-AS -> JWT ++ : verifyAsync hash
+AuthService -> JwtService: verifyAsync hash
 note right: Validates token signature and expiry
 return decoded data or error
 
 alt Invalid hash
-    AS --> AC -- : throw UnprocessableEntityException
-    AC --> FE -- : 422 Invalid hash
-    FE --> User -- : Show error message
+    AuthService --> AuthController: throw UnprocessableEntityException
+    AuthController --> LoginComponent: 422 Invalid hash
+    LoginComponent --> User: Show error message
 else Valid hash
-    AS -> AS ++ : Extract userId from JWT payload
-    return userId
-
-    AS -> US ++ : findById(userId)
-    US -> DB ++ : query
+    AuthService -> UsersService: findById(userId)
+    UsersService -> DB: query
     return user
-    deactivate US
+    deactivate UsersService
 
-    AS -> AS ++ : Generate key "auth:confirmEmailHash:{userId}"
-    return key
-
-    AS -> Redis ++ : existsUniqueKey(key)
+    AuthService -> RedisService: existsUniqueKey(key)
     return exists status
 
     alt Hash doesn't exist or user already confirmed
-        AS --> AC -- : throw UnprocessableEntityException
-        AC --> FE -- : 422 Error message
-        FE --> User -- : Show error message
+        AuthService --> AuthController: throw UnprocessableEntityException
+        AuthController --> LoginComponent: 422 Error message
+        LoginComponent --> User: Show error message
     else Hash valid and user not confirmed
-        AS -> Redis ++ : del(key)
+        AuthService -> RedisService: del(key)
         return confirm deleted
 
-        AS -> US ++ : update user (emailVerified: true)
-        US -> DB ++ : update
+        AuthService -> UsersService: update user (emailVerified: true)
+        UsersService -> DB: update
         return updated
-        deactivate US
+        deactivate UsersService
 
-        AS --> AC -- : void (204 No Content)
-        AC --> FE -- : 204 No Content
-        FE --> User -- : Show success message
+        AuthService --> AuthController: void (204 No Content)
+        AuthController --> LoginComponent: 204 No Content
+        LoginComponent --> User: Show success message
     end
 end
 

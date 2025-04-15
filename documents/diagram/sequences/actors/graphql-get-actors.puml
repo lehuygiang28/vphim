@@ -10,64 +10,76 @@ skinparam ParticipantBorderColor black
 
 title GraphQL Get Actors Flow
 
-actor Client
-participant "GraphQL Server" as GraphQL
-participant "Actor Resolver" as Resolver
-participant "Actor Service" as Service
-participant "Redis Service" as Redis
-participant "Actor Repository" as Repository
-database "MongoDB" as DB
+actor "Client" as appClient
+participant "actorsUI:ActorsPage" as actorsUI <<Page>>
+participant "feComponent:FrontEndComponent" as feComponent <<Component>>
+participant "apolloClient:ApolloClient" as apolloClient <<Client>>
+participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
+participant "actorService:ActorService" as actorService <<Service>>
+participant "redisService:RedisService" as redisService <<Service>>
+participant "actorRepo:ActorRepository" as actorRepo <<Repository>>
+database "MongoDB" as mongoDB
 
-Client -> GraphQL : Query actors(input: {keywords, limit, page})
-activate GraphQL
-GraphQL -> Resolver : actors(input)
-activate Resolver
+appClient -> actorsUI : Browse actors page
+activate actorsUI
+actorsUI -> feComponent : Request actors data
+activate feComponent
+feComponent -> apolloClient : Execute actors query
+activate apolloClient
+apolloClient -> actorResolver : Query actors(input: GetActorsInput)
+activate actorResolver
 
-Resolver -> Service : getActors(input)
-activate Service
+actorResolver -> actorService : getActors(input:GetActorsInput)
+activate actorService
 
-Service -> Redis : get(cacheKey)
-activate Redis
-note right of Redis
-  Cache key: CACHED:ACTORS:{sorted query string}
+actorService -> redisService : get(cacheKey:String)
+activate redisService
+note right of redisService
+  Cache key: CACHED:ACTORS:{sortedStringify(input)}
 end note
-Redis --> Service : cache result or null
-deactivate Redis
+redisService --> actorService : Return cache result:GetActorsOutput or null
+deactivate redisService
 
 alt cache hit
-    Service --> Resolver : Return cached data with\nDate objects converted
+    note right of actorService
+      Convert Date strings back to Date objects
+    end note
+    actorService --> actorResolver : Return cached data:GetActorsOutput with Date objects converted
 else cache miss
-    Service -> Repository : find(filters, query)
-    activate Repository
-    Repository -> DB : Find actors matching filters
-    activate DB
-    DB --> Repository : Return actors
-    deactivate DB
-    Repository --> Service : Return actors
-    deactivate Repository
-    
-    Service -> Repository : count(filters)
-    activate Repository
-    Repository -> DB : Count actors matching filters
-    activate DB
-    DB --> Repository : Return count
-    deactivate DB
-    Repository --> Service : Return count
-    deactivate Repository
-    
-    Service -> Redis : set(cacheKey, result, 10s)
-    activate Redis
-    Redis --> Service : Cache set
-    deactivate Redis
-    
-    Service --> Resolver : Return { data, total, count }
+    actorService -> actorRepo : find({filterQuery:object, query:GetActorsInput})
+    activate actorRepo
+    actorRepo -> mongoDB : Find actors matching filters
+    activate mongoDB
+    mongoDB --> actorRepo : Return actors:Actor[]
+    deactivate mongoDB
+    actorRepo --> actorService : Return actors:Actor[]
+    deactivate actorRepo
+
+    actorService -> actorRepo : count(filters:object)
+    activate actorRepo
+    actorRepo -> mongoDB : Count actors matching filters
+    activate mongoDB
+    mongoDB --> actorRepo : Return count:number
+    deactivate mongoDB
+    actorRepo --> actorService : Return count:number
+    deactivate actorRepo
+
+    actorService -> redisService : set(cacheKey:String, result:GetActorsOutput, 1000 * 10)
+    activate redisService
+    redisService --> actorService : Cache set
+    deactivate redisService
+
+    actorService --> actorResolver : Return { data:Actor[], total:number, count:number }
 end
 
-Resolver --> GraphQL : Return GetActorsOutput
-deactivate Service
-deactivate Resolver
+actorResolver --> apolloClient : Return GetActorsOutput
+deactivate actorService
+deactivate actorResolver
+apolloClient --> feComponent : Return actors data
+deactivate apolloClient
+feComponent --> actorsUI : Render actors list
+deactivate feComponent
+actorsUI --> appClient : Display actors with pagination
+deactivate actorsUI
 
-GraphQL --> Client : JSON Response
-deactivate GraphQL
-
-@enduml 
+@enduml

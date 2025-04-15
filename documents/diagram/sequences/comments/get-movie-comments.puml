@@ -1,56 +1,45 @@
 @startuml Get Movie Comments Flow
 
-actor User
-participant "GraphQL API" as API
-participant "CommentResolver" as Resolver
-participant "CommentService" as Service
-participant "MovieService" as MovieService
-participant "CommentRepository" as Repository
-database "MongoDB" as DB
+actor User <<Actor>>
+participant "MovieComment (Next.js)" as MovieComment <<Component>>
+participant "CommentResolver" as Resolver <<Resolver>>
+participant "CommentService" as Service <<Service>>
+participant "MovieService" as MovieService <<Service>>
+participant "CommentsRepository" as Repository <<Repository>>
+database "MongoDB" as DB <<Database>>
 
-User -> API: movieComments query
-activate API
-
-API -> Resolver: getMovieComments(query)
-activate Resolver
-
-Resolver -> Service: getTopLevelComments(query)
-activate Service
-
-Service -> MovieService: getMovie({_id: movieId})
+User -> MovieComment: view comments
+activate MovieComment
+MovieComment -> MovieCommentResolver: query getMovieComments(input)
+activate MovieCommentResolver
+Resolver -> CommentService: getTopLevelComments(input)
+activate CommentService
+Service -> MovieCommentService: getMovie({_id: movieId})
 activate MovieService
-MovieService --> Service: movie
+MovieService --> CommentService: movie
 deactivate MovieService
-
 alt movie not found
-    Service --> Resolver: HttpException (Not Found)
-    Resolver --> API: Error
-    API --> User: Movie Not Found Error
+    Service --> MovieCommentResolver: HttpException (Not Found)
+    Resolver --> MovieComment: Error
 else movie found
-    Service -> Repository: aggregate([pipeline])
-    activate Repository
+    Service -> CommentsRepository: aggregate([pipeline])
+    activate CommentsRepository
     Repository -> DB: Aggregate Query
     note right: Match top-level comments\nSort by newest\nApply pagination\nLookup user data
-    DB --> Repository: Comments
-    Repository --> Service: comments
-    deactivate Repository
-    
-    Service -> Repository: count({movie, parentComment: null})
-    activate Repository
+    DB --> CommentsRepository: Comments
+    Repository --> CommentService: comments
+    deactivate CommentsRepository
+    Service -> CommentsRepository: count({movie, parentComment: null})
+    activate CommentsRepository
     Repository -> DB: Count Query
-    DB --> Repository: Total Count
-    Repository --> Service: total
-    deactivate Repository
-    
-    Service -> Service: formatCommentsOutput(comments, total, page, limit)
-    
-    Service --> Resolver: GetCommentsOutput
-    Resolver --> API: GetCommentsOutput
-    API --> User: Paginated Comments
+    DB --> CommentsRepository: Total Count
+    Repository --> CommentService: total
+    deactivate CommentsRepository
+    Service -> CommentService: formatCommentsOutput(comments, total, page, limit)
+    Service --> MovieCommentResolver: GetCommentsOutput
 end
+deactivate CommentService
+Resolver --> MovieComment: Paginated Comments
+deactivate MovieCommentResolver
 
-deactivate Service
-deactivate Resolver
-deactivate API
-
-@enduml 
+@enduml

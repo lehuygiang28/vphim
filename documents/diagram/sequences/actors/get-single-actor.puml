@@ -10,69 +10,81 @@ skinparam ParticipantBorderColor black
 
 title Get Single Actor Flow (GraphQL)
 
-actor Client
-participant "GraphQL Server" as GraphQL
-participant "Actor Resolver" as Resolver
-participant "Actor Service" as Service
-participant "Actor Repository" as Repository
-database "MongoDB" as DB
+actor "Client" as appClient
+participant "detailUI:ActorDetailPage" as detailUI <<Page>>
+participant "feComponent:FrontEndComponent" as feComponent <<Component>>
+participant "apolloClient:ApolloClient" as apolloClient <<Client>>
+participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
+participant "actorService:ActorService" as actorService <<Service>>
+participant "actorRepo:ActorRepository" as actorRepo <<Repository>>
+database "MongoDB" as mongoDB
 
-Client -> GraphQL : Query actor(input: {_id or slug})
-activate GraphQL
-GraphQL -> Resolver : getActor(input)
-activate Resolver
+appClient -> detailUI : View actor details
+activate detailUI
+detailUI -> feComponent : Request actor data
+activate feComponent
+feComponent -> apolloClient : Execute actor query
+activate apolloClient
+apolloClient -> actorResolver : Query actor(input: GetActorInput)
+activate actorResolver
 
-Resolver -> Service : getActor({_id, slug})
-activate Service
+actorResolver -> actorService : getActor({_id:String, slug:String})
+activate actorService
 
 alt _id parameter provided
-    Service -> Repository : findOneOrThrow(filterQuery: {_id})
-    activate Repository
-    
-    Repository -> DB : Find actor by _id
-    activate DB
-    DB --> Repository : Return actor or null
-    deactivate DB
-    
+    actorService -> actorRepo : findOneOrThrow({filterQuery: {_id:ObjectId}})
+    activate actorRepo
+
+    actorRepo -> mongoDB : Find actor by _id
+    activate mongoDB
+    mongoDB --> actorRepo : Return actor:Actor or null
+    deactivate mongoDB
+
     alt actor found
-        Repository --> Service : Return actor
+        actorRepo --> actorService : Return actor:ActorType
     else actor not found
-        Repository --> Service : Throw exception
+        actorRepo --> actorService : Throw NotFoundException
     end
-    
-    deactivate Repository
+
+    deactivate actorRepo
 else slug parameter provided
-    Service -> Repository : findOneOrThrow(filterQuery: {slug})
-    activate Repository
-    
-    Repository -> DB : Find actor by slug
-    activate DB
-    DB --> Repository : Return actor or null
-    deactivate DB
-    
+    actorService -> actorRepo : findOneOrThrow({filterQuery: {slug:String}})
+    activate actorRepo
+
+    actorRepo -> mongoDB : Find actor by slug
+    activate mongoDB
+    mongoDB --> actorRepo : Return actor:Actor or null
+    deactivate mongoDB
+
     alt actor found
-        Repository --> Service : Return actor
+        actorRepo --> actorService : Return actor:ActorType
     else actor not found
-        Repository --> Service : Throw exception
+        actorRepo --> actorService : Throw NotFoundException
     end
-    
-    deactivate Repository
+
+    deactivate actorRepo
 else no parameters provided
-    Service --> Resolver : Throw HTTP 422 Exception\n(Unprocessable Entity)
+    actorService --> actorResolver : Throw HttpException(UNPROCESSABLE_ENTITY)
 end
 
 alt success
-    Service --> Resolver : Return actor
-    Resolver --> GraphQL : Return ActorType
-    GraphQL --> Client : JSON Response
+    actorService --> actorResolver : Return actor:ActorType
+    actorResolver --> apolloClient : Return ActorType
+    apolloClient --> feComponent : Return actor data
+    feComponent --> detailUI : Render actor details
+    detailUI --> appClient : Display actor information
 else error
-    Service --> Resolver : Throw exception
-    Resolver --> GraphQL : Return error
-    GraphQL --> Client : Error Response
+    actorService --> actorResolver : Throw exception
+    actorResolver --> apolloClient : Return error
+    apolloClient --> feComponent : Return error
+    feComponent --> detailUI : Show error state
+    detailUI --> appClient : Display error message
 end
 
-deactivate Service
-deactivate Resolver
-deactivate GraphQL
+deactivate actorService
+deactivate actorResolver
+deactivate apolloClient
+deactivate feComponent
+deactivate detailUI
 
-@enduml 
+@enduml

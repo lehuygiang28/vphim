@@ -8,59 +8,72 @@ skinparam NoteBorderColor black
 skinparam ParticipantBackgroundColor white
 skinparam ParticipantBorderColor black
 
-title Get Actors Flow
+title Get Actors Flow (REST API)
 
-actor User
-participant "API Controller" as Controller
-participant "Actor Service" as Service
-participant "Redis Service" as Redis
-participant "Actor Repository" as Repository
-database "MongoDB" as DB
+actor "User" as appUser
+participant "actorsUI:ActorsListPage" as actorsUI <<Page>>
+participant "feComponent:FrontEndComponent" as feComponent <<Component>>
+participant "actorController:ActorController" as actorController <<Controller>>
+participant "actorService:ActorService" as actorService <<Service>>
+participant "redisService:RedisService" as redisService <<Service>>
+participant "actorRepo:ActorRepository" as actorRepo <<Repository>>
+database "MongoDB" as mongoDB
 
-User -> Controller : GET /actors?keywords=&limit=&page=
-activate Controller
-Controller -> Service : getActors(query)
-activate Service
+appUser -> actorsUI : Browse actors page
+activate actorsUI
+actorsUI -> feComponent : Request actors data
+activate feComponent
+feComponent -> actorController : GET /actors?keywords=&limit=&page=
+activate actorController
+actorController -> actorService : getActors(query: GetActorsInput)
+activate actorService
 
-Service -> Redis : get(cacheKey)
-activate Redis
-note right of Redis
-  Cache key: CACHED:ACTORS:{sorted query string}
+actorService -> redisService : get(cacheKey: String)
+activate redisService
+note right of redisService
+  Cache key: CACHED:ACTORS:{sortedStringify(query)}
 end note
-Redis --> Service : cache result or null
-deactivate Redis
+redisService --> actorService : Return cache result:GetActorsOutput or null
+deactivate redisService
 
 alt cache hit
-    Service --> Controller : Return cached data
+    note right of actorService
+      Convert Date strings back to Date objects
+    end note
+    actorService --> actorController : Return cached data:GetActorsOutput with converted dates
 else cache miss
-    Service -> Repository : find(filters, query)
-    activate Repository
-    Repository -> DB : Find actors matching filters
-    activate DB
-    DB --> Repository : Return actors
-    deactivate DB
-    Repository --> Service : Return actors
-    deactivate Repository
-    
-    Service -> Repository : count(filters)
-    activate Repository
-    Repository -> DB : Count actors matching filters
-    activate DB
-    DB --> Repository : Return count
-    deactivate DB
-    Repository --> Service : Return count
-    deactivate Repository
-    
-    Service -> Redis : set(cacheKey, result, 10s)
-    activate Redis
-    Redis --> Service : Cache set
-    deactivate Redis
-    
-    Service --> Controller : Return { data, total, count }
+    actorService -> actorRepo : find({filterQuery: filters, query})
+    activate actorRepo
+    actorRepo -> mongoDB : Find actors matching filters
+    activate mongoDB
+    mongoDB --> actorRepo : Return actors:Actor[]
+    deactivate mongoDB
+    actorRepo --> actorService : Return actors:Actor[]
+    deactivate actorRepo
+
+    actorService -> actorRepo : count(filters)
+    activate actorRepo
+    actorRepo -> mongoDB : Count actors matching filters
+    activate mongoDB
+    mongoDB --> actorRepo : Return count:number
+    deactivate mongoDB
+    actorRepo --> actorService : Return count:number
+    deactivate actorRepo
+
+    actorService -> redisService : set(cacheKey:String, result:GetActorsOutput, 1000 * 10)
+    activate redisService
+    redisService --> actorService : Cache set
+    deactivate redisService
+
+    actorService --> actorController : Return { data:Actor[], total:number, count:number }
 end
 
-Controller --> User : Return GetActorsOutput
-deactivate Service
-deactivate Controller
+actorController --> feComponent : Return GetActorsOutput
+deactivate actorService
+deactivate actorController
+feComponent --> actorsUI : Render actors list
+deactivate feComponent
+actorsUI --> appUser : Display actors with pagination
+deactivate actorsUI
 
-@enduml 
+@enduml

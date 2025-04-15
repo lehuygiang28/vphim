@@ -1,65 +1,70 @@
 @startuml User GraphQL Me Flows
 
-actor "Client" as Client
-participant "UsersResolver" as Resolver
-participant "UsersService" as Service
-participant "UsersRepository" as Repository
-database "MongoDB" as DB
+actor "User" as user
+participant "UserPage (Next.js)" as userPage <<Component>>
+participant "UsersResolver" as usersResolver <<Resolver>>
+participant "UsersService" as usersService <<Service>>
+participant "UsersRepository" as usersRepository <<Repository>>
+database "MongoDB" as mongoDB <<Database>>
 
-note over Client, DB: Get Me Flow
 
-Client -> Resolver: getMe(actor)
-activate Resolver
 
-Resolver -> Service: findByIdOrThrow(userId, options)
-activate Service
 
-Service -> Repository: findOne(userId, options)
-activate Repository
-Repository -> DB: Query user with populated followMovies
-DB --> Repository: User document with followMovies
-Repository --> Service: Return user or null
-deactivate Repository
+
+note over userPage, mongoDB: Get Me Flow
+
+userPage -> usersResolver: getMe(actor)
+activate usersResolver
+
+usersResolver -> usersService: findByIdOrThrow(userId, options)
+activate usersService
+
+usersService -> usersRepository: findOne(userId, options)
+activate usersRepository
+usersRepository -> mongoDB: Query user with populated followMovies
+mongoDB --> usersRepository: User document with followMovies
+usersRepository --> usersService: Return user or null
+deactivate usersRepository
 
 alt User not found
-    Service --> Resolver: Throw UnprocessableEntityException
-    Resolver --> Client: GraphQL Error Response
+    usersService --> usersResolver: Throw UnprocessableEntityException
+    usersResolver --> userPage: GraphQL Error Response
 else User found
-    Service --> Resolver: Return user
-    Resolver --> Client: GraphQL Response with User data
+    usersService --> usersResolver: Return user
+    usersResolver --> userPage: GraphQL Response with User data
 end
 
-deactivate Service
-deactivate Resolver
+deactivate usersService
+deactivate usersResolver
 
-note over Client, DB: Update Me Flow
+note over userPage, mongoDB: Update Me Flow
 
-Client -> Resolver: mutationMe(input, actor)
-activate Resolver
+userPage -> usersResolver: mutationMe(input, actor)
+activate usersResolver
 
-Resolver -> Service: update(userId, updateData)
-activate Service
+usersResolver -> usersService: update(userId, updateData)
+activate usersService
 
 alt updateData has password
-    Service -> Service: Generate password hash with bcrypt
+    usersService -> usersService: Generate password hash with bcrypt
 end
 
-Service -> Repository: findOneAndUpdate(userId, updateQuery)
-activate Repository
-Repository -> DB: Update user document
-DB --> Repository: Updated user document
-Repository --> Service: Return updated user or null
-deactivate Repository
+usersService -> usersRepository: findOneAndUpdate(userId, updateQuery)
+activate usersRepository
+usersRepository -> mongoDB: Update user document
+mongoDB --> usersRepository: Updated user document
+usersRepository --> usersService: Return updated user or null
+deactivate usersRepository
 
 alt User not found
-    Service --> Resolver: Return null
-    Resolver --> Client: GraphQL Response with null
+    usersService --> usersResolver: Return null
+    usersResolver --> userPage: GraphQL Response with null
 else User updated
-    Service --> Resolver: Return updated User
-    Resolver --> Client: GraphQL Response with updated User data
+    usersService --> usersResolver: Return updated User
+    usersResolver --> userPage: GraphQL Response with updated User data
 end
 
-deactivate Service
-deactivate Resolver
+deactivate usersService
+deactivate usersResolver
 
-@enduml 
+@enduml

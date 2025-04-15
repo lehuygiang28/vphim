@@ -10,44 +10,68 @@ skinparam ParticipantBorderColor black
 
 title Delete Actor Flow (GraphQL)
 
-actor "Admin User" as Admin
-participant "GraphQL Server" as GraphQL
-participant "Auth Guard" as Auth
-participant "Actor Resolver" as Resolver
-participant "Actor Service" as Service
-participant "Actor Repository" as Repository
-database "MongoDB" as DB
+actor "Admin User" as adminUser
+participant "adminUI:ActorManagementPage" as adminUI <<Page>>
+participant "actorListItem:ActorListItem" as actorListItem <<Component>>
+participant "apolloClient:ApolloClient" as apolloClient <<Client>>
+participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "actorService:ActorService" as actorService <<Service>>
+participant "actorRepo:ActorRepository" as actorRepo <<Repository>>
+database "MongoDB" as mongoDB
 
-Admin -> GraphQL : Mutation deleteActor(input: {_id})
-activate GraphQL
+adminUser -> adminUI : Navigate to actor management
+activate adminUI
 
-GraphQL -> Auth : Check user role
-activate Auth
-Auth --> GraphQL : Validate admin role
-deactivate Auth
+adminUI -> actorListItem : Display actor list
+activate actorListItem
 
-GraphQL -> Resolver : deleteActor(input)
-activate Resolver
+adminUser -> actorListItem : Clicks delete button for actor
+actorListItem -> adminUser : Show confirmation dialog
 
-Resolver -> Service : deleteActor({_id})
-activate Service
+adminUser -> actorListItem : Confirm deletion
+actorListItem -> apolloClient : Execute deleteActor mutation
+activate apolloClient
 
-Service -> Repository : deleteOne({_id: convertToObjectId(_id)})
-activate Repository
-Repository -> DB : Delete actor by _id
-activate DB
-DB --> Repository : Deletion result
-deactivate DB
-Repository --> Service : Return result
-deactivate Repository
+apolloClient -> actorResolver : Mutation deleteActor(input: DeleteActorInput)
+activate actorResolver
 
-Service --> Resolver : Return 1 (success count)
-deactivate Service
+actorResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> actorResolver : Return UserJwt
+deactivate jwtStrategy
 
-Resolver --> GraphQL : Return Integer (1)
-deactivate Resolver
+actorResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> actorResolver : Validate admin role
+deactivate rolesGuard
 
-GraphQL --> Admin : JSON Response
-deactivate GraphQL
+actorResolver -> actorService : deleteActor({_id: String})
+activate actorService
 
-@enduml 
+actorService -> actorRepo : deleteOne({_id: ObjectId})
+activate actorRepo
+actorRepo -> mongoDB : Delete actor by _id
+activate mongoDB
+mongoDB --> actorRepo : Return deletion result
+deactivate mongoDB
+actorRepo --> actorService : Return result
+deactivate actorRepo
+
+actorService --> actorResolver : Return 1 (success count)
+deactivate actorService
+
+actorResolver --> apolloClient : Return Int (1)
+deactivate actorResolver
+
+apolloClient --> actorListItem : Return success
+deactivate apolloClient
+
+actorListItem -> adminUI : Update actor list
+actorListItem --> adminUser : Show deletion confirmation
+
+deactivate actorListItem
+deactivate adminUI
+
+@enduml

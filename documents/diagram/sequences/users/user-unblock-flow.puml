@@ -1,70 +1,75 @@
 @startuml User Unblock Flow
 
-actor "Admin Client" as Client
-participant "UsersController" as Controller
-participant "UsersService" as Service
-participant "UsersRepository" as Repository
-database "MongoDB" as DB
+actor "Admin User" as adminUser
+participant "UserPage (Next.js)" as userPage <<Component>>
+participant "UsersResolver" as usersResolver <<Resolver>>
+participant "UsersService" as usersService <<Service>>
+participant "UsersRepository" as usersRepository <<Repository>>
+database "MongoDB" as mongoDB <<Database>>
+participant "UsersController" as usersController <<Controller>>
 
-Client -> Controller: PATCH /users/unblock/{id}
-activate Controller
 
-Controller -> Service: unblockUser({ actor, userId })
-activate Service
 
-Service -> Service: findByIdOrThrow(actor.userId)
-activate Service #DarkSalmon
-Service -> Repository: findOne(actor._id)
-Repository -> DB: Query user
-DB --> Repository: User document
-Repository --> Service: Return user or null
+
+userPage -> usersController: PATCH /users/unblock/{id}
+activate usersController
+
+usersController -> usersService: unblockUser({ actor, userId })
+activate usersService
+
+usersService -> usersService: findByIdOrThrow(actor.userId)
+activate usersService #DarkSalmon
+usersService -> usersRepository: findOne(actor._id)
+usersRepository -> mongoDB: Query user
+mongoDB --> usersRepository: User document
+usersRepository --> usersService: Return user or null
 alt User not found
-    Service --> Service: Throw UnprocessableEntityException
+    usersService --> usersService: Throw UnprocessableEntityException
 end
-Service --> Service: Return actor user
-deactivate Service
+usersService --> usersService: Return actor user
+deactivate usersService
 
 alt Actor role is not Admin
-    Service --> Controller: Throw HttpException\n(UNAUTHORIZED)
-    Controller --> Client: HTTP 401 Unauthorized
+    usersService --> usersController: Throw HttpException\n(UNAUTHORIZED)
+    usersController --> userPage: HTTP 401 Unauthorized
 else Actor is blocked
-    Service --> Controller: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-    Controller --> Client: HTTP 422 Error Response
+    usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+    usersController --> userPage: HTTP 422 Error Response
 else Actor is Admin and not blocked
-    Service -> Service: findByIdOrThrow(userId)
-    activate Service #DarkSalmon
-    Service -> Repository: findOne(userId)
-    Repository -> DB: Query user
-    DB --> Repository: User document
-    Repository --> Service: Return user or null
+    usersService -> usersService: findByIdOrThrow(userId)
+    activate usersService #DarkSalmon
+    usersService -> usersRepository: findOne(userId)
+    usersRepository -> mongoDB: Query user
+    mongoDB --> usersRepository: User document
+    usersRepository --> usersService: Return user or null
     alt User not found
-        Service --> Service: Throw UnprocessableEntityException
+        usersService --> usersService: Throw UnprocessableEntityException
     end
-    Service --> Service: Return target user
-    deactivate Service
-    
+    usersService --> usersService: Return target user
+    deactivate usersService
+
     alt Actor is trying to unblock themselves
-        Service --> Controller: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-        Controller --> Client: HTTP 422 Error Response
+        usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+        usersController --> userPage: HTTP 422 Error Response
     else Target user is not blocked
-        Service --> Controller: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-        Controller --> Client: HTTP 422 Error Response
+        usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+        usersController --> userPage: HTTP 422 Error Response
     else Valid unblock request
-        Service -> Service: Create blockLog with\naction=unblock, timestamp, actor ID
-        
-        Service -> Repository: findOneAndUpdate(userId, updateQuery)
-        activate Repository
-        Repository -> DB: Update user with isBlocked=false and blockLog
-        DB --> Repository: Updated user document
-        Repository --> Service: Return updated user
-        deactivate Repository
-        
-        Service --> Controller: Return updated User
-        Controller --> Client: HTTP 200 OK\nUserDto
+        usersService -> usersService: Create blockLog with\naction=unblock, timestamp, actor ID
+
+        usersService -> usersRepository: findOneAndUpdate(userId, updateQuery)
+        activate usersRepository
+        usersRepository -> mongoDB: Update user with isBlocked=false and blockLog
+        mongoDB --> usersRepository: Updated user document
+        usersRepository --> usersService: Return updated user
+        deactivate usersRepository
+
+        usersService --> usersController: Return updated User
+        usersController --> userPage: HTTP 200 OK\nUserDto
     end
 end
 
-deactivate Service
-deactivate Controller
+deactivate usersService
+deactivate usersController
 
-@enduml 
+@enduml

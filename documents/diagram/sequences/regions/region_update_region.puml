@@ -1,13 +1,15 @@
 @startuml Region - Update Region
 
-actor "Admin" as Client
-participant "RegionResolver" as Resolver
-participant "RequiredRoles Guard" as Guard
-participant "RegionsService" as Service
-participant "RegionRepository" as Repo
-database "MongoDB" as DB
+actor User <<Actor>>
+participant "RegionComponent (Next.js Admin)" as RegionComponent <<Component>>
+participant "RegionResolver" as Resolver <<Resolver>>
+participant "RequiredRoles Guard" as Guard <<Service>>
+participant "RegionsService" as RegionsService <<Service>>
+participant "RegionRepository" as RegionRepository <<Repository>>
+database "MongoDB" as MongoDB <<Database>>
 
-Client -> Resolver: mutation updateRegion(input)
+User -> RegionComponent: Initiates region update
+RegionComponent -> Resolver: mutation updateRegion(input)
 activate Resolver
 
 Resolver -> Guard: check admin role
@@ -15,13 +17,13 @@ activate Guard
 alt user is admin
     Guard --> Resolver: allow
 else user is not admin
-    Guard --> Client: throw ForbiddenException
+    Guard --> User: throw ForbiddenException
     deactivate Resolver
     deactivate Guard
 end
 deactivate Guard
 
-Resolver -> Service: updateRegion(input)
+Resolver -> RegionsService: updateRegion(input)
 activate Service
 
 Service -> Repo: findOneAndUpdateOrThrow(filterQuery, updateQuery)
@@ -38,9 +40,9 @@ else region not found
 end
 deactivate Repo
 
-Service --> Resolver: return updated region
+RegionsService --> Resolver: return updated region
 deactivate Service
-Resolver --> Client: return updated region
+Resolver --> RegionComponent: return updated region
 deactivate Resolver
 
 @enduml 

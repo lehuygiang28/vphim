@@ -10,62 +10,91 @@ skinparam ParticipantBorderColor black
 
 title Create Actor Flow (GraphQL)
 
-actor "Admin User" as Admin
-participant "GraphQL Server" as GraphQL
-participant "Auth Guard" as Auth
-participant "Actor Resolver" as Resolver
-participant "Actor Service" as Service
-participant "Actor Repository" as Repository
-database "MongoDB" as DB
+actor "Admin User" as adminUser
+participant "actorPage:CreateActor" as actorPage <<Page>>
+participant "personForm:PersonResourceForm" as personForm <<Component>>
+participant "baseForm:BaseResourceForm" as baseForm <<Component>>
+participant "apolloClient:ApolloClient" as apolloClient <<Client>>
+participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
+control "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+control "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "actorService:ActorService" as actorService <<Service>>
+participant "actorRepo:ActorRepository" as actorRepo <<Repository>>
+database "MongoDB" as mongoDB
 
-Admin -> GraphQL : Mutation createActor(input: {name, slug, ...})
-activate GraphQL
+adminUser -> actorPage : Navigate to actor creation page
+activate actorPage
 
-GraphQL -> Auth : Check user role
-activate Auth
-Auth --> GraphQL : Validate admin role
-deactivate Auth
+actorPage -> personForm : Display form
+activate personForm
 
-GraphQL -> Resolver : createActor(input)
-activate Resolver
+personForm -> baseForm : Render form fields
+activate baseForm
 
-Resolver -> Service : createActor({name, slug, ...})
-activate Service
+adminUser -> baseForm : Fills name, originalName, slug, posterUrl
 
-Service -> Repository : findOne(filterQuery: {slug})
-activate Repository
-Repository -> DB : Find actor by slug
-activate DB
-DB --> Repository : Return actor or null
-deactivate DB
-Repository --> Service : Return existing actor or null
-deactivate Repository
+baseForm -> apolloClient : Execute createActor mutation
+apolloClient -> actorResolver : Mutation createActor(input: CreateActorInput)
+activate actorResolver
+
+actorResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> actorResolver : Return UserJwt
+deactivate jwtStrategy
+
+actorResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> actorResolver : Validate admin role
+deactivate rolesGuard
+
+actorResolver -> actorService : createActor({name, slug, ...})
+activate actorService
+
+actorService -> actorRepo : findOne({filterQuery: {slug}})
+activate actorRepo
+actorRepo -> mongoDB : Find actor by slug
+activate mongoDB
+mongoDB --> actorRepo : Return actor or null
+deactivate mongoDB
+actorRepo --> actorService : Return existing actor or null
+deactivate actorRepo
 
 alt slug already exists
-    Service --> Resolver : Throw BadRequestException\n(Slug already exists)
+    actorService --> actorResolver : Throw BadRequestException\n(Slug already exists)
+    actorResolver --> apolloClient : Return error
+    apolloClient --> baseForm : Display error message
+    baseForm --> personForm : Update with error state
+    personForm --> actorPage : Show error
+    actorPage --> adminUser : Show slug already exists error
 else slug is unique
-    note right of Service
-        Process slug by removing diacritics 
-        and tones if needed
+    note right of actorService
+        Process slug by removing diacritics
+        and tones using removeDiacritics()
+        and removeTone()
     end note
-    
-    Service -> Repository : create({name, originalName, slug, posterUrl})
-    activate Repository
-    Repository -> DB : Insert new actor document
-    activate DB
-    DB --> Repository : Return created actor
-    deactivate DB
-    Repository --> Service : Return created actor
-    deactivate Repository
-    
-    Service --> Resolver : Return new actor
+
+    actorService -> actorRepo : create({document: {...}})
+    activate actorRepo
+    actorRepo -> mongoDB : Insert new actor document
+    activate mongoDB
+    mongoDB --> actorRepo : Return created actor
+    deactivate mongoDB
+    actorRepo --> actorService : Return created actor
+    deactivate actorRepo
+
+    actorService --> actorResolver : Return new actor (ActorType)
+    actorResolver --> apolloClient : Return ActorType
+    apolloClient --> baseForm : Return success with actor data
+    baseForm --> personForm : Update form with success
+    personForm --> actorPage : Complete form submission
+    actorPage --> adminUser : Redirect to actor details page
 end
 
-Resolver --> GraphQL : Return ActorType or error
-deactivate Service
-deactivate Resolver
+deactivate actorService
+deactivate actorResolver
+deactivate apolloClient
+deactivate baseForm
+deactivate personForm
+deactivate actorPage
 
-GraphQL --> Admin : JSON Response or Error
-deactivate GraphQL
-
-@enduml 
+@enduml

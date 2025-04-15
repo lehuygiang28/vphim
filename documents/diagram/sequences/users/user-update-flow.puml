@@ -1,70 +1,74 @@
 @startuml User Update Flow
 
-actor "Admin Client" as Client
-participant "UsersController" as Controller
-participant "UsersService" as Service
-participant "UsersRepository" as Repository
-database "MongoDB" as DB
-participant "ConfigService" as ConfigService
+actor "Admin User" as adminUser
+participant "UserUpdateComponent (Next.js Admin)" as userUpdateComponent <<Component>>
+participant "UsersResolver" as usersResolver <<Resolver>>
+participant "UsersService" as usersService <<Service>>
+participant "UsersRepository" as usersRepository <<Repository>>
+database "MongoDB" as mongoDB <<Database>>
+participant "ConfigService" as configService <<Service>>
+participant "UsersController" as usersController <<Controller>>
 
-Client -> Controller: PATCH /users/{id}\nUpdateUserDto
-activate Controller
 
-Controller -> Service: updateUser({ actor, userId, data })
-activate Service
 
-Service -> Service: findByIdOrThrow(actor.userId)
-activate Service #DarkSalmon
-Service -> Repository: findOne(actor._id)
-Repository -> DB: Query actor user
-DB --> Repository: User document
-Repository --> Service: Return user or null
+userUpdateComponent -> usersController: PATCH /users/{id}\nUpdateUserDto
+activate usersController
+
+usersController -> usersService: updateUser({ actor, userId, data })
+activate usersService
+
+usersService -> usersService: findByIdOrThrow(actor.userId)
+activate usersService #DarkSalmon
+usersService -> usersRepository: findOne(actor._id)
+usersRepository -> mongoDB: Query actor user
+mongoDB --> usersRepository: User document
+usersRepository --> usersService: Return user or null
 alt User not found
-    Service --> Service: Throw UnprocessableEntityException
+    usersService --> usersService: Throw UnprocessableEntityException
 end
-Service --> Service: Return actor user
-deactivate Service
+usersService --> usersService: Return actor user
+deactivate usersService
 
-Service -> Service: findByIdOrThrow(userId)
-activate Service #DarkSalmon
-Service -> Repository: findOne(userId)
-Repository -> DB: Query target user
-DB --> Repository: User document
-Repository --> Service: Return user or null
+usersService -> usersService: findByIdOrThrow(userId)
+activate usersService #DarkSalmon
+usersService -> usersRepository: findOne(userId)
+usersRepository -> mongoDB: Query target user
+mongoDB --> usersRepository: User document
+usersRepository --> usersService: Return user or null
 alt User not found
-    Service --> Service: Throw UnprocessableEntityException
+    usersService --> usersService: Throw UnprocessableEntityException
 end
-Service --> Service: Return target user
-deactivate Service
+usersService --> usersService: Return target user
+deactivate usersService
 
 alt Actor is not admin or is the same user
-    Service --> Controller: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-    Controller --> Client: HTTP 422 Error Response
+    usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+    usersController --> userUpdateComponent: HTTP 422 Error Response
 else Actor is admin and different user
     alt Updating role and target is root admin
-        Service -> ConfigService: get('auth.adminEmail')
-        ConfigService --> Service: Return admin email
-        
-        Service -> Service: Check if user is root admin
-        
-        Service --> Controller: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-        Controller --> Client: HTTP 422 Error Response
+        usersService -> configService: get('auth.adminEmail')
+        configService --> usersService: Return admin email
+
+        usersService -> usersService: Check if user is root admin
+
+        usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+        usersController --> userUpdateComponent: HTTP 422 Error Response
     else Valid update request
-        Service -> Service: Prepare updateQuery
-        
-        Service -> Repository: findOneAndUpdateOrThrow(userId, updateQuery)
-        activate Repository
-        Repository -> DB: Update user document
-        DB --> Repository: Updated user document
-        Repository --> Service: Return updated user
-        deactivate Repository
-        
-        Service --> Controller: Return updated User
-        Controller --> Client: HTTP 200 OK\nUserDto
+        usersService -> usersService: Prepare updateQuery
+
+        usersService -> usersRepository: findOneAndUpdateOrThrow(userId, updateQuery)
+        activate usersRepository
+        usersRepository -> mongoDB: Update user document
+        mongoDB --> usersRepository: Updated user document
+        usersRepository --> usersService: Return updated user
+        deactivate usersRepository
+
+        usersService --> usersController: Return updated User
+        usersController --> userUpdateComponent: HTTP 200 OK\nUserDto
     end
 end
 
-deactivate Service
-deactivate Controller
+deactivate usersService
+deactivate usersController
 
-@enduml 
+@enduml

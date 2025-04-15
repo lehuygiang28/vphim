@@ -1,57 +1,59 @@
 @startuml Region - Create Region
 
-actor "Admin" as Client
-participant "RegionResolver" as Resolver
-participant "RequiredRoles Guard" as Guard
-participant "RegionsService" as Service
-participant "RegionRepository" as Repo
-database "MongoDB" as DB
+actor User <<Actor>>
+participant "RegionComponent (Next.js Admin)" as RegionComponent <<Component>>
+participant "RegionResolver" as Resolver <<Resolver>>
+participant "RequiredRoles Guard" as Guard <<Service>>
+participant "RegionsService" as RegionsService <<Service>>
+participant "RegionRepository" as RegionRepository <<Repository>>
+database "MongoDB" as MongoDB <<Database>>
 
-Client -> Resolver: mutation createRegion(input)
-activate Resolver
+User -> RegionComponent: Initiates region creation
+RegionComponent -> RegionResolver: mutation createRegion(input)
+activate RegionResolver
 
-Resolver -> Guard: check admin role
+Resolver -> RequiredRoles Guard: check admin role
 activate Guard
 alt user is admin
-    Guard --> Resolver: allow
+    Guard --> RegionResolver: allow
 else user is not admin
-    Guard --> Client: throw ForbiddenException
-    deactivate Resolver
+    Guard --> User: throw ForbiddenException
+    deactivate RegionResolver
     deactivate Guard
 end
 deactivate Guard
 
-Resolver -> Service: createRegion(input)
-activate Service
+Resolver -> RegionsService: createRegion(input)
+activate RegionsService
 
-Service -> Repo: findOne(filterQuery: {slug})
-activate Repo
+Service -> RegionRepository: findOne(filterQuery: {slug})
+activate RegionRepository
 Repo -> DB: findOne({slug})
 activate DB
-DB --> Repo: return existing region or null
+DB --> RegionRepository: return existing region or null
 deactivate DB
-Repo --> Service: return result
-deactivate Repo
+Repo --> RegionsService: return result
+deactivate RegionRepository
 
 alt slug already exists
-    Service --> Resolver: throw BadRequestException
+    Service --> RegionResolver: throw BadRequestException
 else slug is unique
-    Service -> Service: process slug (removeDiacritics, removeTone)
-    
-    Service -> Repo: create(document)
-    activate Repo
+    RegionsService -> RegionsService: process slug (removeDiacritics, removeTone)
+
+    Service -> RegionRepository: create(document)
+    activate RegionRepository
     Repo -> DB: save new region
     activate DB
-    DB --> Repo: return saved region
+    DB --> RegionRepository: return saved region
     deactivate DB
-    Repo --> Service: return new region
-    deactivate Repo
-    
-    Service --> Resolver: return new region
+    Repo --> RegionsService: return new region
+    deactivate RegionRepository
+
+    RegionsService --> RegionResolver: return new region
 end
 
-deactivate Service
+deactivate RegionsService
 Resolver --> Client: return created region
-deactivate Resolver
+deactivate RegionResolver
 
-@enduml 
+@enduml

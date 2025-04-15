@@ -1,59 +1,47 @@
 @startuml Get Comment Replies Flow
 
-actor User
-participant "GraphQL API" as API
-participant "CommentResolver" as Resolver
-participant "CommentService" as Service
-participant "CommentRepository" as Repository
-database "MongoDB" as DB
+actor User <<Actor>>
+participant "MovieComment (Next.js)" as MovieComment <<Component>>
+participant "CommentResolver" as Resolver <<Resolver>>
+participant "CommentService" as Service <<Service>>
+participant "CommentsRepository" as Repository <<Repository>>
+database "MongoDB" as DB <<Database>>
 
-User -> API: commentReplies query
-activate API
-
-API -> Resolver: getCommentReplies(query)
-activate Resolver
-
-Resolver -> Service: getCommentReplies(query)
-activate Service
-
-Service -> Repository: findOne({_id: parentCommentId})
-activate Repository
+User -> MovieComment: view comment replies
+activate MovieComment
+MovieComment -> CommentReplyResolver: query getCommentReplies(input)
+activate CommentReplyResolver
+Resolver -> CommentService: getCommentReplies(input)
+activate CommentService
+Service -> CommentsRepository: findOne({_id: parentCommentId})
+activate CommentsRepository
 Repository -> DB: Query Comment
-DB --> Repository: Parent Comment
-Repository --> Service: parentComment
-deactivate Repository
-
+DB --> CommentsRepository: Parent Comment
+Repository --> CommentService: parentComment
+deactivate CommentsRepository
 alt parent comment not found
-    Service --> Resolver: HttpException (Not Found)
-    Resolver --> API: Error
-    API --> User: Comment Not Found Error
+    Service --> CommentReplyResolver: HttpException (Not Found)
+    Resolver --> MovieComment: Error
 else parent comment found
-    Service -> Service: Construct matchStage based on includeNestedReplies flag
-    
-    Service -> Repository: aggregate([pipeline])
-    activate Repository
+    Service -> CommentService: Construct matchStage based on includeNestedReplies flag
+    Service -> CommentsRepository: aggregate([pipeline])
+    activate CommentsRepository
     Repository -> DB: Aggregate Query
     note right: Match replies based on criteria\nSort by nesting level & newest\nApply pagination\nLookup user data
-    DB --> Repository: Replies
-    Repository --> Service: replies
-    deactivate Repository
-    
-    Service -> Repository: count(countFilter)
-    activate Repository
+    DB --> CommentsRepository: Replies
+    Repository --> CommentService: replies
+    deactivate CommentsRepository
+    Service -> CommentsRepository: count(countFilter)
+    activate CommentsRepository
     Repository -> DB: Count Query
-    DB --> Repository: Total Count
-    Repository --> Service: total
-    deactivate Repository
-    
-    Service -> Service: formatRepliesOutput(replies, total, page, limit)
-    
-    Service --> Resolver: GetCommentRepliesOutput
-    Resolver --> API: GetCommentRepliesOutput
-    API --> User: Paginated Replies
+    DB --> CommentsRepository: Total Count
+    Repository --> CommentService: total
+    deactivate CommentsRepository
+    Service -> CommentService: formatRepliesOutput(replies, total, page, limit)
+    Service --> CommentReplyResolver: GetCommentRepliesOutput
 end
+deactivate CommentService
+Resolver --> MovieComment: Paginated Replies
+deactivate CommentReplyResolver
 
-deactivate Service
-deactivate Resolver
-deactivate API
-
-@enduml 
+@enduml

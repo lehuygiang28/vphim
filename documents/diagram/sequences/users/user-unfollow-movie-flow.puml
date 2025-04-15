@@ -1,58 +1,64 @@
 @startuml User Unfollow Movie Flow
 
-actor "Client" as Client
-participant "UsersResolver" as Resolver
-participant "UsersService" as Service
+actor "User" as user
+participant "UserFollowMovieButton (Next.js)" as userFollowMovieButton <<Component>>
+participant "UsersResolver" as usersResolver <<Resolver>>
+participant "UsersService" as usersService <<Service>>
+participant "MovieService" as movieService <<Service>>
+participant "UsersRepository" as usersRepository <<Repository>>
+database "MongoDB" as mongoDB <<Database>>
+
+
 participant "MovieService" as MovieService
-participant "UsersRepository" as Repository
-database "MongoDB" as DB
 
-Client -> Resolver: unfollowMovie(input, actor)
-activate Resolver
 
-Resolver -> Service: unfollowMovie({ actor, movieSlug })
-activate Service
 
-Service -> Service: findByIdOrThrow(actor.userId)
-activate Service #DarkSalmon
-Service -> Repository: findOne(actor._id)
-Repository -> DB: Query user
-DB --> Repository: User document
-Repository --> Service: Return user or null
+userFollowMovieButton -> usersResolver: unfollowMovie(input, actor)
+activate usersResolver
+
+usersResolver -> usersService: unfollowMovie({ actor, movieSlug })
+activate usersService
+
+usersService -> usersService: findByIdOrThrow(actor.userId)
+activate usersService #DarkSalmon
+usersService -> usersRepository: findOne(actor._id)
+usersRepository -> mongoDB: Query user
+mongoDB --> usersRepository: User document
+usersRepository --> usersService: Return user or null
 alt User not found
-    Service --> Service: Throw UnprocessableEntityException
+    usersService --> usersService: Throw UnprocessableEntityException
 end
-Service --> Service: Return actor user
-deactivate Service
+usersService --> usersService: Return actor user
+deactivate usersService
 
-Service -> MovieService: getMovie({ slug: movieSlug }, { populate: false })
-activate MovieService
-MovieService --> Service: Return movie or null
-deactivate MovieService
+usersService -> movieService: getMovie({ slug: movieSlug }, { populate: false })
+activate movieService
+movieService --> usersService: Return movie or null
+deactivate movieService
 
 alt Movie not found
-    Service --> Resolver: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-    Resolver --> Client: GraphQL Error Response
+    usersService --> usersResolver: Throw HttpException\n(UNPROCESSABLE_ENTITY)
+    usersResolver --> userFollowMovieButton: GraphQL Error Response
 else Movie exists
-    Service -> Service: Remove movie ID from followMovies list
-    
+    usersService -> usersService: Remove movie ID from followMovies list
+
     alt Movie was not in followMovies list
-        Service --> Resolver: Return unchanged user
-        Resolver --> Client: GraphQL Response with unchanged User data
+        usersService --> usersResolver: Return unchanged user
+        usersResolver --> userFollowMovieButton: GraphQL Response with unchanged User data
     else Movie was in followMovies list
-        Service -> Repository: findOneAndUpdate(actor._id, updateQuery)
-        activate Repository
-        Repository -> DB: Update user's followMovies
-        DB --> Repository: Updated user document
-        Repository --> Service: Return updated user
-        deactivate Repository
-        
-        Service --> Resolver: Return updated User
-        Resolver --> Client: GraphQL Response with updated User data
+        usersService -> usersRepository: findOneAndUpdate(actor._id, updateQuery)
+        activate usersRepository
+        usersRepository -> mongoDB: Update user's followMovies
+        mongoDB --> usersRepository: Updated user document
+        usersRepository --> usersService: Return updated user
+        deactivate usersRepository
+
+        usersService --> usersResolver: Return updated User
+        usersResolver --> userFollowMovieButton: GraphQL Response with updated User data
     end
 end
 
-deactivate Service
-deactivate Resolver
+deactivate usersService
+deactivate usersResolver
 
-@enduml 
+@enduml

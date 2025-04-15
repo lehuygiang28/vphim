@@ -10,63 +10,63 @@ autonumber
 title Token Refresh Flow
 caption Process to obtain new access and refresh tokens using a valid refresh token
 
-actor User #Black
-participant "Frontend" as FE #PaleGreen
-participant "AuthController" as AC #LightBlue
-participant "JwtRefreshStrategy" as JRS #Orange
-participant "AuthService" as AS #LightBlue
-participant "UsersService" as US #LightBlue
-participant "JwtService" as JWT #Orange
-participant "Database" as DB #Gray
+actor User <<Actor>>
+participant "Login (Next.js)" as LoginComponent <<Component>>
+participant "AuthController" as AuthController <<Controller>>
+participant "JwtRefreshStrategy" as JwtRefreshStrategy <<Strategy>>
+participant "AuthService" as AuthService <<Service>>
+participant "UsersService" as UsersService <<Service>>
+participant "JwtService" as JwtService <<Service>>
+database "MongoDB" as DB <<Database>>
 
-User -> FE ++ : Automatic token refresh
+User -> LoginComponent: Automatic token refresh
 note right: Access token expired or about to expire
-FE -> AC ++ : POST /auth/refresh (refreshToken)
+LoginComponent -> AuthController: POST /auth/refresh (refreshToken)
 note right: Send refresh token in body
 
-AC -> JRS ++ : validate refresh token
+AuthController -> JwtRefreshStrategy: validate refresh token
 note right: Protected by jwt-refresh guard
-JRS -> JRS ++ : verify jwt signature
+JwtRefreshStrategy -> JwtRefreshStrategy: verify jwt signature
 note right: Check token validity and expiry
 return verification result
 
 alt Invalid token
-    JRS --> AC -- : throw UnauthorizedException
+    JwtRefreshStrategy --> AuthController: throw UnauthorizedException
     note right: Token expired, invalid or tampered
-    AC --> FE -- : 401 Invalid refresh token
-    FE --> User -- : Redirect to login
+    AuthController --> LoginComponent: 401 Invalid refresh token
+    LoginComponent --> User: Redirect to login
 else Valid token
-    JRS --> AC : UserJwt payload
+    JwtRefreshStrategy --> AuthController: UserJwt payload
 
-    AC -> AS ++ : refreshToken(user)
+    AuthController -> AuthService: refreshToken(user)
     note right: User data from JWT payload
 
-    AS -> US ++ : findByEmail(email)
-    US -> DB ++ : query
+    AuthService -> UsersService: findByEmail(email)
+    UsersService -> DB: query
     return user
-    deactivate US
+    deactivate UsersService
 
     alt User not found
-        AS --> AC -- : throw UnprocessableEntityException
-        AC --> FE -- : 422 User doesn't exist
-        FE --> User -- : Logout
+        AuthService --> AuthController: throw UnprocessableEntityException
+        AuthController --> LoginComponent: 422 User doesn't exist
+        LoginComponent --> User: Logout
     else User found
         alt User blocked
-            AS --> AC -- : throw UnprocessableEntityException
-            AC --> FE -- : 422 User blocked
-            FE --> User -- : Show blocked message
+            AuthService --> AuthController: throw UnprocessableEntityException
+            AuthController --> LoginComponent: 422 User blocked
+            LoginComponent --> User: Show blocked message
         else User not blocked
-            AS -> AS ++ : generateTokens(user)
+            AuthService -> AuthService: generateTokens(user)
 
-            AS -> JWT ++ : signAsync access token
+            AuthService -> JwtService: signAsync access token
             return accessToken
 
-            AS -> JWT ++ : signAsync refresh token
+            AuthService -> JwtService: signAsync refresh token
             return refreshToken
 
-            AS --> AC -- : LoginResponseDto
-            AC --> FE -- : 200 tokens + user
-            FE --> User -- : Continue session
+            AuthService --> AuthController: LoginResponseDto
+            AuthController --> LoginComponent: 200 tokens + user
+            LoginComponent --> User: Continue session
             note right: Store new tokens and update authorization header
         end
     end

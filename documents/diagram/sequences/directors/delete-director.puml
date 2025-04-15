@@ -1,53 +1,27 @@
 @startuml Delete Director Flow
 
-skinparam SequenceMessageAlignment center
-skinparam SequenceBoxBackgroundColor white
-skinparam SequenceBoxBorderColor black
-skinparam NoteBackgroundColor lightyellow
-skinparam NoteBorderColor black
-skinparam ParticipantBackgroundColor white
-skinparam ParticipantBorderColor black
+' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Repository>>, <<Database>>
+participant "DirectorList (Next.js Admin)" as DirectorList <<Component>>
+participant "DirectorResolver" as Resolver <<Resolver>>
+participant "DirectorService" as Service <<Service>>
+participant "DirectorRepository" as Repository <<Repository>>
+database "MongoDB" as DB <<Database>>
 
-title Delete Director Flow (GraphQL)
-
-actor "Admin User" as Admin
-participant "GraphQL Server" as GraphQL
-participant "Auth Guard" as Auth
-participant "Director Resolver" as Resolver
-participant "Director Service" as Service
-participant "Director Repository" as Repository
-database "MongoDB" as DB
-
-Admin -> GraphQL : Mutation deleteDirector(input: {_id})
-activate GraphQL
-
-GraphQL -> Auth : Check user role
-activate Auth
-Auth --> GraphQL : Validate admin role
-deactivate Auth
-
-GraphQL -> Resolver : deleteDirector(input)
+DirectorList -> Resolver: mutation deleteDirector(input)
 activate Resolver
-
-Resolver -> Service : deleteDirector({_id})
+Resolver -> Service: deleteDirector(input)
 activate Service
-
-Service -> Repository : deleteOne({_id: convertToObjectId(_id)})
+Service -> Repository: deleteOne({_id})
 activate Repository
-Repository -> DB : Delete director by _id
+Repository -> DB: Delete director by _id
 activate DB
-DB --> Repository : Deletion result
+DB --> Repository: deletion result
 deactivate DB
-Repository --> Service : Return result
+Repository --> Service: result
 deactivate Repository
-
-Service --> Resolver : Return 1 (success count)
+Service --> Resolver: 1 (success count)
 deactivate Service
-
-Resolver --> GraphQL : Return Integer (1)
+Resolver --> DirectorList: 1 (success count)
 deactivate Resolver
 
-GraphQL --> Admin : JSON Response
-deactivate GraphQL
-
-@enduml 
+@enduml

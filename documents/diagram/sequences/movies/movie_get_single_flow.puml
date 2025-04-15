@@ -1,44 +1,40 @@
 @startuml Movie Get Single Flow
 
-actor Client
-participant MovieResolver
-participant MovieService
-participant MovieRepository
-database MongoDB
+actor User <<Actor>>
+' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Repository>>, <<Database>>
+participant "EditMovie (Next.js Admin)" as EditMovie <<Component>>
+participant "MovieResolver" as Resolver <<Resolver>>
+participant "MovieService" as Service <<Service>>
+participant "MovieRepository" as Repository <<Repository>>
+database "MongoDB" as MongoDB <<Database>>
 
-title Get Single Movie Flow
-
-Client -> MovieResolver: getMovie(input: GetMovieInput)
-activate MovieResolver
-
-MovieResolver -> MovieService: getMovie(input)
-activate MovieService
-
+User -> EditMovie: Initiates get single movie
+EditMovie -> Resolver: query getMovie(input)
+activate Resolver
+Resolver -> MovieService: getMovie(input)
+activate Service
 alt input has _id
-    MovieService -> MovieRepository: findOne(filterQuery: { _id })
+    MovieService -> MovieRepository: findOne({ _id })
 else input has slug
-    MovieService -> MovieRepository: findOne(filterQuery: { slug })
+    MovieService -> MovieRepository: findOne({ slug })
 end
-
-activate MovieRepository
+activate Repository
 note right of MovieRepository
   Populate actors, categories,
   countries & directors
 end note
-
 MovieRepository -> MongoDB: findOne query with populate
 MongoDB --> MovieRepository: movie document with populated fields
+deactivate MongoDB
 deactivate MovieRepository
-
 alt document not found
-    MovieService --> MovieResolver: throw NotFoundException
-    MovieResolver --> Client: Error: Movie not found
+    MovieService --> Resolver: throw NotFoundException
+    Resolver --> EditMovie: Error: Movie not found
 else document found
-    MovieService --> MovieResolver: MovieType instance
-    MovieResolver --> Client: MovieType
+    MovieService --> Resolver: MovieType instance
+    Resolver --> EditMovie: MovieType
 end
+deactivate Service
+deactivate Resolver
 
-deactivate MovieService
-deactivate MovieResolver
-
-@enduml 
+@enduml

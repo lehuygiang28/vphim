@@ -1,39 +1,41 @@
 @startuml Get Users Flow
 
-actor "Admin Client" as Client
-participant "UsersController" as Controller
-participant "UsersService" as Service
-participant "UsersRepository" as Repository
-database "MongoDB" as DB
+actor "Admin User" as adminUser
+participant "UserManagementComponent (Next.js Admin)" as userManagementComponent <<Component>>
+participant "UsersResolver" as usersResolver <<Resolver>>
+participant "UsersService" as usersService <<Service>>
+participant "UsersRepository" as usersRepository <<Repository>>
+database "MongoDB" as mongoDB <<Database>>
+participant "UsersController" as usersController <<Controller>>
 
-Client -> Controller: GET /users?[queryParams]\nGetUsersDto
-activate Controller
+userManagementComponent -> usersController: GET /users?[queryParams]\nGetUsersDto
+activate usersController
 
-Controller -> Service: getUsers({ query })
-activate Service
+usersController -> usersService: getUsers({ query })
+activate usersService
 
-Service -> Service: Build filter query\nbased on parameters
+usersService -> usersService: Build filter query\nbased on parameters
 
-Service -> Repository: find(filterQuery, query)
-activate Repository
-Repository -> DB: Query users with filters
-DB --> Repository: User documents
-Repository --> Service: Return users
-deactivate Repository
+usersService -> usersRepository: find(filterQuery, query)
+activate usersRepository
+usersRepository -> mongoDB: Query users with filters
+mongoDB --> usersRepository: User documents
+usersRepository --> usersService: Return users
+deactivate usersRepository
 
-Service -> Repository: count(filter)
-activate Repository
-Repository -> DB: Count users with filters
-DB --> Repository: Count result
-Repository --> Service: Return total count
-deactivate Repository
+usersService -> usersRepository: count(filter)
+activate usersRepository
+usersRepository -> mongoDB: Count users with filters
+mongoDB --> usersRepository: Count result
+usersRepository --> usersService: Return total count
+deactivate usersRepository
 
-Service -> Service: Build GetUsersResponseDto\nwith data and total
+usersService -> usersService: Build GetUsersResponseDto\nwith data and total
 
-Service --> Controller: Return GetUsersResponseDto
-Controller --> Client: HTTP 200 OK\nGetUsersResponseDto
+usersService --> usersController: Return GetUsersResponseDto
+usersController --> userManagementComponent: HTTP 200 OK\nGetUsersResponseDto
 
-deactivate Service
-deactivate Controller
+deactivate usersService
+deactivate usersController
 
-@enduml 
+@enduml

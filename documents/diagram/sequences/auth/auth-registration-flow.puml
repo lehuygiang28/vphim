@@ -10,57 +10,51 @@ autonumber
 title Registration Flow
 caption User registration with email confirmation
 
-actor User #Black
-participant "Frontend" as FE #PaleGreen
-participant "AuthController" as AC #LightBlue
-participant "AuthService" as AS #LightBlue
-participant "JwtService" as JWT #Orange
-participant "UsersService" as US #LightBlue
-participant "Redis" as Redis #Pink
-participant "MailQueue" as Mail #Yellow
-participant "Database" as DB #Gray
+actor User <<Actor>>
+participant "Login (Next.js)" as LoginComponent <<Component>>
+participant "AuthController" as AuthController <<Controller>>
+participant "AuthService" as AuthService <<Service>>
+participant "JwtService" as JwtService <<Service>>
+participant "UsersService" as UsersService <<Service>>
+participant "RedisService" as RedisService <<Service>>
+participant "MailQueue" as MailQueue <<Queue>>
+database "MongoDB" as DB <<Database>>
 
-User -> FE ++ : Submit registration form
+User -> LoginComponent: Submit registration form
 note right of User: Provides email and accepts terms
-FE -> AC ++ : POST /auth/register (email, returnUrl)
-AC -> AS ++ : register(dto)
-note right of AS: Normalizes email (lowercase, trim)
+LoginComponent -> AuthController: POST /auth/register (email, returnUrl)
+AuthController -> AuthService: register(dto)
+note right of AuthService: Normalizes email (lowercase, trim)
 
-AS -> US ++ : findByEmail(email)
-US -> DB ++ : query
+AuthService -> UsersService: findByEmail(email)
+UsersService -> DB: query
 return result
 deactivate DB
-deactivate US
+deactivate UsersService
 
 alt User exists
-    AS --> AC -- : throw UnprocessableEntityException
-    AC --> FE -- : 422 Email already exists
-    FE --> User -- : Show error message
+    AuthService --> AuthController: throw UnprocessableEntityException
+    AuthController --> LoginComponent: 422 Email already exists
+    LoginComponent --> User: Show error message
 else New user
-    AS -> US ++ : create(userData)
-    US -> DB ++ : insert
+    AuthService -> UsersService: create(userData)
+    UsersService -> DB: insert
     return user created
-    deactivate US
+    deactivate UsersService
 
-    AS -> JWT ++ : signAsync confirmation token
+    AuthService -> JwtService: signAsync confirmation token
     return hash
 
-    AS -> AS ++ : Generate key "auth:confirmEmailHash:{userId}"
-    return
-
-    AS -> Redis ++ : set hash with expiry
+    AuthService -> RedisService: set hash with expiry
     return confirm stored
 
-    AS -> AS ++ : Create URL with hash for email confirmation
-    return
-
-    AS ->> Mail : add 'sendEmailRegister' to queue
+    AuthService -> MailQueue: add 'sendEmailRegister' to queue
     note right: Asynchronous operation
-    Mail -->> AS : email queued
+    MailQueue --> AuthService: email queued
 
-    AS --> AC -- : void (204 No Content)
-    AC --> FE -- : 204 No Content
-    FE --> User -- : Show confirmation message
+    AuthService --> AuthController: void (204 No Content)
+    AuthController --> LoginComponent: 204 No Content
+    LoginComponent --> User: Show confirmation message
 end
 
 @enduml

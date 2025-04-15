@@ -10,58 +10,79 @@ skinparam ParticipantBorderColor black
 
 title Update Actor Flow (GraphQL)
 
-actor "Admin User" as Admin
-participant "GraphQL Server" as GraphQL
-participant "Auth Guard" as Auth
-participant "Actor Resolver" as Resolver
-participant "Actor Service" as Service
-participant "Actor Repository" as Repository
-database "MongoDB" as DB
+actor "Admin User" as adminUser
+participant "editUI:EditActorPage" as editUI #LightBlue
+participant "personForm:PersonResourceForm" as personForm #LightBlue
+participant "baseForm:BaseResourceForm" as baseForm #LightBlue
+participant "apolloClient:ApolloClient" as apolloClient #LightBlue
+participant "actorResolver:ActorResolver" as actorResolver
+control "jwtStrategy:JwtGqlStrategy" as jwtStrategy
+control "rolesGuard:RolesGuard" as rolesGuard
+participant "actorService:ActorService" as actorService
+participant "actorRepo:ActorRepository" as actorRepo
+database "MongoDB" as mongoDB
 
-Admin -> GraphQL : Mutation updateActor(input: {_id, name, ...})
-activate GraphQL
+adminUser -> editUI : Edits actor details
+activate editUI
+editUI -> personForm : Display form with existing data
+activate personForm
+personForm -> baseForm : Render form fields
+activate baseForm
+adminUser -> baseForm : Updates actor fields
 
-GraphQL -> Auth : Check user role
-activate Auth
-Auth --> GraphQL : Validate admin role
-deactivate Auth
+baseForm -> apolloClient : Execute updateActor mutation
+activate apolloClient
+apolloClient -> actorResolver : Mutation updateActor(input: UpdateActorInput)
+activate actorResolver
 
-GraphQL -> Resolver : updateActor(input)
-activate Resolver
+actorResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> actorResolver : Return UserJwt
+deactivate jwtStrategy
 
-Resolver -> Service : updateActor({_id, name, ...})
-activate Service
+actorResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> actorResolver : Validate admin role
+deactivate rolesGuard
 
-Service -> Repository : findOneAndUpdateOrThrow(filterQuery, updateQuery)
-activate Repository
-note right of Repository
-  filterQuery: { _id: convertToObjectId(_id) }
+actorResolver -> actorService : updateActor({_id:String, name:String, ...})
+activate actorService
+
+actorService -> actorRepo : findOneAndUpdateOrThrow({filterQuery:object, updateQuery:object})
+activate actorRepo
+note right of actorRepo
+  filterQuery: { _id: ObjectId }
   updateQuery: { name, originalName, posterUrl }
 end note
 
-Repository -> DB : Find and update actor
-activate DB
+actorRepo -> mongoDB : Find and update actor
+activate mongoDB
 alt actor found
-    DB --> Repository : Return updated actor
+    mongoDB --> actorRepo : Return updated actor:Actor
 else actor not found
-    DB --> Repository : Return null
+    mongoDB --> actorRepo : Return null
 end
-deactivate DB
+deactivate mongoDB
 
 alt actor found and updated
-    Repository --> Service : Return updated actor
+    actorRepo --> actorService : Return updated actor:ActorType
 else actor not found
-    Repository --> Service : Throw exception
+    actorRepo --> actorService : Throw NotFoundException
 end
-deactivate Repository
+deactivate actorRepo
 
-Service --> Resolver : Return updated actor or throw error
-deactivate Service
+actorService --> actorResolver : Return updated actor:ActorType
+deactivate actorService
 
-Resolver --> GraphQL : Return ActorType or error
-deactivate Resolver
+actorResolver --> apolloClient : Return ActorType
+deactivate actorResolver
+apolloClient --> baseForm : Return success with actor data
+deactivate apolloClient
+baseForm --> personForm : Update form with success
+deactivate baseForm
+personForm --> editUI : Complete form submission
+deactivate personForm
+editUI --> adminUser : Show update confirmation
+deactivate editUI
 
-GraphQL --> Admin : JSON Response or Error
-deactivate GraphQL
-
-@enduml 
+@enduml

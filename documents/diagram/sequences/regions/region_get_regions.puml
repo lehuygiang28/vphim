@@ -1,20 +1,22 @@
 @startuml Region - Get Regions
 
-actor Client
-participant "RegionController" as Controller
-participant "RegionsService" as Service
+actor User <<Actor>>
+participant "RegionComponent (Next.js Admin)" as RegionComponent <<Component>>
+participant "RegionResolver" as Resolver <<Resolver>>
+participant "RegionsService" as RegionsService <<Service>>
 participant "RedisService" as Redis
-participant "RegionRepository" as Repo
-database "MongoDB" as DB
+participant "RegionRepository" as RegionRepository <<Repository>>
+database "MongoDB" as MongoDB <<Database>>
 
-Client -> Controller: GET /regions
+User -> RegionComponent: Initiates get regions
+RegionComponent -> Resolver: query regions(input)
 activate Controller
-Controller -> Service: getRegions(query)
+Resolver -> RegionsService: getRegions(input)
 activate Service
 
-Service -> Redis: get(cacheKey)
+RegionsService -> RedisService: get(cacheKey)
 activate Redis
-Redis --> Service: return cached data (if exists)
+RedisService --> RegionsService: return cached data (if exists)
 deactivate Redis
 
 alt data from cache exists
@@ -38,15 +40,15 @@ else no cached data
     Repo --> Service: return count
     deactivate Repo
 
-    Service -> Redis: set(cacheKey, result, expiry)
+    RegionsService -> RedisService: set(cacheKey, result, expiry)
     activate Redis
-    Redis --> Service: confirm cache set
+    RedisService --> RegionsService: confirm cache set
     deactivate Redis
 
-    Service --> Controller: return result {data, total, count}
+    RegionsService --> Resolver: return result {data, total, count}
 end
 
-Controller --> Client: return regions
+Resolver --> RegionComponent: return regions
 deactivate Service
 deactivate Controller
 

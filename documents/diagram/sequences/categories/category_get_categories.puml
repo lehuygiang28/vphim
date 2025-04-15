@@ -1,5 +1,57 @@
 @startuml Category - Get Categories
 
+actor "User" as Client
+participant "CategoryResolver" as Resolver
+participant "CategoryService" as Service
+participant "RedisService" as Redis
+participant "CategoryRepository" as Repo
+database "MongoDB" as DB
+
+Client -> Resolver: query categories(input)
+activate Resolver
+Resolver -> Service: getCategories(input)
+activate Service
+
+Service -> Redis: get(cacheKey)
+activate Redis
+Redis --> Service: return cached data (if exists)
+deactivate Redis
+
+alt data from cache exists
+    Service --> Resolver: return cached data
+else no cached data
+    Service -> Repo: find(filterQuery, query)
+    activate Repo
+    Repo -> DB: find categories
+    activate DB
+    DB --> Repo: return categories
+    deactivate DB
+    Repo --> Service: return categories
+    deactivate Repo
+
+    Service -> Repo: count(filterQuery)
+    activate Repo
+    Repo -> DB: count categories
+    activate DB
+    DB --> Repo: return count
+    deactivate DB
+    Repo --> Service: return count
+    deactivate Repo
+
+    Service -> Redis: set(cacheKey, result, expiry)
+    activate Redis
+    Redis --> Service: confirm cache set
+    deactivate Redis
+
+    Service --> Resolver: return result {data, total, count}
+end
+
+Resolver --> Client: return categories
+deactivate Service
+deactivate Resolver
+
+@enduml
+
 actor Client
 participant "CategoryController" as Controller
 participant "CategoryService" as Service

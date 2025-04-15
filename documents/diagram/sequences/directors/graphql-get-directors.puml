@@ -1,73 +1,48 @@
 @startuml GraphQL Get Directors Flow
 
-skinparam SequenceMessageAlignment center
-skinparam SequenceBoxBackgroundColor white
-skinparam SequenceBoxBorderColor black
-skinparam NoteBackgroundColor lightyellow
-skinparam NoteBorderColor black
-skinparam ParticipantBackgroundColor white
-skinparam ParticipantBorderColor black
+' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Service>>, <<Repository>>, <<Database>>
+participant "DirectorList (Next.js Admin)" as DirectorList <<Component>>
+participant "DirectorResolver" as Resolver <<Resolver>>
+participant "DirectorService" as Service <<Service>>
+participant "RedisService" as Redis <<Service>>
+participant "DirectorRepository" as Repository <<Repository>>
+database "MongoDB" as DB <<Database>>
 
-title GraphQL Get Directors Flow
-
-actor Client
-participant "GraphQL Server" as GraphQL
-participant "Director Resolver" as Resolver
-participant "Director Service" as Service
-participant "Redis Service" as Redis
-participant "Director Repository" as Repository
-database "MongoDB" as DB
-
-Client -> GraphQL : Query directors(input: {keywords, limit, page})
-activate GraphQL
-GraphQL -> Resolver : directors(input)
+DirectorList -> Resolver: query directors(input)
 activate Resolver
-
-Resolver -> Service : getDirectors(input)
+Resolver -> Service: getDirectors(input)
 activate Service
-
-Service -> Redis : get(cacheKey)
+Service -> Redis: get(cacheKey)
 activate Redis
-note right of Redis
-  Cache key: CACHED:DIRECTORS:{sorted query string}
-end note
-Redis --> Service : cache result or null
+Redis --> Service: cache result or null
 deactivate Redis
-
 alt cache hit
-    Service --> Resolver : Return cached data with\nDate objects converted
+    Service --> Resolver: cached data
 else cache miss
-    Service -> Repository : find(filters, query)
+    Service -> Repository: find(filters, query)
     activate Repository
-    Repository -> DB : Find directors matching filters
+    Repository -> DB: Find directors matching filters
     activate DB
-    DB --> Repository : Return directors
+    DB --> Repository: directors
     deactivate DB
-    Repository --> Service : Return directors
+    Repository --> Service: directors
     deactivate Repository
-    
-    Service -> Repository : count(filters)
+    Service -> Repository: count(filters)
     activate Repository
-    Repository -> DB : Count directors matching filters
+    Repository -> DB: Count directors
     activate DB
-    DB --> Repository : Return count
+    DB --> Repository: count
     deactivate DB
-    Repository --> Service : Return count
+    Repository --> Service: count
     deactivate Repository
-    
-    Service -> Redis : set(cacheKey, result, 10s)
+    Service -> Redis: set(cacheKey, result, 10s)
     activate Redis
-    Redis --> Service : Cache set
+    Redis --> Service: cache set
     deactivate Redis
-    
-    Service --> Resolver : Return { data, total, count }
+    Service --> Resolver: { data, total, count }
 end
-
-Resolver --> GraphQL : Return GetDirectorsOutput
 deactivate Service
+Resolver --> DirectorList: GetDirectorsOutput
 deactivate Resolver
 
-GraphQL --> Client : JSON Response
-deactivate GraphQL
-
-@enduml 
+@enduml

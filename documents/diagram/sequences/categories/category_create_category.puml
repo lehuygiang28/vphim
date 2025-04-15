@@ -21,36 +21,36 @@ else user is not admin
 end
 deactivate Guard
 
-Resolver -> Service: createCategory(input)
-activate Service
+Resolver -> CategoryService: createCategory(input)
+activate CategoryService
 
-Service -> Repo: findOne(filterQuery: {slug})
-activate Repo
+Service -> CategoryRepository: findOne(filterQuery: {slug})
+activate CategoryRepository
 Repo -> DB: findOne({slug})
 activate DB
-DB --> Repo: return existing category or null
+DB --> CategoryRepository: return existing category or null
 deactivate DB
-Repo --> Service: return result
-deactivate Repo
+Repo --> CategoryService: return result
+deactivate CategoryRepository
 
 alt slug already exists
     Service --> Resolver: throw HttpException(UNPROCESSABLE_ENTITY)
 else slug is unique
-    Service -> Service: process slug (removeDiacritics, removeTone)
+    Service -> CategoryService: process slug (removeDiacritics, removeTone)
     
-    Service -> Repo: create(document)
-    activate Repo
+    Service -> CategoryRepository: create(document)
+    activate CategoryRepository
     Repo -> DB: save new category
     activate DB
-    DB --> Repo: return saved category
+    DB --> CategoryRepository: return saved category
     deactivate DB
-    Repo --> Service: return new category
-    deactivate Repo
+    Repo --> CategoryService: return new category
+    deactivate CategoryRepository
     
     Service --> Resolver: return new category
 end
 
-deactivate Service
+deactivate CategoryService
 Resolver --> Client: return created category
 deactivate Resolver
 

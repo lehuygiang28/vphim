@@ -1,13 +1,15 @@
 @startuml Region - Delete Region
 
-actor "Admin" as Client
-participant "RegionResolver" as Resolver
-participant "RequiredRoles Guard" as Guard
-participant "RegionsService" as Service
-participant "RegionRepository" as Repo
-database "MongoDB" as DB
+actor User <<Actor>>
+participant "RegionComponent (Next.js Admin)" as RegionComponent <<Component>>
+participant "RegionResolver" as Resolver <<Resolver>>
+participant "RequiredRoles Guard" as Guard <<Service>>
+participant "RegionsService" as RegionsService <<Service>>
+participant "RegionRepository" as RegionRepository <<Repository>>
+database "MongoDB" as MongoDB <<Database>>
 
-Client -> Resolver: mutation deleteRegion(input)
+User -> RegionComponent: Initiates region deletion
+RegionComponent -> Resolver: mutation deleteRegion(input)
 activate Resolver
 
 Resolver -> Guard: check admin role
@@ -15,13 +17,13 @@ activate Guard
 alt user is admin
     Guard --> Resolver: allow
 else user is not admin
-    Guard --> Client: throw ForbiddenException
+    Guard --> User: throw ForbiddenException
     deactivate Resolver
     deactivate Guard
 end
 deactivate Guard
 
-Resolver -> Service: deleteRegion(input)
+Resolver -> RegionsService: deleteRegion(input)
 activate Service
 
 Service -> Repo: deleteOne({_id})
@@ -33,9 +35,9 @@ deactivate DB
 Repo --> Service: return delete result
 deactivate Repo
 
-Service --> Resolver: return 1 (success)
+RegionsService --> Resolver: return 1 (success)
 deactivate Service
-Resolver --> Client: return 1 (success)
+Resolver --> RegionComponent: return 1 (success)
 deactivate Resolver
 
 @enduml 

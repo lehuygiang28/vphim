@@ -1,46 +1,51 @@
 @startuml Movie Update Flow
 
-actor Client
-participant MovieResolver
-participant MovieService
-participant MovieRepository
-participant SearchService
-participant ElasticsearchService
-database MongoDB
-database Elasticsearch
+actor User <<Actor>>
+' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Repository>>, <<Service>>, <<Service>>, <<Database>>, <<Database>>
+participant "EditMovie (Next.js Admin)" as EditMovie <<Component>>
+participant "MovieResolver" as Resolver <<Resolver>>
+participant "MovieService" as MovieService <<Service>>
+participant "MovieRepository" as MovieRepository <<Repository>>
+participant "SearchService" as SearchService <<Service>>
+participant "ElasticsearchService" as ElasticsearchService <<Service>>
+database "MongoDB" as MongoDB <<Database>>
+database "Elasticsearch" as Elasticsearch <<Database>>
 
-title Movie Update Flow
-
-Client -> MovieResolver: updateMovie(input: UpdateMovieInput)
-activate MovieResolver
-
-MovieResolver -> MovieService: updateMovie(input)
-activate MovieService
-
+User -> EditMovie: Initiates movie update
+EditMovie -> Resolver: mutation updateMovie(input)
+activate Resolver
+Resolver -> MovieService: updateMovie(input)
+activate Service
 alt input.deletedAt == 'delete'
-    MovieService -> MovieRepository: findOneAndUpdate \nfilterQuery: { _id }, \nupdateQuery: { deletedAt: new Date() }
+    MovieService -> MovieRepository: findOneAndUpdate({ _id }, { deletedAt: new Date() })
+    activate Repository
+    Repository -> MongoDB: findOneAndUpdate document
+    MongoDB --> Repository: updated document
+    deactivate MongoDB
+    deactivate Repository
 else input.deletedAt == 'restore'
-    MovieService -> MovieRepository: findOneAndUpdate \nfilterQuery: { _id }, \nupdateQuery: { deletedAt: null }
+    Service -> Repository: findOneAndUpdate({ _id }, { deletedAt: null })
+    activate Repository
+    Repository -> MongoDB: findOneAndUpdate document
+    MongoDB --> Repository: updated document
+    deactivate MongoDB
+    deactivate Repository
 else input.deletedAt == undefined
-    MovieService -> MovieRepository: findOneAndUpdate \nfilterQuery: { _id }, \nupdateQuery: { ...updateFields }
+    Service -> Repository: findOneAndUpdate({ _id }, { ...updateFields })
+    activate Repository
+    Repository -> MongoDB: findOneAndUpdate document
+    MongoDB --> Repository: updated document
+    deactivate MongoDB
+    deactivate Repository
 end
-
-activate MovieRepository
-MovieRepository -> MongoDB: findOneAndUpdate document
-MongoDB --> MovieRepository: updated document
-deactivate MovieRepository
-
 note right of MovieRepository
   MovieSchema.post('findOneAndUpdate') hook triggers
   after document is updated
 end note
-
 MovieRepository -> SearchService: indexMovie(document)
 activate SearchService
-
 SearchService -> MovieRepository: findOne(movie._id) with populated fields
 MovieRepository --> SearchService: fully populated movie document
-
 SearchService -> ElasticsearchService: update(index=movies, id=movie._id, body)
 activate ElasticsearchService
 ElasticsearchService -> Elasticsearch: update/index document
@@ -48,19 +53,16 @@ Elasticsearch --> ElasticsearchService: update result
 ElasticsearchService -> Elasticsearch: indices.refresh(index=movies)
 Elasticsearch --> ElasticsearchService: refresh result
 deactivate ElasticsearchService
-
 SearchService --> MovieRepository: indexing result
 deactivate SearchService
-
 alt document not found
-    MovieService --> MovieResolver: throw NotFoundException
-    MovieResolver --> Client: Error: Movie not found
+    MovieService --> Resolver: throw NotFoundException
+    Resolver --> EditMovie: Error: Movie not found
 else document found
-    MovieService --> MovieResolver: MovieType instance
-    MovieResolver --> Client: MovieType
+    Service --> Resolver: MovieType instance
+    Resolver --> EditMovie: MovieType
 end
+deactivate Service
+deactivate Resolver
 
-deactivate MovieService
-deactivate MovieResolver
-
-@enduml 
+@enduml
