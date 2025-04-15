@@ -10436,6 +10436,7 @@ __metadata:
     multer: "npm:^1.4.5-lts.1"
     nestjs-i18n: "npm:^10.4.5"
     nestjs-pino: "npm:^4.1.0"
+    nestjs-vnpay: "npm:^1.0.1"
     next: "npm:14.2.16"
     next-auth: "npm:^4.24.7"
     nodemailer: "npm:^6.9.14"
@@ -10479,7 +10480,7 @@ __metadata:
     tslib: "npm:^2.3.0"
     typescript: "npm:~5.5.2"
     use-debounce: "npm:^10.0.3"
-    vnpay: "npm:^1.6.1"
+    vnpay: "npm:^2.2.0"
     webpack-cli: "npm:^5.1.4"
     zustand: "npm:^5.0.0"
   languageName: unknown
@@ -22576,15 +22577,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moment-timezone@npm:^0.5.43":
-  version: 0.5.45
-  resolution: "moment-timezone@npm:0.5.45"
-  dependencies:
-    moment: "npm:^2.29.4"
-  checksum: 10c0/7497f23c4b8c875dbf07c03f9a1253f79edaeedc29d5732e36bfd3c5577e25aed1924fbd84cbb713ce1920dbe822be0e21bd487851a7d13907226f289a5e568b
-  languageName: node
-  linkType: hard
-
 "moment@npm:^2.29.4":
   version: 2.30.1
   resolution: "moment@npm:2.30.1"
@@ -22918,6 +22910,16 @@ __metadata:
     "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0
     pino-http: ^6.4.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
   checksum: 10c0/003c21588454e2e9c1f7f7cc1829aec005acaca45f73b29b33da11c20479af811c72089dcdd03e08bdd675373c6563f288124b8566824936bde8f7991bd86c9b
+  languageName: node
+  linkType: hard
+
+"nestjs-vnpay@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "nestjs-vnpay@npm:1.0.1"
+  peerDependencies:
+    "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
+    vnpay: ^1.0.0 || ^2.1.1
+  checksum: 10c0/96417a7eed697ee0a798122b95f9b6c43f7e7c4774629e19ad3b9e27bca37962515549de7beabbe1442c26a4f3452eac0dec08047fa35ddf4a8a1a44537e966a
   languageName: node
   linkType: hard
 
@@ -30388,12 +30390,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vnpay@npm:^1.6.1":
-  version: 1.6.1
-  resolution: "vnpay@npm:1.6.1"
+"vnpay@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "vnpay@npm:2.2.0"
   dependencies:
-    moment-timezone: "npm:^0.5.43"
-  checksum: 10c0/beffd7e79da82aa85399f067ace686ccf4ffdcbf3480e2a9ee778b412c069284b448365e76307a8334b1c17656eeb1c68b845cc87ef6496476080eecbb4681bb
+    dayjs: "npm:^1.11.13"
+  checksum: 10c0/5e3530bc8a40878f20c6078e1302ffbde67bf2288dc39e8147cb8e559b59eeaca0f1a7b2d346b3e6904d51fc263f896f108cf21ac895a651f7d9cedce054cf21
   languageName: node
   linkType: hard
 
