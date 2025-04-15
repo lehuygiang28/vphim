@@ -36,6 +36,7 @@ This document describes the database schema for the VePhim application, implemen
 | lang | string | | Movie language |
 | notify | string | | Notification text |
 | quality | string | | Video quality |
+| contentRating | string | | Content rating |
 | showtimes | string | | Show times information |
 | time | string | | Duration information |
 | thumbUrl | string | | Thumbnail image URL |
