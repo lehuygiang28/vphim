@@ -1,75 +1,99 @@
 @startuml User Unblock Flow
 
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title User Unblock Flow (REST)
+
 actor "Admin User" as adminUser
-participant "UserPage (Next.js)" as userPage <<Component>>
-participant "UsersResolver" as usersResolver <<Resolver>>
-participant "UsersService" as usersService <<Service>>
-participant "UsersRepository" as usersRepository <<Repository>>
-database "MongoDB" as mongoDB <<Database>>
-participant "UsersController" as usersController <<Controller>>
+participant "userUpdatePage:UserUpdateComponent" as userUpdatePage <<Page>>
+participant "userUpdateForm:UserUpdateForm" as userUpdateForm <<Component>>
+participant "usersController:UsersController" as usersController <<Controller>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "usersService:UsersService" as usersService <<Service>>
+participant "usersRepo:UsersRepository" as usersRepo <<Repository>>
+database "MongoDB" as mongoDB
 
+adminUser -> userUpdatePage : Navigate to user update page
+activate userUpdatePage
 
+userUpdatePage -> userUpdateForm : Display form
+activate userUpdateForm
 
+adminUser -> userUpdateForm : Unblock user action
 
-userPage -> usersController: PATCH /users/unblock/{id}
+userUpdateForm -> usersController : PATCH /users/unblock/{id}
 activate usersController
 
-usersController -> usersService: unblockUser({ actor, userId })
+usersController -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> usersController : Validate admin role
+deactivate rolesGuard
+
+usersController -> usersService : unblockUser({ actor, userId })
 activate usersService
 
-usersService -> usersService: findByIdOrThrow(actor.userId)
+usersService -> usersService : findByIdOrThrow(actor.userId)
 activate usersService #DarkSalmon
-usersService -> usersRepository: findOne(actor._id)
-usersRepository -> mongoDB: Query user
-mongoDB --> usersRepository: User document
-usersRepository --> usersService: Return user or null
+usersService -> usersRepo : findOne(actor._id)
+usersRepo -> mongoDB : Query user
+mongoDB --> usersRepo : User document
+usersRepo --> usersService : Return user or null
 alt User not found
-    usersService --> usersService: Throw UnprocessableEntityException
+    usersService --> usersService : Throw UnprocessableEntityException
 end
-usersService --> usersService: Return actor user
+usersService --> usersService : Return actor user
 deactivate usersService
 
 alt Actor role is not Admin
-    usersService --> usersController: Throw HttpException\n(UNAUTHORIZED)
-    usersController --> userPage: HTTP 401 Unauthorized
+    usersService --> usersController : Throw HttpException\n(UNAUTHORIZED)
+    usersController --> userUpdateForm : HTTP 401 Unauthorized
 else Actor is blocked
-    usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-    usersController --> userPage: HTTP 422 Error Response
+    usersService --> usersController : Throw HttpException\n(UNPROCESSABLE_ENTITY)
+    usersController --> userUpdateForm : HTTP 422 Error Response
 else Actor is Admin and not blocked
-    usersService -> usersService: findByIdOrThrow(userId)
+    usersService -> usersService : findByIdOrThrow(userId)
     activate usersService #DarkSalmon
-    usersService -> usersRepository: findOne(userId)
-    usersRepository -> mongoDB: Query user
-    mongoDB --> usersRepository: User document
-    usersRepository --> usersService: Return user or null
+    usersService -> usersRepo : findOne(userId)
+    usersRepo -> mongoDB : Query user
+    mongoDB --> usersRepo : User document
+    usersRepo --> usersService : Return user or null
     alt User not found
-        usersService --> usersService: Throw UnprocessableEntityException
+        usersService --> usersService : Throw UnprocessableEntityException
     end
-    usersService --> usersService: Return target user
+    usersService --> usersService : Return target user
     deactivate usersService
 
     alt Actor is trying to unblock themselves
-        usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-        usersController --> userPage: HTTP 422 Error Response
+        usersService --> usersController : Throw HttpException\n(UNPROCESSABLE_ENTITY)
+        usersController --> userUpdateForm : HTTP 422 Error Response
     else Target user is not blocked
-        usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-        usersController --> userPage: HTTP 422 Error Response
+        usersService --> usersController : Throw HttpException\n(UNPROCESSABLE_ENTITY)
+        usersController --> userUpdateForm : HTTP 422 Error Response
     else Valid unblock request
-        usersService -> usersService: Create blockLog with\naction=unblock, timestamp, actor ID
+        usersService -> usersService : Create blockLog with\naction=unblock, timestamp, actor ID
 
-        usersService -> usersRepository: findOneAndUpdate(userId, updateQuery)
-        activate usersRepository
-        usersRepository -> mongoDB: Update user with isBlocked=false and blockLog
-        mongoDB --> usersRepository: Updated user document
-        usersRepository --> usersService: Return updated user
-        deactivate usersRepository
+        usersService -> usersRepo : findOneAndUpdate(userId, updateQuery)
+        activate usersRepo
+        usersRepo -> mongoDB : Update user with isBlocked=false and blockLog
+        mongoDB --> usersRepo : Updated user document
+        usersRepo --> usersService : Return updated user
+        deactivate usersRepo
 
-        usersService --> usersController: Return updated User
-        usersController --> userPage: HTTP 200 OK\nUserDto
+        usersService --> usersController : Return updated User
+        usersController --> userUpdateForm : HTTP 200 OK\nUserDto
     end
 end
 
 deactivate usersService
 deactivate usersController
+
+deactivate userUpdateForm
+deactivate userUpdatePage
 
 @enduml

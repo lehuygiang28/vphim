@@ -1,47 +1,71 @@
 @startuml User Creation Flow
 
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title User Creation Flow (REST)
+
 actor "User" as user
-participant "UserRegisterComponent (Next.js)" as userRegisterComponent <<Component>>
-participant "UsersResolver" as usersResolver <<Resolver>>
-participant "UsersService" as usersService <<Service>>
-participant "UsersRepository" as usersRepository <<Repository>>
-database "MongoDB" as mongoDB <<Database>>
-participant "UsersController" as usersController <<Controller>>
+participant "userRegisterPage:UserRegisterComponent" as userRegisterPage <<Page>>
+participant "userRegisterForm:UserRegisterForm" as userRegisterForm <<Component>>
+participant "usersController:UsersController" as usersController <<Controller>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "usersService:UsersService" as usersService <<Service>>
+participant "usersRepo:UsersRepository" as usersRepo <<Repository>>
+database "MongoDB" as mongoDB
 
+user -> userRegisterPage : Navigate to register page
+activate userRegisterPage
 
+userRegisterPage -> userRegisterForm : Display form
+activate userRegisterForm
 
+user -> userRegisterForm : Fill registration info
 
-userRegisterComponent -> usersController: POST /users\nCreateUserDto
+userRegisterForm -> usersController : POST /users\nCreateUserDto
 activate usersController
 
-usersController -> usersService: create(createUserDto)
+usersController -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> usersController : Validate admin role
+deactivate rolesGuard
+
+usersController -> usersService : create(createUserDto)
 activate usersService
 
-usersService -> usersService: Generate password hash with bcrypt
+usersService -> usersService : Generate password hash with bcrypt
 
-usersService -> usersRepository: findOne(email)
-activate usersRepository
-usersRepository -> mongoDB: Query for existing user
-mongoDB --> usersRepository: User data or null
-usersRepository --> usersService: Return user or null
-deactivate usersRepository
+usersService -> usersRepo : findOne(email)
+activate usersRepo
+usersRepo -> mongoDB : Query for existing user
+mongoDB --> usersRepo : User data or null
+usersRepo --> usersService : Return user or null
+deactivate usersRepo
 
 alt User with email already exists
-    usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-    usersController --> userRegisterComponent: HTTP 422 Error Response
+    usersService --> usersController : Throw HttpException\n(UNPROCESSABLE_ENTITY)
+    usersController --> userRegisterForm : HTTP 422 Error Response
 else Email is unique
-    usersService -> usersRepository: create(documentData)
-    activate usersRepository
-    usersRepository -> mongoDB: Insert new user
-    mongoDB --> usersRepository: Created user document
-    usersRepository --> usersService: Return user document
-    deactivate usersRepository
+    usersService -> usersRepo : create(documentData)
+    activate usersRepo
+    usersRepo -> mongoDB : Insert new user
+    mongoDB --> usersRepo : Created user document
+    usersRepo --> usersService : Return user document
+    deactivate usersRepo
 
-    usersService --> usersController: Return new User object
-    usersController --> userRegisterComponent: HTTP 201 Created\nUserDto
+    usersService --> usersController : Return new User object
+    usersController --> userRegisterForm : HTTP 201 Created\nUserDto
 end
 
 deactivate usersService
 deactivate usersController
+
+deactivate userRegisterForm
+deactivate userRegisterPage
 
 @enduml

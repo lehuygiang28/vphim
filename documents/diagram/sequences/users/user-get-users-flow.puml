@@ -1,41 +1,66 @@
 @startuml Get Users Flow
 
-actor "Admin User" as adminUser
-participant "UserManagementComponent (Next.js Admin)" as userManagementComponent <<Component>>
-participant "UsersResolver" as usersResolver <<Resolver>>
-participant "UsersService" as usersService <<Service>>
-participant "UsersRepository" as usersRepository <<Repository>>
-database "MongoDB" as mongoDB <<Database>>
-participant "UsersController" as usersController <<Controller>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-userManagementComponent -> usersController: GET /users?[queryParams]\nGetUsersDto
+title Get Users Flow (REST)
+
+actor "Admin User" as adminUser
+participant "userManagementPage:UserManagementComponent" as userManagementPage <<Page>>
+participant "userManagementTable:UserManagementTable" as userManagementTable <<Component>>
+participant "usersController:UsersController" as usersController <<Controller>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "usersService:UsersService" as usersService <<Service>>
+participant "usersRepo:UsersRepository" as usersRepo <<Repository>>
+database "MongoDB" as mongoDB
+
+adminUser -> userManagementPage : Navigate to user management page
+activate userManagementPage
+
+userManagementPage -> userManagementTable : Display user table
+activate userManagementTable
+
+userManagementTable -> usersController : GET /users?[queryParams]\nGetUsersDto
 activate usersController
 
-usersController -> usersService: getUsers({ query })
+usersController -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> usersController : Validate admin role
+deactivate rolesGuard
+
+usersController -> usersService : getUsers({ query })
 activate usersService
 
-usersService -> usersService: Build filter query\nbased on parameters
+usersService -> usersService : Build filter query\nbased on parameters
 
-usersService -> usersRepository: find(filterQuery, query)
-activate usersRepository
-usersRepository -> mongoDB: Query users with filters
-mongoDB --> usersRepository: User documents
-usersRepository --> usersService: Return users
-deactivate usersRepository
+usersService -> usersRepo : find(filterQuery, query)
+activate usersRepo
+usersRepo -> mongoDB : Query users with filters
+mongoDB --> usersRepo : User documents
+usersRepo --> usersService : Return users
+deactivate usersRepo
 
-usersService -> usersRepository: count(filter)
-activate usersRepository
-usersRepository -> mongoDB: Count users with filters
-mongoDB --> usersRepository: Count result
-usersRepository --> usersService: Return total count
-deactivate usersRepository
+usersService -> usersRepo : count(filter)
+activate usersRepo
+usersRepo -> mongoDB : Count users with filters
+mongoDB --> usersRepo : Count result
+usersRepo --> usersService : Return total count
+deactivate usersRepo
 
-usersService -> usersService: Build GetUsersResponseDto\nwith data and total
+usersService -> usersService : Build GetUsersResponseDto\nwith data and total
 
-usersService --> usersController: Return GetUsersResponseDto
-usersController --> userManagementComponent: HTTP 200 OK\nGetUsersResponseDto
+usersService --> usersController : Return GetUsersResponseDto
+usersController --> userManagementTable : HTTP 200 OK\nGetUsersResponseDto
 
 deactivate usersService
 deactivate usersController
+
+deactivate userManagementTable
+deactivate userManagementPage
 
 @enduml

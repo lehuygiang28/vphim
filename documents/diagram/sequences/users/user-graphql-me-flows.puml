@@ -1,70 +1,87 @@
 @startuml User GraphQL Me Flows
 
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
+
+title User GraphQL Me Flows (GraphQL)
+
 actor "User" as user
-participant "UserPage (Next.js)" as userPage <<Component>>
-participant "UsersResolver" as usersResolver <<Resolver>>
-participant "UsersService" as usersService <<Service>>
-participant "UsersRepository" as usersRepository <<Repository>>
-database "MongoDB" as mongoDB <<Database>>
-
-
-
-
+participant "userPage:UserPage" as userPage <<Page>>
+participant "userProfileForm:UserProfileForm" as userProfileForm <<Component>>
+participant "usersResolver:UsersResolver" as usersResolver <<Resolver>>
+participant "usersService:UsersService" as usersService <<Service>>
+participant "usersRepo:UsersRepository" as usersRepo <<Repository>>
+database "MongoDB" as mongoDB
 
 note over userPage, mongoDB: Get Me Flow
 
-userPage -> usersResolver: getMe(actor)
+userPage -> userProfileForm : Display profile form
+activate userProfileForm
+
+userProfileForm -> usersResolver : getMe(actor)
 activate usersResolver
 
-usersResolver -> usersService: findByIdOrThrow(userId, options)
+usersResolver -> usersService : findByIdOrThrow(userId, options)
 activate usersService
 
-usersService -> usersRepository: findOne(userId, options)
-activate usersRepository
-usersRepository -> mongoDB: Query user with populated followMovies
-mongoDB --> usersRepository: User document with followMovies
-usersRepository --> usersService: Return user or null
-deactivate usersRepository
+usersService -> usersRepo : findOne(userId, options)
+activate usersRepo
+usersRepo -> mongoDB : Query user with populated followMovies
+mongoDB --> usersRepo : User document with followMovies
+usersRepo --> usersService : Return user or null
+deactivate usersRepo
 
 alt User not found
-    usersService --> usersResolver: Throw UnprocessableEntityException
-    usersResolver --> userPage: GraphQL Error Response
+    usersService --> usersResolver : Throw UnprocessableEntityException
+    usersResolver --> userProfileForm : GraphQL Error Response
 else User found
-    usersService --> usersResolver: Return user
-    usersResolver --> userPage: GraphQL Response with User data
+    usersService --> usersResolver : Return user
+    usersResolver --> userProfileForm : GraphQL Response with User data
 end
 
 deactivate usersService
 deactivate usersResolver
 
-note over userPage, mongoDB: Update Me Flow
+deactivate userProfileForm
 
-userPage -> usersResolver: mutationMe(input, actor)
+deed note over userPage, mongoDB: Update Me Flow
+
+userPage -> userProfileForm : Submit profile update
+userProfileForm -> usersResolver : mutationMe(input, actor)
 activate usersResolver
 
-usersResolver -> usersService: update(userId, updateData)
+usersResolver -> usersService : update(userId, updateData)
 activate usersService
 
 alt updateData has password
-    usersService -> usersService: Generate password hash with bcrypt
+    usersService -> usersService : Generate password hash with bcrypt
 end
 
-usersService -> usersRepository: findOneAndUpdate(userId, updateQuery)
-activate usersRepository
-usersRepository -> mongoDB: Update user document
-mongoDB --> usersRepository: Updated user document
-usersRepository --> usersService: Return updated user or null
-deactivate usersRepository
+usersService -> usersRepo : findOneAndUpdate(userId, updateQuery)
+activate usersRepo
+usersRepo -> mongoDB : Update user document
+mongoDB --> usersRepo : Updated user document
+usersRepo --> usersService : Return updated user or null
+deactivate usersRepo
 
 alt User not found
-    usersService --> usersResolver: Return null
-    usersResolver --> userPage: GraphQL Response with null
+    usersService --> usersResolver : Return null
+    usersResolver --> userProfileForm : GraphQL Response with null
 else User updated
-    usersService --> usersResolver: Return updated User
-    usersResolver --> userPage: GraphQL Response with updated User data
+    usersService --> usersResolver : Return updated User
+    usersResolver --> userProfileForm : GraphQL Response with updated User data
 end
 
 deactivate usersService
 deactivate usersResolver
+
+deactivate userProfileForm
+
+deactivate userPage
 
 @enduml

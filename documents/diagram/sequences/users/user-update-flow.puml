@@ -1,74 +1,56 @@
 @startuml User Update Flow
 
-actor "Admin User" as adminUser
-participant "UserUpdateComponent (Next.js Admin)" as userUpdateComponent <<Component>>
-participant "UsersResolver" as usersResolver <<Resolver>>
-participant "UsersService" as usersService <<Service>>
-participant "UsersRepository" as usersRepository <<Repository>>
-database "MongoDB" as mongoDB <<Database>>
-participant "ConfigService" as configService <<Service>>
-participant "UsersController" as usersController <<Controller>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
+title User Update Flow (REST)
 
+actor "User" as user
+participant "userProfilePage:UserProfilePage" as userProfilePage <<Page>>
+participant "userProfileForm:UserProfileForm" as userProfileForm <<Component>>
+participant "usersController:UsersController" as usersController <<Controller>>
+participant "usersService:UsersService" as usersService <<Service>>
+participant "usersRepo:UsersRepository" as usersRepo <<Repository>>
+database "MongoDB" as mongoDB
 
-userUpdateComponent -> usersController: PATCH /users/{id}\nUpdateUserDto
+user -> userProfilePage : Navigate to profile page
+activate userProfilePage
+
+userProfilePage -> userProfileForm : Display profile form
+activate userProfileForm
+
+user -> userProfileForm : Update account info
+
+userProfileForm -> usersController : PATCH /users/me\nUpdateMeDto
 activate usersController
 
-usersController -> usersService: updateUser({ actor, userId, data })
+usersController -> usersService : updateMe(userId, updateData)
 activate usersService
 
-usersService -> usersService: findByIdOrThrow(actor.userId)
-activate usersService #DarkSalmon
-usersService -> usersRepository: findOne(actor._id)
-usersRepository -> mongoDB: Query actor user
-mongoDB --> usersRepository: User document
-usersRepository --> usersService: Return user or null
+usersService -> usersRepo : findOneAndUpdate(userId, updateQuery)
+activate usersRepo
+usersRepo -> mongoDB : Update user document
+mongoDB --> usersRepo : Updated user document
+usersRepo --> usersService : Return updated user or null
+deactivate usersRepo
+
 alt User not found
-    usersService --> usersService: Throw UnprocessableEntityException
-end
-usersService --> usersService: Return actor user
-deactivate usersService
-
-usersService -> usersService: findByIdOrThrow(userId)
-activate usersService #DarkSalmon
-usersService -> usersRepository: findOne(userId)
-usersRepository -> mongoDB: Query target user
-mongoDB --> usersRepository: User document
-usersRepository --> usersService: Return user or null
-alt User not found
-    usersService --> usersService: Throw UnprocessableEntityException
-end
-usersService --> usersService: Return target user
-deactivate usersService
-
-alt Actor is not admin or is the same user
-    usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-    usersController --> userUpdateComponent: HTTP 422 Error Response
-else Actor is admin and different user
-    alt Updating role and target is root admin
-        usersService -> configService: get('auth.adminEmail')
-        configService --> usersService: Return admin email
-
-        usersService -> usersService: Check if user is root admin
-
-        usersService --> usersController: Throw HttpException\n(UNPROCESSABLE_ENTITY)
-        usersController --> userUpdateComponent: HTTP 422 Error Response
-    else Valid update request
-        usersService -> usersService: Prepare updateQuery
-
-        usersService -> usersRepository: findOneAndUpdateOrThrow(userId, updateQuery)
-        activate usersRepository
-        usersRepository -> mongoDB: Update user document
-        mongoDB --> usersRepository: Updated user document
-        usersRepository --> usersService: Return updated user
-        deactivate usersRepository
-
-        usersService --> usersController: Return updated User
-        usersController --> userUpdateComponent: HTTP 200 OK\nUserDto
-    end
+    usersService --> usersController : Return null
+    usersController --> userProfileForm : HTTP 404 Not Found
+else User updated
+    usersService --> usersController : Return updated User
+    usersController --> userProfileForm : HTTP 200 OK\nUserDto
 end
 
 deactivate usersService
 deactivate usersController
+
+deactivate userProfileForm
+deactivate userProfilePage
 
 @enduml
