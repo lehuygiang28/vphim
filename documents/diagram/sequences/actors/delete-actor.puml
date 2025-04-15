@@ -13,7 +13,6 @@ title Delete Actor Flow (GraphQL)
 actor "Admin User" as adminUser
 participant "adminUI:ActorManagementPage" as adminUI <<Page>>
 participant "actorListItem:ActorListItem" as actorListItem <<Component>>
-participant "apolloClient:ApolloClient" as apolloClient <<Client>>
 participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
 participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
 participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
@@ -31,10 +30,7 @@ adminUser -> actorListItem : Clicks delete button for actor
 actorListItem -> adminUser : Show confirmation dialog
 
 adminUser -> actorListItem : Confirm deletion
-actorListItem -> apolloClient : Execute deleteActor mutation
-activate apolloClient
-
-apolloClient -> actorResolver : Mutation deleteActor(input: DeleteActorInput)
+actorListItem -> actorResolver : Mutation deleteActor(input: DeleteActorInput)
 activate actorResolver
 
 actorResolver -> jwtStrategy : Validate JWT token
@@ -62,11 +58,8 @@ deactivate actorRepo
 actorService --> actorResolver : Return 1 (success count)
 deactivate actorService
 
-actorResolver --> apolloClient : Return Int (1)
+actorResolver --> actorListItem : Return success
 deactivate actorResolver
-
-apolloClient --> actorListItem : Return success
-deactivate apolloClient
 
 actorListItem -> adminUI : Update actor list
 actorListItem --> adminUser : Show deletion confirmation

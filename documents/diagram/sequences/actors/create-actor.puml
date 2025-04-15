@@ -12,12 +12,10 @@ title Create Actor Flow (GraphQL)
 
 actor "Admin User" as adminUser
 participant "actorPage:CreateActor" as actorPage <<Page>>
-participant "personForm:PersonResourceForm" as personForm <<Component>>
-participant "baseForm:BaseResourceForm" as baseForm <<Component>>
-participant "apolloClient:ApolloClient" as apolloClient <<Client>>
+participant "actorForm:ActorForm" as actorForm <<Component>>
 participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
-control "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
-control "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
 participant "actorService:ActorService" as actorService <<Service>>
 participant "actorRepo:ActorRepository" as actorRepo <<Repository>>
 database "MongoDB" as mongoDB
@@ -25,16 +23,12 @@ database "MongoDB" as mongoDB
 adminUser -> actorPage : Navigate to actor creation page
 activate actorPage
 
-actorPage -> personForm : Display form
-activate personForm
+actorPage -> actorForm : Display form
+activate actorForm
 
-personForm -> baseForm : Render form fields
-activate baseForm
+adminUser -> actorForm : Fills name, originalName, slug, posterUrl
 
-adminUser -> baseForm : Fills name, originalName, slug, posterUrl
-
-baseForm -> apolloClient : Execute createActor mutation
-apolloClient -> actorResolver : Mutation createActor(input: CreateActorInput)
+actorForm -> actorResolver : Mutation createActor(input: CreateActorInput)
 activate actorResolver
 
 actorResolver -> jwtStrategy : Validate JWT token
@@ -61,10 +55,8 @@ deactivate actorRepo
 
 alt slug already exists
     actorService --> actorResolver : Throw BadRequestException\n(Slug already exists)
-    actorResolver --> apolloClient : Return error
-    apolloClient --> baseForm : Display error message
-    baseForm --> personForm : Update with error state
-    personForm --> actorPage : Show error
+    actorResolver --> actorForm : Return error
+    actorForm --> actorPage : Show error
     actorPage --> adminUser : Show slug already exists error
 else slug is unique
     note right of actorService
@@ -83,18 +75,14 @@ else slug is unique
     deactivate actorRepo
 
     actorService --> actorResolver : Return new actor (ActorType)
-    actorResolver --> apolloClient : Return ActorType
-    apolloClient --> baseForm : Return success with actor data
-    baseForm --> personForm : Update form with success
-    personForm --> actorPage : Complete form submission
+    actorResolver --> actorForm : Return ActorType
+    actorForm --> actorPage : Complete form submission
     actorPage --> adminUser : Redirect to actor details page
 end
 
 deactivate actorService
 deactivate actorResolver
-deactivate apolloClient
-deactivate baseForm
-deactivate personForm
+deactivate actorForm
 deactivate actorPage
 
 @enduml

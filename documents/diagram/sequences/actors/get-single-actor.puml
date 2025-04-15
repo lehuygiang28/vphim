@@ -12,8 +12,6 @@ title Get Single Actor Flow (GraphQL)
 
 actor "Client" as appClient
 participant "detailUI:ActorDetailPage" as detailUI <<Page>>
-participant "feComponent:FrontEndComponent" as feComponent <<Component>>
-participant "apolloClient:ApolloClient" as apolloClient <<Client>>
 participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
 participant "actorService:ActorService" as actorService <<Service>>
 participant "actorRepo:ActorRepository" as actorRepo <<Repository>>
@@ -21,11 +19,7 @@ database "MongoDB" as mongoDB
 
 appClient -> detailUI : View actor details
 activate detailUI
-detailUI -> feComponent : Request actor data
-activate feComponent
-feComponent -> apolloClient : Execute actor query
-activate apolloClient
-apolloClient -> actorResolver : Query actor(input: GetActorInput)
+detailUI -> actorResolver : Query actor(input: GetActorInput)
 activate actorResolver
 
 actorResolver -> actorService : getActor({_id:String, slug:String})
@@ -69,21 +63,16 @@ end
 
 alt success
     actorService --> actorResolver : Return actor:ActorType
-    actorResolver --> apolloClient : Return ActorType
-    apolloClient --> feComponent : Return actor data
-    feComponent --> detailUI : Render actor details
+    actorResolver --> detailUI : Render actor details
     detailUI --> appClient : Display actor information
 else error
     actorService --> actorResolver : Throw exception
-    actorResolver --> apolloClient : Return error
-    apolloClient --> feComponent : Return error
-    feComponent --> detailUI : Show error state
+    actorResolver --> detailUI : Show error state
     detailUI --> appClient : Display error message
 end
 
 deactivate actorService
 deactivate actorResolver
-deactivate apolloClient
 deactivate feComponent
 deactivate detailUI
 

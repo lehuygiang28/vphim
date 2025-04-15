@@ -11,28 +11,22 @@ skinparam ParticipantBorderColor black
 title Update Actor Flow (GraphQL)
 
 actor "Admin User" as adminUser
-participant "editUI:EditActorPage" as editUI #LightBlue
-participant "personForm:PersonResourceForm" as personForm #LightBlue
-participant "baseForm:BaseResourceForm" as baseForm #LightBlue
-participant "apolloClient:ApolloClient" as apolloClient #LightBlue
-participant "actorResolver:ActorResolver" as actorResolver
-control "jwtStrategy:JwtGqlStrategy" as jwtStrategy
-control "rolesGuard:RolesGuard" as rolesGuard
-participant "actorService:ActorService" as actorService
-participant "actorRepo:ActorRepository" as actorRepo
+participant "actorPage:EditActorPage" as actorPage <<Page>>
+participant "actorForm:ActorForm" as actorForm <<Component>>
+participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "actorService:ActorService" as actorService <<Service>>
+participant "actorRepo:ActorRepository" as actorRepo <<Repository>>
 database "MongoDB" as mongoDB
 
-adminUser -> editUI : Edits actor details
-activate editUI
-editUI -> personForm : Display form with existing data
-activate personForm
-personForm -> baseForm : Render form fields
-activate baseForm
-adminUser -> baseForm : Updates actor fields
+adminUser -> actorPage : Navigate to actor edit page
+activate actorPage
+actorPage -> actorForm : Display form with existing data
+activate actorForm
+adminUser -> actorForm : Updates actor fields
 
-baseForm -> apolloClient : Execute updateActor mutation
-activate apolloClient
-apolloClient -> actorResolver : Mutation updateActor(input: UpdateActorInput)
+actorForm -> actorResolver : Mutation updateActor(input: UpdateActorInput)
 activate actorResolver
 
 actorResolver -> jwtStrategy : Validate JWT token
@@ -74,15 +68,10 @@ deactivate actorRepo
 actorService --> actorResolver : Return updated actor:ActorType
 deactivate actorService
 
-actorResolver --> apolloClient : Return ActorType
-deactivate actorResolver
-apolloClient --> baseForm : Return success with actor data
-deactivate apolloClient
-baseForm --> personForm : Update form with success
-deactivate baseForm
-personForm --> editUI : Complete form submission
-deactivate personForm
-editUI --> adminUser : Show update confirmation
-deactivate editUI
+actorResolver --> actorForm : Return ActorType
+actorForm --> actorPage : Complete form submission
+deactivate actorForm
+actorPage --> adminUser : Show update confirmation
+deactivate actorPage
 
 @enduml

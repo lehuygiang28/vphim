@@ -12,8 +12,6 @@ title GraphQL Get Actors Flow
 
 actor "Client" as appClient
 participant "actorsUI:ActorsPage" as actorsUI <<Page>>
-participant "feComponent:FrontEndComponent" as feComponent <<Component>>
-participant "apolloClient:ApolloClient" as apolloClient <<Client>>
 participant "actorResolver:ActorResolver" as actorResolver <<Resolver>>
 participant "actorService:ActorService" as actorService <<Service>>
 participant "redisService:RedisService" as redisService <<Service>>
@@ -22,11 +20,7 @@ database "MongoDB" as mongoDB
 
 appClient -> actorsUI : Browse actors page
 activate actorsUI
-actorsUI -> feComponent : Request actors data
-activate feComponent
-feComponent -> apolloClient : Execute actors query
-activate apolloClient
-apolloClient -> actorResolver : Query actors(input: GetActorsInput)
+actorsUI -> actorResolver : Query actors(input: GetActorsInput)
 activate actorResolver
 
 actorResolver -> actorService : getActors(input:GetActorsInput)
@@ -72,13 +66,9 @@ else cache miss
     actorService --> actorResolver : Return { data:Actor[], total:number, count:number }
 end
 
-actorResolver --> apolloClient : Return GetActorsOutput
+actorResolver --> actorsUI : Render actors list
 deactivate actorService
 deactivate actorResolver
-apolloClient --> feComponent : Return actors data
-deactivate apolloClient
-feComponent --> actorsUI : Render actors list
-deactivate feComponent
 actorsUI --> appClient : Display actors with pagination
 deactivate actorsUI
 
