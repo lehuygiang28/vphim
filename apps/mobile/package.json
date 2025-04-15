@@ -138,7 +138,8 @@
         "expo-web-browser": "*",
         "expo-image-picker": "*",
         "expo-video": "*",
-        "expo-clipboard": "*"
+        "expo-clipboard": "*",
+        "@react-native-async-storage/async-storage": "*"
     },
     "scripts": {
         "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp yarn.lock apps/mobile",

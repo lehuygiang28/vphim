@@ -10,7 +10,7 @@
         "adr": "yarn nx run-android mobile -- --non-interactive=true",
         "mb": "yarn nx start mobile",
         "postinstall": "npx patch-package",
-		"compodoc": "npx @compodoc/compodoc -p ./apps/api/tsconfig.json -s"
+        "compodoc": "npx @compodoc/compodoc -p ./apps/api/tsconfig.json -s"
     },
     "dependencies": {
         "@ant-design/icons": "^5.4.0",
@@ -46,6 +46,7 @@
         "@nestjs/throttler": "^6.2.1",
         "@next/third-parties": "^15.0.2",
         "@octokit/rest": "^20.1.1",
+        "@react-native-async-storage/async-storage": "1.23.1",
         "@react-native-community/cli-server-api": "^15.1.2",
         "@refinedev/antd": "^5.43.0",
         "@refinedev/core": "^4.54.0",
