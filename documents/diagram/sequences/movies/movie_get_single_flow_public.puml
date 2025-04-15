@@ -1,4 +1,4 @@
-@startuml Admin Get Single Movie Flow (GraphQL)
+@startuml Public Get Single Movie Flow (GraphQL)
 
 skinparam SequenceMessageAlignment center
 skinparam SequenceBoxBackgroundColor white
@@ -8,33 +8,23 @@ skinparam NoteBorderColor black
 skinparam ParticipantBackgroundColor white
 skinparam ParticipantBorderColor black
 
-title Admin Get Single Movie Flow (GraphQL)
+title Public Get Single Movie Flow (GraphQL)
 
-actor "adminUser" as adminUser
-participant "editMoviePage:EditMovie" as editMoviePage <<Page>>
-participant "editMovieForm:EditMovieForm" as editMovieForm <<Component>>
+actor "user" as user
+participant "moviePage:MoviePage" as moviePage <<Page>>
+participant "movieComponent:MovieComponent" as movieComponent <<Component>>
 participant "movieResolver:MovieResolver" as movieResolver <<Resolver>>
-participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
-participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
 participant "movieService:MovieService" as movieService <<Service>>
 participant "movieRepo:MovieRepository" as movieRepo <<Repository>>
 database "mongoDB:MongoDB" as mongoDB <<Database>>
 
-adminUser -> editMoviePage : Navigate to movie edit page
-activate editMoviePage
-editMoviePage -> editMovieForm : Display form
-activate editMovieForm
-adminUser -> editMovieForm : Initiates get single movie
-editMovieForm -> movieResolver : Query getMovie(input)
+user -> moviePage : Navigate to movie page
+activate moviePage
+moviePage -> movieComponent : Display movie details
+activate movieComponent
+user -> movieComponent : Initiates get single movie
+movieComponent -> movieResolver : Query movie(input)
 activate movieResolver
-movieResolver -> jwtStrategy : Validate JWT token
-activate jwtStrategy
-jwtStrategy --> movieResolver : Return UserJwt
-deactivate jwtStrategy
-movieResolver -> rolesGuard : Check admin role permissions
-activate rolesGuard
-rolesGuard --> movieResolver : Validate admin role
-deactivate rolesGuard
 movieResolver -> movieService : getMovie(input)
 activate movieService
 alt input has _id
@@ -54,21 +44,21 @@ movieRepo --> movieService : movie document with populated fields
 deactivate movieRepo
 alt document not found
     movieService --> movieResolver : Throw NotFoundException
-    movieResolver --> editMovieForm : Error: Movie not found
-    editMovieForm --> editMoviePage : Show error
-    editMoviePage --> adminUser : Show not found error
+    movieResolver --> movieComponent : Error: Movie not found
+    movieComponent --> moviePage : Show error
+    moviePage --> user : Show not found error
 else document found
     movieService --> movieResolver : MovieType instance
-    movieResolver --> editMovieForm : MovieType
-    editMovieForm --> editMoviePage : Show movie details
-    editMoviePage --> adminUser : Display movie details
+    movieResolver --> movieComponent : MovieType
+    movieComponent --> moviePage : Show movie details
+    moviePage --> user : Display movie details
     note right of movieService
-      Admin can see deleted and sensitive movies
+      Public cannot see deleted or sensitive movies
     end note
 end
 deactivate movieService
 deactivate movieResolver
-deactivate editMovieForm
-deactivate editMoviePage
+deactivate movieComponent
+deactivate moviePage
 
 @enduml

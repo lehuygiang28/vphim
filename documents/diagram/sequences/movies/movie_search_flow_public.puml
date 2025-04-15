@@ -1,4 +1,4 @@
-@startuml Admin Search Movies Flow (GraphQL)
+@startuml Public Search Movies Flow (GraphQL)
 
 skinparam SequenceMessageAlignment center
 skinparam SequenceBoxBackgroundColor white
@@ -8,36 +8,26 @@ skinparam NoteBorderColor black
 skinparam ParticipantBackgroundColor white
 skinparam ParticipantBorderColor black
 
-title Admin Search Movies Flow (GraphQL)
+title Public Search Movies Flow (GraphQL)
 
-actor "adminUser" as adminUser
+actor "user" as user
 participant "movieListPage:MovieList" as movieListPage <<Page>>
 participant "movieListComponent:MovieListComponent" as movieListComponent <<Component>>
 participant "movieResolver:MovieResolver" as movieResolver <<Resolver>>
-participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
-participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
 participant "movieService:MovieService" as movieService <<Service>>
 participant "redisService:RedisService" as redisService <<Service>>
 participant "elasticsearchService:ElasticsearchService" as elasticsearchService <<Service>>
 database "elasticsearch:Elasticsearch" as elasticsearch <<Database>>
 participant "Google Gemini AI" as googleGeminiAI <<AI>>
 
-adminUser -> movieListPage : Navigate to movie list page
+user -> movieListPage : Navigate to movie list page
 activate movieListPage
 movieListPage -> movieListComponent : Display movie list
 activate movieListComponent
-adminUser -> movieListComponent : Initiates movie search
-movieListComponent -> movieResolver : Query moviesForAdmin(input)
+user -> movieListComponent : Initiates movie search
+movieListComponent -> movieResolver : Query movies(input)
 activate movieResolver
-movieResolver -> jwtStrategy : Validate JWT token
-activate jwtStrategy
-jwtStrategy --> movieResolver : Return UserJwt
-deactivate jwtStrategy
-movieResolver -> rolesGuard : Check admin role permissions
-activate rolesGuard
-rolesGuard --> movieResolver : Validate admin role
-deactivate rolesGuard
-movieResolver -> movieService : getMoviesEs(input, false, true)
+movieResolver -> movieService : getMoviesEs(input, false, false)
 activate movieService
 alt has keywords & useAI flag enabled
     movieService -> redisService : get cached AI analysis
@@ -50,7 +40,7 @@ alt has keywords & useAI flag enabled
     movieService -> movieService : getAIFilter(aiAnalysis, userFilters)
     movieService --> movieService : AI-enhanced Elasticsearch query
 else standard search
-    movieService -> movieService : buildTraditionalQuery(dto, isAdmin=true)
+    movieService -> movieService : buildTraditionalQuery(dto, isAdmin=false)
     movieService --> movieService : Elasticsearch query
 end
 movieService -> elasticsearchService : search(index=movies, body)
@@ -58,7 +48,7 @@ activate elasticsearchService
 elasticsearchService -> elasticsearch : execute search query
 elasticsearch --> elasticsearchService : search results
 note right of movieService
-  Admin can see deleted movies (recycle bin)
+  Public cannot see deleted movies (recycle bin)
   and sensitive categories (e.g., phim-18)
 end note
 deactivate elasticsearchService
@@ -67,7 +57,7 @@ deactivate movieService
 movieResolver --> movieListComponent : { data, total }
 deactivate movieResolver
 movieListComponent --> movieListPage : Display search results
-movieListPage --> adminUser : Show search results
+movieListPage --> user : Show search results
 deactivate movieListComponent
 deactivate movieListPage
 

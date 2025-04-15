@@ -1,47 +1,78 @@
 @startuml Movie Creation Flow
 
-actor User <<Actor>>
-' Stereotypes: <<Component>>, <<Resolver>>, <<Service>>, <<Repository>>, <<Service>>, <<Service>>, <<Database>>, <<Database>>
-participant "CreateMovie (Next.js Admin)" as CreateMovie <<Component>>
-participant "MovieResolver" as Resolver <<Resolver>>
-participant "MovieService" as MovieService <<Service>>
-participant "MovieRepository" as MovieRepository <<Repository>>
-participant "SearchService" as SearchService <<Service>>
-participant "ElasticsearchService" as ElasticsearchService <<Service>>
-database "MongoDB" as MongoDB <<Database>>
-database "Elasticsearch" as Elasticsearch <<Database>>
+skinparam SequenceMessageAlignment center
+skinparam SequenceBoxBackgroundColor white
+skinparam SequenceBoxBorderColor black
+skinparam NoteBackgroundColor lightyellow
+skinparam NoteBorderColor black
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor black
 
-User -> CreateMovie: Initiates movie creation
-CreateMovie -> Resolver: mutation createMovie(input)
-activate Resolver
-Resolver -> MovieMovieService: createMovie(input)
-activate MovieService
-MovieService -> MovieMovieRepository: create(movie)
-activate MovieRepository
-MovieRepository -> MongoDB: save movie document
-MongoDB --> MovieMovieRepository: saved document
-deactivate MongoDB
-deactivate MovieRepository
-note right of MovieRepository
+title Create Movie Flow (GraphQL)
+
+actor "adminUser" as adminUser
+participant "createMoviePage:CreateMovie" as createMoviePage <<Page>>
+participant "createMovieForm:CreateMovieForm" as createMovieForm <<Component>>
+participant "movieResolver:MovieResolver" as movieResolver <<Resolver>>
+participant "jwtStrategy:JwtGqlStrategy" as jwtStrategy <<Strategy>>
+participant "rolesGuard:RolesGuard" as rolesGuard <<Guard>>
+participant "movieService:MovieService" as movieService <<Service>>
+participant "movieRepo:MovieRepository" as movieRepo <<Repository>>
+participant "searchService:SearchService" as searchService <<Service>>
+participant "elasticsearchService:ElasticsearchService" as elasticsearchService <<Service>>
+database "mongoDB:MongoDB" as mongoDB <<Database>>
+database "elasticsearch:Elasticsearch" as elasticsearch <<Database>>
+
+adminUser -> createMoviePage : Navigate to movie creation page
+activate createMoviePage
+createMoviePage -> createMovieForm : Display form
+activate createMovieForm
+adminUser -> createMovieForm : Fills movie fields
+createMovieForm -> movieResolver : Mutation createMovie(input: CreateMovieInput)
+activate movieResolver
+movieResolver -> jwtStrategy : Validate JWT token
+activate jwtStrategy
+jwtStrategy --> movieResolver : Return UserJwt
+deactivate jwtStrategy
+movieResolver -> rolesGuard : Check admin role permissions
+activate rolesGuard
+rolesGuard --> movieResolver : Validate admin role
+deactivate rolesGuard
+movieResolver -> movieService : createMovie({input})
+activate movieService
+movieService -> movieRepo : create({document: {...}})
+activate movieRepo
+movieRepo -> mongoDB : Insert new movie document
+activate mongoDB
+mongoDB --> movieRepo : Return created movie
+deactivate mongoDB
+movieRepo --> movieService : Return created movie
+deactivate movieRepo
+note right of movieRepo
   MovieSchema.post('save') hook triggers
   after document is saved
 end note
-MovieRepository -> SearchMovieService: indexMovie(document)
-activate SearchService
-SearchService -> MovieMovieRepository: findOne(movie._id) with populated fields
-MovieRepository --> SearchMovieService: fully populated movie document
-SearchService -> ElasticsearchMovieService: update(index=movies, id=movie._id)
-activate ElasticsearchService
-ElasticsearchService -> Elasticsearch: update/index document
-Elasticsearch --> ElasticsearchMovieService: update result
-ElasticsearchService -> Elasticsearch: indices.refresh(index=movies)
-Elasticsearch --> ElasticsearchMovieService: refresh result
-deactivate ElasticsearchService
-SearchService --> MovieMovieRepository: indexing result
-deactivate SearchService
-MovieService --> Resolver: new MovieType instance
-deactivate MovieService
-Resolver --> CreateMovie: Movie document
-deactivate Resolver
+movieService -> searchService : indexMovie(document)
+activate searchService
+searchService -> movieRepo : findOne(movie._id) with populated fields
+movieRepo --> searchService : fully populated movie document
+searchService -> elasticsearchService : update(index=movies, id=movie._id)
+activate elasticsearchService
+elasticsearchService -> elasticsearch : update/index document
+elasticsearch --> elasticsearchService : update result
+elasticsearchService -> elasticsearch : indices.refresh(index=movies)
+elasticsearch --> elasticsearchService : refresh result
+deactivate elasticsearchService
+searchService --> movieService : indexing result
+deactivate searchService
+movieService --> movieResolver : new MovieType instance
+deactivate movieService
+movieResolver --> createMovieForm : Movie document
+deactivate movieResolver
+createMovieForm --> createMoviePage : Complete form submission
+createMoviePage --> adminUser : Redirect to movie details page
+
+deactivate createMovieForm
+deactivate createMoviePage
 
 @enduml
