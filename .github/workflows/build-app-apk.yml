@@ -57,6 +57,11 @@ jobs:
               run: yarn nx build mobile -- --platform android --non-interactive --no-wait
 
             - name: Build Android app
+              env:
+                  EXPO_PUBLIC_BASE_API_URL: ${{ secrets.EXPO_PUBLIC_BASE_API_URL }}
+                  EXPO_PUBLIC_IMAGES_URL: ${{ secrets.EXPO_PUBLIC_IMAGES_URL }}
+                  EXPO_PUBLIC_BASE_PLAYER_URL: ${{ secrets.EXPO_PUBLIC_BASE_PLAYER_URL }}
+                  EXPO_PUBLIC_TMDB_API_KEY: ${{ secrets.EXPO_PUBLIC_TMDB_API_KEY }}
               run: |
                   yarn nx build mobile -- --platform android --profile preview --non-interactive --local --output ${{ github.workspace }}/vephim.apk
 
