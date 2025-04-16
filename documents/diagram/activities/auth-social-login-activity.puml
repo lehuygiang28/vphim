@@ -1,0 +1,70 @@
+@startuml Auth Social Login Activity Diagram
+!theme plain
+
+skinparam ConditionStyle diamond
+
+title Social Login Activity (Google / GitHub)
+caption Steps for authenticating via a third-party provider
+
+|User|
+start
+
+|Frontend (Login Component)|
+:Display Login Options;
+
+|User|
+:Select Login Method (Google / GitHub);
+:Click Google/GitHub Button;
+
+|Frontend (Login Component)|
+:Call next-auth signIn(provider);
+note right: next-auth handles OAuth flow with provider
+
+|Nextjs Server|
+:Receive Callback from Provider;
+:Extract idToken/accessToken;
+:Call API Endpoint;
+
+|Backend API|
+:Receive POST /auth/login/google or /github;
+:Call AuthService.validateLoginGoogle/Github;
+:Verify Token with Provider (Google Client/Octokit);
+if (Verification Failed?) then (yes)
+    :Throw UnauthorizedException;
+    :Return 4xx Error;
+    |Frontend (Login Component)|
+    :Show Login Failed Message;
+    stop
+else (no)
+    |Backend API|
+    :Extract User Info (Email, Name, Avatar);
+    :Find or Create User by Email;
+    if (User Blocked?) then (yes)
+        :Throw UnprocessableEntityException;
+        note left: Assumed check, not explicitly in validateLoginGoogle/Github but good practice
+        :Return 422 Error;
+        |Frontend (Login Component)|
+        :Show Blocked Message;
+        stop
+    else (no)
+        |Backend API|
+        if (Email Not Verified?) then (yes)
+        :Update User: emailVerified = true;
+        endif
+        :Generate Access & Refresh Tokens (JwtService);
+        :Return Tokens & User Data (from Service);
+        :Return 200 OK with LoginResponseDto (from Controller);
+        |Frontend (Login Component)|
+        :Receive Tokens & User Data;
+        :next-auth stores session (JWT Cookie);
+        :Redirect to Target Page;
+        -> Logged In;
+    endif
+endif
+
+#lightgreen:Logged In;
+|Frontend (Login Component)|
+:User is Authenticated;
+
+stop
+@enduml
