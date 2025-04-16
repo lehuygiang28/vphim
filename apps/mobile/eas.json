@@ -9,7 +9,9 @@
             },
             "env": {
                 "EXPO_PUBLIC_BASE_API_URL": "https://api.vephim.online",
-                "EXPO_PUBLIC_IMAGES_URL": "https://img.vephim.online"
+                "EXPO_PUBLIC_IMAGES_URL": "https://img.vephim.online",
+                "EXPO_PUBLIC_BASE_PLAYER_URL": "https://vephim.online",
+                "EXPO_PUBLIC_TMDB_API_KEY": "cd13b28d7ef8b3a8e96cfd214d3a0453"
             }
         },
         "development": {
