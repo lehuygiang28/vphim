@@ -56,7 +56,7 @@ jobs:
             - name: Trigger EAS Build
               run: yarn nx build mobile -- --platform android --non-interactive --no-wait
 
-            - name: Build Android app
+            - name: Build Android apk app
               env:
                   EXPO_PUBLIC_BASE_API_URL: ${{ secrets.EXPO_PUBLIC_BASE_API_URL }}
                   EXPO_PUBLIC_IMAGES_URL: ${{ secrets.EXPO_PUBLIC_IMAGES_URL }}
