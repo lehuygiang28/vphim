@@ -49,6 +49,7 @@ export default function FooterComponent({ categories = [], regions = [] }: Foote
                                 priority
                             />
                         </Link>
+                        <br />
                         <Text className="netflix-footer-text">
                             Trang web xem phim trực tuyến miễn phí chất lượng cao với giao diện trực
                             quan, tốc độ tải trang nhanh, cùng kho phim với hơn 30.000+ phim mới,
