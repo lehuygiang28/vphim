@@ -1,34 +1,25 @@
-'use client';
-
 import { PropsWithChildren } from 'react';
-import { useGetIdentity } from '@refinedev/core';
-import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { redirect, RedirectType } from 'next/navigation';
+import { getServerSession } from 'next-auth';
 
-import { UserType } from '~api/app/users/user.type';
+import { authOptions } from '~fe/app/api/auth/[...nextauth]/options';
+import type { UserType } from '~api/app/users/user.type';
 import { UserRoleEnum } from '~api/app/users/users.enum';
-
-import Loading from '~mnt/app/loading';
 
 type AuthWrapperProps = PropsWithChildren<{
     accessType: 'public' | 'authenticated' | 'not-authenticated';
 }>;
 
-export function AuthWrapper({ children, accessType }: AuthWrapperProps) {
-    const router = useRouter();
-    const { data: user, isLoading: isIdentityLoading } = useGetIdentity<UserType>();
+export async function AuthWrapper({ children, accessType }: AuthWrapperProps) {
+    const auth = await getServerSession(authOptions);
 
-    if (isIdentityLoading) {
-        return <Loading />;
-    }
-
+    const user = auth?.user as UserType | null;
     const isAuthenticated = !!user;
     const isAdmin = user?.role === UserRoleEnum.Admin;
     const isBlocked = user?.block?.isBlocked;
 
     if (isBlocked) {
-        signOut({ redirect: true, callbackUrl: '/login?e=blocked' });
-        return <></>;
+        return redirect('/login?e=blocked', RedirectType.replace);
     }
 
     switch (accessType) {
@@ -38,9 +29,9 @@ export function AuthWrapper({ children, accessType }: AuthWrapperProps) {
 
         case 'authenticated': {
             if (!isAuthenticated) {
-                signOut({ redirect: true, callbackUrl: '/login' });
+                return redirect('/login', RedirectType.replace);
             } else if (!isAdmin) {
-                signOut({ redirect: true, callbackUrl: '/login?e=not-admin' });
+                return redirect('/login?e=not-admin', RedirectType.replace);
             } else {
                 return <>{children}</>;
             }
@@ -49,7 +40,8 @@ export function AuthWrapper({ children, accessType }: AuthWrapperProps) {
 
         case 'not-authenticated': {
             if (isAuthenticated) {
-                router.replace('/dashboard');
+                // Redirect to the home page if the user is authenticated
+                return redirect('/dashboard', RedirectType.replace);
             } else {
                 return <>{children}</>;
             }
