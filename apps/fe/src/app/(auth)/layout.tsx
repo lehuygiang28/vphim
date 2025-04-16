@@ -1,22 +1,13 @@
-'use client';
-
 import { PropsWithChildren } from 'react';
-import { useIsAuthenticated } from '@refinedev/core';
-import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
-import '@/components/layout/layout.css';
+import { redirect, RedirectType } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../api/auth/[...nextauth]/options';
 
-export default function RequiredAuthLayout({ children }: PropsWithChildren) {
-    const router = useRouter();
-    const { data, isLoading } = useIsAuthenticated();
+export default async function RequiredAuthLayout({ children }: PropsWithChildren) {
+    const auth = await getServerSession(authOptions);
 
-    if (isLoading) {
-        return <></>;
-    }
-
-    if (!isLoading && !data?.authenticated) {
-        signOut({ redirect: false });
-        return router.replace('/');
+    if (!auth?.user) {
+        return redirect('/', RedirectType.replace);
     }
 
     return <div className="layout-space-container">{children}</div>;
