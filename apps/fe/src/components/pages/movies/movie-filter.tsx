@@ -26,7 +26,6 @@ import { LogicalFilter } from '@refinedev/core';
 import {
     FilterOutlined,
     CloseOutlined,
-    QuestionCircleOutlined,
     SearchOutlined,
     SortAscendingOutlined,
     RobotOutlined,

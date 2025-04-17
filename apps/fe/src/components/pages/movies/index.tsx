@@ -344,7 +344,7 @@ export default function MoviePage({ breadcrumbs, categories, regions }: MoviePag
                 <MovieFilters
                     query={query}
                     setQuery={setQuery}
-                    isSearching={showLoadingState}
+                    isSearching={showLoadingState || shouldShowAISteps}
                     applySearch={applySearch}
                     categories={categories}
                     regions={regions}
