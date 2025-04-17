@@ -956,7 +956,11 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                 />
                             </Col>
                             <Col span={24}>
-                                <Row align="middle" justify="space-between">
+                                <Row
+                                    align="middle"
+                                    justify="space-between"
+                                    style={{ marginTop: '0.5rem' }}
+                                >
                                     <Col>
                                         <Space size="middle" align="center">
                                             <Space size="small">
@@ -986,20 +990,13 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                                     type="secondary"
                                                     style={{ fontSize: '0.85rem' }}
                                                 >
-                                                    {getFilterValue('useAI')[0]?.toString() ===
-                                                    'true'
-                                                        ? 'Tìm kiếm với AI'
-                                                        : 'Tìm kiếm thông thường'}
+                                                    Tìm kiếm với AI
                                                 </Text>
                                             </Space>
 
-                                            {getFilterValue('useAI')[0]?.toString() === 'true' && (
-                                                <Tooltip title="Tìm kiếm với AI cho phép bạn mô tả nội dung phim bạn muốn tìm thay vì chỉ tìm kiếm theo từ khóa.">
-                                                    <InfoCircleOutlined
-                                                        style={{ color: '#1890ff' }}
-                                                    />
-                                                </Tooltip>
-                                            )}
+                                            <Tooltip title="Tìm kiếm với AI cho phép bạn mô tả nội dung phim bạn muốn tìm thay vì chỉ tìm kiếm theo từ khóa.">
+                                                <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                                            </Tooltip>
                                         </Space>
                                     </Col>
                                 </Row>
