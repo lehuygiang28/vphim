@@ -10,7 +10,7 @@ import type { Movie } from 'apps/api/src/app/movies/movie.schema';
 import { handleFilter, handlePagination, handleSort } from '@/libs/utils/data-provider.util';
 
 export const restfulDataProvider = (axios: AxiosInstance) => {
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
     return {
         ...simpleRestProvider(apiUrl, axios),

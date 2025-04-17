@@ -63,7 +63,7 @@ const translations = {
 
 export function UserUpdateComponent({ onBack, language = 'vi' }: UserUpdateComponentProps) {
     const t = translations[language];
-    const apiUrl = useApiUrl();
+    const apiUrl = useApiUrl('graphql');
     const { data: user } = useGetIdentity<LoginResponseDto>();
     const { open } = useNotification();
     const { mutate: update } = useUpdate();
