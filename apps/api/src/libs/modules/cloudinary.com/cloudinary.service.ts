@@ -5,19 +5,22 @@ import {
     ResourceApiResponse,
     UploadApiOptions,
 } from 'cloudinary';
+import { v4 as uuidv4 } from 'uuid';
 import { CloudinaryResponse } from './cloudinary-response';
 import * as streamifier from 'streamifier';
 import { CLOUDINARY_ALLOW_IMAGE_FORMATS, CLOUDINARY_ROOT_FOLDER_NAME } from './cloudinary.constant';
-import { buildPublicId } from './cloudinary.util';
 import { MulterFile } from 'apps/api/src/app/images/multer.type';
 
 @Injectable()
 export class CloudinaryService {
     async uploadImage(file: MulterFile): Promise<CloudinaryResponse> {
+        const id = uuidv4()?.toString();
         const options: UploadApiOptions = {
             folder: CLOUDINARY_ROOT_FOLDER_NAME,
             allowedFormats: CLOUDINARY_ALLOW_IMAGE_FORMATS,
-            public_id: buildPublicId(file),
+            public_id: id,
+            filename_override: id,
+            unique_filename: true,
             transformation: {
                 format: 'auto',
                 quality: 'auto',
