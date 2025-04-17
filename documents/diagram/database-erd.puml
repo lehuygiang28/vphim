@@ -108,7 +108,6 @@ class Comment << Collection >> #COLLECTION_BG_COLOR {
   parentComment: ObjectId <<ref:Comment>>
   nestingLevel: number
   rootParentComment: ObjectId <<ref:Comment>>
-  mentionedUsers: ObjectId[] <<ref:User>>
   editedAt: number
 }
 
@@ -163,27 +162,111 @@ class LastSyncModified << Embedded >> #EMBEDDED_BG_COLOR {
 }
 
 ' Embedded document relationships (composition)
-User *-- "0..1" AvatarSchema : embedded
-User *-- "0..1" UserBlockSchema : embedded
-UserBlockSchema *-- "0..*" BlockActivityLog : embedded
+' One-to-One: User has one Avatar
+User *-- "0..1" AvatarSchema : embedded >
+note on link
+  One-to-One (Optional)
+  User has one optional Avatar
+end note
 
-Movie *-- "0..*" Episode : embedded
-Episode *-- "0..*" EpisodeServerData : embedded
-Movie *-- "0..1" LastSyncModified : embedded
-Movie *-- "0..1" TmdbSchema : embedded
-Movie *-- "0..1" ImdbSchema : embedded
+' One-to-One: User has one UserBlockSchema
+User *-- "0..1" UserBlockSchema : embedded >
+note on link
+  One-to-One (Optional)
+  User has one optional Block info
+end note
+
+' One-to-Many: UserBlockSchema has many BlockActivityLogs
+UserBlockSchema *-- "0..*" BlockActivityLog : embedded >
+note on link
+  One-to-Many
+  UserBlock has many ActivityLogs
+end note
+
+' One-to-Many: Movie has many Episodes
+Movie *-- "0..*" Episode : embedded >
+note on link
+  One-to-Many
+  Movie has many Episodes
+end note
+
+' One-to-Many: Episode has many ServerData
+Episode *-- "0..*" EpisodeServerData : embedded >
+note on link
+  One-to-Many
+  Episode has many ServerData
+end note
+
+' One-to-One relationships for Movie metadata
+Movie *-- "0..1" LastSyncModified : embedded >
+Movie *-- "0..1" TmdbSchema : embedded >
+Movie *-- "0..1" ImdbSchema : embedded >
+note on link
+  One-to-One (Optional)
+  Movie has optional metadata
+end note
 
 ' Reference relationships (by ObjectId)
-Comment "0..*" --> "1" User : references
-Comment "0..*" --> "1" Movie : references
-Comment "0..*" --> "0..1" Comment : parent reference
+' One-to-Many: User to Comments
+Comment "0..*" --> "1" User : references >
+note on link
+  One-to-Many
+  User has many Comments
+end note
 
-Movie "0..*" --> "0..*" Actor : references
-Movie "0..*" --> "0..*" Director : references
-Movie "0..*" --> "0..*" Category : references
-Movie "0..*" --> "0..*" Region : references as countries
+' One-to-Many: Movie to Comments
+Comment "0..*" --> "1" Movie : references >
+note on link
+  One-to-Many
+  Movie has many Comments
+end note
 
-User "0..*" --> "0..*" Movie : follows
+' Self-referential One-to-Many: Comments can have replies
+Comment "0..*" --> "0..1" Comment : parent reference >
+note on link
+  One-to-Many (Self-referential)
+  Comment can have many replies
+end note
+
+' Many-to-Many: Movie to Actor
+Movie "0..*" --> "0..*" Actor : references >
+note on link
+  Many-to-Many
+  Movies can have many Actors
+  Actors can be in many Movies
+end note
+
+' Many-to-Many: Movie to Director
+Movie "0..*" --> "0..*" Director : references >
+note on link
+  Many-to-Many
+  Movies can have many Directors
+  Directors can have many Movies
+end note
+
+' Many-to-Many: Movie to Category
+Movie "0..*" --> "0..*" Category : references >
+note on link
+  Many-to-Many
+  Movies can have many Categories
+  Categories can have many Movies
+end note
+
+' Many-to-Many: Movie to Region
+Movie "0..*" --> "0..*" Region : references as countries >
+note on link
+  Many-to-Many
+  Movies can have many Countries
+  Countries can have many Movies
+end note
+
+' Many-to-Many: User follows Movies
+User "0..*" --> "0..*" Movie : follows >
+note on link
+  Many-to-Many
+  Users can follow many Movies
+  Movies can be followed by many Users
+end note
 
 note top of UserBlockSchema
   Embedded in User document
@@ -225,10 +308,16 @@ legend right
   **Legend**
   <back:LightCyan>Collection</back> - MongoDB Collection (separate documents)
   <back:LightYellow>Embedded</back> - Embedded document (nested within parent)
-  
+
   ** Relationships **
   ---> References (stores ObjectId)
   *-- Embeds (nested document)
+
+  ** Cardinality **
+  1     - Exactly one
+  0..1  - Zero or one (optional)
+  0..*  - Zero to many
+  1..*  - One to many
 end legend
 
 @enduml
