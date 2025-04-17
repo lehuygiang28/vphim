@@ -31,7 +31,7 @@ export default function ProfileParallelPage() {
             {isLoadingAuth ? (
                 <LoadingSpinner />
             ) : (
-                <UserUpdateComponent onBack={handleClose} language="en" />
+                <UserUpdateComponent onBack={handleClose} language="vi" />
             )}
         </Modal>
     );
