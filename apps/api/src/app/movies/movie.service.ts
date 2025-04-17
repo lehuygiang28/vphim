@@ -1184,4 +1184,17 @@ export class MovieService {
             },
         };
     }
+
+    async isImageInUse(url: string) {
+        const movie = await this.movieRepo.findOne({
+            filterQuery: {
+                $or: [{ thumbUrl: url }, { posterUrl: url }],
+            },
+        });
+        if (movie) {
+            return true;
+        }
+
+        return false;
+    }
 }

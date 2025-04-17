@@ -113,4 +113,17 @@ export class DirectorService {
         await this.directorRepo.deleteOne({ _id: convertToObjectId(_id) });
         return 1;
     }
+
+    async isImageInUse(url: string) {
+        const director = await this.directorRepo.findOne({
+            filterQuery: {
+                $or: [{ thumbUrl: url }, { posterUrl: url }],
+            },
+        });
+        if (director) {
+            return true;
+        }
+
+        return false;
+    }
 }

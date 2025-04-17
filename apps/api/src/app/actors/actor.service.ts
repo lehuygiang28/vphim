@@ -113,4 +113,17 @@ export class ActorService {
         await this.actorRepo.deleteOne({ _id: convertToObjectId(_id) });
         return 1;
     }
+
+    async isImageInUse(url: string) {
+        const actor = await this.actorRepo.findOne({
+            filterQuery: {
+                $or: [{ thumbUrl: url }, { posterUrl: url }],
+            },
+        });
+        if (actor) {
+            return true;
+        }
+
+        return false;
+    }
 }

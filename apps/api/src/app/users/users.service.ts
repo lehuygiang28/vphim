@@ -514,4 +514,15 @@ export class UsersService {
             createdAt: { $gte: startDate, $lt: endDate },
         });
     }
+
+    async isImageInUse(url: string) {
+        const user = await this.usersRepository.findOne({
+            filterQuery: { 'avatar.url': url },
+        });
+        if (user) {
+            return true;
+        }
+
+        return false;
+    }
 }

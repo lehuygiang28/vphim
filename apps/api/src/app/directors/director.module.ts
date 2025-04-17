@@ -19,6 +19,6 @@ import { RedisModule } from '../../libs/modules/redis';
     ],
     controllers: [DirectorController],
     providers: [DirectorResolver, DirectorService, DirectorRepository],
-    exports: [DirectorRepository],
+    exports: [DirectorRepository, DirectorService],
 })
 export class DirectorModule {}

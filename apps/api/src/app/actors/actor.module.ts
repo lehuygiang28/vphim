@@ -19,6 +19,6 @@ import { RedisModule } from '../../libs/modules/redis';
     ],
     controllers: [ActorController],
     providers: [ActorResolver, ActorService, ActorRepository],
-    exports: [ActorRepository],
+    exports: [ActorRepository, ActorService],
 })
 export class ActorModule {}
