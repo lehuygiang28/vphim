@@ -188,7 +188,25 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             return;
         }
 
+        // Update the useAI filter
         handleFilterChange('useAI', checked);
+    };
+
+    // Update the search function to include the useAI parameter and reset pagination
+    const handleSearch = () => {
+        // Update the keywords filter
+        const newFilters = handleFilterChange('keywords', keywordsInput || undefined);
+
+        // Get the current useAI value
+        const useAI = getFilterValue('useAI')[0]?.toString() === 'true';
+
+        // Apply search with updated filters, useAI flag, and reset pagination to page 1
+        applySearch({
+            ...query,
+            filters: newFilters,
+            useAI: useAI,
+            pagination: { ...query?.pagination, current: 1 },
+        });
     };
 
     const renderFilterForm = () => (
@@ -928,11 +946,9 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                     value={keywordsInput}
                                     onChange={setKeywordsInput}
                                     onSearch={(value) => {
-                                        const newFilters = handleFilterChange(
-                                            'keywords',
-                                            value || undefined,
-                                        );
-                                        applySearch({ ...query, filters: newFilters });
+                                        setKeywordsInput(value);
+                                        // Call the handleSearch function instead
+                                        handleSearch();
                                     }}
                                     isAIMode={getFilterValue('useAI')[0]?.toString() === 'true'}
                                     loading={isSearching}
@@ -940,54 +956,51 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
                                     aiPlaceholder="Mô tả chi tiết phim bạn muốn tìm (ví dụ: phim về phép thuật)"
                                 />
                             </Col>
-                            <Col span={24} style={{ paddingTop: '0.5rem' }}>
+                            <Col span={24}>
                                 <Row align="middle" justify="space-between">
                                     <Col>
-                                        <Space size="small">
-                                            <Badge
-                                                dot
-                                                status={
-                                                    getFilterValue('useAI')[0]?.toString() ===
-                                                    'true'
-                                                        ? 'processing'
-                                                        : 'default'
-                                                }
-                                                offset={[0, 0]}
-                                            >
-                                                <Switch
-                                                    size="small"
-                                                    checked={
+                                        <Space size="middle" align="center">
+                                            <Space size="small">
+                                                <Badge
+                                                    dot
+                                                    status={
                                                         getFilterValue('useAI')[0]?.toString() ===
                                                         'true'
+                                                            ? 'processing'
+                                                            : 'default'
                                                     }
-                                                    onChange={handleAIToggle}
-                                                    checkedChildren={<RobotOutlined />}
-                                                    unCheckedChildren={<SearchOutlined />}
-                                                />
-                                            </Badge>
-                                            <Text
-                                                type={
-                                                    getFilterValue('useAI')[0]?.toString() ===
+                                                    offset={[0, 0]}
+                                                >
+                                                    <Switch
+                                                        size="small"
+                                                        checked={
+                                                            getFilterValue(
+                                                                'useAI',
+                                                            )[0]?.toString() === 'true'
+                                                        }
+                                                        onChange={handleAIToggle}
+                                                        checkedChildren={<RobotOutlined />}
+                                                        unCheckedChildren={<SearchOutlined />}
+                                                    />
+                                                </Badge>
+                                                <Text
+                                                    type="secondary"
+                                                    style={{ fontSize: '0.85rem' }}
+                                                >
+                                                    {getFilterValue('useAI')[0]?.toString() ===
                                                     'true'
-                                                        ? 'success'
-                                                        : 'secondary'
-                                                }
-                                                strong={
-                                                    getFilterValue('useAI')[0]?.toString() ===
-                                                    'true'
-                                                }
-                                                style={{ fontSize: '0.875rem' }}
-                                            >
-                                                Tìm kiếm với AI
-                                            </Text>
-                                            <Tooltip title="Nhập mô tả chi tiết về nội dung, cảnh phim hoặc cảm xúc bạn muốn tìm. AI sẽ giúp bạn tìm những bộ phim phù hợp.">
-                                                <QuestionCircleOutlined
-                                                    style={{
-                                                        cursor: 'pointer',
-                                                        fontSize: '0.875rem',
-                                                    }}
-                                                />
-                                            </Tooltip>
+                                                        ? 'Tìm kiếm với AI'
+                                                        : 'Tìm kiếm thông thường'}
+                                                </Text>
+                                            </Space>
+
+                                            {getFilterValue('useAI')[0]?.toString() === 'true' && (
+                                                <Tooltip title="Tìm kiếm với AI cho phép bạn mô tả nội dung phim bạn muốn tìm thay vì chỉ tìm kiếm theo từ khóa.">
+                                                    <InfoCircleOutlined
+                                                        style={{ color: '#1890ff' }}
+                                                    />
+                                                </Tooltip>
+                                            )}
                                         </Space>
                                     </Col>
                                 </Row>
