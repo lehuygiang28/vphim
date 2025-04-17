@@ -187,8 +187,28 @@ export const MovieFilters: React.FC<MovieFiltersProps> = ({
             return;
         }
 
-        // Update the useAI filter
-        handleFilterChange('useAI', checked);
+        // Create a new query object with AI enabled/disabled
+        const newQuery = { ...query };
+
+        // Update the filters for useAI
+        const useAIFilter: LogicalFilter = { field: 'useAI', value: checked, operator: 'eq' };
+        newQuery.filters =
+            newQuery.filters?.filter((x) => (x as LogicalFilter)?.field !== 'useAI') || [];
+
+        if (checked) {
+            // Add the useAI filter
+            newQuery.filters.push(useAIFilter);
+
+            // Check if we're not already using bestMatch sorting
+            const currentSorterField = query?.sorters?.[0]?.field;
+            if (currentSorterField !== 'bestMatch') {
+                // Update the sorters to bestMatch
+                newQuery.sorters = [{ field: 'bestMatch', order: 'asc' }];
+            }
+        }
+
+        // Apply the combined changes at once
+        setQuery(newQuery);
     };
 
     // Update the search function to include the useAI parameter and reset pagination
