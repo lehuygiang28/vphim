@@ -73,7 +73,7 @@ export default function UserList() {
                             getOptimizedImageUrl(url, {
                                 width: 50,
                                 height: 50,
-                                quality: 70,
+                                quality: 80,
                             })
                         }
                         size={'default'}

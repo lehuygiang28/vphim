@@ -66,7 +66,7 @@ export default function HeaderUser() {
                                 ? getOptimizedImageUrl(user.avatar?.url, {
                                       width: screens.md ? 32 : 24,
                                       height: screens.md ? 32 : 24,
-                                      quality: 30,
+                                      quality: 80,
                                   })
                                 : null
                         }
