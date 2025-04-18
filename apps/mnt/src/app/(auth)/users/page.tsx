@@ -122,6 +122,15 @@ export default function UserList() {
             sortDirections: ['descend', 'ascend'],
         },
         {
+            key: 'followMovies',
+            dataIndex: 'followMovies',
+            title: 'Phim theo dõi',
+            onFilter: (value, record) => record.followMovies.length > 0,
+            sorter: (a, b) => a.followMovies.length - b.followMovies.length,
+            sortDirections: ['descend', 'ascend'],
+            render: (value) => value?.length || 0,
+        },
+        {
             key: 'role',
             dataIndex: 'role',
             title: 'Vai trò',
