@@ -1,0 +1,30 @@
+## Current tasks from user prompt:
+Create a feature for saving user history watching movie, saving what movies, what episode, what server they watch.
+
+## Plan (simple):
+Create a new module that allows tracking of what movies, episodes, and servers users have watched, with progress tracking.
+
+## Steps:
+1. Create WatchHistory schema with fields for user, movie, episode, server, and progress
+2. Implement repository for database operations
+3. Implement service for business logic
+4. Create DTOs and GraphQL inputs/types
+5. Implement resolver for GraphQL API
+6. Implement controller for REST API
+7. Register module in app.module.ts
+
+## Things done:
+- Created WatchHistory schema with fields for tracking user, movie, episode, server info
+- Added WatchProgress embedded schema for tracking watching progress
+- Implemented WatchHistoryRepository for database operations
+- Implemented WatchHistoryService with methods for saving and retrieving history
+- Created DTOs for REST API and GraphQL inputs/types
+- Implemented WatchHistoryResolver for GraphQL API
+- Implemented WatchHistoryController for REST API
+- Created WatchHistoryModule and registered it in app.module.ts
+
+## Things not done yet:
+- Add front-end integration to store watch history during playback
+- Create UI components to display watch history
+- Implement "Continue Watching" feature on the homepage
+- Add functionality to resume watching from the saved timestamp

@@ -324,6 +324,30 @@ type DashboardData {
   recentActivities: [RecentActivity!]!
 }
 
+type WatchProgressType {
+  currentTime: Float!
+  duration: Float!
+  completed: Boolean!
+}
+
+type WatchHistoryType {
+  _id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  userId: ID!
+  movieId: Movie!
+  episodeName: String
+  serverName: String!
+  serverSlug: String!
+  progress: WatchProgressType!
+  lastWatched: DateTime!
+}
+
+type GetWatchHistoryOutput {
+  total: Int!
+  data: [WatchHistoryType!]!
+}
+
 input EpisodeServerDataInputType {
   slug: String
   name: String
@@ -384,6 +408,8 @@ type Query {
     input: GetCommentRepliesInput!
   ): GetCommentRepliesOutput!
   getDashboard: DashboardData!
+  getWatchHistory(input: GetWatchHistoryInput): GetWatchHistoryOutput!
+  getMovieWatchHistory(input: GetMovieWatchHistoryInput!): [WatchHistoryType!]!
 }
 
 input GetMovieInput {
@@ -496,6 +522,15 @@ input GetCommentRepliesInput {
   includeNestedReplies: Boolean = false
 }
 
+input GetWatchHistoryInput {
+  limit: Int = 10
+  offset: Int = 0
+}
+
+input GetMovieWatchHistoryInput {
+  movieId: String!
+}
+
 type Mutation {
   mutationMe(input: MutationMeInput!): UserType!
   followMovie(input: MutationFollowMovieInput!): UserType!
@@ -518,6 +553,9 @@ type Mutation {
   createComment(input: CreateCommentInput!): CommentType!
   updateComment(input: UpdateCommentInput!): CommentType!
   deleteComment(input: DeleteCommentInput!): Boolean!
+  saveWatchHistory(input: SaveWatchHistoryInput!): WatchHistoryType!
+  deleteWatchHistory(input: DeleteWatchHistoryInput!): Boolean!
+  clearAllWatchHistory: Int!
 }
 
 input MutationMeInput {
@@ -685,4 +723,22 @@ input UpdateCommentInput {
 
 input DeleteCommentInput {
   _id: ID!
+}
+
+input SaveWatchHistoryInput {
+  movieId: String!
+  episodeName: String
+  serverName: String!
+  serverSlug: String!
+  progress: WatchProgressInput!
+}
+
+input WatchProgressInput {
+  currentTime: Float!
+  duration: Float!
+  completed: Boolean
+}
+
+input DeleteWatchHistoryInput {
+  watchHistoryId: String!
 }

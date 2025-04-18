@@ -24,6 +24,7 @@ import { CommentsModule } from './comments/comments.module';
 import { CopilotkitModule } from './copilotkit/copilotkit.module';
 import { MovieCrawlerModule } from './crawlers';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { WatchHistoryModule } from './watch-history';
 
 @Module({
     imports: [
@@ -70,6 +71,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
         CommentsModule,
         CopilotkitModule,
         DashboardModule,
+        WatchHistoryModule,
         ConditionalModule.registerWhen(
             MovieCrawlerModule,
             (env: NodeJS.ProcessEnv) => !env?.DISABLE_CRAWL || env?.DISABLE_CRAWL === 'false',
