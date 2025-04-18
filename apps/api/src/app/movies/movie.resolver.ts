@@ -1,3 +1,4 @@
+import { Req } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation, Int } from '@nestjs/graphql';
 import { SkipThrottle } from '@nestjs/throttler';
 
@@ -10,8 +11,8 @@ import { UpdateMovieInput } from './inputs/mutate-movie.input';
 import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.input';
 import { CreateMovieInput } from './inputs/create-movie.input';
 import { UserRoleEnum } from '../users';
-import { RequiredRoles } from '../auth';
 import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
+import { RequiredRoles, CurrentUser, OptionalAuth, UserJwt } from '../auth';
 
 @SkipThrottle()
 @Resolver(() => MovieType)
@@ -23,14 +24,16 @@ export class MovieResolver {
         return this.movieService.getMovie(input);
     }
 
+    @OptionalAuth()
     @Query(() => GetMoviesOutput, { name: 'movies' })
-    getMovies(@Args('input') input: GetMoviesInput) {
+    getMovies(@Args('input') input: GetMoviesInput, @CurrentUser() user: UserJwt | null) {
         return this.movieService.getMoviesEs(
             {
                 ...input,
                 isDeleted: false,
                 bypassCache: false,
                 resetCache: false,
+                useAI: user?.userId ? input?.useAI || false : false,
             },
             false,
             false,

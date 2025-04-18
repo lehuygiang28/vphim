@@ -12,6 +12,7 @@ import { JwtGqlStrategy, JwtRefreshStrategy, JwtStrategy } from './strategies';
 import { AuthController } from './auth.controller';
 import { ConfigModule } from '@nestjs/config';
 import authConfig from './config/auth-config';
+import { OptionalAuthGuard } from './guards';
 
 @Module({
     imports: [
@@ -28,7 +29,7 @@ import authConfig from './config/auth-config';
         UsersModule,
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtStrategy, JwtGqlStrategy, JwtRefreshStrategy],
-    exports: [AuthService],
+    providers: [AuthService, JwtStrategy, JwtGqlStrategy, JwtRefreshStrategy, OptionalAuthGuard],
+    exports: [AuthService, OptionalAuthGuard],
 })
 export class AuthModule {}
