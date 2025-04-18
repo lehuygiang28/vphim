@@ -56,10 +56,13 @@ export class WatchHistoryService {
                     progress,
                     lastWatched: new Date(),
                 },
+                queryOptions: {
+                    populate: [{ path: 'movieId', justOne: true }],
+                },
             });
         }
 
-        return this.watchHistoryRepository.create({
+        await this.watchHistoryRepository.create({
             document: {
                 userId: user._id,
                 movieId: convertToObjectId(movieId),
@@ -71,6 +74,13 @@ export class WatchHistoryService {
                     completed: progress?.completed ?? false,
                 },
                 lastWatched: new Date(),
+            },
+        });
+
+        return this.watchHistoryRepository.findOne({
+            filterQuery,
+            queryOptions: {
+                populate: [{ path: 'movieId', justOne: true }],
             },
         });
     }
