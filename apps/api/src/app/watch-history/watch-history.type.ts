@@ -42,7 +42,7 @@ export class WatchHistoryType {
     serverName: string;
 
     @Field({ description: 'Server identifier/index used for playback' })
-    serverSlug: string;
+    serverIndex: number;
 
     @Field(() => WatchProgressType)
     progress: WatchProgressType;

@@ -73,12 +73,12 @@ export class WatchHistory extends AbstractDocument {
     serverName: string;
 
     @ApiProperty({
-        type: String,
-        example: 'vip',
+        type: Number,
+        example: 0,
         description: 'Server identifier/index used for playback',
     })
-    @Prop({ type: String, required: true })
-    serverSlug: string;
+    @Prop({ type: Number, required: true, default: 0 })
+    serverIndex: number;
 
     @ApiProperty({
         type: WatchProgress,
@@ -108,6 +108,6 @@ WatchHistorySchema.pre('findOneAndUpdate', function () {
 });
 
 WatchHistorySchema.index(
-    { userId: 1, movieId: 1, episodeSlug: 1, serverName: 1, serverSlug: 1 },
+    { userId: 1, movieId: 1, episodeSlug: 1, serverName: 1, serverIndex: 1 },
     { unique: true },
 );

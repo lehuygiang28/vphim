@@ -1,6 +1,10 @@
 import { useCustom, useCustomMutation } from '@refinedev/core';
 import { useState, useCallback } from 'react';
 import { useIsAuthenticated } from '@refinedev/core';
+
+import type { SaveWatchHistoryInput } from 'apps/api/src/app/watch-history/inputs';
+import type { WatchHistoryType } from 'apps/api/src/app/watch-history/watch-history.type';
+
 import {
     SAVE_WATCH_HISTORY,
     GET_WATCH_HISTORY,
@@ -9,48 +13,8 @@ import {
     CLEAR_ALL_WATCH_HISTORY,
 } from '@/queries/watch-history';
 
-type WatchProgressInput = {
-    currentTime: number;
-    duration: number;
-    completed?: boolean;
-};
-
-type SaveWatchHistoryInput = {
-    movieId: string;
-    episodeName?: string;
-    episodeSlug?: string;
-    serverName: string;
-    serverSlug: string;
-    progress: WatchProgressInput;
-};
-
-interface WatchHistoryItem {
-    _id: string;
-    movieId: {
-        _id: string;
-        name: string;
-        slug: string;
-        thumbUrl: string;
-        originName?: string;
-        type?: string;
-        quality?: string;
-        episodeCurrent?: string;
-        episodeTotal?: string;
-    };
-    episodeName: string;
-    episodeSlug: string;
-    serverName: string;
-    serverSlug: string;
-    progress: {
-        currentTime: number;
-        duration: number;
-        completed: boolean;
-    };
-    lastWatched: string;
-}
-
 interface WatchHistoryResponse {
-    data: WatchHistoryItem[];
+    data: WatchHistoryType[];
     total: number;
 }
 

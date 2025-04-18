@@ -25,7 +25,7 @@ export class WatchHistoryService {
         episodeName,
         episodeSlug,
         serverName,
-        serverSlug,
+        serverIndex,
         progress,
     }: {
         actor: UserJwt;
@@ -43,7 +43,7 @@ export class WatchHistoryService {
             movieId: convertToObjectId(movieId),
             episodeSlug,
             serverName,
-            serverSlug,
+            serverIndex,
         };
 
         const existingRecord = await this.watchHistoryRepository.findOne({
@@ -71,7 +71,7 @@ export class WatchHistoryService {
                 episodeName,
                 episodeSlug,
                 serverName,
-                serverSlug,
+                serverIndex,
                 progress: {
                     ...progress,
                     completed: progress?.completed ?? false,

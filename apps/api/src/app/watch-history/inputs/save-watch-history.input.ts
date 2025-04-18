@@ -27,7 +27,7 @@ export class SaveWatchHistoryInput {
     serverName: string;
 
     @Field({ description: 'Server identifier/index used for playback' })
-    serverSlug: string;
+    serverIndex: number;
 
     @Field(() => WatchProgressInput)
     progress: WatchProgressInput;

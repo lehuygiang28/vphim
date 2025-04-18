@@ -115,7 +115,7 @@ video {
 
 const MIN_WATCH_TIME = 60; // Minimum watch time in seconds
 const MIN_WATCH_PERCENTAGE = 10; // Minimum watch percentage
-const SAVE_INTERVAL = 5000; // Save current time every 5 seconds
+const SAVE_INTERVAL = 15000; // Save current time every 15 seconds
 
 function formatTime(seconds: number): string {
     const hours = Math.floor(seconds / 3600);
@@ -359,8 +359,9 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                             movieId: searchParams.movieId,
                             episodeName: episodeName,
                             episodeSlug: searchParams.ep,
-                            serverName: searchParams.provider || 'Server Mặc định',
-                            serverSlug: searchParams.provider || '0',
+                            serverName:
+                                movieData?.episode?.[serverIndex]?.serverName || 'Server Mặc định',
+                            serverIndex: serverIndex,
                             progress: {
                                 currentTime,
                                 duration,

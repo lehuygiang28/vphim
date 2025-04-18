@@ -13,7 +13,7 @@ export const SAVE_WATCH_HISTORY = gql`
             episodeName
             episodeSlug
             serverName
-            serverSlug
+            serverIndex
             progress {
                 currentTime
                 duration
@@ -44,7 +44,7 @@ export const GET_WATCH_HISTORY = gql`
                 episodeName
                 episodeSlug
                 serverName
-                serverSlug
+                serverIndex
                 progress {
                     currentTime
                     duration
@@ -68,7 +68,7 @@ export const GET_MOVIE_WATCH_HISTORY = gql`
             episodeName
             episodeSlug
             serverName
-            serverSlug
+            serverIndex
             progress {
                 currentTime
                 duration
