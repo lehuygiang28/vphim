@@ -347,7 +347,7 @@ type WatchHistoryType {
   serverName: String!
 
   """Server identifier/index used for playback"""
-  serverIndex: String!
+  serverIndex: Float!
   progress: WatchProgressType!
   lastWatched: DateTime!
 }
@@ -747,7 +747,7 @@ input SaveWatchHistoryInput {
   serverName: String!
 
   """Server identifier/index used for playback"""
-  serverIndex: String!
+  serverIndex: Float!
   progress: WatchProgressInput!
 }
 
