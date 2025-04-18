@@ -15,10 +15,9 @@ const { Title, Text } = Typography;
 const { BackTop } = FloatButton;
 
 const helperLinks = [
-    { label: 'Về chúng tôi', url: '#' },
-    { label: 'Liên hệ', url: 'mailto:contact@vephim.online' },
-    { label: 'Điều khoản', url: '#' },
-    { label: 'Chính sách bảo mật', url: '#' },
+    { label: 'Về chúng tôi', url: '/ve-chung-toi' },
+    { label: 'Liên hệ', url: '/lien-he' },
+    { label: 'Điều khoản', url: '/dieu-khoan' },
 ];
 
 export type FooterComponentProps = {

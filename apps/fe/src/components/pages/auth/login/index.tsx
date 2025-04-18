@@ -219,7 +219,7 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                 </Space>
                 <Divider plain></Divider>
                 <Text type="secondary">
-                    {t.termsAgreement} <Link href="#">{t.terms}</Link> {t.ofUs}
+                    {t.termsAgreement} <Link href="/dieu-khoan">{t.terms}</Link> {t.ofUs}
                 </Text>
             </Space>
 
