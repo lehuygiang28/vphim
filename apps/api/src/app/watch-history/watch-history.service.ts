@@ -142,28 +142,23 @@ export class WatchHistoryService {
         actor: UserJwt;
         watchHistoryId: string;
     }): Promise<boolean> {
-        const user = await this.usersService.findByIdOrThrow(actor.userId);
         const result = await this.watchHistoryRepository.findOneOrThrow({
             filterQuery: {
                 _id: convertToObjectId(watchHistoryId),
-                userId: user._id,
-            },
-        });
-        await this.watchHistoryRepository.deleteOne({
-            filterQuery: {
-                _id: result._id,
+                userId: convertToObjectId(actor.userId),
             },
         });
 
-        return true;
+        return (
+            await this.watchHistoryRepository.deleteOne({
+                _id: convertToObjectId(result._id),
+            })
+        ).acknowledged;
     }
 
     async clearAllWatchHistory({ actor }: { actor: UserJwt }): Promise<number> {
-        const user = await this.usersService.findByIdOrThrow(actor.userId);
         const result = await this.watchHistoryRepository.deleteMany({
-            filterQuery: {
-                userId: user._id,
-            },
+            userId: convertToObjectId(actor.userId),
         });
 
         return result.deletedCount;
