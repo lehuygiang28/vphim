@@ -10,6 +10,7 @@ import {
 export type LoadingBtnProps = {
     content?: ReactNode | ReactElement | string;
     isValid?: boolean;
+    loading?: boolean;
 } & Omit<ButtonProps, 'loading'> &
     PropsWithChildren;
 
@@ -18,16 +19,24 @@ export default function LoadingBtn({
     onClick,
     isValid,
     children,
+    loading: externalLoading,
     ...props
 }: LoadingBtnProps) {
-    const [loading, setLoading] = useState(false);
+    const [internalLoading, setInternalLoading] = useState(false);
+
+    // Use external loading state if provided, otherwise use internal state
+    const loading = externalLoading !== undefined ? externalLoading : internalLoading;
 
     const enterLoading = async (e: ReactMouseEvent<HTMLElement>) => {
-        if (isValid) {
-            setLoading(true);
-            const minLoadingTimePromise = new Promise((resolve) => setTimeout(resolve, 3000)); // 3 second minimum loading time
-            await Promise.all([minLoadingTimePromise]);
-            setLoading(false);
+        if (isValid && externalLoading === undefined) {
+            setInternalLoading(true);
+            // Only manage internal loading state if external loading is not provided
+            try {
+                const minLoadingTimePromise = new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second minimum loading time
+                await Promise.all([minLoadingTimePromise]);
+            } finally {
+                setInternalLoading(false);
+            }
         }
 
         onClick?.(e);

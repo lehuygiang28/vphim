@@ -1,11 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLogin, useNotification } from '@refinedev/core';
 import { Space, Form, Input, Typography, Divider, Button, Modal } from 'antd';
-import { MailOutlined, GithubOutlined, GoogleOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import {
+    MailOutlined,
+    GithubOutlined,
+    GoogleOutlined,
+    ArrowLeftOutlined,
+    LoginOutlined,
+} from '@ant-design/icons';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { signIn } from 'next-auth/react';
@@ -15,7 +20,7 @@ import type { LoginActionPayload } from '@/providers/auth-provider/types';
 import LoadingBtn from '@/components/button/loading-btn';
 import { LoadingSpinner } from '@/components/loading';
 
-const { Title, Text } = Typography;
+const { Title, Text, Link } = Typography;
 const SEEM_SAFE_HASH_LENGTH = 30;
 
 export enum LoginTitle {
@@ -68,6 +73,7 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
     const { mutate: login } = useLogin();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const t = translations[lang];
 
@@ -86,6 +92,7 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
     });
 
     const onSubmit: SubmitHandler<LoginPwdless> = async (values) => {
+        setLoading(true);
         const returnUrl = new URL(window?.location?.href);
         returnUrl.searchParams.set('to', redirectBackTo);
 
@@ -95,7 +102,11 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
             returnUrl: returnUrl.toString(),
         };
 
-        return login({ ...data, redirectTo });
+        try {
+            await login({ ...data, redirectTo });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const showErrorModal = (errorType: string) => {
@@ -130,21 +141,32 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
     }, [params, open, errorParam, t]);
 
     const handleSocialLogin = async (provider: string) => {
-        const result = await signIn(provider, {
-            callbackUrl: redirectBackTo,
-            redirect: false,
-        });
+        setLoading(true);
+        try {
+            const result = await signIn(provider, {
+                callbackUrl: redirectBackTo,
+                redirect: false,
+            });
 
-        if (result?.error) {
+            if (result?.error) {
+                open({
+                    type: 'error',
+                    message: t.loginFailed,
+                    key: 'login_error',
+                });
+            }
+
+            if (result?.url) {
+                router.replace(result.url);
+            }
+        } catch (error) {
             open({
                 type: 'error',
                 message: t.loginFailed,
                 key: 'login_error',
             });
-        }
-
-        if (result?.url) {
-            router.replace(result.url);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -153,21 +175,26 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
     }
 
     return (
-        <div>
-            <Space align="start">
-                <Link href={'/'} style={{ all: 'unset' }} onClick={onBack}>
-                    <Button type="text">
-                        <ArrowLeftOutlined />
-                    </Button>
-                </Link>
+        <div className="login-form-container">
+            <Space align="start" style={{ width: '100%', marginBottom: '16px' }}>
+                <Button
+                    type="text"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={onBack}
+                    className="back-button"
+                />
             </Space>
             <Space direction="vertical" align="center" size="small" style={{ width: '100%' }}>
-                <Title level={3} style={{ marginBottom: '4px' }}>
+                <Title level={3} style={{ marginBottom: '12px', textAlign: 'center' }}>
                     {title}
                 </Title>
-                <Text>{t.useEmail}</Text>
+                <Text style={{ marginBottom: '16px', textAlign: 'center' }}>{t.useEmail}</Text>
 
-                <form autoComplete="off" onSubmit={handleSubmit(onSubmit)}>
+                <form
+                    autoComplete="off"
+                    onSubmit={handleSubmit(onSubmit)}
+                    style={{ width: '100%' }}
+                >
                     <Controller<LoginPwdless>
                         name={'email'}
                         control={control}
@@ -177,11 +204,14 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                                 validateStatus={errors?.email ? 'error' : 'validating'}
                                 help={<>{errors?.email?.message}</>}
                                 rules={[{ required: true }]}
+                                style={{ marginBottom: '20px' }}
                             >
                                 <Input
                                     {...field}
                                     prefix={<MailOutlined className="site-form-item-icon" />}
                                     placeholder="Email"
+                                    size="large"
+                                    className="login-input"
                                 />
                             </Form.Item>
                         )}
@@ -190,35 +220,46 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                     <LoadingBtn
                         content={t.continue}
                         type="primary"
-                        style={{ width: '240px' }}
-                        size="middle"
+                        style={{ width: '100%', height: '40px', borderRadius: '4px' }}
+                        size="large"
                         htmlType="submit"
                         isValid={isValid}
+                        loading={loading}
+                        icon={<LoginOutlined />}
                     />
                 </form>
-                <Divider plain>{t.or}</Divider>
-                <Space direction="horizontal" align="center">
+                <Divider plain style={{ margin: '20px 0' }}>
+                    {t.or}
+                </Divider>
+                <Space
+                    direction="horizontal"
+                    align="center"
+                    size="middle"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                >
                     <LoadingBtn
-                        type="primary"
-                        style={{ width: '100px' }}
-                        size="middle"
-                        isValid={isValid}
+                        type="default"
+                        style={{ width: '120px', height: '40px', borderRadius: '4px' }}
+                        size="large"
+                        isValid={true}
                         onClick={() => handleSocialLogin('google')}
+                        loading={loading}
                     >
                         <GoogleOutlined /> Google
                     </LoadingBtn>
                     <LoadingBtn
-                        type="primary"
-                        style={{ width: '100px' }}
-                        size="middle"
-                        isValid={isValid}
+                        type="default"
+                        style={{ width: '120px', height: '40px', borderRadius: '4px' }}
+                        size="large"
+                        isValid={true}
                         onClick={() => handleSocialLogin('github')}
+                        loading={loading}
                     >
                         <GithubOutlined /> Github
                     </LoadingBtn>
                 </Space>
-                <Divider plain></Divider>
-                <Text type="secondary">
+                <Divider plain style={{ margin: '20px 0' }}></Divider>
+                <Text type="secondary" style={{ textAlign: 'center', fontSize: '13px' }}>
                     {t.termsAgreement} <Link href="/dieu-khoan">{t.terms}</Link> {t.ofUs}
                 </Text>
             </Space>

@@ -94,7 +94,11 @@ export default function HeaderUser() {
                     router.push(`${RouteNameEnum.LOGIN_PAGE}?to=${encodeURIComponent(pathname)}`)
                 }
                 size={screens.md ? 'middle' : 'small'}
-                style={{ padding: screens.md ? undefined : '0 8px' }}
+                style={{
+                    padding: screens.md ? undefined : '0 8px',
+                    borderRadius: '4px',
+                    transition: 'all 0.3s',
+                }}
             />
         </Tooltip>
     );
