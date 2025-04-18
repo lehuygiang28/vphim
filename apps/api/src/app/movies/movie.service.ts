@@ -40,12 +40,13 @@ export class MovieService {
     private readonly EXCLUDE_MOVIE_SRC: ('ophim' | 'kkphim' | 'nguonc')[] = [];
     private readonly genAI: GoogleGenerativeAI;
     private readonly AI_MODELS: string[] = [
+        'models/gemini-2.5-flash-preview-04-17',
         'models/gemini-2.0-flash-thinking-exp-01-21',
         'models/gemini-2.0-flash-thinking-exp-1219',
         'models/gemini-2.0-pro-exp-02-05',
         'models/gemini-2.0-flash-exp',
-        'models/gemini-1.5-pro',
         'models/gemini-2.0-flash-lite-preview-02-05',
+        'models/gemini-1.5-pro',
         'models/gemini-1.5-flash',
         'models/gemini-1.5-flash-8b',
     ];
@@ -802,6 +803,7 @@ export class MovieService {
 
         for (const modelName of this.AI_MODELS) {
             try {
+                this.logger.log(`[AI] Attempting to use model: ${modelName}`);
                 const model = this.genAI.getGenerativeModel({
                     model: modelName,
                     systemInstruction: systemInstruction,
@@ -832,20 +834,59 @@ export class MovieService {
                     ],
                 });
                 const text = result.response.text();
-                this.logger.log(`[AI] response from model ${modelName}: ${text}`);
+                this.logger.log(
+                    `[AI] Response from model ${modelName}: ${text.substring(0, 100)}...`,
+                );
 
                 try {
-                    return extractJSON(text);
+                    const jsonResult = extractJSON(text);
+                    if (jsonResult) {
+                        this.logger.log(`[AI] Successfully extracted JSON from model ${modelName}`);
+                        return jsonResult;
+                    } else {
+                        this.logger.warn(
+                            `[AI] No valid JSON found in response from model ${modelName}`,
+                        );
+                        // Continue to the next model if no JSON found
+                    }
                 } catch (error) {
                     this.logger.error(
-                        `Failed to parse AI response from model ${modelName}: ${error}`,
+                        `[AI] Failed to parse AI response from model ${modelName}: ${error}`,
                     );
-                    this.logger.error(`Raw response: ${text}`);
+                    this.logger.error(`[AI] Raw response: ${text.substring(0, 500)}...`);
                     // Continue to the next model if JSON parsing fails
                 }
             } catch (error) {
-                this.logger.error(`Error with model ${modelName}: ${error}`);
-                // Continue to the next model if there's an error
+                // Check for specific error types
+                if (error instanceof Error) {
+                    const errorMessage = error.message || '';
+                    if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
+                        this.logger.error(
+                            `[AI] Model ${modelName} quota or limit exceeded: ${errorMessage}`,
+                        );
+                    } else if (
+                        errorMessage.includes('not found') ||
+                        errorMessage.includes('does not exist')
+                    ) {
+                        this.logger.error(`[AI] Model ${modelName} not found: ${errorMessage}`);
+                    } else if (
+                        errorMessage.includes('permission') ||
+                        errorMessage.includes('access')
+                    ) {
+                        this.logger.error(
+                            `[AI] Permission denied for model ${modelName}: ${errorMessage}`,
+                        );
+                    } else {
+                        this.logger.error(`[AI] Error with model ${modelName}: ${errorMessage}`);
+                    }
+                } else {
+                    this.logger.error(`[AI] Unknown error with model ${modelName}: ${error}`);
+                }
+
+                // Continue to the next model regardless of error type
+                this.logger.log(
+                    `[AI] Switching to next model in the list after error with ${modelName}`,
+                );
             }
         }
 
