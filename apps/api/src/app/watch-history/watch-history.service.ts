@@ -93,7 +93,7 @@ export class WatchHistoryService {
         limit = 10,
         offset = 0,
     }: {
-        actor: UserJwt;
+        actor: Pick<UserJwt, 'userId'>;
         limit?: number;
         offset?: number;
     }): Promise<{ data: WatchHistory[]; total: number }> {
@@ -122,7 +122,7 @@ export class WatchHistoryService {
         actor,
         movieId,
     }: {
-        actor: UserJwt;
+        actor: Pick<UserJwt, 'userId'>;
         movieId: string;
     }): Promise<WatchHistory[]> {
         const user = await this.usersService.findByIdOrThrow(actor.userId);

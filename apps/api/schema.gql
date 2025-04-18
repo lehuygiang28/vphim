@@ -419,6 +419,8 @@ type Query {
   getDashboard: DashboardData!
   getWatchHistory(input: GetWatchHistoryInput): GetWatchHistoryOutput!
   getMovieWatchHistory(input: GetMovieWatchHistoryInput!): [WatchHistoryType!]!
+  getWatchHistoryAdmin(input: GetWatchHistoryInputAdmin): GetWatchHistoryOutput!
+  getMovieWatchHistoryAdmin(input: GetMovieWatchHistoryInputAdmin!): [WatchHistoryType!]!
 }
 
 input GetMovieInput {
@@ -538,6 +540,17 @@ input GetWatchHistoryInput {
 
 input GetMovieWatchHistoryInput {
   movieId: String!
+}
+
+input GetWatchHistoryInputAdmin {
+  limit: Int = 10
+  offset: Int = 0
+  userId: String!
+}
+
+input GetMovieWatchHistoryInputAdmin {
+  movieId: String!
+  userId: String!
 }
 
 type Mutation {
