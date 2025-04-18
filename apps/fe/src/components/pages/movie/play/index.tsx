@@ -21,6 +21,13 @@ import {
 import { useDebouncedCallback } from 'use-debounce';
 import type { MenuProps } from 'antd';
 import { useIsAuthenticated } from '@refinedev/core';
+import { noop } from 'antd/lib/_util/warning';
+
+import type {
+    MovieType,
+    EpisodeServerDataType,
+    EpisodeType,
+} from 'apps/api/src/app/movies/movie.type';
 
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
@@ -36,12 +43,7 @@ import { MovieRelated } from '../movie-related';
 import styles from './movie-play.module.css';
 
 const MovieComments = dynamic(() => import('../movie-comment'), { ssr: true });
-
-import type {
-    MovieType,
-    EpisodeServerDataType,
-    EpisodeType,
-} from 'apps/api/src/app/movies/movie.type';
+import PlayerPage from '@/app/player/[m3u8]/page';
 
 const { Title, Paragraph, Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -66,7 +68,7 @@ const getProviderFromOriginSrc = (originSrc?: string): 'o' | 'k' => {
     return firstChar === 'k' ? 'k' : 'o';
 };
 
-// Replace the iframe JSX with a cleaner PlayerIframe component
+// Replace the PlayerIframe component entirely
 type PlayerIframeProps = {
     isM3u8Available: boolean;
     useEmbedLink: boolean;
@@ -95,7 +97,7 @@ const PlayerIframe: React.FC<PlayerIframeProps> = ({
     // Get player settings directly from Zustand store
     const { useAdBlocker, useProxyStreaming } = usePlayerSettings();
 
-    // For embed links, use them directly
+    // For embed links, use iframe
     if (!isM3u8Available || useEmbedLink) {
         return (
             <iframe
@@ -112,29 +114,52 @@ const PlayerIframe: React.FC<PlayerIframeProps> = ({
         );
     }
 
-    // Build the player URL with all necessary parameters
-    const playerUrl = `${host}/player/${encodeURIComponent(processedUrl)}`;
-    const params = new URLSearchParams({
-        movieSlug: movie?.slug || '',
-        ep: selectedEpisode.slug || '',
-        useProcessor: isAuthenticated && (useAdBlocker || useProxyStreaming) ? 'true' : 'false',
-        proxy: isAuthenticated && useProxyStreaming ? 'true' : 'false',
-        removeAds: isAuthenticated && useAdBlocker ? 'true' : 'false',
-        provider: getProviderFromOriginSrc(movie?.episode?.[selectedServerIndex]?.originSrc) || '',
-    });
+    // Build provider parameter
+    const provider =
+        getProviderFromOriginSrc(movie?.episode?.[selectedServerIndex]?.originSrc) || '';
 
+    // Get episode name from movie data
+    const episodeName =
+        movie?.episode?.[selectedServerIndex]?.serverData.find(
+            (ep) => ep.slug === selectedEpisode.slug,
+        )?.name ||
+        selectedEpisode.name ||
+        '';
+
+    // Use PlayerPage component directly with directData for optimal data transfer
     return (
-        <iframe
-            id="video-player"
-            width="100%"
-            height="100%"
-            src={`${playerUrl}?${params.toString()}`}
-            title={movie?.name || 'Movie Player'}
-            allowFullScreen
-            allow="autoplay; fullscreen; picture-in-picture"
-            onError={handleVideoError}
-            onLoad={handleVideoLoad}
-        />
+        <div
+            style={{
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+            }}
+        >
+            <PlayerPage
+                params={{
+                    m3u8: processedUrl,
+                }}
+                searchParams={{
+                    movieId: movie?._id?.toString() || '',
+                    movieSlug: movie?.slug || '',
+                    ep: selectedEpisode.slug || '',
+                    name: episodeName,
+                    useProcessor:
+                        isAuthenticated && (useAdBlocker || useProxyStreaming) ? 'true' : 'false',
+                    proxy: isAuthenticated && useProxyStreaming ? 'true' : 'false',
+                    removeAds: isAuthenticated && useAdBlocker ? 'true' : 'false',
+                    provider: provider,
+                }}
+                directData={{
+                    movie,
+                    selectedServerIndex,
+                    selectedEpisode,
+                    processedUrl,
+                    onError: handleVideoError,
+                    onLoad: handleVideoLoad,
+                }}
+            />
+        </div>
     );
 };
 
@@ -347,7 +372,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     const [isM3u8Available, setIsM3u8Available] = useState<boolean>(true);
     const [isScrolling, setIsScrolling] = useState<boolean>(false);
     const [isLightsOff, setIsLightsOff] = useState<boolean>(false);
-    const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
 
     // Access the header visibility controls from the store
     const { hideHeader, enableAutoControl, showHeader } = useHeaderVisibilityStore();
@@ -447,9 +471,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
         const serverIndex = parseInt(searchParams.get('server') || '0', 10);
         setSelectedServerIndex(serverIndex);
 
-        // Reset loading state when episode changes
-        setIsVideoLoading(true);
-
         if (
             movie?.trailerUrl &&
             (episodeSlug === 'trailer' ||
@@ -521,8 +542,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
 
     const handleServerChange = (serverIndex: number) => {
         setSelectedServerIndex(serverIndex);
-        // Reset video loading state when changing server
-        setIsVideoLoading(true);
 
         const newEpisode = movie?.episode?.[serverIndex]?.serverData[0];
         if (newEpisode) {
@@ -540,7 +559,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     };
 
     const handleVideoError = () => {
-        setIsVideoLoading(false);
         if (isM3u8Available && !useEmbedLink && selectedEpisode?.linkEmbed) {
             setUseEmbedLink(true);
         } else {
@@ -549,7 +567,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
     };
 
     const handleVideoLoad = () => {
-        setIsVideoLoading(false);
+        noop();
     };
 
     const navigateToEpisode = (episodeSlug: string, serverIndex: number) => {
@@ -813,7 +831,6 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 const adjacentEpisode = currentServer.serverData[adjacentIndex];
                 if (adjacentEpisode) {
                     // Reset video loading state
-                    setIsVideoLoading(true);
                     setSelectedEpisode(adjacentEpisode);
                     setUseEmbedLink(false);
                     setIsM3u8Available(true);
@@ -867,9 +884,7 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                 alignItems: 'center',
                 position: 'relative',
             }}
-            className={`${isScrolling ? styles.containerWithHeaderSpace : ''} ${
-                isLightsOff ? styles.lightsOff : ''
-            }`}
+            className={`${styles.containerWithHeaderSpace} ${isLightsOff ? styles.lightsOff : ''}`}
         >
             {/* Age verification modal */}
             {isContentRestricted && (
@@ -907,12 +922,8 @@ export function MoviePlay({ episodeSlug, movie }: MoviePlayProps) {
                     <div className={styles.playerWrapper}>
                         <div
                             ref={videoContainerRef}
-                            className={`${styles.videoContainer} ${
-                                isScrolling ? styles.videoContainerPadding : ''
-                            }`}
+                            className={`${styles.videoContainer} ${styles.videoContainerPadding}`}
                         >
-                            {isVideoLoading && <div className={styles.loadingIndicator} />}
-
                             {/* Show player only if content is not restricted or has been verified */}
                             {(!isContentRestricted ||
                                 (isContentRestricted && !needsVerification)) &&

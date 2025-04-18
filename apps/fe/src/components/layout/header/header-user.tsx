@@ -40,6 +40,10 @@ export default function HeaderUser() {
                         },
                         {
                             key: '3',
+                            label: <Link href={'/lich-su'}>Lịch sử xem phim</Link>,
+                        },
+                        {
+                            key: '4',
                             label: (
                                 <Link href={'#'} onClick={() => signOut()}>
                                     Đăng xuất

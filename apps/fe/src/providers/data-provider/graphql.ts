@@ -148,5 +148,22 @@ export const graphqlDataProvider = (
                 total: total,
             };
         },
+        custom: async ({ resource, variables, meta, method = 'post' }) => {
+            const camelResource = resource ? camelCase(resource) : '';
+            const operation = meta?.operation ?? camelResource;
+
+            const {
+                data: { data: res },
+            } = await axios.request<any>({
+                method,
+                url: graphqlApiUrl,
+                data: {
+                    query: print(meta?.gqlQuery || meta?.gqlMutation),
+                    variables: { ...variables, ...meta?.variables },
+                },
+            });
+
+            return { data: res?.[operation] };
+        },
     };
 };

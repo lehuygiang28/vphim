@@ -22,11 +22,14 @@ import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/l
 import { SeekForward10Icon, SeekBackward10Icon } from '@vidstack/react/icons';
 import { useUpdate } from '@refinedev/core';
 
+import type { EpisodeServerDataType, MovieType } from 'apps/api/src/app/movies/movie.type';
+
 import { vietnameseLayoutTranslations } from './translate';
 import { useM3u8Processor } from '@/hooks/useM3u8Processor';
 import { useCurrentUrl } from '@/hooks/useCurrentUrl';
 import { RouteNameEnum } from '@/constants/route.constant';
 import { removeLeadingTrailingSlashes } from '@/libs/utils/common';
+import useWatchHistory from '@/hooks/useWatchHistory';
 
 const { Content } = Layout;
 
@@ -36,6 +39,7 @@ export type PlayerPageProps = {
     };
     searchParams: {
         movieSlug: string;
+        movieId: string;
         poster?: string;
         lang?: string;
         name?: string;
@@ -45,12 +49,20 @@ export type PlayerPageProps = {
         proxy?: string;
         removeAds?: string;
     };
+    directData?: {
+        movie: MovieType;
+        selectedServerIndex: number;
+        selectedEpisode: EpisodeServerDataType;
+        processedUrl: string;
+        onError?: () => void;
+        onLoad?: () => void;
+    };
 };
 
 // Improved container style for better iframe integration
 const containerStyle: CSSProperties = {
     width: '100%',
-    height: '100vh',
+    height: '100%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -129,11 +141,13 @@ function PlayerWrapper({
     player,
     searchParams,
     translations,
+    directData,
 }: {
     src: string | HLSSrc;
     player: React.RefObject<MediaPlayerInstance>;
     searchParams: PlayerPageProps['searchParams'];
     translations: Record<string, string>;
+    directData?: PlayerPageProps['directData'];
 }) {
     const { host } = useCurrentUrl();
     const viewType = useMediaState('viewType', player) as MediaViewType;
@@ -154,6 +168,7 @@ function PlayerWrapper({
             crossOrigin="anonymous"
             storage={'vephim-player-storage'}
             keyTarget="player"
+            title={directData?.movie?.name || searchParams?.name || 'Đang phát phim'}
             // Automatically adapt to content instead of fixed aspect ratio
             data-view-type={viewType}
         >
@@ -219,7 +234,7 @@ function PlayerWrapper({
     );
 }
 
-export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
+export default function PlayerPage({ params, searchParams, directData }: PlayerPageProps) {
     const { host } = useCurrentUrl();
     const player = useRef<MediaPlayerInstance>(null);
     const [viewUpdated, setViewUpdated] = useState(false);
@@ -266,6 +281,8 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         successNotification: false,
     });
 
+    const { isAuthenticated, saveHistory } = useWatchHistory();
+
     useEffect(() => {
         if (!player.current) return;
 
@@ -307,8 +324,9 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
 
         const saveCurrentTime = () => {
             if (player.current) {
-                const { currentTime } = player.current.state;
+                const { currentTime, duration } = player.current.state;
                 if (currentTime > 0) {
+                    // Local storage save
                     localStorage.setItem(
                         getStorageKey(host, {
                             movieSlug: searchParams.movieSlug,
@@ -316,6 +334,38 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                         }),
                         currentTime.toString(),
                     );
+
+                    // Save to server if user is authenticated
+                    if (isAuthenticated && searchParams.movieSlug && searchParams.ep) {
+                        const isCompleted = duration > 0 && (currentTime / duration) * 100 >= 95; // Consider completed if watched 95%
+
+                        // Use directData if available for better data quality
+                        const movieData = directData?.movie;
+                        const selectedEpisodeData = directData?.selectedEpisode;
+                        const serverIndex = directData?.selectedServerIndex || 0;
+
+                        // Get accurate episode name from directData or fallback to params
+                        const episodeName =
+                            selectedEpisodeData?.name ||
+                            movieData?.episode?.[serverIndex]?.serverData.find(
+                                (ep) => ep.slug === searchParams.ep,
+                            )?.name ||
+                            searchParams.name ||
+                            `Tập ${searchParams.ep}`;
+
+                        saveHistory({
+                            movieId: searchParams.movieId,
+                            episodeName: episodeName,
+                            episodeSlug: searchParams.ep,
+                            serverName: searchParams.provider || 'Server Mặc định',
+                            serverSlug: searchParams.provider || '0',
+                            progress: {
+                                currentTime,
+                                duration,
+                                completed: isCompleted,
+                            },
+                        });
+                    }
                 }
             }
         };
@@ -324,6 +374,11 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         const onPlayerError = () => {
             setLoadError(true);
             console.error('Media playback error');
+
+            // Call the error callback from directData if available
+            if (directData?.onError) {
+                directData.onError();
+            }
         };
 
         player.current.addEventListener('error', onPlayerError);
@@ -347,7 +402,15 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                 player.current.removeEventListener('error', onPlayerError);
             }
         };
-    }, [updateView, viewUpdated, searchParams.movieSlug, searchParams.ep, host]);
+    }, [
+        updateView,
+        viewUpdated,
+        searchParams.movieSlug,
+        searchParams.ep,
+        host,
+        isAuthenticated,
+        saveHistory,
+    ]);
 
     useEffect(() => {
         const lastTime = localStorage.getItem(
@@ -376,11 +439,14 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         });
     };
 
-    // Update the playerSrc useMemo to correctly handle the toggle
+    // Update the playerSrc useMemo to prefer directData
     const playerSrc = useMemo(() => {
+        // Prefer directData.processedUrl if available
+        const sourceUrlToUse = directData?.processedUrl || sourceUrl;
+
         // If client processing is disabled or there was an error, use direct URL
         if (!useClientProcessor || processorError) {
-            return sourceUrl;
+            return sourceUrlToUse;
         }
 
         // If we have a processed source and client processing is enabled, use it
@@ -392,9 +458,28 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
         }
 
         // Fall back to direct URL if processing hasn't completed yet
-        // (this case shouldn't normally be reached due to loading state)
-        return sourceUrl;
-    }, [useClientProcessor, processedSrc, processorError, sourceUrl]);
+        return sourceUrlToUse;
+    }, [useClientProcessor, processedSrc, processorError, sourceUrl, directData]);
+
+    // Add useEffect to call the onLoad callback from directData when player is ready
+    useEffect(() => {
+        if (player.current && !isProcessing && directData?.onLoad) {
+            const handlePlayerReady = () => {
+                directData.onLoad();
+            };
+
+            player.current.addEventListener('ready', handlePlayerReady);
+
+            // Call it now if the player is already ready
+            if (player.current.state.duration >= 1) {
+                directData.onLoad();
+            }
+
+            return () => {
+                player.current?.removeEventListener('ready', handlePlayerReady);
+            };
+        }
+    }, [player, isProcessing, directData]);
 
     return (
         <Layout style={containerStyle}>
@@ -407,6 +492,7 @@ export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
                         translations={
                             searchParams?.lang === 'en' ? {} : vietnameseLayoutTranslations
                         }
+                        directData={directData}
                     />
                 )}
 

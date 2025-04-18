@@ -11,7 +11,8 @@
             "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
             "rules": {
                 "@next/next/no-html-link-for-pages": ["error", "apps/fe/pages"],
-                "@nx/enforce-module-boundaries": ["off"]
+                "@nx/enforce-module-boundaries": ["off"],
+                "@next/next/no-img-element": ["off"]
             }
         },
         {

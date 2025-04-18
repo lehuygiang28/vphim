@@ -70,6 +70,7 @@
         "cloudinary": "^2.4.0",
         "compression": "^1.7.4",
         "cron": "3.1.7",
+        "date-fns": "^4.1.0",
         "dayjs": "^1.11.13",
         "expo": "~52.0.38",
         "expo-build-properties": "~0.13.2",
