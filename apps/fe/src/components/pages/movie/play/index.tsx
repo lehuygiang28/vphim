@@ -149,14 +149,14 @@ const PlayerIframe: React.FC<PlayerIframeProps> = ({
                     proxy: isAuthenticated && useProxyStreaming ? 'true' : 'false',
                     removeAds: isAuthenticated && useAdBlocker ? 'true' : 'false',
                     provider: provider,
-                }}
-                directData={{
-                    movie,
-                    selectedServerIndex,
-                    selectedEpisode,
-                    processedUrl,
-                    onError: handleVideoError,
-                    onLoad: handleVideoLoad,
+                    directData: {
+                        movie,
+                        selectedServerIndex,
+                        selectedEpisode,
+                        processedUrl,
+                        onError: handleVideoError,
+                        onLoad: handleVideoLoad,
+                    },
                 }}
             />
         </div>

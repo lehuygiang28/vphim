@@ -48,14 +48,15 @@ export type PlayerPageProps = {
         useProcessor?: string;
         proxy?: string;
         removeAds?: string;
-    };
-    directData?: {
-        movie: MovieType;
-        selectedServerIndex: number;
-        selectedEpisode: EpisodeServerDataType;
-        processedUrl: string;
-        onError?: () => void;
-        onLoad?: () => void;
+
+        directData?: {
+            movie: MovieType;
+            selectedServerIndex: number;
+            selectedEpisode: EpisodeServerDataType;
+            processedUrl: string;
+            onError?: () => void;
+            onLoad?: () => void;
+        };
     };
 };
 
@@ -147,7 +148,7 @@ function PlayerWrapper({
     player: React.RefObject<MediaPlayerInstance>;
     searchParams: PlayerPageProps['searchParams'];
     translations: Record<string, string>;
-    directData?: PlayerPageProps['directData'];
+    directData?: PlayerPageProps['searchParams']['directData'];
 }) {
     const { host } = useCurrentUrl();
     const viewType = useMediaState('viewType', player) as MediaViewType;
@@ -234,7 +235,8 @@ function PlayerWrapper({
     );
 }
 
-export default function PlayerPage({ params, searchParams, directData }: PlayerPageProps) {
+export default function PlayerPage({ params, searchParams }: PlayerPageProps) {
+    const { directData } = searchParams;
     const { host } = useCurrentUrl();
     const player = useRef<MediaPlayerInstance>(null);
     const [viewUpdated, setViewUpdated] = useState(false);
