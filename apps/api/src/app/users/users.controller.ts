@@ -27,6 +27,7 @@ import {
 } from './dtos';
 import { UserRoleEnum } from './users.enum';
 import type { UserJwt } from '../auth';
+import { UserResponseAdminDto } from './dtos/user-response-admin.dto';
 
 @RequiredRoles(UserRoleEnum.Admin)
 @ApiTags('users')
@@ -54,8 +55,8 @@ export class UsersController {
     }
 
     @Get('/:id')
-    getUserById(@Param() { id }: IdParamDto): Promise<UserDto> {
-        return this.usersService.getUserById(id);
+    getUserById(@Param() { id }: IdParamDto): Promise<UserResponseAdminDto> {
+        return this.usersService.getUserByIdForAdmin(id) as Promise<UserResponseAdminDto>;
     }
 
     @Patch('/:id')

@@ -27,6 +27,7 @@ import { ConfigService } from '@nestjs/config';
 import { BlockActivityLog } from './schemas/block.schema';
 import { MovieService } from '../movies/movie.service';
 import { createRegex } from '@vn-utils/text';
+import { UserResponseAdminDto } from './dtos/user-response-admin.dto';
 
 @Injectable()
 export class UsersService {
@@ -233,6 +234,17 @@ export class UsersService {
                 _id: convertToObjectId(id),
             },
         });
+    }
+
+    async getUserByIdForAdmin(id: string | Types.ObjectId): Promise<UserResponseAdminDto> {
+        return this.usersRepository.findOne({
+            filterQuery: {
+                _id: convertToObjectId(id),
+            },
+            queryOptions: {
+                populate: [{ path: 'followMovies', justOne: false }],
+            },
+        }) as unknown as Promise<UserResponseAdminDto>;
     }
 
     async blockUser({
