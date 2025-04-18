@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useOne } from '@refinedev/core';
 import { Empty, List, Grid, Breadcrumb, Divider } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
@@ -19,7 +18,6 @@ const { useBreakpoint } = Grid;
 
 const PER_PAGE = 24;
 export default function MovieFollowingsPage() {
-    const router = useRouter();
     const { md } = useBreakpoint();
     const {
         data: { data: followMovies } = {},
@@ -96,18 +94,9 @@ export default function MovieFollowingsPage() {
                         ),
                     }}
                     dataSource={paginatedMovies}
-                    renderItem={(item: MovieType, index) => (
+                    renderItem={(item: MovieType) => (
                         <List.Item>
-                            <div
-                                style={{
-                                    height: md ? '19rem' : '17rem',
-                                }}
-                                onClick={() => {
-                                    router.push(`/phim/${item.slug}`);
-                                }}
-                            >
-                                <MovieCard movie={item} />
-                            </div>
+                            <MovieCard movie={item} />
                         </List.Item>
                     )}
                     pagination={
