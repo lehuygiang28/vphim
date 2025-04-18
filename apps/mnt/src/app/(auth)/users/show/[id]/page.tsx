@@ -1,14 +1,19 @@
 'use client';
 
-import { Descriptions, Tag, Typography, Image, Row, Col, Divider } from 'antd';
+import { Descriptions, Tag, Typography, Image, Row, Col, Tabs } from 'antd';
 import { Show, ListButton } from '@refinedev/antd';
-import { useParsed, useShow } from '@refinedev/core';
+import { useCustom, useParsed, useShow } from '@refinedev/core';
 
 import { type UserType } from '~api/app/users/user.type';
+import type {} from 'apps/api/src/app/watch-history/inputs/get-watch-history-admin.input';
+import type { WatchHistoryType } from 'apps/api/src/app/watch-history/watch-history.type';
+
 import { BlockLogTable } from '~mnt/components/table/block-log';
 import { BlockOrUnblockUser } from '~mnt/components/button/block-or-unblock-user';
 import { UpdateUserRole } from '~mnt/components/button/change-role';
 import { formatDateToHumanReadable } from '@/libs/utils/common';
+import { GET_WATCH_HISTORY_ADMIN } from '~mnt/queries/watch-history.query';
+import { WatchHistoryTable } from '~mnt/components/table/watch-history';
 
 const { Text } = Typography;
 
@@ -18,6 +23,28 @@ export default function UserShow() {
     const {
         query: { data: { data: record } = {}, isLoading },
     } = useShow<UserType>({});
+
+    const {
+        data: historyData,
+        isLoading: isHistoryLoading,
+        refetch,
+    } = useCustom<{ data: WatchHistoryType[]; total: number }>({
+        dataProviderName: 'graphql',
+        url: 'graphql',
+        method: 'post',
+        meta: {
+            gqlQuery: GET_WATCH_HISTORY_ADMIN,
+            operation: 'getWatchHistoryAdmin',
+            variables: {
+                input: {
+                    userId: record?._id.toString(),
+                },
+            },
+        },
+        queryOptions: {
+            enabled: !!record?._id,
+        },
+    });
 
     return (
         <Show
@@ -71,12 +98,26 @@ export default function UserShow() {
                     </Col>
                 </Row>
 
-                {record?.block?.activityLogs && (
-                    <>
-                        <Divider orientation="left">Lịch sử khóa tài khoản</Divider>
-                        <BlockLogTable logs={record?.block?.activityLogs} />
-                    </>
-                )}
+                <Tabs
+                    defaultActiveKey="1"
+                    items={[
+                        {
+                            label: `Lịch sử xem (${historyData?.data?.data?.length || 0})`,
+                            key: '1',
+                            children: (
+                                <WatchHistoryTable
+                                    history={historyData?.data.data}
+                                    loading={isHistoryLoading}
+                                />
+                            ),
+                        },
+                        {
+                            label: `Lịch sử chặn (${record?.block?.activityLogs?.length || 0})`,
+                            key: '3',
+                            children: <BlockLogTable logs={record?.block?.activityLogs} />,
+                        },
+                    ]}
+                />
             </div>
         </Show>
     );
