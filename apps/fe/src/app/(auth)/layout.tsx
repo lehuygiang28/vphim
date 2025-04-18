@@ -13,13 +13,13 @@ export default async function RequiredAuthLayout({ children }: PropsWithChildren
         getCategories({
             pagination: {
                 current: 1,
-                pageSize: 15,
+                pageSize: 200,
             },
         }),
         getRegions({
             pagination: {
                 current: 1,
-                pageSize: 15,
+                pageSize: 200,
             },
         }),
     ]);

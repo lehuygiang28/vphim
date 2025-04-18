@@ -11,13 +11,13 @@ export default async function RootLayout({
         getCategories({
             pagination: {
                 current: 1,
-                pageSize: 15,
+                pageSize: 200,
             },
         }),
         getRegions({
             pagination: {
                 current: 1,
-                pageSize: 15,
+                pageSize: 200,
             },
         }),
     ]);

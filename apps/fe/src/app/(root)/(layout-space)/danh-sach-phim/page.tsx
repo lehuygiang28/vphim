@@ -10,16 +10,17 @@ export default async function MovieListPage() {
         getCategories({
             pagination: {
                 current: 1,
-                pageSize: 1000,
+                pageSize: 500,
             },
         }),
         getRegions({
             pagination: {
                 current: 1,
-                pageSize: 1000,
+                pageSize: 500,
             },
         }),
     ]);
+
     return (
         <>
             <MoviesPage
