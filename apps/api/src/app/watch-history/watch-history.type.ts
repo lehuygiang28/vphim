@@ -32,13 +32,16 @@ export class WatchHistoryType {
     @Field(() => MovieType)
     movieId: MovieType;
 
-    @Field({ nullable: true })
+    @Field({ nullable: true, description: 'Display name of the episode for UI' })
     episodeName: string;
 
-    @Field()
+    @Field({ nullable: true, description: 'Slug of the episode for navigation' })
+    episodeSlug: string;
+
+    @Field({ description: 'Display name of the server' })
     serverName: string;
 
-    @Field()
+    @Field({ description: 'Server identifier/index used for playback' })
     serverSlug: string;
 
     @Field(() => WatchProgressType)

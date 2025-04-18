@@ -23,6 +23,7 @@ export class WatchHistoryService {
         actor,
         movieId,
         episodeName,
+        episodeSlug,
         serverName,
         serverSlug,
         progress,
@@ -40,7 +41,7 @@ export class WatchHistoryService {
         const filterQuery = {
             userId: user._id,
             movieId: convertToObjectId(movieId),
-            episodeName,
+            episodeSlug,
             serverName,
             serverSlug,
         };
@@ -53,6 +54,7 @@ export class WatchHistoryService {
             return this.watchHistoryRepository.findOneAndUpdate({
                 filterQuery,
                 updateQuery: {
+                    episodeName,
                     progress,
                     lastWatched: new Date(),
                 },
@@ -67,6 +69,7 @@ export class WatchHistoryService {
                 userId: user._id,
                 movieId: convertToObjectId(movieId),
                 episodeName,
+                episodeSlug,
                 serverName,
                 serverSlug,
                 progress: {

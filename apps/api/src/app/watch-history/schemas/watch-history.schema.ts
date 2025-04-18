@@ -50,21 +50,32 @@ export class WatchHistory extends AbstractDocument {
 
     @ApiProperty({
         type: String,
-        example: 'Episode 1',
+        example: 'Tập 1',
+        description: 'Display name of the episode for UI purposes',
     })
     @Prop({ type: String, default: '' })
     episodeName: string;
 
     @ApiProperty({
         type: String,
-        example: 'default',
+        example: 'tap-1',
+        description: 'Slug of the episode for navigation purposes',
+    })
+    @Prop({ type: String, default: '' })
+    episodeSlug: string;
+
+    @ApiProperty({
+        type: String,
+        example: 'Server VIP',
+        description: 'Display name of the server',
     })
     @Prop({ type: String, required: true })
     serverName: string;
 
     @ApiProperty({
         type: String,
-        example: 'episode-1',
+        example: 'vip',
+        description: 'Server identifier/index used for playback',
     })
     @Prop({ type: String, required: true })
     serverSlug: string;
@@ -97,6 +108,6 @@ WatchHistorySchema.pre('findOneAndUpdate', function () {
 });
 
 WatchHistorySchema.index(
-    { userId: 1, movieId: 1, episodeName: 1, serverName: 1, serverSlug: 1 },
+    { userId: 1, movieId: 1, episodeSlug: 1, serverName: 1, serverSlug: 1 },
     { unique: true },
 );

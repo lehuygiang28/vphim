@@ -336,8 +336,17 @@ type WatchHistoryType {
   updatedAt: DateTime!
   userId: ID!
   movieId: Movie!
+
+  """Display name of the episode for UI"""
   episodeName: String
+
+  """Slug of the episode for navigation"""
+  episodeSlug: String
+
+  """Display name of the server"""
   serverName: String!
+
+  """Server identifier/index used for playback"""
   serverSlug: String!
   progress: WatchProgressType!
   lastWatched: DateTime!
@@ -727,8 +736,17 @@ input DeleteCommentInput {
 
 input SaveWatchHistoryInput {
   movieId: String!
+
+  """Display name of the episode for UI"""
   episodeName: String
+
+  """Slug of the episode for navigation"""
+  episodeSlug: String
+
+  """Display name of the server"""
   serverName: String!
+
+  """Server identifier/index used for playback"""
   serverSlug: String!
   progress: WatchProgressInput!
 }
