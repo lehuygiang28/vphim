@@ -42,13 +42,13 @@
 
 /* Container with extra top margin to fill the space of the hidden header */
 .containerWithHeaderSpace {
-    margin-top: 70px; /* Match the header height */
+    margin-top: 30px;
     transition: margin-top 0.3s ease;
 }
 
 @media (max-width: 768px) {
     .containerWithHeaderSpace {
-        margin-top: 60px; /* Match the mobile header height */
+        margin-top: 20px;
     }
 }
 

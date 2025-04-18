@@ -8,6 +8,8 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { vi as viVN } from 'date-fns/locale';
 
+import { WatchHistoryType } from 'apps/api/src/app/watch-history/watch-history.type';
+
 import useWatchHistory from '@/hooks/useWatchHistory';
 import { getOptimizedImageUrl } from '@/libs/utils/movie.util';
 import { RouteNameEnum } from '@/constants/route.constant';
@@ -40,8 +42,10 @@ export function WatchHistoryList() {
         return watchHistory.slice(startIndex, startIndex + PER_PAGE);
     }, [watchHistory, currentPage]);
 
-    const handleContinueWatching = (history: any) => {
-        const url = `${RouteNameEnum.MOVIE_PAGE}/${history.movieId.slug}/${history.episodeSlug}`;
+    const handleContinueWatching = (history: WatchHistoryType) => {
+        const url = `${RouteNameEnum.MOVIE_PAGE}/${history.movieId.slug}/${history.episodeSlug}${
+            history?.serverIndex > 0 ? `?server=${history.serverIndex}` : ''
+        }`;
         router.push(url);
     };
 
@@ -201,7 +205,7 @@ export function WatchHistoryList() {
                                             type="text"
                                             danger
                                             icon={<DeleteOutlined />}
-                                            onClick={() => handleDelete(item._id)}
+                                            onClick={() => handleDelete(item._id.toString())}
                                         />
                                     </Tooltip>,
                                 ]}
