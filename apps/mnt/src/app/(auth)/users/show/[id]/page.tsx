@@ -102,23 +102,23 @@ export default function UserShow() {
                     defaultActiveKey="1"
                     items={[
                         {
-                            label: `Lịch sử xem (${historyData?.data?.data?.length || 0})`,
+                            label: `Phim đã theo dõi (${
+                                (record?.followMovies as MovieType[])?.length || 0
+                            })`,
                             key: '1',
                             children: (
-                                <WatchHistoryTable
-                                    history={historyData?.data.data}
-                                    loading={isHistoryLoading}
+                                <FollowingMovieTable
+                                    movies={(record?.followMovies as MovieType[]) || []}
                                 />
                             ),
                         },
                         {
-                            label: `Phim đã theo dõi (${
-                                (record?.followMovies as MovieType[])?.length || 0
-                            })`,
+                            label: `Lịch sử xem (${historyData?.data?.data?.length || 0})`,
                             key: '2',
                             children: (
-                                <FollowingMovieTable
-                                    movies={(record?.followMovies as MovieType[]) || []}
+                                <WatchHistoryTable
+                                    history={historyData?.data.data}
+                                    loading={isHistoryLoading}
                                 />
                             ),
                         },
