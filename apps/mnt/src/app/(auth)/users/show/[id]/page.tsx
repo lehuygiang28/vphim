@@ -5,15 +5,16 @@ import { Show, ListButton } from '@refinedev/antd';
 import { useCustom, useParsed, useShow } from '@refinedev/core';
 
 import { type UserType } from '~api/app/users/user.type';
-import type {} from 'apps/api/src/app/watch-history/inputs/get-watch-history-admin.input';
-import type { WatchHistoryType } from 'apps/api/src/app/watch-history/watch-history.type';
+import type { WatchHistoryType } from '~api/app/watch-history/watch-history.type';
+import { MovieType } from '~api/app/movies/movie.type';
+import { formatDateToHumanReadable } from '~fe/libs/utils/common';
 
+import { WatchHistoryTable } from '~mnt/components/table/watch-history';
 import { BlockLogTable } from '~mnt/components/table/block-log';
+import { FollowingMovieTable } from '~mnt/components/table/following-movie';
 import { BlockOrUnblockUser } from '~mnt/components/button/block-or-unblock-user';
 import { UpdateUserRole } from '~mnt/components/button/change-role';
-import { formatDateToHumanReadable } from '@/libs/utils/common';
 import { GET_WATCH_HISTORY_ADMIN } from '~mnt/queries/watch-history.query';
-import { WatchHistoryTable } from '~mnt/components/table/watch-history';
 
 const { Text } = Typography;
 
@@ -24,11 +25,10 @@ export default function UserShow() {
         query: { data: { data: record } = {}, isLoading },
     } = useShow<UserType>({});
 
-    const {
-        data: historyData,
-        isLoading: isHistoryLoading,
-        refetch,
-    } = useCustom<{ data: WatchHistoryType[]; total: number }>({
+    const { data: historyData, isLoading: isHistoryLoading } = useCustom<{
+        data: WatchHistoryType[];
+        total: number;
+    }>({
         dataProviderName: 'graphql',
         url: 'graphql',
         method: 'post',
@@ -108,6 +108,17 @@ export default function UserShow() {
                                 <WatchHistoryTable
                                     history={historyData?.data.data}
                                     loading={isHistoryLoading}
+                                />
+                            ),
+                        },
+                        {
+                            label: `Phim đã theo dõi (${
+                                (record?.followMovies as MovieType[])?.length || 0
+                            })`,
+                            key: '2',
+                            children: (
+                                <FollowingMovieTable
+                                    movies={(record?.followMovies as MovieType[]) || []}
                                 />
                             ),
                         },

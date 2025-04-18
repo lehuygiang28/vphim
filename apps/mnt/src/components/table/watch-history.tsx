@@ -1,12 +1,13 @@
+'use client';
+
 import '~fe/libs/helper/dayjs';
 import dayjs, { type Dayjs } from 'dayjs/esm';
-
-import { Table, Tag, Space, Typography, Button, DatePicker, Input, Image } from 'antd';
+import { useRouter } from 'next/navigation';
+import { Table, Tag, Space, Typography, Button, DatePicker, Input, Image, Tooltip } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import { formatDateToHumanReadable } from '@/libs/utils/common';
-import Link from 'next/link';
-import { PlayCircleOutlined } from '@ant-design/icons';
+import { EyeOutlined, SettingOutlined } from '@ant-design/icons';
 
+import { formatDateToHumanReadable } from '@/libs/utils/common';
 import type { WatchHistoryType } from 'apps/api/src/app/watch-history/watch-history.type';
 import MovieTypeTag, { movieTypeOptions } from '../tag/movie-type-tag';
 import { MovieTypeEnum } from '~api/app/movies/movie.constant';
@@ -22,6 +23,8 @@ export type WatchHistoryTableProps = {
 };
 
 export function WatchHistoryTable({ history = [], loading = false }: WatchHistoryTableProps) {
+    const router = useRouter();
+
     const columns: ColumnsType<WatchHistoryType> = [
         {
             key: 'movie',
@@ -208,11 +211,24 @@ export function WatchHistoryTable({ history = [], loading = false }: WatchHistor
                     process.env.NEXT_PUBLIC_FRONT_END_URL,
                 );
                 return (
-                    <Link href={watchUrl} target="_blank">
-                        <Button type="primary" icon={<PlayCircleOutlined />} size="small">
-                            Xem
-                        </Button>
-                    </Link>
+                    <Space>
+                        <Tooltip title="Xem phim">
+                            <Button
+                                icon={<EyeOutlined />}
+                                onClick={() => window.open(watchUrl, '_blank')}
+                                size="small"
+                            />
+                        </Tooltip>
+                        <Tooltip title="Quản lý phim">
+                            <Button
+                                icon={<SettingOutlined />}
+                                onClick={() =>
+                                    router.push(`/movies/show/${record._id?.toString()}`)
+                                }
+                                size="small"
+                            />
+                        </Tooltip>
+                    </Space>
                 );
             },
         },

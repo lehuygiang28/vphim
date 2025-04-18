@@ -62,7 +62,7 @@ const qualityOptions = [
     { value: MovieQualityEnum.CAM, label: 'CAM' },
 ];
 
-export default function MovieTableMnt({ type }: MovieTableMntProps) {
+export function MovieTableMnt({ type }: MovieTableMntProps) {
     const router = useRouter();
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState('');
@@ -800,3 +800,5 @@ export default function MovieTableMnt({ type }: MovieTableMntProps) {
         </List>
     );
 }
+
+export default MovieTableMnt;
