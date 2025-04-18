@@ -138,11 +138,11 @@ export const useWatchHistory = () => {
                     },
                     successNotification: {
                         type: 'success',
-                        message: 'Lịch sử xem phim đã được xóa',
+                        message: 'Phim đã được xóa khỏi lịch sử',
                     },
                     errorNotification: {
                         type: 'error',
-                        message: 'Lỗi khi xóa lịch sử xem phim, vui lòng thử lại',
+                        message: 'Lỗi khi xóa phim khỏi lịch sử, vui lòng thử lại',
                     },
                 });
                 await refetch();
@@ -172,11 +172,11 @@ export const useWatchHistory = () => {
                     gqlMutation: CLEAR_ALL_WATCH_HISTORY,
                 },
                 successNotification: {
-                    message: 'Tất cả lịch sử xem phim đã được xóa',
+                    message: 'Tất cả phim đã được xóa khỏi lịch sử',
                     type: 'success',
                 },
                 errorNotification: {
-                    message: 'Lỗi khi xóa lịch sử xem phim, vui lòng thử lại',
+                    message: 'Lỗi khi xóa phim khỏi lịch sử, vui lòng thử lại',
                     type: 'error',
                 },
             });

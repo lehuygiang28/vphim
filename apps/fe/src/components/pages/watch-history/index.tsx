@@ -1,7 +1,19 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { List, Card, Typography, Button, Empty, Spin, Row, Col, Tooltip, Progress } from 'antd';
+import {
+    List,
+    Card,
+    Typography,
+    Button,
+    Empty,
+    Spin,
+    Row,
+    Col,
+    Tooltip,
+    Progress,
+    Popconfirm,
+} from 'antd';
 import { DeleteOutlined, PlayCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -90,9 +102,17 @@ export function WatchHistoryList() {
                     marginBottom: 16,
                 }}
             >
-                <Button danger icon={<DeleteOutlined />} onClick={handleClearAll}>
-                    Xóa tất cả
-                </Button>
+                <Popconfirm
+                    title="Xóa lịch sử xem phim"
+                    description="Bạn có chắc chắn muốn xóa tất cả lịch sử xem phim?"
+                    onConfirm={handleClearAll}
+                    okText="Xóa"
+                    cancelText="Hủy"
+                >
+                    <Button danger icon={<DeleteOutlined />}>
+                        Xóa tất cả
+                    </Button>
+                </Popconfirm>
             </div>
 
             <List
@@ -193,7 +213,7 @@ export function WatchHistoryList() {
                                 actions={[
                                     <Tooltip title="Tiếp tục xem" key="continue">
                                         <Button
-                                            type="text"
+                                            type="default"
                                             icon={<PlayCircleOutlined />}
                                             onClick={() => handleContinueWatching(item)}
                                         >
@@ -201,12 +221,17 @@ export function WatchHistoryList() {
                                         </Button>
                                     </Tooltip>,
                                     <Tooltip title="Xóa khỏi lịch sử" key="delete">
-                                        <Button
-                                            type="text"
-                                            danger
-                                            icon={<DeleteOutlined />}
-                                            onClick={() => handleDelete(item._id.toString())}
-                                        />
+                                        <Popconfirm
+                                            title="Xóa khỏi lịch sử"
+                                            description="Bạn có chắc chắn muốn xóa phim này khỏi lịch sử?"
+                                            onConfirm={() => handleDelete(item._id.toString())}
+                                            okText="Xóa"
+                                            cancelText="Hủy"
+                                        >
+                                            <Button type="text" danger icon={<DeleteOutlined />}>
+                                                Xóa
+                                            </Button>
+                                        </Popconfirm>
                                     </Tooltip>,
                                 ]}
                             >
@@ -250,6 +275,15 @@ export function WatchHistoryList() {
                                                         {formatDuration(item.progress.currentTime)}{' '}
                                                         / {formatDuration(item.progress.duration)}
                                                     </Text>
+                                                </Col>
+                                            </Row>
+                                            <Row style={{ marginTop: 8 }}>
+                                                <Col span={24}>
+                                                    <Tooltip title={`Máy chủ ${item.serverName}`}>
+                                                        <Text type="secondary">
+                                                            {item.serverName}
+                                                        </Text>
+                                                    </Tooltip>
                                                 </Col>
                                             </Row>
                                         </div>
