@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Typography, Divider, Button, Row, Col, Card, Space } from 'antd';
+import { Typography, Divider, Button, Row, Col, Card } from 'antd';
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
@@ -57,34 +57,31 @@ export default function AboutPage() {
                     borderRadius: 8,
                 }}
             >
-                <Title level={1} style={{ color: '#fff', marginBottom: 16 }}>
-                    VePhim
-                </Title>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
+                    <div
+                        style={{
+                            position: 'relative',
+                            width: 128,
+                            height: 30,
+                            overflow: 'hidden',
+                            borderRadius: 12,
+                        }}
+                    >
+                        <Image
+                            src="/assets/images/logo-mini.png"
+                            alt="vphim Logo"
+                            width={128}
+                            height={30}
+                            priority
+                        />
+                    </div>
+                </div>
                 <Title
                     level={4}
                     style={{ color: '#fff', marginBottom: 32, fontWeight: 'normal', opacity: 0.9 }}
                 >
                     Xem phim trực tuyến, miễn phí và nhanh chóng
                 </Title>
-
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
-                    <div
-                        style={{
-                            position: 'relative',
-                            width: 128,
-                            height: 128,
-                            overflow: 'hidden',
-                            borderRadius: 12,
-                        }}
-                    >
-                        <Image
-                            src="/assets/images/logo.png"
-                            alt="VePhim Logo"
-                            fill
-                            style={{ objectFit: 'cover' }}
-                        />
-                    </div>
-                </div>
 
                 <Paragraph
                     style={{
@@ -183,16 +180,7 @@ export default function AboutPage() {
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
-                    <Text
-                        style={{
-                            color: 'var(--vphim-color-text-secondary)',
-                            display: 'block',
-                            marginBottom: 8,
-                        }}
-                    >
-                        © {new Date().getFullYear()} VePhim. Mọi quyền được bảo lưu.
-                    </Text>
-                    <Link href="mailto:contact@vephim.online">
+                    <Link href="/lien-he">
                         <Button type="link" icon={<ExternalLink size={14} />}>
                             Liên hệ
                         </Button>
