@@ -1,4 +1,3 @@
-import { Req } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation, Int } from '@nestjs/graphql';
 import { SkipThrottle } from '@nestjs/throttler';
 
@@ -12,7 +11,7 @@ import { MutateHardDeleteMovieInput } from './inputs/mutate-hard-delete-movie.in
 import { CreateMovieInput } from './inputs/create-movie.input';
 import { UserRoleEnum } from '../users';
 import { GetMoviesAdminInput } from './inputs/get-movies-admin.input';
-import { RequiredRoles, CurrentUser, OptionalAuth, UserJwt } from '../auth';
+import { RequiredRoles, CurrentUser, OptionalAuth, type UserJwt } from '../auth';
 
 @SkipThrottle()
 @Resolver(() => MovieType)
