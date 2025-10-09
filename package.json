@@ -5,6 +5,7 @@
     "private": true,
     "scripts": {
         "api": "yarn nx serve api --configuration=development",
+        "api:build": "yarn nx build api",
         "fe": "yarn nx run fe:dev",
         "mnt": "yarn nx run mnt:dev -- -p 4000",
         "adr": "yarn nx run-android mobile -- --non-interactive=true",
