@@ -112,7 +112,7 @@ async function proxyRequest(incoming: Request, slugPath: string): Promise<Respon
     });
 }
 
-const app = new Hono()
+export const app = new Hono()
     .basePath('/api/p')
     // Catch-all handler for any path under /api/p
     .all('/*', async (c) => {
