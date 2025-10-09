@@ -10422,6 +10422,7 @@ __metadata:
     graphql-tag: "npm:^2.12.6"
     helmet: "npm:^7.1.0"
     hls.js: "npm:^1.5.15"
+    hono: "npm:^4.9.10"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
     jest-environment-node: "npm:^29.7.0"
@@ -17219,6 +17220,13 @@ __metadata:
   dependencies:
     parse-passwd: "npm:^1.0.0"
   checksum: 10c0/3c099844f94b8b438f124bd5698bdcfef32b2d455115fb8050d7148e7f7b95fc89ba9922586c491f0e1cdebf437b1053c84ecddb8d596e109e9ac69c5b4a9e27
+  languageName: node
+  linkType: hard
+
+"hono@npm:^4.9.10":
+  version: 4.9.10
+  resolution: "hono@npm:4.9.10"
+  checksum: 10c0/1f547f09599c84f1566a424e58bc18448a1b81016aff5a8248563cfb31b7083cb204502461a165dbe57e25fdf89de9969d22890c190520de73c4de3d123c4a60
   languageName: node
   linkType: hard
 

@@ -91,6 +91,7 @@
         "graphql-tag": "^2.12.6",
         "helmet": "^7.1.0",
         "hls.js": "^1.5.15",
+        "hono": "^4.9.10",
         "js-cookie": "^3.0.5",
         "jsonwebtoken": "^9.0.2",
         "lodash.debounce": "^4.0.8",
