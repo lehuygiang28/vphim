@@ -1,16 +1,38 @@
 import { All, Controller, Logger, Req, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
     CopilotRuntime,
     copilotRuntimeNestEndpoint,
     GoogleGenerativeAIAdapter,
+    OpenAIAdapter,
 } from '@copilotkit/runtime';
 import { Request, Response } from 'express';
 
+import OpenAI from 'openai';
+import type { RequestOptions, APIPromise } from 'openai/core';
+import type { Stream } from 'openai/streaming';
+import type {
+    ChatCompletionCreateParamsNonStreaming,
+    ChatCompletionCreateParamsStreaming,
+    ChatCompletion,
+    ChatCompletionChunk,
+} from 'openai/resources/chat/completions';
+
 @Controller()
 export class CopilotkitController {
-    private readonly logger: Logger = new Logger(CopilotkitController.name);
+    constructor(private readonly configService: ConfigService) {
+        this.logger = new Logger(CopilotkitController.name);
+
+        if (this.configService.get('GOOGLE_AI_USE_OPENAI_COMPATIBLE') === 'true') {
+            this.USE_OPENAI_COMPATIBLE = true;
+        }
+    }
+
+    protected readonly logger: Logger;
+    private readonly USE_OPENAI_COMPATIBLE: boolean = false;
     private readonly AI_MODELS: string[] = [
         'gemini-2.0-flash-lite-preview-02-05',
+        'gemini-2.0-flash-lite',
         'gemini-2.5-flash-preview-04-17',
         'gemini-1.5-flash',
         'gemini-1.5-flash-8b',
@@ -25,13 +47,40 @@ export class CopilotkitController {
         for (const model of this.AI_MODELS) {
             try {
                 this.logger.log(`Trying AI model: ${model}`);
-                const serviceAdapter = new GoogleGenerativeAIAdapter({ model });
+
+                let adapter: GoogleGenerativeAIAdapter | OpenAIAdapter;
+
+                if (this.USE_OPENAI_COMPATIBLE) {
+                    const openAi = new OpenAI({
+                        apiKey: this.configService.getOrThrow<string>('GOOGLE_AI_GPROXY_KEY'),
+                        baseURL: this.configService.getOrThrow<string>('GOOGLE_AI_GPROXY_BASE_URL'),
+                    });
+
+                    // Force usage for streaming chat.completions
+                    const originalCC = openAi.chat.completions.create.bind(openAi.chat.completions);
+                    openAi.chat.completions.create = ((
+                        body:
+                            | ChatCompletionCreateParamsStreaming
+                            | ChatCompletionCreateParamsNonStreaming,
+                        options?: RequestOptions<unknown>,
+                    ): APIPromise<ChatCompletion | Stream<ChatCompletionChunk>> =>
+                        originalCC(
+                            {
+                                stream_options: { include_usage: true, ...body?.stream_options },
+                                ...body,
+                            },
+                            options,
+                        )) as typeof openAi.chat.completions.create;
+                    adapter = new OpenAIAdapter({ openai: openAi, model });
+                } else {
+                    adapter = new GoogleGenerativeAIAdapter({ model });
+                }
 
                 const handler = copilotRuntimeNestEndpoint({
                     runtime: this.copilotRuntime,
-                    serviceAdapter,
+                    serviceAdapter: adapter,
                     endpoint: '/copilotkit',
-                    logLevel: 'debug',
+                    logLevel: 'info',
                 });
 
                 return handler(req, res);

@@ -115,6 +115,7 @@ type Movie {
   showtimes: String
   slug: String!
   status: String
+  contentRating: String!
   subDocquyen: Boolean
   thumbUrl: String!
   posterUrl: String
@@ -168,6 +169,7 @@ type MovieFollowType {
   showtimes: String
   slug: String!
   status: String
+  contentRating: String!
   subDocquyen: Boolean
   thumbUrl: String!
   posterUrl: String
@@ -225,6 +227,8 @@ type CommentType {
   movieId: ID!
   content: String!
   parentComment: ID
+  rootParentComment: ID
+  nestingLevel: Float!
   replyCount: Float
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -245,6 +249,112 @@ type GetCommentRepliesOutput {
   count: Float!
   hasMore: Boolean!
   currentPage: Float!
+}
+
+type StatOverview {
+  totalMovies: Int!
+  totalUsers: Int!
+  totalComments: Int!
+  totalCategories: Int!
+  moviesAddedToday: Int!
+  moviesUpdatedToday: Int!
+  commentsToday: Int!
+  newUsersToday: Int!
+}
+
+type MoviesByType {
+  type: String!
+  count: Int!
+}
+
+type TopViewedMovie {
+  _id: String!
+  name: String!
+  slug: String!
+  thumbUrl: String!
+  view: Int
+}
+
+type RecentComment {
+  _id: String!
+  content: String!
+  movieId: String!
+  movieName: String!
+  movieSlug: String!
+  userName: String!
+  createdAt: DateTime!
+}
+
+type UserGrowth {
+  date: DateTime!
+  count: Int!
+}
+
+type MovieGrowth {
+  date: DateTime!
+  count: Int!
+}
+
+type TrendingMovie {
+  _id: String!
+  name: String!
+  slug: String!
+  thumbUrl: String!
+  viewsToday: Int
+  updatedAt: DateTime
+}
+
+type RecentActivity {
+  type: String!
+  message: String!
+  entityId: String
+  entityName: String
+  entitySlug: String
+  timestamp: DateTime!
+}
+
+type DashboardData {
+  overview: StatOverview!
+  moviesByType: [MoviesByType!]!
+  topViewedMovies: [TopViewedMovie!]!
+  recentComments: [RecentComment!]!
+  userGrowth: [UserGrowth!]!
+  movieGrowth: [MovieGrowth!]!
+  trendingToday: [TrendingMovie!]!
+  recentActivities: [RecentActivity!]!
+}
+
+type WatchProgressType {
+  currentTime: Float!
+  duration: Float!
+  completed: Boolean!
+}
+
+type WatchHistoryType {
+  _id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  userId: ID!
+  movieId: Movie!
+
+  """Display name of the episode for UI"""
+  episodeName: String
+
+  """Slug of the episode for navigation"""
+  episodeSlug: String
+
+  """Display name of the server"""
+  serverName: String!
+
+  """Server identifier/index used for playback"""
+  serverIndex: Float!
+  progress: WatchProgressType!
+  lastWatched: DateTime!
+}
+
+type GetWatchHistoryOutput {
+  total: Int!
+  data: [WatchHistoryType!]!
 }
 
 input EpisodeServerDataInputType {
@@ -306,6 +416,11 @@ type Query {
     """
     input: GetCommentRepliesInput!
   ): GetCommentRepliesOutput!
+  getDashboard: DashboardData!
+  getWatchHistory(input: GetWatchHistoryInput): GetWatchHistoryOutput!
+  getMovieWatchHistory(input: GetMovieWatchHistoryInput!): [WatchHistoryType!]!
+  getWatchHistoryAdmin(input: GetWatchHistoryInputAdmin): GetWatchHistoryOutput!
+  getMovieWatchHistoryAdmin(input: GetMovieWatchHistoryInputAdmin!): [WatchHistoryType!]!
 }
 
 input GetMovieInput {
@@ -329,6 +444,8 @@ input GetMoviesInput {
   years: String
   status: String
   useAI: Boolean
+  quality: String
+  contentRating: String
 }
 
 input GetMoviesAdminInput {
@@ -347,6 +464,8 @@ input GetMoviesAdminInput {
   years: String
   status: String
   useAI: Boolean
+  quality: String
+  contentRating: String
   resetCache: Boolean
   isDeleted: Boolean
   bypassCache: Boolean
@@ -411,6 +530,27 @@ input GetCommentRepliesInput {
   page: Float = 1
   parentCommentId: ID!
   movieId: ID!
+  includeNestedReplies: Boolean = false
+}
+
+input GetWatchHistoryInput {
+  limit: Int = 10
+  offset: Int = 0
+}
+
+input GetMovieWatchHistoryInput {
+  movieId: String!
+}
+
+input GetWatchHistoryInputAdmin {
+  limit: Int = 10
+  offset: Int = 0
+  userId: String!
+}
+
+input GetMovieWatchHistoryInputAdmin {
+  movieId: String!
+  userId: String!
 }
 
 type Mutation {
@@ -435,6 +575,9 @@ type Mutation {
   createComment(input: CreateCommentInput!): CommentType!
   updateComment(input: UpdateCommentInput!): CommentType!
   deleteComment(input: DeleteCommentInput!): Boolean!
+  saveWatchHistory(input: SaveWatchHistoryInput!): WatchHistoryType!
+  deleteWatchHistory(input: DeleteWatchHistoryInput!): Boolean!
+  clearAllWatchHistory: Int!
 }
 
 input MutationMeInput {
@@ -458,6 +601,7 @@ input CreateMovieInput {
   name: String!
   slug: String!
   originName: String
+  contentRating: String!
   content: String
   type: String!
   lang: String
@@ -486,6 +630,7 @@ input CreateMovieInput {
 input UpdateMovieInput {
   _id: ID!
   name: String
+  contentRating: String
   actors: [ID!]
   categories: [ID!]
   cinemaRelease: Boolean
@@ -600,4 +745,31 @@ input UpdateCommentInput {
 
 input DeleteCommentInput {
   _id: ID!
+}
+
+input SaveWatchHistoryInput {
+  movieId: String!
+
+  """Display name of the episode for UI"""
+  episodeName: String
+
+  """Slug of the episode for navigation"""
+  episodeSlug: String
+
+  """Display name of the server"""
+  serverName: String!
+
+  """Server identifier/index used for playback"""
+  serverIndex: Float!
+  progress: WatchProgressInput!
+}
+
+input WatchProgressInput {
+  currentTime: Float!
+  duration: Float!
+  completed: Boolean
+}
+
+input DeleteWatchHistoryInput {
+  watchHistoryId: String!
 }
