@@ -41,8 +41,8 @@ const SEARCH_STEPS = [
 ];
 
 // Minimum duration for each step in milliseconds
-const STEP_DURATION_MS = 2500; // 2.5 seconds per step
-const MIN_TOTAL_DURATION_MS = 10000; // 10 seconds minimum for complete search
+const STEP_DURATION_MS = 500; // 0.5 seconds per step
+const MIN_TOTAL_DURATION_MS = 2000; // 4 seconds minimum for complete search
 
 interface AISearchStepsProps {
     isLoading: boolean;
