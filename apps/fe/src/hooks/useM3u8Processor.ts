@@ -138,7 +138,7 @@ export function useM3u8Processor(
                         ? [mergedOptions.removalIndices]
                         : mergedOptions.provider === 'o'
                         ? [16, 17]
-                        : [1];
+                        : [13];
 
                 const processedContent = removeDiscontinuitySections(
                     content,
@@ -249,8 +249,8 @@ function extractVariantUrl(content: string, baseUrl: string): string | null {
 
     if (!variantUrl) return null;
 
-    // Resolve the variant URL if it's relative
-    return !variantUrl.startsWith('http') ? resolveUrl(variantUrl, baseUrl) : variantUrl;
+    // Resolve the variant URL using M3U8-aware resolver
+    return resolveM3u8Url(variantUrl, baseUrl);
 }
 
 function removeDiscontinuitySections(
@@ -298,21 +298,15 @@ function removeDiscontinuitySections(
 
         const line = lines[i].trim();
 
-        // For segment URLs, resolve if they are relative
+        // For segment URLs, resolve via M3U8-aware resolver
         if (line && !line.startsWith('#')) {
-            if (!line.startsWith('http')) {
-                const resolvedUrl = resolveUrl(line, baseUrl);
-                if (useProxy) {
-                    result.push(`${getProxyUrl()}${encodeURIComponent(resolvedUrl)}`);
-                } else {
-                    result.push(resolvedUrl);
-                }
-                continue;
-            } else if (useProxy) {
-                // If it's already an absolute URL but we need to proxy it
-                result.push(`${getProxyUrl()}${encodeURIComponent(line)}`);
-                continue;
+            const resolvedUrl = resolveM3u8Url(line, baseUrl);
+            if (useProxy) {
+                result.push(`${getProxyUrl()}${encodeURIComponent(resolvedUrl)}`);
+            } else {
+                result.push(resolvedUrl);
             }
+            continue;
         }
 
         result.push(line);
@@ -327,25 +321,47 @@ function resolveSegmentUrls(lines: string[], baseUrl: string, useProxy = false):
     for (const line of lines) {
         const trimmedLine = line.trim();
 
-        // For segment URLs, resolve if they are relative
+        // For segment URLs, resolve via M3U8-aware resolver
         if (trimmedLine && !trimmedLine.startsWith('#')) {
-            if (!trimmedLine.startsWith('http')) {
-                const resolvedUrl = resolveUrl(trimmedLine, baseUrl);
-                if (useProxy) {
-                    result.push(`${getProxyUrl()}${encodeURIComponent(resolvedUrl)}`);
-                } else {
-                    result.push(resolvedUrl);
-                }
-                continue;
-            } else if (useProxy) {
-                // If it's already an absolute URL but we need to proxy it
-                result.push(`${getProxyUrl()}${encodeURIComponent(trimmedLine)}`);
-                continue;
+            const resolvedUrl = resolveM3u8Url(trimmedLine, baseUrl);
+            if (useProxy) {
+                result.push(`${getProxyUrl()}${encodeURIComponent(resolvedUrl)}`);
+            } else {
+                result.push(resolvedUrl);
             }
+            continue;
         }
 
         result.push(trimmedLine);
     }
 
     return result.join('\n');
+}
+
+// M3U8-aware URL resolver:
+// - Absolute URLs: return as-is
+// - Root-relative (starts with '/'): join with origin of base
+// - Relative (no scheme, no leading '/'): join with base including path
+function resolveM3u8Url(path: string, base: string): string {
+    const trimmed = path.trim();
+    if (!trimmed) return trimmed;
+
+    if (trimmed.startsWith('http')) return trimmed;
+
+    try {
+        const baseUrl = new URL(base);
+        // Protocol-relative URL: keep host from path, inherit protocol from base
+        if (trimmed.startsWith('//')) {
+            return `${baseUrl.protocol}${trimmed}`;
+        }
+        if (trimmed.startsWith('/')) {
+            // Root-relative: use origin + path
+            return `${baseUrl.origin}/${trimmed.replace(/^\/+/, '')}`;
+        }
+        // Relative path: let URL API resolve against base
+        return new URL(trimmed, baseUrl).toString();
+    } catch {
+        // Fallback to previous resolver behavior
+        return resolveUrl(trimmed, base);
+    }
 }

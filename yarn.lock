@@ -10438,7 +10438,7 @@ __metadata:
     multer: "npm:^1.4.5-lts.1"
     nestjs-i18n: "npm:^10.4.5"
     nestjs-pino: "npm:^4.1.0"
-    nestjs-vnpay: "npm:^1.0.1"
+    nestjs-vnpay: "npm:^1.0.4"
     next: "npm:14.2.16"
     next-auth: "npm:^4.24.7"
     nodemailer: "npm:^6.9.14"
@@ -10482,7 +10482,7 @@ __metadata:
     tslib: "npm:^2.3.0"
     typescript: "npm:~5.5.2"
     use-debounce: "npm:^10.0.3"
-    vnpay: "npm:^2.2.0"
+    vnpay: "npm:^2.4.4"
     webpack-cli: "npm:^5.1.4"
     zustand: "npm:^5.0.0"
   languageName: unknown
@@ -22929,13 +22929,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nestjs-vnpay@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "nestjs-vnpay@npm:1.0.1"
+"nestjs-vnpay@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "nestjs-vnpay@npm:1.0.4"
   peerDependencies:
     "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
-    vnpay: ^1.0.0 || ^2.1.1
-  checksum: 10c0/96417a7eed697ee0a798122b95f9b6c43f7e7c4774629e19ad3b9e27bca37962515549de7beabbe1442c26a4f3452eac0dec08047fa35ddf4a8a1a44537e966a
+    vnpay: ^1.0.0 || ^2.1.1 || ^2.4.1
+  checksum: 10c0/631763a43f84bfa655a2e80fd8f1934f1a839acc74371120e3cee31c363fd2c8f57aa97b84bbed9bf515fa0abb8c1bc3eea37b57137dee2381f7fc55eb951cdc
   languageName: node
   linkType: hard
 
@@ -30406,12 +30406,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vnpay@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "vnpay@npm:2.2.0"
+"vnpay@npm:^2.4.4":
+  version: 2.4.4
+  resolution: "vnpay@npm:2.4.4"
   dependencies:
     dayjs: "npm:^1.11.13"
-  checksum: 10c0/5e3530bc8a40878f20c6078e1302ffbde67bf2288dc39e8147cb8e559b59eeaca0f1a7b2d346b3e6904d51fc263f896f108cf21ac895a651f7d9cedce054cf21
+  checksum: 10c0/3d02d1c0e47eb57fcd236b20a73952b850cfa36c892148a69d23c15f119ea3ec0c48419f5fc2215c33f084b78ddd83ef8e6a6bc9116f50f0579ec59b230f8660
   languageName: node
   linkType: hard
 

@@ -103,7 +103,7 @@
         "multer": "^1.4.5-lts.1",
         "nestjs-i18n": "^10.4.5",
         "nestjs-pino": "^4.1.0",
-        "nestjs-vnpay": "^1.0.1",
+        "nestjs-vnpay": "^1.0.4",
         "next": "14.2.16",
         "next-auth": "^4.24.7",
         "nodemailer": "^6.9.14",
@@ -140,7 +140,7 @@
         "swiper": "^11.1.11",
         "tslib": "^2.3.0",
         "use-debounce": "^10.0.3",
-        "vnpay": "^2.2.0",
+        "vnpay": "^2.4.4",
         "zustand": "^5.0.0"
     },
     "devDependencies": {
