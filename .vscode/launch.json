@@ -24,7 +24,7 @@
                 "TS_NODE_PROJECT": "tsconfig.app.json",
                 "IS_DEBUG": "true"
             },
-            "envFile": ".env",
+            "envFile": "${workspaceFolder}/apps/api/.env",
             "sourceMaps": true,
             "console": "internalConsole",
             "outputCapture": "std",
