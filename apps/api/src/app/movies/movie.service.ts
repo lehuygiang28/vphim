@@ -34,12 +34,20 @@ import { systemInstruction } from './ai-movie.prompt';
 import { KEYWORDS_MAX_LENGTH, MovieContentRatingEnum } from './movie.constant';
 import { mappingContentRating } from '../crawlers/mapping-data';
 
+function parseModelsCsv(value: string | undefined): string[] {
+    if (!value) return [];
+    return value
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+}
+
 @Injectable()
 export class MovieService {
     private readonly logger: Logger;
     private readonly EXCLUDE_MOVIE_SRC: ('ophim' | 'kkphim' | 'nguonc')[] = [];
     private readonly genAI: GoogleGenerativeAI;
-    private readonly AI_MODELS: string[] = [
+    private readonly DEFAULT_AI_MODELS: string[] = [
         'models/gemini-2.5-flash-preview-04-17',
         'models/gemini-2.0-flash-thinking-exp-01-21',
         'models/gemini-2.0-flash-thinking-exp-1219',
@@ -797,7 +805,10 @@ export class MovieService {
             return null;
         }
 
-        for (const modelName of this.AI_MODELS) {
+        const modelsFromEnv = parseModelsCsv(this.configService.get<string>('MOVIE_AI_MODELS'));
+        const modelsToTry = modelsFromEnv.length > 0 ? modelsFromEnv : this.DEFAULT_AI_MODELS;
+
+        for (const modelName of modelsToTry) {
             try {
                 this.logger.log(`[AI] Attempting to use model: ${modelName}`);
                 const model = this.genAI.getGenerativeModel({

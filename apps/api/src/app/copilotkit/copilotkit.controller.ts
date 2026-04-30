@@ -18,6 +18,14 @@ import type {
     ChatCompletionChunk,
 } from 'openai/resources/chat/completions';
 
+function parseModelsCsv(value: string | undefined): string[] {
+    if (!value) return [];
+    return value
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+}
+
 @Controller()
 export class CopilotkitController {
     constructor(private readonly configService: ConfigService) {
@@ -30,7 +38,7 @@ export class CopilotkitController {
 
     protected readonly logger: Logger;
     private readonly USE_OPENAI_COMPATIBLE: boolean = false;
-    private readonly AI_MODELS: string[] = [
+    private readonly DEFAULT_AI_MODELS: string[] = [
         'gemini-2.0-flash-lite-preview-02-05',
         'gemini-2.0-flash-lite',
         'gemini-2.5-flash-preview-04-17',
@@ -44,7 +52,10 @@ export class CopilotkitController {
     async copilotkit(@Req() req: Request, @Res() res: Response) {
         let lastError: Error | null = null;
 
-        for (const model of this.AI_MODELS) {
+        const modelsFromEnv = parseModelsCsv(this.configService.get<string>('GOOGLE_AI_MODELS'));
+        const modelsToTry = modelsFromEnv.length > 0 ? modelsFromEnv : this.DEFAULT_AI_MODELS;
+
+        for (const model of modelsToTry) {
             try {
                 this.logger.log(`Trying AI model: ${model}`);
 

@@ -69,7 +69,11 @@ import { WatchHistoryModule } from './watch-history';
         ActorModule,
         DirectorModule,
         CommentsModule,
-        CopilotkitModule,
+        ConditionalModule.registerWhen(
+            CopilotkitModule,
+            (env: NodeJS.ProcessEnv) =>
+                !env?.DISABLE_COPILOTKIT || env?.DISABLE_COPILOTKIT === 'false',
+        ),
         DashboardModule,
         WatchHistoryModule,
         ConditionalModule.registerWhen(
