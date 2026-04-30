@@ -108,7 +108,15 @@ export class MailerConfig implements MailerOptionsFactory {
     createMailerOptions() {
         if (this.MailTransport?.length === 0) {
             this.logger.warn(`No mailer transport configured. Mail will not be sent.`);
-            return {};
+            // MailerModule requires a valid transport option at startup.
+            // We provide a dummy SMTP transport so the app can boot; MailService will still no-op
+            // when there are no configured transporters.
+            return this.buildMailerOptions({
+                host: 'localhost',
+                port: 2525,
+                secure: false,
+                auth: { user: 'disabled', pass: 'disabled' },
+            });
         }
 
         return this.buildMailerOptions(this.MailTransport[0].config);
