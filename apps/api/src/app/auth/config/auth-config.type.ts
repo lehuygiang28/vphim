@@ -24,9 +24,9 @@ export type AuthConfig = {
     /** Secret key used to sign the email confirmation token. */
     confirmEmailSecret: string;
     /** Client ID for Google authentication. */
-    googleId: string;
+    googleId?: string;
     /** Secret key for Google authentication. */
-    googleSecret: string;
+    googleSecret?: string;
     /** Secret key used to sign the OTP token. */
     otpSecret: string;
 };

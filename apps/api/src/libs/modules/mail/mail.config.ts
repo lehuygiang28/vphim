@@ -8,7 +8,6 @@ import { PinoLogger } from 'nestjs-pino';
 import { AllConfig } from '../../../app/config';
 import { TTransport } from './types/mailer.type';
 import { GMAIL_TRANSPORT, RESEND_TRANSPORT, SENDGRID_TRANSPORT } from './mail.constant';
-import { isNullOrUndefined } from '../../utils/common';
 
 @Injectable()
 export class MailerConfig implements MailerOptionsFactory {
@@ -21,9 +20,14 @@ export class MailerConfig implements MailerOptionsFactory {
         infer: true,
     });
 
+    private isNonEmptyString(value: unknown): value is string {
+        return typeof value === 'string' && value.trim().length > 0;
+    }
+
     public get MailTransport(): { name: string; config: TTransport }[] {
         const transporters: { name: string; config: TTransport }[] = [];
-        if (!isNullOrUndefined(this.configService.get('mail.sendgridPassword', { infer: true }))) {
+        const sendgridPassword = this.configService.get('mail.sendgridPassword', { infer: true });
+        if (this.isNonEmptyString(sendgridPassword)) {
             transporters.push({
                 name: SENDGRID_TRANSPORT,
                 config: {
@@ -34,16 +38,15 @@ export class MailerConfig implements MailerOptionsFactory {
                         user:
                             this.configService.get('mail.sendgridUser', { infer: true }) ??
                             'apikey',
-                        pass: this.configService.getOrThrow('mail.sendgridPassword', {
-                            infer: true,
-                        }),
+                        pass: sendgridPassword,
                     },
                     port: 2525,
                 },
             });
         }
 
-        if (!isNullOrUndefined(this.configService.get('mail.resendApiKey', { infer: true }))) {
+        const resendApiKey = this.configService.get('mail.resendApiKey', { infer: true });
+        if (this.isNonEmptyString(resendApiKey)) {
             transporters.push({
                 name: RESEND_TRANSPORT,
                 config: {
@@ -53,14 +56,16 @@ export class MailerConfig implements MailerOptionsFactory {
                     auth: {
                         user:
                             this.configService.get('mail.resendUser', { infer: true }) ?? 'resend',
-                        pass: this.configService.getOrThrow('mail.resendApiKey', { infer: true }),
+                        pass: resendApiKey,
                     },
                     port: 2587,
                 },
             });
         }
 
-        if (!isNullOrUndefined(this.configService.get('mail.gmailPassword', { infer: true }))) {
+        const gmailUser = this.configService.get('mail.gmailUser', { infer: true });
+        const gmailPassword = this.configService.get('mail.gmailPassword', { infer: true });
+        if (this.isNonEmptyString(gmailUser) && this.isNonEmptyString(gmailPassword)) {
             transporters.push({
                 name: GMAIL_TRANSPORT,
                 config: {
@@ -68,8 +73,8 @@ export class MailerConfig implements MailerOptionsFactory {
                         this.configService.get('mail.gmailHost', { infer: true }) ??
                         'smtp.gmail.com',
                     auth: {
-                        user: this.configService.getOrThrow('mail.gmailUser', { infer: true }),
-                        pass: this.configService.getOrThrow('mail.gmailPassword', { infer: true }),
+                        user: gmailUser,
+                        pass: gmailPassword,
                     },
                 },
             });
@@ -79,10 +84,11 @@ export class MailerConfig implements MailerOptionsFactory {
     }
 
     public buildMailerOptions(transport: TTransport) {
+        const defaultSender = this.isNonEmptyString(this.DEFAULT_SENDER) ? this.DEFAULT_SENDER : 'VePhim';
         return {
             transport,
             defaults: {
-                from: this.DEFAULT_SENDER,
+                from: defaultSender,
             },
             template: {
                 dir: join(

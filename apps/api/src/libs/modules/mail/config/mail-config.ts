@@ -1,12 +1,12 @@
 import { registerAs } from '@nestjs/config';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 import validateConfig from '../../../utils/validate-config';
 import { MailConfig } from './mail-config.type';
 
 class EnvironmentVariablesValidator {
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     MAIL_SENDER: string;
 
     @IsOptional()

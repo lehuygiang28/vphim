@@ -53,6 +53,17 @@ export const authProvider = (
                             },
                         };
 
+                        if (
+                            error.response?.status === 503 &&
+                            (error.response?.data as unknown as ProblemDetails)?.errors?.['mail'] ===
+                                'mail_not_configured'
+                        ) {
+                            resultResponse.error.name = 'Tạm thời không khả dụng';
+                            resultResponse.error.message =
+                                'Đăng nhập bằng email đang tạm tắt do hệ thống chưa cấu hình dịch vụ gửi mail. Vui lòng đăng nhập bằng Google hoặc Github.';
+                            return resultResponse;
+                        }
+
                         if (error.response?.status === 429) {
                             resultResponse.error.name = 'Giới hạn yêu cầu';
                             const resetTime =
@@ -149,6 +160,17 @@ export const authProvider = (
                                 message: 'Đã xảy ra lỗi, vui lòng thử lại sau',
                             },
                         };
+
+                        if (
+                            error.response?.status === 503 &&
+                            (error.response?.data as ProblemDetails)?.errors?.['mail'] ===
+                                'mail_not_configured'
+                        ) {
+                            resultResponse.error.name = 'Tạm thời không khả dụng';
+                            resultResponse.error.message =
+                                'Đăng ký bằng email đang tạm tắt do hệ thống chưa cấu hình dịch vụ gửi mail. Vui lòng quay lại sau.';
+                            return resultResponse;
+                        }
 
                         if (error.response?.status === 429) {
                             resultResponse.error.name = 'Giới hạn yêu cầu';

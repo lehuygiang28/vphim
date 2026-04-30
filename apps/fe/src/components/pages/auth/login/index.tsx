@@ -15,6 +15,7 @@ import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { signIn } from 'next-auth/react';
 
+import { axiosInstance } from '@/libs/axios';
 import { LoginPwdless } from '@/validators';
 import type { LoginActionPayload } from '@/providers/auth-provider/types';
 import LoadingBtn from '@/components/button/loading-btn';
@@ -50,6 +51,8 @@ const translations = {
         terms: 'Điều Khoản',
         ofUs: 'của chúng tôi',
         loginFailed: 'Đăng nhập thất bại, kiểm tra thông tin của bạn và thử lại sau',
+        emailDisabled:
+            'Đăng nhập bằng email đang tạm tắt do hệ thống chưa cấu hình dịch vụ gửi mail. Vui lòng đăng nhập bằng Google hoặc Github.',
         errorTitle: 'Lỗi',
     },
     en: {
@@ -62,6 +65,8 @@ const translations = {
         terms: 'Terms',
         ofUs: '',
         loginFailed: 'Login failed, check your information and try again later',
+        emailDisabled:
+            'Email login is temporarily disabled because the mail sender is not configured. Please sign in with Google or GitHub.',
         errorTitle: 'Error',
     },
 };
@@ -74,6 +79,11 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [emailAuthEnabled, setEmailAuthEnabled] = useState(true);
+    const [socialEnabled, setSocialEnabled] = useState<{ google: boolean; github: boolean }>({
+        google: true,
+        github: true,
+    });
 
     const t = translations[lang];
 
@@ -115,6 +125,29 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
         setModalMessage(message);
         setIsModalVisible(true);
     };
+
+    useEffect(() => {
+        let alive = true;
+        axiosInstance
+            .get<{
+                emailAuthEnabled: boolean;
+                providers?: { google?: boolean; github?: boolean };
+            }>('/api/auth/capabilities')
+            .then((res) => {
+                if (!alive) return;
+                setEmailAuthEnabled(Boolean(res.data?.emailAuthEnabled));
+                setSocialEnabled({
+                    google: Boolean(res.data?.providers?.google ?? true),
+                    github: Boolean(res.data?.providers?.github ?? true),
+                });
+            })
+            .catch(() => {
+                // If capability endpoint is unavailable, keep current behavior
+            });
+        return () => {
+            alive = false;
+        };
+    }, []);
 
     useEffect(() => {
         if (hash && hash.length >= SEEM_SAFE_HASH_LENGTH) {
@@ -189,6 +222,11 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                     {title}
                 </Title>
                 <Text style={{ marginBottom: '16px', textAlign: 'center' }}>{t.useEmail}</Text>
+                {!emailAuthEnabled && (
+                    <Text type="secondary" style={{ marginBottom: '16px', textAlign: 'center' }}>
+                        {t.emailDisabled}
+                    </Text>
+                )}
 
                 <form
                     autoComplete="off"
@@ -203,7 +241,7 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                                 name={'email'}
                                 validateStatus={errors?.email ? 'error' : 'validating'}
                                 help={<>{errors?.email?.message}</>}
-                                rules={[{ required: true }]}
+                                rules={[{ required: emailAuthEnabled }]}
                                 style={{ marginBottom: '20px' }}
                             >
                                 <Input
@@ -212,6 +250,7 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                                     placeholder="Email"
                                     size="large"
                                     className="login-input"
+                                    disabled={!emailAuthEnabled || loading}
                                 />
                             </Form.Item>
                         )}
@@ -223,7 +262,7 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                         style={{ width: '100%', height: '40px', borderRadius: '4px' }}
                         size="large"
                         htmlType="submit"
-                        isValid={isValid}
+                        isValid={emailAuthEnabled && isValid}
                         loading={loading}
                         icon={<LoginOutlined />}
                     />
@@ -241,9 +280,10 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                         type="default"
                         style={{ width: '120px', height: '40px', borderRadius: '4px' }}
                         size="large"
-                        isValid={true}
+                        isValid={socialEnabled.google}
                         onClick={() => handleSocialLogin('google')}
                         loading={loading}
+                        disabled={!socialEnabled.google}
                     >
                         <GoogleOutlined /> Google
                     </LoadingBtn>
@@ -251,9 +291,10 @@ export default function Login({ onBack, redirectTo = '/', lang = 'vi' }: LoginPr
                         type="default"
                         style={{ width: '120px', height: '40px', borderRadius: '4px' }}
                         size="large"
-                        isValid={true}
+                        isValid={socialEnabled.github}
                         onClick={() => handleSocialLogin('github')}
                         loading={loading}
+                        disabled={!socialEnabled.github}
                     >
                         <GithubOutlined /> Github
                     </LoadingBtn>

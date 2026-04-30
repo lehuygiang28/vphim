@@ -10,38 +10,58 @@ import { axiosInstance } from '@/libs/axios';
 import { RouteNameEnum } from '@/constants/route.constant';
 
 export const authOptions: AuthOptions = {
-    providers: [
-        GoogleProvider({
-            clientId: process.env.AUTH_GOOGLE_ID,
-            clientSecret: process.env.AUTH_GOOGLE_SECRET,
-        }),
-        GithubProvider({
-            clientId: process.env.AUTH_GITHUB_ID,
-            clientSecret: process.env.AUTH_GITHUB_SECRET,
-        }),
-        CredentialsProvider({
-            credentials: {
-                hash: {
-                    label: 'hash',
-                },
-            },
-            async authorize(credentials) {
-                const path = '/api/auth/login/pwdless/validate';
-                const payload: AuthValidatePasswordlessDto = {
-                    hash: credentials?.hash || '',
-                };
+    providers: (() => {
+        const providers: AuthOptions['providers'] = [];
 
-                return axiosInstance
-                    .post<LoginResponseDto>(path, payload)
-                    .then((response) => {
-                        return { ...response.data, id: response.data._id.toString() };
-                    })
-                    .catch((err: AxiosError) => {
-                        throw err;
-                    });
-            },
-        }),
-    ],
+        const googleId = process.env.AUTH_GOOGLE_ID;
+        const googleSecret = process.env.AUTH_GOOGLE_SECRET;
+        if (googleId && googleSecret) {
+            providers.push(
+                GoogleProvider({
+                    clientId: googleId,
+                    clientSecret: googleSecret,
+                }),
+            );
+        }
+
+        const githubId = process.env.AUTH_GITHUB_ID;
+        const githubSecret = process.env.AUTH_GITHUB_SECRET;
+        if (githubId && githubSecret) {
+            providers.push(
+                GithubProvider({
+                    clientId: githubId,
+                    clientSecret: githubSecret,
+                }),
+            );
+        }
+
+        providers.push(
+            CredentialsProvider({
+                credentials: {
+                    hash: {
+                        label: 'hash',
+                    },
+                },
+                async authorize(credentials) {
+                    const path = '/api/auth/login/pwdless/validate';
+                    const payload: AuthValidatePasswordlessDto = {
+                        hash: credentials?.hash || '',
+                    };
+
+                    return axiosInstance
+                        .post<LoginResponseDto>(path, payload)
+                        .then((response) => {
+                            return { ...response.data, id: response.data._id.toString() };
+                        })
+                        .catch((err: AxiosError) => {
+                            throw err;
+                        });
+                },
+            }),
+        );
+
+        return providers;
+    })(),
     secret: process.env.NEXTAUTH_SECRET,
     session: { strategy: 'jwt' },
     callbacks: {

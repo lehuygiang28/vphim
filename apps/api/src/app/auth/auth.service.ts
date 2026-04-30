@@ -1,6 +1,7 @@
 import {
     Injectable,
     OnModuleInit,
+    ServiceUnavailableException,
     UnauthorizedException,
     UnprocessableEntityException,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { Octokit } from '@octokit/rest';
 import * as otplib from 'otplib';
 
 import { RedisService } from '../../libs/modules/redis';
+import { getMailCapability } from '../../libs/modules/mail';
 import { convertToObjectId, getGravatarUrl, isOnlySpaces } from '../../libs/utils';
 import { NullableType } from '../../libs/types';
 import {
@@ -32,7 +34,6 @@ import type { AllConfig } from '../config';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
-    private readonly googleClient: OAuth2Client;
     private readonly octokit: Octokit;
 
     constructor(
@@ -44,11 +45,34 @@ export class AuthService implements OnModuleInit {
         @InjectQueue('BULLMQ_MAIL_QUEUE') private readonly mailQueue: Queue<unknown, unknown>,
     ) {
         this.logger.setContext(AuthService.name);
-        this.googleClient = new OAuth2Client(
-            this.configService.getOrThrow('auth.googleId', { infer: true }),
-            this.configService.getOrThrow('auth.googleSecret', { infer: true }),
-        );
         this.octokit = new Octokit({});
+    }
+
+    private ensureMailEnabled() {
+        const { enabled } = getMailCapability(this.configService);
+        if (enabled) {
+            return;
+        }
+
+        throw new ServiceUnavailableException({
+            errors: { mail: 'mail_not_configured' },
+            message: 'Mail sender is not configured',
+            detail: 'Mail sender is not configured',
+        });
+    }
+
+    private ensureGoogleEnabled() {
+        const googleId = this.configService.get('auth.googleId', { infer: true });
+        const googleSecret = this.configService.get('auth.googleSecret', { infer: true });
+        if (typeof googleId === 'string' && googleId.trim() && typeof googleSecret === 'string' && googleSecret.trim()) {
+            return { googleId, googleSecret };
+        }
+
+        throw new ServiceUnavailableException({
+            errors: { google: 'google_not_configured' },
+            message: 'Google auth is not configured',
+            detail: 'Google auth is not configured',
+        });
     }
 
     async onModuleInit() {
@@ -104,6 +128,7 @@ export class AuthService implements OnModuleInit {
     }
 
     async register({ email, ...dto }: AuthSignupDto): Promise<void> {
+        this.ensureMailEnabled();
         email = email?.toLowerCase()?.trim();
         if (await this.usersService.findByEmail(email)) {
             throw new UnprocessableEntityException({
@@ -169,6 +194,7 @@ export class AuthService implements OnModuleInit {
     }
 
     async registerConfirm(hash: string): Promise<void> {
+        this.ensureMailEnabled();
         let userId: UserDto['_id'];
 
         let jwtData: {
@@ -230,6 +256,7 @@ export class AuthService implements OnModuleInit {
     }
 
     async requestLoginPwdless({ email, returnUrl }: AuthLoginPasswordlessDto): Promise<'OK'> {
+        this.ensureMailEnabled();
         email = email?.toLowerCase()?.trim();
         let user = await this.usersService.findByEmail(email);
 
@@ -306,6 +333,7 @@ export class AuthService implements OnModuleInit {
         hash: hashOrOtp,
         email,
     }: AuthValidatePasswordlessDto): Promise<LoginResponseDto> {
+        this.ensureMailEnabled();
         email = email?.toLowerCase()?.trim();
         let userId: UserDto['_id'];
         let jwtData: { hash: string; userId: string };
@@ -403,9 +431,11 @@ export class AuthService implements OnModuleInit {
     }
 
     async validateLoginGoogle({ idToken }: AuthLoginGoogleDto) {
-        const ticket = await this.googleClient.verifyIdToken({
+        const { googleId, googleSecret } = this.ensureGoogleEnabled();
+        const googleClient = new OAuth2Client(googleId, googleSecret);
+        const ticket = await googleClient.verifyIdToken({
             idToken: idToken,
-            audience: [this.configService.getOrThrow('auth.googleId', { infer: true })],
+            audience: [googleId],
         });
         const googleData = ticket.getPayload();
 

@@ -3,6 +3,7 @@ import {
     Req,
     Post,
     Body,
+    Get,
     UseGuards,
     HttpStatus,
     HttpCode,
@@ -13,6 +14,9 @@ import { ApiOkResponse, ApiTags, ApiBody, ApiTooManyRequestsResponse } from '@ne
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 import { AuthService } from './auth.service';
+import { ConfigService } from '@nestjs/config';
+import type { AllConfig } from '../config';
+import { getMailCapability } from '../../libs/modules/mail';
 import {
     AuthLoginPasswordlessDto,
     AuthValidatePasswordlessDto,
@@ -28,7 +32,34 @@ import { UserJwt } from './strategies/types';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly configService: ConfigService<AllConfig>,
+    ) {}
+
+    @Get('capabilities')
+    capabilities() {
+        const mail = getMailCapability(this.configService);
+
+        const googleId = this.configService.get('auth.googleId', { infer: true });
+        const googleSecret = this.configService.get('auth.googleSecret', { infer: true });
+        const google =
+            typeof googleId === 'string' &&
+            googleId.trim().length > 0 &&
+            typeof googleSecret === 'string' &&
+            googleSecret.trim().length > 0;
+
+        // Github login uses access token from FE; no BE env required.
+        const github = true;
+
+        return {
+            emailAuthEnabled: mail.enabled,
+            providers: {
+                google,
+                github,
+            },
+        };
+    }
 
     @HttpCode(HttpStatus.NO_CONTENT)
     @Post('register')

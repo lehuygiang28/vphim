@@ -37,11 +37,13 @@ class EnvironmentVariablesValidator {
     @IsString()
     AUTH_CONFIRM_EMAIL_SECRET: string;
 
+    @IsOptional()
     @IsString()
-    AUTH_GOOGLE_ID: string;
+    AUTH_GOOGLE_ID?: string;
 
+    @IsOptional()
     @IsString()
-    AUTH_GOOGLE_SECRET: string;
+    AUTH_GOOGLE_SECRET?: string;
 
     @IsString()
     AUTH_OTP_SECRET: string;

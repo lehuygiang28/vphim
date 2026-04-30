@@ -46,6 +46,11 @@ export class MailService {
         retryCount = 0,
         transporter = SENDGRID_TRANSPORT,
     ): Promise<unknown> {
+        if (this.TRANSPORTERS.length === 0) {
+            this.logger.warn(`Mail is disabled (no transporter). Skip sending to ${mailData.to}`);
+            return { message: 'Mail is disabled' };
+        }
+
         if (retryCount > this.MAX_RETRIES) {
             this.logger.debug(`Send mail failed: too many retries`);
             return { message: 'Failed to send email' };
