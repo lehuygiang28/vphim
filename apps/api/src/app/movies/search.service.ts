@@ -123,6 +123,31 @@ export class SearchService {
         }
     }
 
+    private async ensureMoviesIndex() {
+        const indexName = 'movies';
+        const indexExists = await this.elasticsearchService.indices.exists({ index: indexName });
+        if (indexExists) return;
+
+        this.logger.warn(`Elasticsearch index "${indexName}" does not exist. Creating...`);
+        await this.elasticsearchService.indices.create({
+            index: indexName,
+            body: {
+                settings: {
+                    'index.max_result_window': 80000,
+                },
+                mappings: {
+                    properties: {
+                        deletedAt: {
+                            type: 'date',
+                            null_value: null,
+                        },
+                    },
+                },
+            },
+        });
+        this.logger.log(`Created Elasticsearch index "${indexName}"`);
+    }
+
     private async bulkIndexMovies(movies: Movie[]) {
         const body = movies.flatMap((movie) => {
             const { _id, ...rest } = movie;
@@ -132,7 +157,18 @@ export class SearchService {
             ];
         });
 
-        return this.elasticsearchService.bulk({ refresh: true, body });
+        const res = await this.elasticsearchService.bulk({ refresh: true, body });
+        if (res.errors) {
+            const itemsWithErrors = res.items?.filter(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (it: any) => it?.index?.error,
+            );
+            const sample = itemsWithErrors?.slice(0, 3) ?? [];
+            this.logger.error(
+                `Bulk indexing encountered errors. sample=${JSON.stringify(sample)}`,
+            );
+        }
+        return res;
     }
 
     async indexAllMovies(clear = false) {
@@ -149,6 +185,9 @@ export class SearchService {
                 this.logger.log('Index does not exist, skipping clearing');
             }
         }
+
+        await this.ensureMoviesIndex();
+
         do {
             this.logger.log(`Fetching movies with skip: ${skip}, limit: ${batchSize}`);
             movies = await this.movieRepo.find({
@@ -175,12 +214,14 @@ export class SearchService {
         } while (movies.length === batchSize);
 
         this.logger.log('Finished indexing all movies');
+        // Keep these calls for clusters that ignore create settings/mappings updates.
         await this.setMaxResultWindow();
         await this.updateMappings();
     }
 
     async setMaxResultWindow(indexName = 'movies', maxResultWindow = 80000) {
         try {
+            await this.ensureMoviesIndex();
             const response = await this.elasticsearchService.indices.putSettings({
                 index: indexName,
                 body: {
@@ -211,6 +252,7 @@ export class SearchService {
 
     async updateMappings(indexName = 'movies') {
         try {
+            await this.ensureMoviesIndex();
             const res = await this.elasticsearchService.indices.putMapping({
                 index: 'movies',
                 body: {
