@@ -9,6 +9,7 @@ import {
     SortCombinations,
 } from '@elastic/elasticsearch/lib/api/types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 
 import { MovieRepository } from './movie.repository';
 import { MovieResponseDto } from './dtos';
@@ -47,6 +48,7 @@ export class MovieService {
     private readonly logger: Logger;
     private readonly EXCLUDE_MOVIE_SRC: ('ophim' | 'kkphim' | 'nguonc')[] = [];
     private readonly genAI: GoogleGenerativeAI;
+    private readonly openAi: OpenAI;
     private readonly DEFAULT_AI_MODELS: string[] = [
         'models/gemini-2.5-flash-preview-04-17',
         'models/gemini-2.0-flash-thinking-exp-01-21',
@@ -77,7 +79,25 @@ export class MovieService {
             this.genAI = new GoogleGenerativeAI(googleApiKey);
             this.logger.log('[AI] Gemini AI initialized');
         } else {
-            this.logger.warn('[AI] Google API Key not provided. AI disabled.');
+            const useOpenAiCompatible =
+                this.configService.get<string>('GOOGLE_AI_USE_OPENAI_COMPATIBLE') === 'true';
+
+            if (useOpenAiCompatible) {
+                const apiKey = this.configService.get<string>('GOOGLE_AI_GPROXY_KEY');
+                const baseURL = this.configService.get<string>('GOOGLE_AI_GPROXY_BASE_URL');
+                if (apiKey && baseURL) {
+                    this.openAi = new OpenAI({ apiKey, baseURL });
+                    this.logger.log('[AI] OpenAI-compatible initialized (MovieService)');
+                } else {
+                    this.logger.warn(
+                        '[AI] OpenAI-compatible enabled but missing GOOGLE_AI_GPROXY_KEY/GOOGLE_AI_GPROXY_BASE_URL. AI disabled.',
+                    );
+                }
+            } else {
+                this.logger.warn(
+                    '[AI] Google API Key not provided and OpenAI-compatible is disabled. AI disabled.',
+                );
+            }
         }
     }
 
@@ -800,8 +820,8 @@ export class MovieService {
         countries?: string;
         years?: string;
     }) {
-        if (!this.genAI) {
-            this.logger.warn('Google API Key not provided. Skipping AI analysis.');
+        if (!this.genAI && !this.openAi) {
+            this.logger.warn('AI is disabled (no Gemini key and no OpenAI-compatible).');
             return null;
         }
 
@@ -811,36 +831,47 @@ export class MovieService {
         for (const modelName of modelsToTry) {
             try {
                 this.logger.log(`[AI] Attempting to use model: ${modelName}`);
-                const model = this.genAI.getGenerativeModel({
-                    model: modelName,
-                    systemInstruction: systemInstruction,
-                    generationConfig: {
-                        temperature: 0.3,
-                        topK: 35,
-                        topP: 0.8,
-                    },
-                });
-
                 let content = `User's query: "${keywords?.trim()}".`;
-                if (categories) {
-                    content += ` Categories: "${categories?.trim()}".`;
-                }
-                if (countries) {
-                    content += ` Countries: "${countries?.trim()}".`;
-                }
-                if (years) {
-                    content += ` Years: "${years?.trim()}".`;
+                if (categories) content += ` Categories: "${categories?.trim()}".`;
+                if (countries) content += ` Countries: "${countries?.trim()}".`;
+                if (years) content += ` Years: "${years?.trim()}".`;
+
+                let text = '';
+
+                if (this.genAI) {
+                    const model = this.genAI.getGenerativeModel({
+                        model: modelName,
+                        systemInstruction: systemInstruction,
+                        generationConfig: {
+                            temperature: 1,
+                            topK: 35,
+                            topP: 0.8,
+                        },
+                    });
+
+                    const result = await model.generateContent({
+                        contents: [
+                            {
+                                role: 'user',
+                                parts: [{ text: content }],
+                            },
+                        ],
+                    });
+                    text = result.response.text();
+                } else if (this.openAi) {
+                    const completion = await this.openAi.chat.completions.create({
+                        model: modelName,
+                        temperature: 1,
+                        top_p: 0.8,
+                        messages: [
+                            { role: 'system', content: systemInstruction },
+                            { role: 'user', content },
+                        ],
+                    });
+
+                    text = completion.choices?.[0]?.message?.content ?? '';
                 }
 
-                const result = await model.generateContent({
-                    contents: [
-                        {
-                            role: 'user',
-                            parts: [{ text: content }],
-                        },
-                    ],
-                });
-                const text = result.response.text();
                 this.logger.log(
                     `[AI] Response from model ${modelName}: ${text.substring(0, 100)}...`,
                 );
@@ -955,6 +986,7 @@ export class MovieService {
         }));
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async getTopViewedMovies(limit = 5): Promise<any[]> {
         const movies = await this.movieRepo.find({
             filterQuery: {},
@@ -998,6 +1030,7 @@ export class MovieService {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async getTrendingMovies(startDate: Date, limit = 5): Promise<any[]> {
         // Enhanced implementation that uses the actual update date
         // and view count to determine trending movies
@@ -1022,6 +1055,7 @@ export class MovieService {
         }));
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async getRecentlyUpdatedMovies(limit = 5): Promise<any[]> {
         return this.movieRepo.find({
             filterQuery: {},
@@ -1032,6 +1066,7 @@ export class MovieService {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async getRecentlyAddedMovies(limit = 5): Promise<any[]> {
         return this.movieRepo.find({
             filterQuery: {},
