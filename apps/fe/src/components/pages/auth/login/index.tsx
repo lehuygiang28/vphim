@@ -52,7 +52,7 @@ const translations = {
         ofUs: 'của chúng tôi',
         loginFailed: 'Đăng nhập thất bại, kiểm tra thông tin của bạn và thử lại sau',
         emailDisabled:
-            'Đăng nhập bằng email đang tạm tắt do hệ thống chưa cấu hình dịch vụ gửi mail. Vui lòng đăng nhập bằng Google hoặc Github.',
+            'Đăng nhập bằng email đang tạm tắt. Vui lòng đăng nhập bằng Google hoặc Github.',
         errorTitle: 'Lỗi',
     },
     en: {

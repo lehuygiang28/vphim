@@ -55,12 +55,13 @@ export const authProvider = (
 
                         if (
                             error.response?.status === 503 &&
-                            (error.response?.data as unknown as ProblemDetails)?.errors?.['mail'] ===
-                                'mail_not_configured'
+                            (error.response?.data as unknown as ProblemDetails)?.errors?.[
+                                'mail'
+                            ] === 'mail_not_configured'
                         ) {
                             resultResponse.error.name = 'Tạm thời không khả dụng';
                             resultResponse.error.message =
-                                'Đăng nhập bằng email đang tạm tắt do hệ thống chưa cấu hình dịch vụ gửi mail. Vui lòng đăng nhập bằng Google hoặc Github.';
+                                'Đăng nhập bằng email đang tạm tắt. Vui lòng đăng nhập bằng Google hoặc Github.';
                             return resultResponse;
                         }
 
