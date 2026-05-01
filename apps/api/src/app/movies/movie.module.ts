@@ -119,6 +119,8 @@ import { isNullOrUndefined } from '../../libs/utils';
             inject: [SearchService],
         },
     ],
-    exports: [MovieRepository, MovieService, SearchService, 'SEARCH_SERVICE'],
+    // Re-export ElasticsearchModule so ElasticsearchService is available
+    // to modules/controllers outside MovieModule (e.g. AppController health check).
+    exports: [ElasticsearchModule, MovieRepository, MovieService, SearchService, 'SEARCH_SERVICE'],
 })
 export class MovieModule {}
