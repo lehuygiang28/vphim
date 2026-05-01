@@ -222,7 +222,7 @@ export class MovieService {
 
         let aiFilter: QueryDslQueryContainer | null = null;
 
-        if (useAI && keywords && this.genAI) {
+        if (useAI && keywords && (this.genAI || this.openAi)) {
             try {
                 const aiFilterFromCached = await this.redisService.get<string>(aiFilterCacheKey);
                 aiFilter =

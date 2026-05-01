@@ -9,15 +9,85 @@ import {
 import { Response } from 'express';
 import { AppService } from './app.service';
 import { Logger } from '@nestjs/common';
+import { RedisService } from '../libs/modules/redis';
+import { ElasticsearchService } from '@nestjs/elasticsearch';
+import { InjectConnection } from '@nestjs/mongoose';
+import type { Connection } from 'mongoose';
 
 @Controller({ path: '/' })
 export class AppController {
     private readonly logger = new Logger(AppController.name);
-    constructor(private readonly appService: AppService) {}
+    constructor(
+        private readonly appService: AppService,
+        private readonly redisService: RedisService,
+        private readonly elasticsearchService: ElasticsearchService,
+        @InjectConnection() private readonly mongoConnection: Connection,
+    ) {}
 
     @Get('/ping')
     async getPing() {
         return 'pong';
+    }
+
+    @Get('/health')
+    async getHealth(@Res({ passthrough: true }) res: Response) {
+        const withTimeout = async <T>(p: Promise<T>, ms: number, label: string): Promise<T> => {
+            let timeoutId: NodeJS.Timeout | undefined;
+            const timeout = new Promise<never>((_, reject) => {
+                timeoutId = setTimeout(() => reject(new Error(`${label}_timeout`)), ms);
+            });
+            try {
+                return await Promise.race([p, timeout]);
+            } finally {
+                if (timeoutId) clearTimeout(timeoutId);
+            }
+        };
+
+        const startedAt = Date.now();
+
+        const [redis, elastic, mongo] = await Promise.allSettled([
+            withTimeout(this.redisService.getClient.ping(), 5000, 'redis_ping'),
+            withTimeout(this.elasticsearchService.ping(), 5000, 'elastic_ping'),
+            withTimeout(
+                this.mongoConnection?.db?.admin()?.ping?.() ?? Promise.resolve(null),
+                5000,
+                'mongo_ping',
+            ),
+        ]);
+
+        const redisOk = redis.status === 'fulfilled';
+        const elasticOk = elastic.status === 'fulfilled';
+        const mongoOk = mongo.status === 'fulfilled';
+
+        const ok = redisOk && elasticOk && mongoOk;
+        res.status(ok ? 200 : 503);
+
+        return {
+            ok,
+            uptimeMs: Math.max(0, Math.round(process.uptime() * 1000)),
+            latencyMs: Date.now() - startedAt,
+            services: {
+                api: { ok: true },
+                redis: redisOk
+                    ? { ok: true, result: redis.value }
+                    : {
+                          ok: false,
+                          error: (redis.reason as Error)?.message ?? String(redis.reason),
+                      },
+                elasticsearch: elasticOk
+                    ? { ok: true, result: elastic.value }
+                    : {
+                          ok: false,
+                          error: (elastic.reason as Error)?.message ?? String(elastic.reason),
+                      },
+                mongodb: mongoOk
+                    ? { ok: true, result: mongo.value }
+                    : {
+                          ok: false,
+                          error: (mongo.reason as Error)?.message ?? String(mongo.reason),
+                      },
+            },
+        };
     }
 
     /**
