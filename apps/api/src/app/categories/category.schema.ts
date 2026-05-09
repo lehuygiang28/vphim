@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import type { HydratedDocument } from 'mongoose';
-import type { Category as OPhimCategory } from 'ophim-js';
+import type { Category as OPhimCategory } from '../../libs/ophim-js';
 
 import { AbstractDocument } from '../../libs/abstract/abstract.schema';
 

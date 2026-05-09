@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import type { HydratedDocument } from 'mongoose';
-import type { Region as OPhimRegion } from 'ophim-js';
+import type { Region as OPhimRegion } from '../../libs/ophim-js';
 
 import { AbstractDocument } from '../../libs/abstract/abstract.schema';
 import { ApiProperty } from '@nestjs/swagger';

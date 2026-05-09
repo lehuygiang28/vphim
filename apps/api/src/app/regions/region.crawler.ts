@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { Types } from 'mongoose';
 import { CronJob } from 'cron';
-import { Ophim, Region as OPhimRegion } from 'ophim-js';
+import { Ophim, Region as OPhimRegion } from '../../libs/ophim-js';
 
 import { RegionRepository } from './region.repository';
 import { isNullOrUndefined } from '../../libs/utils/common';

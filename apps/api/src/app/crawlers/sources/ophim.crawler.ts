@@ -9,7 +9,7 @@ import {
     Movie as OPhimMovie,
     Server as OPhimServerData,
     OPhimResponseSingle,
-} from 'ophim-js';
+} from '../../../libs/ophim-js';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
 

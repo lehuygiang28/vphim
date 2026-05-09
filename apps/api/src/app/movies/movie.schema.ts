@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { Movie as OPhimMovie, ServerData as OPhimServerData } from 'ophim-js';
+import { Movie as OPhimMovie, ServerData as OPhimServerData } from '../../libs/ophim-js';
 
 import { AbstractDocument } from '../../libs/abstract/abstract.schema';
 import { SearchService } from './search.service';

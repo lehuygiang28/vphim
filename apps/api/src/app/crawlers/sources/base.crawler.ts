@@ -8,7 +8,7 @@ import slugify from 'slugify';
 import { removeDiacritics, removeTone } from '@vn-utils/text';
 import { Types } from 'mongoose';
 import type { MovieReleaseDatesResponse, ShowContentRatingResponse } from 'moviedb-promise';
-import { Movie as OPhimMovie } from 'ophim-js';
+import { Movie as OPhimMovie } from '../../../libs/ophim-js';
 
 import { RedisService } from '../../../libs/modules/redis';
 import { MovieRepository } from '../../movies/movie.repository';
