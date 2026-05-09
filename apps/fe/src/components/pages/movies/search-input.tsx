@@ -9,9 +9,9 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { KEYWORDS_MAX_LENGTH } from 'apps/api/src/app/movies/movie.constant';
-import TextArea from 'antd/es/input/TextArea';
 
 const { useBreakpoint } = Grid;
+const { TextArea } = Input;
 
 interface SearchInputProps {
     value?: string;
