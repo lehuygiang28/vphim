@@ -39,7 +39,7 @@ export const metadata: Metadata = {
         address: false,
         telephone: false,
     },
-    metadataBase: new URL('https://vephim.online/'),
+    metadataBase: new URL('https://vephim.vercel.app/'),
     alternates: {
         canonical: '/',
         languages: {
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
         title: 'VePhim - Xem phim miễn phí, cập nhật phim mới hàng ngày, chất lượng cao',
         description:
             'VePhim - Trang web xem phim miễn phí với đa dạng thể loại và quốc gia. Cập nhật phim mới hàng ngày, chất lượng cao, phụ đề đầy đủ.',
-        url: 'https://vephim.online/',
+        url: 'https://vephim.vercel.app/',
         siteName: 'VePhim',
         images: [
             {
@@ -144,15 +144,16 @@ export default function DefaultNoLayoutStyle({
             <body>
                 <AntdRegistry ssrInline defaultCache>
                     <Suspense>
-                        <CopilotKit
+                        {/* <CopilotKit
                             runtimeUrl={`${process.env.NEXT_PUBLIC_API_URL}/api/copilotkit`}
-                        >
-                            <RefineContext defaultMode={'dark'}>
-                                {children}
-                                {auth}
-                                {noauth}
-                            </RefineContext>
-                        </CopilotKit>
+
+                        > */}
+                        <RefineContext defaultMode={'dark'}>
+                            {children}
+                            {auth}
+                            {noauth}
+                        </RefineContext>
+                        {/* </CopilotKit> */}
                     </Suspense>
                 </AntdRegistry>
                 <Analytics />

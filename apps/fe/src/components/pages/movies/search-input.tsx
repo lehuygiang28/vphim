@@ -5,10 +5,11 @@ import './search-input.css';
 import { useState, useRef, useEffect } from 'react';
 import { Input, Button, Grid } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { CopilotTextarea } from '@copilotkit/react-textarea';
+// import { CopilotTextarea } from '@copilotkit/react-textarea';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { KEYWORDS_MAX_LENGTH } from 'apps/api/src/app/movies/movie.constant';
+import TextArea from 'antd/es/input/TextArea';
 
 const { useBreakpoint } = Grid;
 
@@ -102,7 +103,7 @@ export function SearchInput({
         >
             <div className={`search-input-layer ${isAIMode ? 'visible' : ''}`}>
                 <div className="textarea-wrapper">
-                    <CopilotTextarea
+                    <TextArea
                         ref={textareaRef}
                         className="copilot-textarea"
                         placeholder={aiPlaceholder}
@@ -112,18 +113,18 @@ export function SearchInput({
                             updateHeight();
                         }}
                         disabled={loading}
-                        disableBranding
+                        // disableBranding
                         autoFocus={false}
                         maxLength={maxLength}
-                        autosuggestionsConfig={{
-                            textareaPurpose: `Vietnamese language preferred. The description should be detailed or specific about movie content, scenes, or emotions you are looking for.`,
-                            chatApiConfigs: {
-                                suggestionsApiConfig: {
-                                    maxTokens: 100,
-                                    stop: ['.', '?', '!', '\n'],
-                                },
-                            },
-                        }}
+                        // autosuggestionsConfig={{
+                        //     textareaPurpose: `Vietnamese language preferred. The description should be detailed or specific about movie content, scenes, or emotions you are looking for.`,
+                        //     chatApiConfigs: {
+                        //         suggestionsApiConfig: {
+                        //             maxTokens: 100,
+                        //             stop: ['.', '?', '!', '\n'],
+                        //         },
+                        //     },
+                        // }}
                     />
                     <div className="search-button-wrapper">
                         <Button
