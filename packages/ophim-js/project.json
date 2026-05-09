@@ -1,0 +1,19 @@
+{
+    "name": "ophim-js",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/ophim-js/src",
+    "projectType": "library",
+    "tags": [],
+    "targets": {
+        "build": {
+            "executor": "@nx/js:tsc",
+            "outputs": ["{options.outputPath}"],
+            "options": {
+                "outputPath": "packages/ophim-js/dist",
+                "main": "packages/ophim-js/src/index.ts",
+                "tsConfig": "packages/ophim-js/tsconfig.lib.json"
+            }
+        },
+        "lint": { "executor": "@nx/eslint:lint" }
+    }
+}

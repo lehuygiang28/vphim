@@ -11818,7 +11818,6 @@ __metadata:
     nodemailer: "npm:^6.9.14"
     nx: "npm:19.6.2"
     openai: "npm:^4.85.1"
-    ophim-js: "npm:^0.0.6"
     otplib: "npm:^12.0.1"
     passport: "npm:^0.7.0"
     passport-jwt: "npm:^4.0.1"
@@ -25126,13 +25125,6 @@ __metadata:
     object-hash: "npm:^2.2.0"
     oidc-token-hash: "npm:^5.0.3"
   checksum: 10c0/4308dcd37a9ffb1efc2ede0bc556ae42ccc2569e71baa52a03ddfa44407bf403d4534286f6f571381c5eaa1845c609ed699a5eb0d350acfb8c3bacb72c2a6890
-  languageName: node
-  linkType: hard
-
-"ophim-js@npm:^0.0.6":
-  version: 0.0.6
-  resolution: "ophim-js@npm:0.0.6"
-  checksum: 10c0/fa8cae8e62c983eab9980c6021eeb8401be91f1d474df7cbe28d7582b2f3f5a5ce53d83a59abd48a4c3d1a8077b026273c91d36f662cb376f7a0947d465462c4
   languageName: node
   linkType: hard
 

@@ -1,0 +1,11 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(rtk grep *)",
+            "Bash(rtk ls *)",
+            "Bash(rtk read *)",
+            "Bash(yarn nx *)",
+            "Bash(rtk tsc *)"
+        ]
+    }
+}

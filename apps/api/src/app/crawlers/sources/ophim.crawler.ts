@@ -4,8 +4,12 @@ import { ConfigService } from '@nestjs/config';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { Types } from 'mongoose';
-import { Ophim, Movie as OPhimMovie, Server as OPhimServerData } from 'ophim-js';
-import { OPhimResponseSingle } from 'ophim-js/lib/types/response-wrapper';
+import {
+    Ophim,
+    Movie as OPhimMovie,
+    Server as OPhimServerData,
+    OPhimResponseSingle,
+} from 'ophim-js';
 import slugify from 'slugify';
 import { stripHtml } from 'string-strip-html';
 

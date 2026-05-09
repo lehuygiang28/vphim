@@ -17,6 +17,8 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["apps/fe/src/*"],
+            "ophim-js": ["packages/ophim-js/src/index.ts"],
+            "ophim-js/*": ["packages/ophim-js/src/*"],
             "~api/app/*": ["apps/api/src/app/*"],
             "~api/libs/*": ["apps/api/src/libs/*"],
             "~fe/*": ["apps/fe/src/*"],
